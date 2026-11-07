@@ -1727,7 +1727,8 @@
       "styles": [
         "apps/web/src/styles/library.css",
         "apps/web/src/styles/manage.css",
-        "packages/design-system/styles/buttons.css"
+        "packages/design-system/styles/buttons.css",
+        "packages/design-system/styles/search-field.css"
       ],
       "usage": "The search field: a filled pill with the glyph inside it, as a search bar is in every Google app. The glyph and the placeholder say what it is. Focus lifts it (the overlay fill and a hairline; the design is flat, so no shadow); the ring is the keyboard's only (data-input, app.ts), so a tap, a click or typing never draws it. Library, Sources and every topic's page share this one field (2026-10-21; styles.test.ts holds them to it).",
       "tokens": [

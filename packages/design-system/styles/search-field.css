@@ -1,0 +1,68 @@
+/*
+ * The search field: a filled pill with its glyph and its input, as the reader's Library, Sources and
+ * topic pages and the style guide draw it. Moved here unchanged from the reader's library.css (D382
+ * step 4e), which imports it first; the reader's clear button (.search-wrap, .search-clear) stays
+ * there with the script that shows it.
+ */
+
+/* The search field: a filled pill with the glyph inside it, as a search bar is in every Google app.
+   The glyph and the placeholder say what it is. Focus lifts it (the overlay fill and a hairline;
+   the design is flat, so no shadow); the ring is the keyboard's only (data-input, app.ts), so a tap,
+   a click or typing never draws it. Library, Sources and every topic's page share this one field
+   (2026-10-21; styles.test.ts holds them to it). */
+.search-field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: var(--field-height);
+  padding-inline: var(--space-4);
+  border-radius: var(--shape-round);
+  background: var(--color-surface-container);
+  color: var(--color-on-surface-muted);
+  cursor: text;
+  transition: background-color var(--duration-hover) var(--ease-hover);
+}
+
+/* Focus steps the pill a quiet shade toward its text, in the mood's hue, with a control-weight
+   hairline inside it, since the step alone sits close to the pill. It was the overlay surface,
+   which is white in every light mood and glared on the page (owner, 2026-11-06). */
+.search-field:focus-within {
+  background: var(--color-surface-container-focus);
+  box-shadow: inset 0 0 0 var(--stroke-hairline) var(--color-border-control);
+}
+
+:root[data-input="keyboard"] .search-field:focus-within {
+  outline: var(--stroke-ring) solid var(--color-focus-ring);
+  outline-offset: var(--stroke-ring-gap);
+}
+
+.search-field > input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-on-surface);
+  outline: none;
+  box-shadow: none;
+}
+
+.search-field > input::placeholder {
+  color: var(--color-on-surface-muted);
+  /* One hint size in every field (2026-11-02, field.css): a step under the typed text. */
+  font-size: var(--text-meta-size);
+  opacity: 1;
+}
+
+/* The native clear button is hidden, as it differs in every browser. */
+.search-field > input::-webkit-search-cancel-button {
+  appearance: none;
+  display: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .search-field:hover:not(:focus-within) {
+    background: var(--color-surface-container-hover);
+  }
+}

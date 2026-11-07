@@ -1353,10 +1353,11 @@ describe("design-system components in page stylesheets", () => {
 
 describe("component stylesheets", () => {
   it("covers every stylesheet the layout or an island imports", () => {
-    // The command center (D224) imports the Costs and Health sheets from here.
+    // The command center (D224) imports the Costs and Health sheets from here. A sheet may import
+    // another (settings.css takes the page frame from the system).
     const sources = [SRC, SYSTEM_SRC, join(SRC, "..", "..", "admin", "src")].flatMap((src) =>
       readdirSync(src, { recursive: true, encoding: "utf8" })
-        .filter((file) => /\.(astro|tsx)$/.test(file))
+        .filter((file) => /\.(astro|tsx|css)$/.test(file))
         .map((file) => readFileSync(join(src, file), "utf8")),
     );
     const imported = sources.flatMap((text) =>

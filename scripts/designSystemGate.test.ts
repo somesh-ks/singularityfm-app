@@ -4,7 +4,10 @@ import { describe, expect, it } from "vitest";
 import {
   ALLOWLISTS,
   allowlistAdditions,
+  appBoundaryProblems,
+  appSources,
   boundaryProblems,
+  CROSS_APP_IMPORTS,
   checkDesignSystemPr,
   listEntries,
   SYSTEM_NAMES,
@@ -235,5 +238,25 @@ describe("design-system gate", () => {
     expect(sources.length).toBeGreaterThan(20);
     expect(sources.some(({ file }) => file.includes("/scripts/system/"))).toBe(true);
     expect(boundaryProblems(sources)).toEqual([]);
+  });
+
+  // The guide drew its page frame and search field from the reader's folder (D382 step 4e), so a
+  // reader edit restyled the guide and nothing said so. An app takes shared parts from the package.
+  it("fails an app that takes a part from another app's folder, and keeps the old reaches frozen", () => {
+    const guide = "apps/design/src/layouts/Shell.astro";
+    const text = [
+      'import "@singularity/design-system/styles/page-frame.css";',
+      'import "../../../web/src/styles/settings.css";',
+      'import { SUPPORTED_TIMEZONES } from "@singularity/core/time";',
+    ].join("\n");
+    expect(appBoundaryProblems([{ file: guide, text }])).toEqual([
+      `${guide}: ../../../web/src/styles/settings.css`,
+      `${guide}: @singularity/core/time`,
+    ]);
+    const sources = appSources(join(import.meta.dirname, ".."));
+    expect(sources.some(({ file }) => file.startsWith("apps/design/src/"))).toBe(true);
+    expect(appBoundaryProblems(sources)).toEqual([]);
+    // A reach that is gone leaves the list, so it cannot come back unseen.
+    expect(appBoundaryProblems(sources, []).sort()).toEqual([...CROSS_APP_IMPORTS].sort());
   });
 });

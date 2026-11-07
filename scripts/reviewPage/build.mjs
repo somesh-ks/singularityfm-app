@@ -127,7 +127,7 @@ export function normalise(review, dir) {
 }
 
 function iconSvgs() {
-  const src = readFileSync(join(ROOT, "apps", "web", "src", "lib", "icons.ts"), "utf8");
+  const src = readFileSync(join(ROOT, "packages", "design-system", "src", "icons.ts"), "utf8");
   const out = {};
   for (const name of ICONS) {
     const m = new RegExp(`\\n  ${name}:\\s*"([^"]+)"`).exec(src);

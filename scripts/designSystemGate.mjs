@@ -126,6 +126,8 @@ export const SYSTEM_NAMES =
 const PACKAGE_DIR = "packages/design-system/";
 const SOURCE_FILE = /\.(?:ts|tsx|astro|mjs|js)$/;
 const IMPORT = /(?:from|import)\s*\(?\s*["']([^"'\s]+)["']/g;
+/** An app's imports: the JS forms, CSS @import "x", and a stylesheet's url(x), which the first form misses. */
+const APP_IMPORT = new RegExp(`${IMPORT.source}|url\\(\\s*["']?([^"')\\s]+)["']?\\s*\\)`, "g");
 /** The workspace package the system may name: itself. It depends on none (D382 step 4c). */
 const WORKSPACE_ALLOWED = ["@singularity/design-system"];
 
@@ -209,7 +211,8 @@ const APP_SKIP = new Set(["node_modules", "dist", "test-results", "playwright-re
 export function appBoundaryProblems(sources, allowed = CROSS_APP_IMPORTS) {
   return sources.flatMap(({ file, text }) => {
     const app = file.split("/")[1];
-    return [...text.matchAll(IMPORT)].flatMap(([, specifier]) => {
+    return [...text.matchAll(APP_IMPORT)].flatMap(([, quoted, linked]) => {
+      const specifier = quoted ?? linked;
       const reach = `${file}: ${specifier}`;
       const target = specifier.startsWith(".")
         ? posix.join(posix.dirname(file), specifier.replace(/[?#].*$/, ""))
@@ -218,8 +221,11 @@ export function appBoundaryProblems(sources, allowed = CROSS_APP_IMPORTS) {
         /^apps\/([^/]+)\//.exec(target)?.[1] ??
         /^@singularity\/(web|admin|design)(?:\/|$)/.exec(specifier)?.[1];
       const workspace = /^@singularity\/[^/]+/.exec(specifier)?.[0];
+      // The guide takes no workspace package but the system, by path (packages/core/...) as by name.
+      const intoPackage = /^packages\/(?!design-system\/)/.test(target);
       const leaves =
         (other !== undefined && other !== app) ||
+        (app === "design" && intoPackage) ||
         (app === "design" && workspace !== undefined && !WORKSPACE_ALLOWED.includes(workspace));
       return leaves && !allowed.includes(reach) ? [reach] : [];
     });

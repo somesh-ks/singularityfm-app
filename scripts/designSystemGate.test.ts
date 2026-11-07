@@ -249,6 +249,18 @@ describe("design-system gate", () => {
       'import "../../../web/src/styles/settings.css";',
       'import { SUPPORTED_TIMEZONES } from "@singularity/core/time";',
     ].join("\n");
+    // A stylesheet reaches by url() as well, and a relative path into another package leaves the app.
+    expect(
+      appBoundaryProblems([
+        {
+          file: "apps/design/src/styles/guide.css",
+          text: '@import url("../../../web/src/styles/settings.css");\nbody { background: url(../../../../packages/core/src/x.svg); }',
+        },
+      ]),
+    ).toEqual([
+      "apps/design/src/styles/guide.css: ../../../web/src/styles/settings.css",
+      "apps/design/src/styles/guide.css: ../../../../packages/core/src/x.svg",
+    ]);
     expect(appBoundaryProblems([{ file: guide, text }])).toEqual([
       `${guide}: ../../../web/src/styles/settings.css`,
       `${guide}: @singularity/core/time`,

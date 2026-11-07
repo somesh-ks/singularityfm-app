@@ -24,3 +24,12 @@ export declare function checkDesignSystemPr(input: {
 export declare function boundaryProblems(sources: { file: string; text: string }[]): string[];
 /** Every source file under design-system/ (read from `root`), as boundaryProblems takes them. */
 export declare function systemSources(root: string): { file: string; text: string }[];
+/** What one app still takes from another app's folder, as "file: specifier"; the list only shrinks. */
+export declare const CROSS_APP_IMPORTS: string[];
+/** Imports in an app that reach another app (or, in the guide, a workspace package besides the system). */
+export declare function appBoundaryProblems(
+  sources: { file: string; text: string }[],
+  allowed?: string[],
+): string[];
+/** Every source file and stylesheet under apps/web, apps/admin and apps/design (read from `root`). */
+export declare function appSources(root: string): { file: string; text: string }[];

@@ -1,15 +1,12 @@
 ---
 interface Props {
   title: string;
-  /** One quiet line under the title: what the page is for. */
-  note?: string;
 }
 
-const { title, note } = Astro.props;
+const { title } = Astro.props;
 ---
 
-{/* A page's title and its one line, as a settings page draws them (settings.css). */}
+{/* A page's title, as a settings page draws it (page-frame.css). */}
 <header class="settings-head">
   <h1 class="page-title text-display" id="page-title" tabindex="-1">{title}</h1>
-  {note && <p class="settings-note">{note}</p>}
 </header>

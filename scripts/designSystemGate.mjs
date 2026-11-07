@@ -126,6 +126,8 @@ export const SYSTEM_NAMES =
 const PACKAGE_DIR = "packages/design-system/";
 const SOURCE_FILE = /\.(?:ts|tsx|astro|mjs|js)$/;
 const IMPORT = /(?:from|import)\s*\(?\s*["']([^"'\s]+)["']/g;
+/** An app's imports: the JS forms, CSS @import "x", and a stylesheet's url(x), which the first form misses. */
+const APP_IMPORT = new RegExp(`${IMPORT.source}|url\\(\\s*["']?([^"')\\s]+)["']?\\s*\\)`, "g");
 /** The workspace package the system may name: itself. It depends on none (D382 step 4c). */
 const WORKSPACE_ALLOWED = ["@singularity/design-system"];
 
@@ -163,6 +165,86 @@ export function systemSources(root) {
     }
   };
   walk(PACKAGE_DIR.slice(0, -1));
+  return found;
+}
+
+/**
+ * What one app still takes from another app's folder (D382 step 4e: the reader, the admin and the
+ * guide each take a shared part from the package, never from another app). The guide takes nothing;
+ * these are the admin's Health, Costs and Experiments pages, drawn with reader parts not yet in the
+ * package (the toaster and its sheets, the settings rows),
+ * the health checks' data both read, and the admin's session gate the reader's API checks. The list
+ * only shrinks: a new reach fails, and so does an entry that no longer reaches.
+ */
+export const CROSS_APP_IMPORTS = [
+  "apps/admin/src/layouts/Shell.astro: ../../../web/src/styles/settings.css",
+  "apps/admin/src/layouts/Shell.astro: ../../../web/src/styles/manage.css",
+  "apps/admin/src/layouts/Shell.astro: ../../../web/src/styles/health.css",
+  "apps/admin/src/layouts/Shell.astro: ../../../web/src/styles/costs.css",
+  "apps/admin/src/lib/pillars.ts: ../../../web/src/lib/healthRows",
+  "apps/admin/src/pages/experiments.astro: ../../../web/src/sheets/Toaster",
+  "apps/admin/src/pages/experiments.astro: ../../../web/src/styles/create-sheet.css",
+  "apps/admin/src/pages/experiments.astro: ../../../web/src/styles/episode-actions.css",
+  "apps/admin/src/pages/experiments.astro: ../../../web/src/styles/sheets.css",
+  "apps/admin/src/pages/experiments.astro: ../../../web/src/styles/player.css",
+  "apps/admin/src/pages/health.astro: ../../../web/src/lib/healthRows",
+  "apps/admin/src/scripts/costsPage.ts: ../../../web/src/lib/brandMarks",
+  "apps/admin/src/scripts/costsPage.ts: ../../../web/src/scripts/segmentedNav",
+  "apps/admin/src/scripts/experiments.ts: ../../../web/src/scripts/pageLeaving",
+  "apps/admin/src/scripts/experiments.ts: ../../../web/src/scripts/toastEvent",
+  "apps/admin/src/scripts/healthPage.ts: ../../../web/src/lib/healthRows",
+  "apps/admin/src/scripts/healthPage.ts: ../../../web/src/scripts/segmentedNav",
+  "apps/admin/src/scripts/healthSummary.ts: ../../../web/src/lib/healthRows",
+  "apps/web/e2e/slowStore.spec.ts: ../../admin/src/lib/experimentsApi",
+  "apps/web/src/server/adminGuard.test.ts: ../../../admin/src/gate/session",
+  "apps/web/src/server/adminGuard.ts: ../../../admin/src/gate/session",
+];
+
+const APP_FILE = /\.(?:ts|tsx|astro|mjs|js|css)$/;
+const APP_SKIP = new Set(["node_modules", "dist", "test-results", "playwright-report"]);
+
+/**
+ * Each import in an app that reaches another app's folder or package (`@singularity/web`, `admin`,
+ * `design`), and each workspace package the guide names besides the system, as "file: specifier",
+ * leaving out the reaches `allowed` lists.
+ */
+export function appBoundaryProblems(sources, allowed = CROSS_APP_IMPORTS) {
+  return sources.flatMap(({ file, text }) => {
+    const app = file.split("/")[1];
+    return [...text.matchAll(APP_IMPORT)].flatMap(([, quoted, linked]) => {
+      const specifier = quoted ?? linked;
+      const reach = `${file}: ${specifier}`;
+      const target = specifier.startsWith(".")
+        ? posix.join(posix.dirname(file), specifier.replace(/[?#].*$/, ""))
+        : specifier;
+      const other =
+        /^apps\/([^/]+)\//.exec(target)?.[1] ??
+        /^@singularity\/(web|admin|design)(?:\/|$)/.exec(specifier)?.[1];
+      const workspace = /^@singularity\/[^/]+/.exec(specifier)?.[0];
+      // The guide takes no workspace package but the system, by path (packages/core/...) as by name.
+      const intoPackage = /^packages\/(?!design-system\/)/.test(target);
+      const leaves =
+        (other !== undefined && other !== app) ||
+        (app === "design" && intoPackage) ||
+        (app === "design" && workspace !== undefined && !WORKSPACE_ALLOWED.includes(workspace));
+      return leaves && !allowed.includes(reach) ? [reach] : [];
+    });
+  });
+}
+
+/** Every source file and stylesheet of the reader, the admin and the guide, as appBoundaryProblems reads them. */
+export function appSources(root) {
+  const found = [];
+  const walk = (dir) => {
+    for (const entry of readdirSync(join(root, dir), { withFileTypes: true })) {
+      const path = posix.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        if (!APP_SKIP.has(entry.name) && !entry.name.startsWith(".")) walk(path);
+      } else if (APP_FILE.test(entry.name))
+        found.push({ file: path, text: readFileSync(join(root, path), "utf8") });
+    }
+  };
+  for (const app of ["web", "admin", "design"]) walk(`apps/${app}`);
   return found;
 }
 
@@ -335,6 +417,11 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   for (const reach of boundaryProblems(systemSources(process.cwd()))) {
     problems.push(
       `${reach} leaves the design system's package for app code. The system imports only its own files: move the module into packages/design-system/, or pass the value in as a prop.`,
+    );
+  }
+  for (const reach of appBoundaryProblems(appSources(process.cwd()))) {
+    problems.push(
+      `${reach} takes a part from another app's folder. An app takes a shared part from the design system's package: move it into packages/design-system/.`,
     );
   }
   for (const problem of problems) console.log(`::error::${problem}`);

@@ -1,4 +1,6 @@
 ---
+import ChapterAside from "@singularity/design-system/ChapterAside.astro";
+import SectionTabs from "@singularity/design-system/SectionTabs.astro";
 import type { AlbumOption } from "../lib/catchUps";
 import { episodeCover } from "../lib/covers";
 import { storyCount } from "../lib/digestView";
@@ -11,14 +13,12 @@ import type { SectionRef } from "../lib/sectionLabel";
 import { sharedPlayer, sharedTarget } from "../lib/share";
 import AmbientLight from "./AmbientLight.astro";
 import Chapter from "./Chapter.astro";
-import ChapterAside from "./ChapterAside.astro";
 import Cover from "./Cover.astro";
 import EpisodeActions from "./EpisodeActions.astro";
 import HeroMarks from "./HeroMarks.astro";
 import HeroMenu from "./HeroMenu.astro";
 import PlayCta from "./PlayCta.astro";
 import PlayerData from "./PlayerData.astro";
-import SectionTabs from "./SectionTabs.astro";
 import StoryControls from "./StoryControls.astro";
 import "../styles/episode.css";
 

@@ -1,0 +1,66 @@
+/*
+ * A page's frame: the view root's top and bottom air, its title block (.settings-head) and its group
+ * heads (.section-head), with the space between groups. The reader's Settings and Manage pages, the
+ * admin and the style guide draw their pages with it. Moved here unchanged from the reader's
+ * settings.css (D382 step 4e), which imports it first, so the reader's cascade is as it was.
+ */
+
+.settings-view {
+  /* The segmented choices and the slider share one width from 40rem, so their edges line up. */
+  --settings-control-width: 22rem;
+  padding-block: var(--page-top) var(--space-8);
+}
+
+/* The heading takes focus after a navigation, as a place to read from, not as a control. */
+.settings-view h1:focus {
+  outline: none;
+}
+
+/* One air under every settings page's title, crumb and note, 24px to the first block, set here alone
+   (owner, 2026-10-27: "the content is too close to the header, be consistent everywhere"); a page's
+   first block takes no top air of its own. A title inside a card (a category's) has the card's. */
+.settings-head {
+  margin-block-end: var(--space-6);
+}
+
+.settings-head h1:focus {
+  outline: none;
+}
+
+/* A group's name is the page's H2 (2026-10-20): 18px rising to 20px, regular, in the text colour, a
+   clear step under the 28 to 32px title and told apart from it by size and space alone, never by
+   weight; 22px read as too big beside the rows (the owner, the same day). More air above than below:
+   it belongs to its rows. */
+:is(.settings-view, .manage) .section-head {
+  padding-block: var(--space-8) var(--space-4);
+  font-family: var(--text-heading-family);
+  font-size: var(--text-title-size);
+  font-weight: var(--text-heading-weight);
+  letter-spacing: var(--font-tracking-title);
+  line-height: var(--font-leading-title);
+  color: var(--color-on-surface);
+}
+
+/* The first group sits closer to the page title than the groups sit to each other. */
+.settings-view > section:first-of-type .section-head {
+  padding-block-start: var(--space-6);
+}
+
+/* Groups are told apart by space, not lines: more air between two groups than between two rows. */
+/* Groups are spaced by their heads' own air alone, the same 32px as on every settings page. */
+.settings-view > section + section {
+  margin-block-start: 0;
+}
+
+/* A card with no head of its own (Haptics, under Interface sounds) has no head's air above it, so it
+   would sit against the card before. It takes the head's 32px above instead. */
+.settings-view > section + section:not(:has(> .section-head)) {
+  margin-block-start: var(--space-8);
+}
+
+/* A page whose only card has no head of its own (Interface sounds, Podcast voice) keeps 24px under
+   the page's note (2026-10-22): .settings-head's own margin gives it since 2026-10-27, and a first
+   group head drops its top air, so every page's first block starts the same 24px under the title. */
+.settings-head ~ section:first-of-type > .section-head:first-child {
+  padding-block-start: 0;
+}

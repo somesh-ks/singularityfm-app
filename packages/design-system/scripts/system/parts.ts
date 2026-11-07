@@ -150,7 +150,7 @@ export const PARTS: PartSource[] = [
     kind: "navigation",
     summary: "A sticky strip of links to the sections of one page.",
     classes: ["tabs-bar", "tab", "tabs-in-card"],
-    files: ["apps/web/src/components/SectionTabs.astro"],
+    files: ["packages/design-system/src/SectionTabs.astro"],
     when: ["jump to the sections of a briefing or an episode", "tabs inside a card"],
     not: [{ when: "switching between two views", use: "segmented-nav" }],
     keywords: ["anchor links", "section nav"],

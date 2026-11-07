@@ -216,7 +216,6 @@ const NOT_YET_COMPONENTS = [
   "player-source-link",
   "edit-address-link",
   "story-link",
-  "aside-link",
   "skip-link",
   "card-link",
 ];

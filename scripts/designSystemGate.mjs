@@ -170,12 +170,11 @@ export function systemSources(root) {
  * What one app still takes from another app's folder (D382 step 4e: the reader, the admin and the
  * guide each take a shared part from the package, never from another app). The guide takes nothing;
  * these are the admin's Health, Costs and Experiments pages, drawn with reader parts not yet in the
- * package (the contents aside, the section tabs, the toaster and its sheets, the settings rows),
+ * package (the toaster and its sheets, the settings rows),
  * the health checks' data both read, and the admin's session gate the reader's API checks. The list
  * only shrinks: a new reach fails, and so does an entry that no longer reaches.
  */
 export const CROSS_APP_IMPORTS = [
-  "apps/admin/src/layouts/Shell.astro: ../../../web/src/styles/aside.css",
   "apps/admin/src/layouts/Shell.astro: ../../../web/src/styles/settings.css",
   "apps/admin/src/layouts/Shell.astro: ../../../web/src/styles/manage.css",
   "apps/admin/src/layouts/Shell.astro: ../../../web/src/styles/health.css",
@@ -186,8 +185,6 @@ export const CROSS_APP_IMPORTS = [
   "apps/admin/src/pages/experiments.astro: ../../../web/src/styles/episode-actions.css",
   "apps/admin/src/pages/experiments.astro: ../../../web/src/styles/sheets.css",
   "apps/admin/src/pages/experiments.astro: ../../../web/src/styles/player.css",
-  "apps/admin/src/pages/health.astro: ../../../web/src/components/ChapterAside.astro",
-  "apps/admin/src/pages/health.astro: ../../../web/src/components/SectionTabs.astro",
   "apps/admin/src/pages/health.astro: ../../../web/src/lib/healthRows",
   "apps/admin/src/scripts/costsPage.ts: ../../../web/src/lib/brandMarks",
   "apps/admin/src/scripts/costsPage.ts: ../../../web/src/scripts/segmentedNav",

@@ -65,7 +65,7 @@ Unit (CI): 367 files, 5,572 tests, 2 min. Site e2e: 449, 14 min. Player: 80, 7 m
 - Admin Stage times (D260): `singularity-admin` needs `DATABASE_URL` and postgres. closed when: runs show.
 - Owner config out of git (D296, merged). The 11-02 dry run's gate log said `config store:` and it published. closed when: the Vercel build log says `store on; from the store:`, audio publishing keeps the owner's voice, and the cron answers 200.
 - Config store (D149, D296): Vercel has `SINGULARITY_CONFIG_STORE` and `DATABASE_URL` (checked 11-01); the Actions variable is unreadable, so `health` faults `config_store_split` when the site and runs disagree. closed when: a phone's edit shows on a laptop and health passes the config-store line.
-- `SINGULARITY_GH_TOKEN` live write untested; old-name fallback in. closed when: Generate dispatches, fallback gone.
+- Live `SINGULARITY_GH_TOKEN` write access untested. closed when: Generate dispatches.
 - 45 older items are parked in history (`#parked`; [2026-10-31 trim](history/2026-10-31-state-trim.md)). closed when: each closes.
 
 ## Known risks

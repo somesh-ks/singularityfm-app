@@ -1,5 +1,6 @@
 import { createHash, randomUUID } from "node:crypto";
 import { mkdir, readdir, readFile, rename, writeFile } from "node:fs/promises";
+import { createRequire } from "node:module";
 import { join } from "node:path";
 import type { Digest } from "@singularity/core";
 import {
@@ -103,6 +104,23 @@ export async function rendererFingerprint(
     hash.update(await readFile(file));
   }
   return hash.digest("hex");
+}
+
+let fingerprint: Promise<string> | undefined;
+
+/**
+ * Hashed once per build: the cover package's source and fonts, and the palettes it draws with, from
+ * the design system package it pins (D382 step 8: installed, not a repo folder).
+ */
+export function coverRendererFingerprint(root: string): Promise<string> {
+  const palettes = createRequire(join(root, "packages", "cover", "package.json")).resolve(
+    "@singularity/design-system/tokens/covers.json",
+  );
+  fingerprint ??= rendererFingerprint(
+    [join(root, "packages", "cover", "src"), join(root, "packages", "cover", "fonts")],
+    [palettes],
+  );
+  return fingerprint;
 }
 
 /** Deterministic cache key for one image: same digest cover, same renderer, same size. */

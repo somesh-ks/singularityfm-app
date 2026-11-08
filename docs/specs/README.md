@@ -22,5 +22,5 @@ What each capability does now, one file each. A spec states requirements in the 
 | Notifications | [notifications.md](notifications.md) | `apps/web/src/server/pushWatch.ts` |
 | Navigation and offline | [navigation-and-offline.md](navigation-and-offline.md) | `apps/web/public/sw.js` |
 | Look and sound | [look-and-sound.md](look-and-sound.md) | `apps/web/src/styles` |
-| Motion | [motion.md](motion.md) | `packages/design-system/tokens/tokens.json` |
-| Style guide | [style-guide.md](style-guide.md) | `apps/design` |
+| Motion | [motion.md](motion.md) | `@singularityfm/design-system/tokens/tokens.json` |
+| Style guide | [in the design system repo](https://github.com/somesh-ks/singularityfm-design-system/blob/main/docs/specs/style-guide.md) | `apps/design` there |

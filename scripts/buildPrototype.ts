@@ -11,6 +11,7 @@ import {
   bundleScript,
   fillTemplate,
   fontsCss,
+  packageFile,
   ROOT,
   readText,
   themeColors,
@@ -23,7 +24,7 @@ async function main(): Promise<void> {
     THEME_DARK: colors.dark,
     FONTS: fontsCss(),
     TOKENS: buildTokensCss(),
-    FOUNDATIONS: readText("packages/design-system/styles/foundations.css"),
+    FOUNDATIONS: readText(packageFile("styles/foundations.css")),
     PROTOTYPE: readText("scripts/prototype/ui-prototype.css"),
     SCRIPT: await bundleScript("scripts/prototype/main.ts"),
   });

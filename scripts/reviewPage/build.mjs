@@ -9,16 +9,26 @@
  * <review-dir> holds review.json and the stills it names (paths relative to it). Writes
  * <review-dir>/index.html and prints the Artifact publish call. The Artifact tool publishes only from
  * the working directory or the session's scratchpad, so --out copies the page and its stills there. The app's tokens, font, icons and the
- * Button, Badge, Banner and Icon rules are read from apps/web at build time, so the page follows the
+ * Button, Badge, Banner and Icon rules are read from the pinned design system package at build time, so the page follows the
  * design system as it changes. Plain Node, no dependencies.
  */
 import { cpSync, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, "..", "..");
-const STYLES = join(ROOT, "packages", "design-system", "styles");
+/** The pinned design system package (D382 step 8), as the reader installs it. */
+const SYSTEM = join(
+  dirname(
+    createRequire(join(ROOT, "apps", "web", "package.json")).resolve(
+      "@singularity/design-system/flags/LICENSE.txt",
+    ),
+  ),
+  "..",
+);
+const STYLES = join(SYSTEM, "styles");
 const DS_FILES = ["buttons.css", "badge.css", "banner.css", "icon.css"];
 const ICONS = ["close", "chevronLeft", "chevronRight", "pencilSimple", "search", "openInNew"];
 const TAG_KEYS = ["device", "browser", "theme", "mood", "hue", "state"];
@@ -127,7 +137,7 @@ export function normalise(review, dir) {
 }
 
 function iconSvgs() {
-  const src = readFileSync(join(ROOT, "packages", "design-system", "src", "icons.ts"), "utf8");
+  const src = readFileSync(join(SYSTEM, "src", "icons.ts"), "utf8");
   const out = {};
   for (const name of ICONS) {
     const m = new RegExp(`\\n  ${name}:\\s*"([^"]+)"`).exec(src);
@@ -139,9 +149,7 @@ function iconSvgs() {
 }
 
 function fontFace() {
-  const font = readFileSync(
-    join(ROOT, "packages", "design-system", "fonts", "google-sans-flex-latin-wght-normal.woff2"),
-  );
+  const font = readFileSync(join(SYSTEM, "fonts", "google-sans-flex-latin-wght-normal.woff2"));
   const css = readFileSync(join(STYLES, "fonts.css"), "utf8");
   const fallback =
     /@font-face\s*{\s*font-family:\s*"Google Sans Flex Fallback";[^}]*}/.exec(css)?.[0] ?? "";

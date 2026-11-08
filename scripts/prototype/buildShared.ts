@@ -3,12 +3,18 @@
  * esbuild, embed the fonts as base64, and fill an HTML template.
  */
 import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { hexFor, loadTokens } from "@singularity/design-system/scripts/buildTokens";
 import { build } from "esbuild";
 
 export const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
+
+/** A file of the pinned design system package, by its path inside the package. */
+export function packageFile(path: string): string {
+  return createRequire(import.meta.url).resolve(`@singularity/design-system/${path}`);
+}
 
 export function readText(relativePath: string): string {
   return readFileSync(resolve(ROOT, relativePath), "utf8");
@@ -41,7 +47,7 @@ export function fontsCss(): string {
   return fontFace(
     "Google Sans Flex Variable",
     "400 700",
-    "packages/design-system/fonts/google-sans-flex-latin-wght-normal.woff2",
+    packageFile("fonts/google-sans-flex-latin-wght-normal.woff2"),
   );
 }
 

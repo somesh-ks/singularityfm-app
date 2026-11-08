@@ -38,7 +38,7 @@ Visual language, covers and the header light, empty states, interface sounds, st
 ### Design system enforcement
 Three layers catch regressions (owner, 2026-10-21):
 - Static: `npm run design-check` (`styles.test.ts`, about 2 s). Enforces tokens for color, type, space, radius, easing, z-index; no color literals; icons via Icon component; controls match shared classes or `BESPOKE_CONTROLS`; no box-shadows.
-- Hook: `.claude/hooks/design-check.mjs`, PostToolUse hook on Edit/Write for `apps/web/src/**` and `packages/design-system/**`.
+- Hook: `.claude/hooks/design-check.mjs`, PostToolUse hook on Edit/Write for `apps/web/src/**`.
 - Audit: `design-audit` agent (`.claude/agents/design-audit.md`) screenshots pages at mobile and desktop viewports in light and dark before PRs.
 CI runs rules in unit tests and `designSystem.spec.ts` in browser suite. Components change in shared class, component, or token with ledger records in one PR (owner, 2026-10-24).
 Key variants: `.segmented-nav-compact` (chip height, 44px columns); `.stat-tile` (metric over label, 2-4 columns); `.scroll-fade-inline` (overflow edge mask); `.tabs-in-card`; `data-quiet` (muted disabled rows); `sheetHead.ts` header/menus (D188); `.confirm-actions.is-stacked` (unsaved-changes modal from `sheetGuard.ts`); `.queue-dock`, `.queue-row`, `.queue-ring` (`-head`, `-row`), `.queue-play`, `.queue-stage-icon` (the head's icon), `.queue-word` (the text-only shimmer), `.queue-pop` (D231, `queue.css`).
@@ -51,8 +51,7 @@ Coding agents building or modifying UI follow these contracts (adapted from Astr
 - **Verification**: Run `npm run design-check` after modifying any CSS or markup to ensure instant adherence to house rules.
 
 ## Code
-- `apps/design/src/lib/catalogue.ts`: the tokens the [style guide](style-guide.md) reads (D226); the reader's own `/design` catalogue page (D189) is gone
-- `packages/design-system/styles/`: `tokens.css`, `primitives.css`
+- `@singularityfm/design-system/styles/`: `tokens.css`, `primitives.css`
 - `apps/web/src/styles/empty.css`
 - `apps/web/src/components/EmptyArt.astro`
 - `apps/web/src/scripts/ambientLight.ts`
@@ -63,8 +62,8 @@ Coding agents building or modifying UI follow these contracts (adapted from Astr
 
 ## Agent lookup (D236)
 
-- `npm run system` writes `packages/design-system/tokens/system.json` and `llms.txt` from the tokens, the stylesheets and `packages/design-system/scripts/system/parts.ts`; never edit them.
+- The design system repo writes `tokens/system.json` and `llms.txt` from its tokens, stylesheets and part list; the app reads them from the pinned package.
 - A part has an id, classes, use-when, not-when (with the part to use instead), markup, rules, files; the build adds who styles it, the tokens its rules read. A part with no markup use fails the test; the count of files that use it is checked in memory, not stored, so an ordinary UI edit does not make the file stale.
 - `npm run ds -- find "<need>"` ranks parts and tokens; `part <id>`, `part bespoke`, `token <words>`, `list`.
 - A new shared control needs a part in the same change. A family that becomes a design-system component deletes its entries from `parts.ts`.
-- Code and test: `packages/design-system/scripts/system/` and `scripts/system.ts`.
+- Code and test: the design system repo.

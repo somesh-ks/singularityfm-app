@@ -113,8 +113,6 @@ One line each: symptom, cause, fix. Search before debugging; older gotchas are i
 ## Build and tooling
 
 - 2026-11-08: the DS ships TS, which Node will not strip in node_modules, so e2e loads tsx. React Button: `className`, `autoFocus`.
-- 2026-11-02: a `design-system` PR fails its gate on an app file that names no system token. Add new token names to `SYSTEM_NAMES` in `scripts/designSystemGate.mjs`.
-- 2026-10-31: a new token needs `npm run system` too, or CI `check` fails on a stale `system.json`.
 - 2026-10-31: a new stylesheet import reorders equal-specificity rules (icon.css flipped a chip's ink). Diff computed styles after one.
 - 2026-10-30: designSystem.test reads quoted text: a retired class equal to a file name or a selector string counts as writing it.
 - 2026-10-28: cloud Node 22.22 fails `astro check`: `. /opt/nvm/nvm.sh && nvm install 24`. `pkill -f` kills its own shell.

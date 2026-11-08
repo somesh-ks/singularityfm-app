@@ -7,17 +7,17 @@ import { execFileSync } from "node:child_process";
 
 const SHARED_RULES = [
   {
-    pattern: /^packages\/design-system\/tokens\//,
+    // The design system is a pinned package (D382 step 8): a bump moves the pin in these manifests.
+    pattern: /^(?:apps\/(?:web|admin)|packages\/cover)\/package\.json$|^package\.json$/,
     risk: "HIGH",
-    surface: "Design Tokens (all pages: color, typography, spacing, elevation)",
+    surface: "Design system pin (tokens, components and shared CSS on every page)",
     checks: [
       "pnpm run design-check",
       "pnpm --filter @singularity/web run e2e e2e/designSystem.spec.ts",
     ],
   },
   {
-    pattern:
-      /^(?:packages\/design-system\/styles\/(?:tokens|primitives|buttons|foundations|shell)|apps\/web\/src\/styles\/(?:player|sheets))\.css$/,
+    pattern: /^apps\/web\/src\/styles\/(?:player|sheets)\.css$/,
     risk: "HIGH",
     surface: "Shared CSS Primitives (buttons, chips, navigation, sheets across all pages)",
     checks: [
@@ -61,12 +61,6 @@ const SHARED_RULES = [
       "pnpm exec vitest run apps/web/src/lib/structureView.test.ts",
       "pnpm --filter @singularity/web run e2e e2e/settings.spec.ts e2e/topics.spec.ts",
     ],
-  },
-  {
-    pattern: /^packages\/design-system\/src\/(?:sheetHead|icons)\.ts$/,
-    risk: "MEDIUM",
-    surface: "Shared HTML Templates & Glyphs (sheet headers, menu items, action rows)",
-    checks: ["pnpm exec vitest run packages/design-system/src/sheetHead.test.ts"],
   },
   {
     pattern: /^docs\//,

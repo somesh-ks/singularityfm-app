@@ -12,7 +12,7 @@ For a UI fix: the component, class or token that changed. If a page was patched 
 
 ## Batching
 
-The open PR this could have joined, and why it did not (a design-system change joins the rolling `design-system` PR). Or "none".
+The open PR this could have joined, and why it did not (a design system change goes to the design system repo). Or "none".
 
 ## Shared files
 

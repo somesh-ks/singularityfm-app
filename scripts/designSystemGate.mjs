@@ -1,7 +1,8 @@
-// The design system is a product with one owner: its changes travel in pull requests of their own.
-// A pull request that touches the system carries the `design-system` label, and one that carries the
-// label holds nothing but the system, the app files that draw it, the guide and the record. An entry
-// added to a list that excuses code from a system check is a system change too.
+// The design system is a product with one owner (D237, D253). It lives in its own repository and the
+// apps pin its published package (D382 step 8), so a system change is a pull request there. Here the
+// owner still decides what bends it: an entry added to a list that excuses app code from a system
+// check, and the files that say who owns the system, need the `design-system` label and his merge.
+// The gate also keeps each app taking shared parts from the package, never from another app.
 // Usage in CI: LABELS='["design-system"]' BASE=<sha> node scripts/designSystemGate.mjs
 import { execFileSync } from "node:child_process";
 import { readdirSync, readFileSync } from "node:fs";
@@ -10,163 +11,16 @@ import { fileURLToPath } from "node:url";
 
 export const LABEL = "design-system";
 
-/**
- * The label of the one pull request that moves the system to its package (D382 step 4). While one
- * is open, every other pull request that touches a system path fails, so nothing lands on the old
- * paths mid-move; the freeze ends when it merges, and an open branch then runs the committed codemod.
- * The move itself touches manifests, the lockfile and workflows, so the scope check does not hold it.
- */
-export const MIGRATION_LABEL = "ds-migration";
-
-/** What the owner reviews: the components, the stylesheets they share, the tokens and the guide. */
+/** What says who owns the system and how the apps draw it: a change needs the label. */
 export const SYSTEM_PATHS = [
-  // The package (D382 step 4): the components and their behaviour (src/), the stylesheets they share
-  // (styles/), the type families' files (fonts/), the Flag's art (flags/, D367), the tokens, and the
-  // token and system generators (scripts/).
-  "packages/design-system/",
-  "apps/design/",
   ".github/CODEOWNERS",
+  // The gate itself: its lists of what it guards and of the old cross-app reaches.
+  "scripts/designSystemGate.mjs",
   ".claude/skills/feature/references/controls-guide.md",
-  // How the package is released (D382 step 5): its pending changesets and the publishing workflow.
-  ".changeset/",
-  ".github/workflows/release.yml",
 ];
 
-/**
- * Files under a system path that build and deploy the guide like any other app: its manifest, its
- * Vercel config and its build filter. A repo-wide tooling change (npm to pnpm, D382) edits them in
- * every app at once, so they are not system work, and a design-system pull request may still carry them.
- */
-const WORKSPACE_PLUMBING = [
-  "packages/design-system/package.json",
-  "apps/design/package.json",
-  "apps/design/vercel.json",
-  "apps/design/ignore-build.sh",
-];
-
-/**
- * What a design-system pull request may change besides the system itself (owner, 2026-10-29: "have it
- * stricter"). Records and tooling by exact path; app code only where it draws or restyles the system.
- */
-const MAY_CHANGE = [
-  ...SYSTEM_PATHS,
-  // A file moved into the system moves its path in the admin's build filter and the blast-radius map.
-  "apps/admin/ignore-build.sh",
-  "scripts/blastRadius.mjs",
-  "docs/decisions/",
-  "docs/history/",
-  "docs/design-engineering-ledger.md",
-  "docs/ledger/",
-  "docs/specs/look-and-sound.md",
-  // A spec that names a class a family retired (the Costs chips were the shared `.sort-field`).
-  "docs/specs/costs.md",
-  // The guide's own record and wiring (owner, 2026-10-30): its spec, its plan, the specs index, the
-  // icons built from tokens/glyphs.json, and the gate that type checks the app.
-  "docs/specs/style-guide.md",
-  "docs/design/command-center.md",
-  "docs/specs/README.md",
-  // The rest of what tokens/glyphs.json builds: the player's two registries, the generator and its
-  // test. glyphs.json is a system path, and a change to it (a bold twin per glyph, D274) must
-  // regenerate all three registries in the same pull request or `glyphs --check` fails.
-  "apps/web/src/player/ui/iconPaths.tsx",
-  "apps/web/src/player/ui/iconPathsLazy.tsx",
-  "scripts/buildGlyphs.ts",
-  "scripts/buildGlyphs.test.ts",
-  // The codemod that moved the system into its package, and its test.
-  "scripts/dsMigrate",
-  // The cover is a shared component outside design-system/; its corner rule (D268) follows the
-  // cover-radius tokens, so a token change that needs a cap changes this stylesheet with it.
-  "apps/web/src/styles/cover.css",
-  // Stylesheets held to defined tokens (scripts/houseRules.test.ts): a token the system removes
-  // changes them with it (D378 folded --color-on-surface-subtle).
-  "scripts/prototype/ui-prototype.css",
-  "scripts/soundLab/sound-lab.css",
-  "scripts/houseRules.test.ts",
-  "scripts/gate.mjs",
-  "docs/state.md",
-  // The Icon moved into the system (D266), and the BrandMark, the shell and utility stylesheets and the
-  // head's theme script (D382 step 4c); their old paths are deleted.
-  "apps/web/src/components/Icon.astro",
-  "apps/web/src/components/BrandMark.astro",
-  "apps/web/src/styles/shell.css",
-  "apps/web/src/styles/utilities.css",
-  "apps/web/src/scripts/themeInit.js",
-  // The reader keeps the head script's back bridge, and hashes it and the system's theme script.
-  "apps/web/src/scripts/backInit.js",
-  "apps/web/astro.config.mjs",
-  // The checks of how the apps draw the system, and the writer that passes them into the system file:
-  // they read the apps, so they live outside the package (D382 step 4c).
-  "scripts/system",
-  "docs/learnings.md",
-  "scripts/designSystemGate",
-  ".github/workflows/design-system.yml",
-  // The package as a customer installs it (D382 step 5): the pack-and-install check and its CI step, and
-  // the consumers' manifests, which reach the published name through a workspace alias.
-  "scripts/designSystemPack.mjs",
-  ".github/workflows/ci.yml",
-  "apps/web/package.json",
-  "apps/admin/package.json",
-  "packages/cover/package.json",
-  ".claude/skills/feature/",
-  "AGENTS.md",
-  "package.json",
-  "pnpm-lock.yaml",
-];
-
-/** App code a labelled pull request may touch, but only a file that names the system (see below). */
-const CALL_SITES = ["apps/web/src/", "apps/web/e2e/", "apps/admin/src/"];
-
-/**
- * The names that make a file a call site: the components, their helpers and the classes they
- * replaced. A family's pull request adds the names it retires here, so its own call sites count.
- */
-export const SYSTEM_NAMES =
-  /\bdesign-system\/|--ghost-(?:accent-)?(?:hover|pressed)\b|\btabs-bar\b|\bButton\b|buttonClass|<(?:Lazy)?Icon(?![\w.])|<Badge(?![\w.])|<Flag(?![\w.])|<Code(?![\w.])|codeSnippetHtml|wireCodeCopy|styles\/code\.css|glowFavorite|--radius-round\b|styles\/glow\.css|flagNode|flagParts|showText|shownText|FLAG_REGIONS|flagSymbolId|styles\/flag\.css|<RowExit(?![\w.])|rowExitClass|<Avatar(?![\w.])|avatarMarkup|avatarClass|PlayPauseIcons|badgeClass|badge-label|iconClass|iconHtml|icon-glyph|text-(?:display|title|heading)\b|button-(?:filled|tonal|text|danger)|\bbtn\b|btn-primary|btn-secondary|confirm-delete|\bSwitch\b|\bSlider\b|switchClass|sliderClass|\.(?:switch|slider)-input\b|settings-switch|settings-range|speed-slider|<Field(?![\w.])|fieldClass|field-input|manage-input|sheet-input|<Select(?![\w.])|selectClass|selectSheet|data-select-sheet|select-(?:outlined|tonal)|manage-select|sort-field|create-select|styles\/(?:menu|select|sheet|drawer)\.css|data-sheet=|MENU_SELECTORS|<Menu(?:Item)?(?![\w.])|menuItemClass|menuListClass|menu-(?:list|item)|hero-menu-(?:list|item|delete)|<LibraryItemMenu(?![\w.])|sheetHeadHtml|<Ripple(?![\w.])|installRipple|data-ripple|<Banner(?![\w.])|bannerClass|bannerText|player-notice|<Dialog(?:Actions)?(?![\w.])|dialogClass|dialogActionsClass|dialogBodyClass|DIALOG_SELECTOR|confirm-(?:dialog|form|actions)|<DialogTitle|dialogTitleClass|<Sheet(?![\w.])|sheet(?:Body|Head|Title)?Class|(?:CREATE_|PANEL_)?SHEET_SELECTOR|create-sheet(?:-head|-body)?\b|drawer(?:Scrim|Viewport|Popup|Panel|Head)Class|sheet-(?:scrim|viewport|popup|panel)/;
-
-const PACKAGE_DIR = "packages/design-system/";
-const SOURCE_FILE = /\.(?:ts|tsx|astro|mjs|js)$/;
-const IMPORT = /(?:from|import)\s*\(?\s*["']([^"'\s]+)["']/g;
 /** An app's imports: the JS forms, CSS @import "x", and a stylesheet's url(x), which the first form misses. */
-const APP_IMPORT = new RegExp(`${IMPORT.source}|url\\(\\s*["']?([^"')\\s]+)["']?\\s*\\)`, "g");
-/** The workspace package the system may name: itself. It depends on none (D382 step 4c). */
-const WORKSPACE_ALLOWED = ["@singularity/design-system"];
-
-/**
- * The design system must not import app code, so it can leave for a repository of its own (D382,
- * step 6 filters the package into one). Every file in the package (src/ and scripts/) may import
- * only what stays inside it by a relative path, or a package by name: node: or a third-party
- * package, never another workspace package. `sources` is each file's repo-relative path and text; the result names each
- * import that reaches out, as "file: specifier".
- */
-export function boundaryProblems(sources) {
-  return sources.flatMap(({ file, text }) =>
-    [...text.matchAll(IMPORT)].flatMap(([, specifier]) => {
-      if (specifier.startsWith(".")) {
-        const target = posix.join(posix.dirname(file), specifier.replace(/[?#].*$/, ""));
-        return target.startsWith(PACKAGE_DIR) ? [] : [`${file}: ${specifier}`];
-      }
-      if (specifier.startsWith("/")) return [`${file}: ${specifier}`];
-      const workspace = /^@singularity\/[^/]+/.exec(specifier)?.[0];
-      return workspace && !WORKSPACE_ALLOWED.includes(workspace) ? [`${file}: ${specifier}`] : [];
-    }),
-  );
-}
-
-/** Every source file in the package (its dependencies left out), as boundaryProblems reads them. */
-export function systemSources(root) {
-  const found = [];
-  const walk = (dir) => {
-    for (const entry of readdirSync(join(root, dir), { withFileTypes: true })) {
-      const path = posix.join(dir, entry.name);
-      if (entry.isDirectory()) {
-        if (entry.name !== "node_modules") walk(path);
-      } else if (SOURCE_FILE.test(entry.name))
-        found.push({ file: path, text: readFileSync(join(root, path), "utf8") });
-    }
-  };
-  walk(PACKAGE_DIR.slice(0, -1));
-  return found;
-}
+const APP_IMPORT = /(?:from|import)\s*\(?\s*["']([^"'\s]+)["']|url\(\s*["']?([^"')\s]+)["']?\s*\)/g;
 
 /**
  * What one app still takes from another app's folder (D382 step 4e: the reader, the admin and the
@@ -204,9 +58,8 @@ const APP_FILE = /\.(?:ts|tsx|astro|mjs|js|css)$/;
 const APP_SKIP = new Set(["node_modules", "dist", "test-results", "playwright-report"]);
 
 /**
- * Each import in an app that reaches another app's folder or package (`@singularity/web`, `admin`,
- * `design`), and each workspace package the guide names besides the system, as "file: specifier",
- * leaving out the reaches `allowed` lists.
+ * Each import in an app that reaches another app's folder or package (`@singularity/web`, `admin`),
+ * as "file: specifier", leaving out the reaches `allowed` lists.
  */
 export function appBoundaryProblems(sources, allowed = CROSS_APP_IMPORTS) {
   return sources.flatMap(({ file, text }) => {
@@ -219,20 +72,13 @@ export function appBoundaryProblems(sources, allowed = CROSS_APP_IMPORTS) {
         : specifier;
       const other =
         /^apps\/([^/]+)\//.exec(target)?.[1] ??
-        /^@singularity\/(web|admin|design)(?:\/|$)/.exec(specifier)?.[1];
-      const workspace = /^@singularity\/[^/]+/.exec(specifier)?.[0];
-      // The guide takes no workspace package but the system, by path (packages/core/...) as by name.
-      const intoPackage = /^packages\/(?!design-system\/)/.test(target);
-      const leaves =
-        (other !== undefined && other !== app) ||
-        (app === "design" && intoPackage) ||
-        (app === "design" && workspace !== undefined && !WORKSPACE_ALLOWED.includes(workspace));
-      return leaves && !allowed.includes(reach) ? [reach] : [];
+        /^@singularity\/(web|admin)(?:\/|$)/.exec(specifier)?.[1];
+      return other !== undefined && other !== app && !allowed.includes(reach) ? [reach] : [];
     });
   });
 }
 
-/** Every source file and stylesheet of the reader, the admin and the guide, as appBoundaryProblems reads them. */
+/** Every source file and stylesheet of the reader and the admin, as appBoundaryProblems reads them. */
 export function appSources(root) {
   const found = [];
   const walk = (dir) => {
@@ -244,18 +90,15 @@ export function appSources(root) {
         found.push({ file: path, text: readFileSync(join(root, path), "utf8") });
     }
   };
-  for (const app of ["web", "admin", "design"]) walk(`apps/${app}`);
+  for (const app of ["web", "admin"]) walk(`apps/${app}`);
   return found;
 }
-
-const startsWithAny = (file, prefixes) => prefixes.some((prefix) => file.startsWith(prefix));
 
 /**
  * The lists that excuse code from a design-system check, by the file that holds them. Any pull request
  * may shrink one; an entry added is a design decision (a control drawn by hand, a page bending a
  * component, an outlined control), so it needs the label and the owner's merge (2026-11-04: any pull
- * request could add a bespoke class and silence the button rule). A list inside the package would
- * not be named here: every change there is a system change already.
+ * request could add a bespoke class and silence the button rule).
  */
 export const ALLOWLISTS = {
   "apps/web/src/styles/styles.test.ts": [
@@ -318,47 +161,22 @@ export function allowlistAdditions(before, after, lists) {
  * The problems with a pull request, given its changed files, its labels and what it adds to the
  * allowlists. Empty means it may go on.
  */
-export function checkDesignSystemPr({
-  files,
-  labels,
-  namesSystem = () => false,
-  added = [],
-  frozenBy = [],
-}) {
-  if (labels.includes(MIGRATION_LABEL)) return [];
-  const labelled = labels.includes(LABEL);
-  const touched = files.filter(
-    (file) => startsWithAny(file, SYSTEM_PATHS) && !WORKSPACE_PLUMBING.includes(file),
-  );
+export function checkDesignSystemPr({ files, labels, added = [] }) {
+  if (labels.includes(LABEL)) return [];
+  const touched = files.filter((file) => SYSTEM_PATHS.includes(file));
   const problems = [];
-  if (touched.length > 0 && !labelled) {
+  if (touched.length > 0) {
     problems.push(
-      `This pull request changes the design system (${touched.slice(0, 3).join(", ")}` +
-        `${touched.length > 3 ? `, and ${touched.length - 3} more` : ""}), so it needs the ` +
-        `"${LABEL}" label and the owner's merge. Add the label, or move the system change to its own pull request.`,
+      `This pull request changes who owns the design system or how the apps draw it ` +
+        `(${touched.join(", ")}), so it needs the "${LABEL}" label and the owner's merge.`,
     );
   }
-  if (touched.length > 0 && frozenBy.length > 0) {
-    problems.push(
-      `The design system is frozen while #${frozenBy.join(", #")} moves it to its package ` +
-        `("${MIGRATION_LABEL}"). Wait for it to merge, run its codemod on this branch, and push again.`,
-    );
-  }
-  if (added.length > 0 && !labelled) {
+  if (added.length > 0) {
     problems.push(
       `This pull request adds to the lists that excuse code from the design system's checks ` +
         `(${added.slice(0, 3).join("; ")}${added.length > 3 ? `; and ${added.length - 3} more` : ""}), ` +
         `which only the owner grows. Draw it with the system instead, or add the "${LABEL}" label for the owner's merge.`,
     );
-  }
-  if (labelled) {
-    for (const file of files) {
-      if (startsWithAny(file, MAY_CHANGE)) continue;
-      if (startsWithAny(file, CALL_SITES) && namesSystem(file)) continue;
-      problems.push(
-        `${file} is not design-system work. A "${LABEL}" pull request holds the system, the app files that draw or restyle it, the guide and its records; this file goes in its own pull request.`,
-      );
-    }
   }
   return problems;
 }
@@ -366,7 +184,6 @@ export function checkDesignSystemPr({
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const base = process.env.BASE;
   const labels = JSON.parse(process.env.LABELS ?? "[]");
-  if (process.env.ADD_LABEL === "true" && !labels.includes(LABEL)) labels.push(LABEL);
   if (!base) {
     console.error("BASE (the pull request's base commit) is required.");
     process.exit(2);
@@ -382,7 +199,6 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   const files = git("diff", "--name-only", ...(merged ? ["HEAD^1", "HEAD"] : [`${base}...HEAD`]))
     .split("\n")
     .filter(Boolean);
-  // A call site is a file that names the system before or after the change (a deleted one, before).
   const before = merged ? "HEAD^1" : base;
   const show = (rev, file) => {
     try {
@@ -391,37 +207,13 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
       return "";
     }
   };
-  const namesSystem = (file) =>
-    SYSTEM_NAMES.test(show("HEAD", file)) || SYSTEM_NAMES.test(show(before, file));
   const added = Object.entries(ALLOWLISTS)
     .filter(([file]) => files.includes(file))
     .flatMap(([file, lists]) => allowlistAdditions(show(before, file), show("HEAD", file), lists));
-  // The open move, if any, other than this pull request (CI passes GH_REPO and PR). A local run
-  // skips the freeze.
-  const frozenBy = process.env.GH_REPO
-    ? execFileSync(
-        "gh",
-        [
-          "api",
-          `repos/${process.env.GH_REPO}/issues?state=open&labels=${MIGRATION_LABEL}&per_page=100`,
-          "--jq",
-          ".[] | select(.pull_request) | .number",
-        ],
-        { encoding: "utf8" },
-      )
-        .split("\n")
-        .filter((number) => number && number !== process.env.PR)
-        .map(Number)
-    : [];
-  const problems = checkDesignSystemPr({ files, labels, namesSystem, added, frozenBy });
-  for (const reach of boundaryProblems(systemSources(process.cwd()))) {
-    problems.push(
-      `${reach} leaves the design system's package for app code. The system imports only its own files: move the module into packages/design-system/, or pass the value in as a prop.`,
-    );
-  }
+  const problems = checkDesignSystemPr({ files, labels, added });
   for (const reach of appBoundaryProblems(appSources(process.cwd()))) {
     problems.push(
-      `${reach} takes a part from another app's folder. An app takes a shared part from the design system's package: move it into packages/design-system/.`,
+      `${reach} takes a part from another app's folder. An app takes a shared part from the design system's package: move the part there (its own repository).`,
     );
   }
   for (const problem of problems) console.log(`::error::${problem}`);

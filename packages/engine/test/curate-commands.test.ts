@@ -1,6 +1,7 @@
 import { mkdir, readdir, readFile, stat, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { JudgmentsFile, parseDigestFile, seedTopicsFile } from "@singularity/core";
+import { PALETTE_IDS } from "@singularity/cover";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { makeCurateCommand } from "../src/commands/curate.js";
 import { makeRenderCommand } from "../src/commands/render.js";
@@ -666,7 +667,7 @@ describe("singularity render", () => {
     const digest = parseDigestFile(
       await readFile(join(tr.root, "Digests", "2026", "10", "2026-10-07.md"), "utf8"),
     );
-    expect(digest.cover.palette).toBe("dusk");
+    expect(PALETTE_IDS).toContain(digest.cover.palette);
   });
 });
 

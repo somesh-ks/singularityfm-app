@@ -19,7 +19,7 @@ import { type BrandColors, readBrandColors } from "../apps/web/src/lib/brandColo
 const HERE = dirname(fileURLToPath(import.meta.url));
 const OUT = join(HERE, "..", "apps", "web", "public");
 // The tokens the reader ships with: the design system version apps/web pins (D382 step 7).
-const TOKENS = createRequire(join(HERE, "..", "apps", "web", "package.json")).resolve(
+export const TOKENS = createRequire(join(HERE, "..", "apps", "web", "package.json")).resolve(
   "@singularity/design-system/styles/tokens.css",
 );
 

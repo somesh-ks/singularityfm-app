@@ -130,7 +130,7 @@ export function makeRenderCommand(deps: RenderDeps = {}): CommandRun {
       const coverPicker =
         deps.coverPicker ??
         createFallbackCoverPicker({
-          palettes: await loadCoverPalettes(root),
+          palettes: await loadCoverPalettes(),
           ...(lastRun.last_cover ? { last: lastRun.last_cover } : {}),
         });
       const preferredId = loaded.meta.id;

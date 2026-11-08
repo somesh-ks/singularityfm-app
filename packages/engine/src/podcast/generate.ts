@@ -384,7 +384,7 @@ export async function runEpisodeStages(raw: GenerateInput): Promise<StageOutcome
   // Chosen from the id alone, in the select step itself: ready before the script is written, and it
   // never waits on the voices. The Cover art step then finds it saved (or makes it on a resume).
   const { cover } = await run<CoverArtifact>("cover", async () => ({
-    cover: await pickEpisodeCover(input.root, selection.id),
+    cover: await pickEpisodeCover(selection.id),
   }));
   if (only === "select" || only === "cover") return outcome(selection.id);
 

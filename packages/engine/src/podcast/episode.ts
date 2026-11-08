@@ -117,13 +117,13 @@ export async function buildEpisode(input: BuildEpisodeInput): Promise<Episode> {
       ...(turn.item_id ? { item_id: turn.item_id } : {}),
     })),
     char_count: charCount,
-    cover: input.cover ?? (await pickEpisodeCover(input.root, input.id)),
+    cover: input.cover ?? (await pickEpisodeCover(input.id)),
   };
 }
 
 /** The cover an episode gets, from its id alone: no model is called, so it is ready at once. */
-export async function pickEpisodeCover(root: string, id: string): Promise<Episode["cover"]> {
-  const pick = createFallbackCoverPicker({ palettes: await loadCoverPalettes(root) });
+export async function pickEpisodeCover(id: string): Promise<Episode["cover"]> {
+  const pick = createFallbackCoverPicker({ palettes: await loadCoverPalettes() });
   return pick({ digestId: id, date: id.slice(3, 11), kind: "on-demand", items: [] });
 }
 

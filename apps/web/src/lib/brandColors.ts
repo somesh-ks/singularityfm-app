@@ -22,7 +22,9 @@ export function parseBrandColors(tokensCss: string): BrandColors {
   const surface = FOOTER_PATTERNS.surface.exec(tokensCss);
   const accent = FOOTER_PATTERNS.accent.exec(tokensCss);
   if (!surface?.[1] || !surface[2] || !accent?.[1] || !accent[2]) {
-    throw new Error("tokens.css has no derived sRGB footer. Run: npx tsx scripts/buildTokens.ts");
+    throw new Error(
+      "The design system package's tokens.css has no derived sRGB footer: pin a version that has it.",
+    );
   }
   return {
     surfaceLight: surface[1].toLowerCase(),

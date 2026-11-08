@@ -11,7 +11,7 @@
     "preview": "node e2e/run.mjs",
     "check": "astro check",
     "e2e": "node --import tsx node_modules/@playwright/test/cli.js test",
-    "e2e:player": "playwright test -c src/player/e2e/playwright.config.ts"
+    "e2e:player": "node --import tsx node_modules/@playwright/test/cli.js test -c src/player/e2e/playwright.config.ts"
   },
   "dependencies": {
     "@astrojs/react": "^7.1.2",

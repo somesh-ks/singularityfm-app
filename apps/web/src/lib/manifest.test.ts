@@ -16,7 +16,7 @@ describe("parseBrandColors", () => {
   });
 
   it("fails loudly when the footer is missing", () => {
-    expect(() => parseBrandColors(":root {}")).toThrow(/buildTokens/);
+    expect(() => parseBrandColors(":root {}")).toThrow(/sRGB footer/);
   });
 });
 

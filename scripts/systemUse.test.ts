@@ -69,7 +69,7 @@ describe("quoted (the class guard's reader)", () => {
 });
 
 /** Files that read the classes to count them and draw none: Coverage's class reader (D382 step 7). */
-const CLASS_READERS = new Set(["apps/admin/src/lib/coverage.ts"]);
+const CLASS_READERS = new Set(["apps/admin/src/lib/classReader.ts"]);
 
 describe("design-system components", () => {
   it.each(COMPONENTS)(

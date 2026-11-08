@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { PodcastCommand, parseEpisodeFile } from "@singularity/core";
+import { PodcastCommand, parseEpisodeFile } from "@singularityfm/core";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { makePodcastCommand } from "../src/commands/podcast.js";
 import { parseCommand } from "../src/podcast/actions.js";

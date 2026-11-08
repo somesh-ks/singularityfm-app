@@ -1,4 +1,4 @@
-import { type Digest, resolveTopics, TopicsFile } from "@singularity/core";
+import { type Digest, resolveTopics, TopicsFile } from "@singularityfm/core";
 import { describe, expect, it } from "vitest";
 import { validateDigest } from "../src/validate/validateDigest.js";
 import { buildFixtureDigest } from "./render-factories.js";

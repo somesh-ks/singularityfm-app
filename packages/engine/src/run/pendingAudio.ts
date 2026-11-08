@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { daysBetween, parseDigestFile, stockholmDate } from "@singularity/core";
+import { daysBetween, parseDigestFile, stockholmDate } from "@singularityfm/core";
 import { listDigestTargets } from "../publish/publishAudio.js";
 
 /** The deploy step retries narration for digests this recent when a run itself published nothing. */

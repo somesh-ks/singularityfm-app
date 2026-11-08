@@ -1,7 +1,7 @@
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { loadEnv, ModelRouting } from "@singularity/core";
+import { loadEnv, ModelRouting } from "@singularityfm/core";
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import type { BatchApi, BatchOutcome } from "../src/llm/anthropicBatch.js";

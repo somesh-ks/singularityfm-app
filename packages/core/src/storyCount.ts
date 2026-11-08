@@ -2,7 +2,7 @@ import { VOICE_LIMITS } from "./voiceLimits.js";
 
 /**
  * Story-count arithmetic, free of zod so the browser's Stories controls can load it
- * (`@singularity/core/storyCount`).
+ * (`@singularityfm/core/storyCount`).
  */
 
 /**

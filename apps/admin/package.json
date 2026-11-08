@@ -1,5 +1,5 @@
 {
-  "name": "@singularity/admin",
+  "name": "@singularityfm/admin",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@astrojs/react": "^7.1.2",
-    "@singularity/engine": "workspace:*",
+    "@singularityfm/engine": "workspace:*",
     "@vercel/functions": "^3.10.5",
     "astro": "^7.4.4",
     "react": "^19.3.0",
@@ -19,8 +19,8 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.12",
-    "@singularity/design-system": "npm:@singularityfm/design-system@0.1.1",
-    "@singularity/web": "workspace:*",
+    "@singularityfm/design-system": "0.1.1",
+    "@singularityfm/web": "workspace:*",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "typescript": "~6.0.3"

@@ -1,6 +1,6 @@
 import { readdir, stat } from "node:fs/promises";
 import { join } from "node:path";
-import { DigestId, zonedDate } from "@singularity/core";
+import { DigestId, zonedDate } from "@singularityfm/core";
 import { readJsonIfExists } from "../curate/inputs.js";
 import { writeJson } from "../curate/output.js";
 import { Selection } from "../curate/selectionFile.js";

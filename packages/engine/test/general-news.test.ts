@@ -9,7 +9,7 @@ import {
   isBuiltinCategory,
   SourceStat,
   type Topic,
-} from "@singularity/core";
+} from "@singularityfm/core";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   GENERAL_QUESTIONS_HASH,

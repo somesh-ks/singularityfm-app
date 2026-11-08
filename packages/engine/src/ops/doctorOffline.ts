@@ -1,5 +1,5 @@
 import { join } from "node:path";
-import { type Env, loadModelRouting, Preferences, STATE_FILES } from "@singularity/core";
+import { type Env, loadModelRouting, Preferences, STATE_FILES } from "@singularityfm/core";
 import { z } from "zod";
 import { loadQueries } from "../fetch/queries.js";
 import type { GitRunner } from "../git/runGit.js";

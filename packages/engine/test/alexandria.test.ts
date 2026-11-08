@@ -1,4 +1,4 @@
-import type { Item } from "@singularity/core";
+import type { Item } from "@singularityfm/core";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AlexandriaConfig, createAlexandria } from "../src/alexandria/alexandria.js";
 import { callsFromSpend } from "../src/cost/ledger.js";

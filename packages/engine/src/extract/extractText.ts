@@ -1,4 +1,4 @@
-import type { Item } from "@singularity/core";
+import type { Item } from "@singularityfm/core";
 import type { Logger } from "../context.js";
 import { cleanMarkdown } from "./cleanMarkdown.js";
 import { type FetchHtmlOptions, fetchHtml } from "./fetchHtml.js";

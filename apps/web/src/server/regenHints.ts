@@ -1,4 +1,4 @@
-import { isFieldRecord as isRecord } from "@singularity/core";
+import { isFieldRecord as isRecord } from "@singularityfm/core";
 import { isSameOrigin } from "./generate";
 import type { ApiResult } from "./http";
 

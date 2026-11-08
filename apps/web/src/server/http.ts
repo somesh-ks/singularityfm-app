@@ -1,4 +1,4 @@
-import type { ClientFault } from "@singularity/engine/faults-store";
+import type { ClientFault } from "@singularityfm/engine/faults-store";
 import { waitUntil } from "@vercel/functions";
 import type { APIRoute } from "astro";
 import { BUILD_ID } from "../lib/buildId";

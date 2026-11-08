@@ -1,4 +1,4 @@
-import { type Category, type Item, SECTIONS, VOICE_LIMITS } from "@singularity/core";
+import { type Category, type Item, SECTIONS, VOICE_LIMITS } from "@singularityfm/core";
 import { describe, expect, it } from "vitest";
 import { scoreItem } from "../src/score/scoreItem.js";
 import { DEFAULT_SECTION_PLAN } from "../src/score/sectionPlan.js";

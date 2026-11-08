@@ -12,7 +12,7 @@ import {
   priceUnits,
   type Report,
   TIME_ZONE,
-} from "@singularity/core";
+} from "@singularityfm/core";
 import type { NarrationState } from "./narrationState";
 
 /**

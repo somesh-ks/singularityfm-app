@@ -1,5 +1,5 @@
-import { stockholmDate, TIME_ZONE, UsageFile } from "@singularity/core";
-import { type BudgetRefusal, checkBudget, emptyUsage } from "@singularity/engine/audio";
+import { stockholmDate, TIME_ZONE, UsageFile } from "@singularityfm/core";
+import { type BudgetRefusal, checkBudget, emptyUsage } from "@singularityfm/engine/audio";
 import { z } from "zod";
 
 /**

@@ -1,4 +1,4 @@
-import { PODCAST_CHARS_PER_MINUTE } from "@singularity/core";
+import { PODCAST_CHARS_PER_MINUTE } from "@singularityfm/core";
 import { PodcastError, type ScriptTurn } from "./types.js";
 
 export function charCount(turns: readonly ScriptTurn[]): number {

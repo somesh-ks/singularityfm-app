@@ -1,4 +1,4 @@
-import { episodeOpusAddress, planEpisodeNarration } from "@singularity/engine/segments";
+import { episodeOpusAddress, planEpisodeNarration } from "@singularityfm/engine/segments";
 import { describe, expect, it } from "vitest";
 import { stringify } from "yaml";
 import { createFakeBlobStore, FAKE_BLOB_HOST } from "../testing/fakeBlobStore";

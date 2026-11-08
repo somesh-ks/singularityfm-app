@@ -38,7 +38,7 @@ jobs:
           cache: pnpm
 
       - name: Install
-        run: pnpm install --frozen-lockfile --ignore-scripts --filter . --filter @singularity/engine... --filter @singularity/web...
+        run: pnpm install --frozen-lockfile --ignore-scripts --filter . --filter @singularityfm/engine... --filter @singularityfm/web...
 
       # D318: the pages keep their edge copy until the content changes, so a run that saved content
       # empties it. The purge comes WAIT_SECONDS after the last Save content step of the run: the

@@ -1,4 +1,4 @@
-import type { Item } from "@singularity/core";
+import type { Item } from "@singularityfm/core";
 
 const VERSION = /(\d+)\.(\d+)\.(\d+)/;
 

@@ -1,4 +1,4 @@
-import { type Digest, type DigestKind, isBuiltinSection, type Section } from "@singularity/core";
+import { type Digest, type DigestKind, isBuiltinSection, type Section } from "@singularityfm/core";
 
 /**
  * The words around the stories: the opening, the bridge into each new section, the small

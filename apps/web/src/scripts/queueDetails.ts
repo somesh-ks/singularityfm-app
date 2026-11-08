@@ -1,6 +1,6 @@
-import { codeSnippetHtml, wireCodeCopy } from "@singularity/design-system/code";
-import { dismissOnScrim } from "@singularity/design-system/pullDismiss";
-import { escapeHtml, sheetHeadHtml } from "@singularity/design-system/sheetHead";
+import { codeSnippetHtml, wireCodeCopy } from "@singularityfm/design-system/code";
+import { dismissOnScrim } from "@singularityfm/design-system/pullDismiss";
+import { escapeHtml, sheetHeadHtml } from "@singularityfm/design-system/sheetHead";
 
 /** What a failed run's Details dialog shows (scripts/queue.ts builds it from the run's record). */
 export interface QueueDetails {

@@ -14,7 +14,7 @@ import {
   SourcesFile,
   SourcesUserFile,
   STATE_FILES,
-} from "@singularity/core";
+} from "@singularityfm/core";
 import { z } from "zod";
 import { mergeUserSources } from "../sources/registry.js";
 

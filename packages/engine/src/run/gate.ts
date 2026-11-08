@@ -1,4 +1,4 @@
-import { type DigestKind, type LastRunFile, scheduleZone } from "@singularity/core";
+import { type DigestKind, type LastRunFile, scheduleZone } from "@singularityfm/core";
 import { spendCeilingStop } from "../cost/ceiling.js";
 import { allocateDigestId } from "../gate/allocateDigestId.js";
 import { decideRun, type RunDecision } from "../gate/decideRun.js";

@@ -13,4 +13,4 @@ export function sectionLabel(title: string): string {
   return SENTENCE_CASE[title] ?? title;
 }
 
-export type { SectionRef } from "@singularity/design-system/section";
+export type { SectionRef } from "@singularityfm/design-system/section";

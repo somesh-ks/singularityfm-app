@@ -23,7 +23,7 @@ const ROOT = resolve(HERE, "..", "..");
 const SYSTEM = join(
   dirname(
     createRequire(join(ROOT, "apps", "web", "package.json")).resolve(
-      "@singularity/design-system/flags/LICENSE.txt",
+      "@singularityfm/design-system/flags/LICENSE.txt",
     ),
   ),
   "..",

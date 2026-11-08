@@ -6,7 +6,7 @@ import {
   type JudgmentsFile,
   type LastRunFile,
   type SeenFile,
-} from "@singularity/core";
+} from "@singularityfm/core";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { run as renderCommand } from "../src/commands/render.js";
 import { run as validateCommand } from "../src/commands/validate.js";

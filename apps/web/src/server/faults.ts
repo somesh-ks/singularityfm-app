@@ -1,9 +1,9 @@
-import { vitalPage } from "@singularity/core/vitals";
+import { vitalPage } from "@singularityfm/core/vitals";
 import {
   type ClientFault,
   OPAQUE_SCRIPT_ERROR,
   recordClientFault,
-} from "@singularity/engine/faults-store";
+} from "@singularityfm/engine/faults-store";
 import { PLATFORM_CODE } from "../lib/platformFaults";
 import { type DatabaseDeps, deploymentDatabaseUrl, guardedDatabase } from "./database";
 

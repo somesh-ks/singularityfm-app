@@ -6,7 +6,7 @@ import {
   feedsGeneralOnly,
   type SourcesFile,
   SourcesFile as SourcesSchema,
-} from "@singularity/core";
+} from "@singularityfm/core";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { parseQueries } from "../src/fetch/queries.js";
 import {

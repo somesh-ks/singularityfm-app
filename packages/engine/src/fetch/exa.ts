@@ -1,4 +1,4 @@
-import type { Item } from "@singularity/core";
+import type { Item } from "@singularityfm/core";
 import { z } from "zod";
 import { buildItems, type RawItem } from "../normalize/buildItem.js";
 import { EXA_SKIP_WEEKLY } from "./exaBudget.js";

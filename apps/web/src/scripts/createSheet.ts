@@ -1,5 +1,5 @@
-import { sheetGestures } from "@singularity/design-system/pullDismiss";
-import { CREATE_SHEET_SELECTOR, sheetBodyClass } from "@singularity/design-system/sheet";
+import { sheetGestures } from "@singularityfm/design-system/pullDismiss";
+import { CREATE_SHEET_SELECTOR, sheetBodyClass } from "@singularityfm/design-system/sheet";
 import { installCreate } from "./createPage";
 import { fitAboveKeyboard } from "./keyboardFit";
 

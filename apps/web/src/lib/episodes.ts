@@ -1,5 +1,5 @@
-import { type CoverSpec, digestSections } from "@singularity/core";
-import { PALETTE_IDS, paletteAccent, pickCover, TEMPLATES } from "@singularity/cover";
+import { type CoverSpec, digestSections } from "@singularityfm/core";
+import { PALETTE_IDS, paletteAccent, pickCover, TEMPLATES } from "@singularityfm/cover";
 import type { PlayerDigestData } from "../types/contracts";
 import { type ContentFiles, diskFiles, mapLimit, READ_CONCURRENCY } from "./contentFiles";
 import { coverSrc } from "./covers";

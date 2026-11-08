@@ -8,7 +8,7 @@ import {
   type PodcastRequest,
   type Section,
   serializeDigestFile,
-} from "@singularity/core";
+} from "@singularityfm/core";
 import { ScriptReply } from "../src/podcast/llmScriptWriter.js";
 import type { ScriptInput, ScriptTurn, ScriptWriter, TurnRewrite } from "../src/podcast/types.js";
 

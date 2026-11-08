@@ -6,7 +6,7 @@ import {
   loadEnv,
   parseDigestFile,
   STATE_FILES,
-} from "@singularity/core";
+} from "@singularityfm/core";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { SpeechifyError } from "../src/audio/speechify.js";
 import { buildSpokenText } from "../src/audio/spokenText.js";

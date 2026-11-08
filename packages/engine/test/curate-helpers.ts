@@ -1,7 +1,7 @@
 import { cp, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { type Item, type JudgmentEntry, loadEnv } from "@singularity/core";
+import { type Item, type JudgmentEntry, loadEnv } from "@singularityfm/core";
 import type { CommandContext } from "../src/context.js";
 import type { CurateDeps } from "../src/curate/pipeline.js";
 import type { ExtractedText } from "../src/extract/extractText.js";

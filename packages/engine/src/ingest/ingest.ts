@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import type { Item, Source, SourceType } from "@singularity/core";
+import type { Item, Source, SourceType } from "@singularityfm/core";
 import { type ExtractedText, extractFullText } from "../extract/extractText.js";
 import { fetchAll } from "../fetch/fetchAll.js";
 import { createLimiter } from "../fetch/limiter.js";

@@ -1,4 +1,4 @@
-import { daysBetween, type SourceStat, type SourceStatsFile } from "@singularity/core";
+import { daysBetween, type SourceStat, type SourceStatsFile } from "@singularityfm/core";
 
 /** The window a source's counters cover. */
 export const STATS_WINDOW_DAYS = 30;

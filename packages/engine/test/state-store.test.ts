@@ -6,7 +6,7 @@ import {
   type JudgmentsFile,
   type LastRunFile,
   type SeenFile,
-} from "@singularity/core";
+} from "@singularityfm/core";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { writeFileAtomic } from "../src/state/atomicWrite.js";
 import { stableStringify } from "../src/state/stableJson.js";

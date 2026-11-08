@@ -1,7 +1,7 @@
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
-import { type Item, JudgmentsFile } from "@singularity/core";
+import { type Item, JudgmentsFile } from "@singularityfm/core";
 import type { CommandRun } from "../context.js";
 import { loadPreferences } from "../curate/inputs.js";
 import { PoolFile } from "../fetch/pool.js";

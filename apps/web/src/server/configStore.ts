@@ -5,8 +5,8 @@ import {
   lastConfigWrite,
   readConfigDocuments,
   writeConfigDocumentsAt,
-} from "@singularity/engine/config-store";
-import { connectNeon } from "@singularity/engine/neon";
+} from "@singularityfm/engine/config-store";
+import { connectNeon } from "@singularityfm/engine/neon";
 import type { ConfigOp, ConfigReadBody, ConfigResponse } from "../types/contracts";
 import { type ServerConfig, type ServerEnv, secretsOf } from "./config";
 import { type ConfigDeps, configCooldownSeconds, scheduledTime, updateRunTime } from "./configEdit";

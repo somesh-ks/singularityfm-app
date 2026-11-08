@@ -1,6 +1,6 @@
 import { readdir } from "node:fs/promises";
 import { join } from "node:path";
-import { DigestId, type DigestKind } from "@singularity/core";
+import { DigestId, type DigestKind } from "@singularityfm/core";
 import type { DigestIdAllocator } from "./buildDigest.js";
 
 const MAX_SUFFIX = 99;

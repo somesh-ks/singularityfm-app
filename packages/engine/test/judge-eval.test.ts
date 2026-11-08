@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import type { CategoryOrNone } from "@singularity/core";
+import type { CategoryOrNone } from "@singularityfm/core";
 import { describe, expect, it } from "vitest";
 import {
   categoryAccuracy,

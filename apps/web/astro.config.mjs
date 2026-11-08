@@ -42,7 +42,7 @@ const inlineScriptHash = (path) => {
 const inlineScriptHashes = [
   inlineScriptHash(
     pathToFileURL(
-      createRequire(import.meta.url).resolve("@singularity/design-system/scripts/themeInit.js"),
+      createRequire(import.meta.url).resolve("@singularityfm/design-system/scripts/themeInit.js"),
     ),
   ),
   inlineScriptHash("./src/scripts/backInit.js"),
@@ -52,7 +52,7 @@ const inlineScriptHashes = [
 ];
 
 /**
- * @singularity/cover finds its font files relative to its own source file (import.meta.url). Bundling
+ * @singularityfm/cover finds its font files relative to its own source file (import.meta.url). Bundling
  * moves that code into a build chunk, which would point the renderer at a folder with no fonts and
  * leave every cover without its date. This pins the URL to the real source file before bundling.
  */
@@ -140,7 +140,7 @@ function serveSystemFlags() {
     hooks: {
       "astro:config:setup": ({ config }) => {
         const from = dirname(
-          createRequire(import.meta.url).resolve("@singularity/design-system/flags/LICENSE.txt"),
+          createRequire(import.meta.url).resolve("@singularityfm/design-system/flags/LICENSE.txt"),
         );
         const to = join(fileURLToPath(config.publicDir), "flags");
         rmSync(to, { recursive: true, force: true });

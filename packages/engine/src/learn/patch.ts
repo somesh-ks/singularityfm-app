@@ -1,4 +1,4 @@
-import type { Preferences } from "@singularity/core";
+import type { Preferences } from "@singularityfm/core";
 import { z } from "zod";
 
 /** What the session model produces from a sentence such as "more shaders, less VC funding". */

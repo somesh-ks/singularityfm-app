@@ -51,10 +51,10 @@ jobs:
         working-directory: apps/web
       - name: Player suite
         if: matrix.suite == 'player'
-        run: pnpm --filter @singularity/web run e2e:player
+        run: pnpm --filter @singularityfm/web run e2e:player
       - name: Site suite
         if: matrix.suite == 'site'
-        run: pnpm --filter @singularity/web run e2e
+        run: pnpm --filter @singularityfm/web run e2e
       # The daily health check reads the newest report from main for the week's flaky count (D360).
       - name: Keep the site suite's report
         if: always() && matrix.suite == 'site'

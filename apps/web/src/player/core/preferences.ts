@@ -115,7 +115,7 @@ export interface PreferencesStore {
 
 export interface PreferencesStoreOptions {
   storage: StorageLike | null;
-  /** `defaultSoundsEnabled` from @singularity/sound: on, unless the system asks for reduced motion. */
+  /** `defaultSoundsEnabled` from @singularityfm/sound: on, unless the system asks for reduced motion. */
   defaultSounds: () => boolean;
 }
 
@@ -179,7 +179,7 @@ export function createPreferencesStore(options: PreferencesStoreOptions): Prefer
   };
 }
 
-/** Matches defaultSoundsEnabled() in @singularity/sound; used before that module has loaded. */
+/** Matches defaultSoundsEnabled() in @singularityfm/sound; used before that module has loaded. */
 export function prefersReducedMotion(): boolean {
   return (
     typeof window !== "undefined" &&

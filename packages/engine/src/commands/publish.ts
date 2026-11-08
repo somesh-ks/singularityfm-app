@@ -1,7 +1,7 @@
 import { access } from "node:fs/promises";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
-import { DigestId, digestRelPath, EpisodeId, episodeRelPath } from "@singularity/core";
+import { DigestId, digestRelPath, EpisodeId, episodeRelPath } from "@singularityfm/core";
 import { describeRefusal } from "../audio/budget.js";
 import type { SpeechSynthesizer } from "../audio/speechify.js";
 import type { CommandContext, CommandRun } from "../context.js";

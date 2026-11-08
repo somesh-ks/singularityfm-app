@@ -1,4 +1,4 @@
-import { HOST_NAME_POOLS, hostNamesFor } from "@singularity/core/hosts";
+import { HOST_NAME_POOLS, hostNamesFor } from "@singularityfm/core/hosts";
 import { beforeEach, describe, expect, it } from "vitest";
 import { createFakeGitHub, REPO, runJson } from "../testing/fakeGitHub";
 import type { PodcastRequest } from "../types/contracts";

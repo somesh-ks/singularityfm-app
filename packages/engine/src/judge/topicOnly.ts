@@ -1,4 +1,4 @@
-import type { Item, JudgmentEntry, Topic } from "@singularity/core";
+import type { Item, JudgmentEntry, Topic } from "@singularityfm/core";
 import { normalizeCategoryProbs } from "./jevAnswers.js";
 
 /**

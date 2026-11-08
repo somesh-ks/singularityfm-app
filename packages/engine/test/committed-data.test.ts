@@ -13,7 +13,7 @@ import {
   TopicJudgmentsFile,
   TopicsFile,
   UsageFile,
-} from "@singularity/core";
+} from "@singularityfm/core";
 import { describe, expect, it } from "vitest";
 import { parseCommunity } from "../src/community/community.js";
 import { parseQueries } from "../src/fetch/queries.js";

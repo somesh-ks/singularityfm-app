@@ -4,7 +4,7 @@ import {
   flagParts,
   flagSrc,
   hasFlagArt,
-} from "@singularity/design-system/flag";
+} from "@singularityfm/design-system/flag";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { swipeLeaves } from "../lib/swipeAway";
 import { createVelocityTracker, TAP_SLOP_PX } from "../player/core/gestureMath";

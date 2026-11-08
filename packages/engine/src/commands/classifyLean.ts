@@ -2,7 +2,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { parseArgs } from "node:util";
-import { GENERAL_TOPICS, type Source } from "@singularity/core";
+import { GENERAL_TOPICS, type Source } from "@singularityfm/core";
 import { choice } from "@typesafe-ai/sdk";
 import { z } from "zod";
 import { type CommandRun, redact, secretsFromEnv } from "../context.js";

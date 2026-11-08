@@ -12,7 +12,7 @@ import {
   storiesFor,
   tellingWords,
   VOICE_LIMITS,
-} from "@singularity/core";
+} from "@singularityfm/core";
 import { isThinText } from "../alexandria/alexandria.js";
 import { MAX_SPOKEN_CHARS } from "../audio/spokenText.js";
 import {

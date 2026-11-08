@@ -1,6 +1,6 @@
 import { PGlite } from "@electric-sql/pglite";
-import type { SqlClient } from "@singularity/engine/config-paths";
-import { readPushKeys } from "@singularity/engine/push-store";
+import type { SqlClient } from "@singularityfm/engine/config-paths";
+import { readPushKeys } from "@singularityfm/engine/push-store";
 import { afterAll, describe, expect, it, vi } from "vitest";
 import { REPO } from "../testing/fakeGitHub";
 import { cancelTokenFor } from "./cancelToken";

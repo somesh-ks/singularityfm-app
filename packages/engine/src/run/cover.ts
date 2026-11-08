@@ -1,4 +1,4 @@
-import { type Category, isBuiltinCategory } from "@singularity/core";
+import { type Category, isBuiltinCategory } from "@singularityfm/core";
 import type { CoverPicker } from "../render/buildDigest.js";
 import type { CoverPickFn } from "./types.js";
 

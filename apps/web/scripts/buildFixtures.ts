@@ -8,8 +8,8 @@ import {
   type LastRunFile,
   SECTIONS,
   serializeDigestFile,
-} from "@singularity/core";
-import { pickCover } from "@singularity/cover";
+} from "@singularityfm/core";
+import { pickCover } from "@singularityfm/cover";
 import { FIXTURE_ITEM_SETS, toDigestItems } from "./fixtureContent";
 
 /**

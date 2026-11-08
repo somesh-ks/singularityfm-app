@@ -4,7 +4,7 @@ import {
   type JudgmentsFile,
   type Preferences,
   VOICE_LIMITS,
-} from "@singularity/core";
+} from "@singularityfm/core";
 import { type CommunityFile, withCommunity } from "../community/community.js";
 import type { Logger } from "../context.js";
 import type { ExtractedText } from "../extract/extractText.js";

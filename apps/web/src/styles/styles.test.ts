@@ -1,7 +1,7 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, extname, join, relative } from "node:path";
-import { COMPONENTS } from "@singularity/design-system/registry";
+import { COMPONENTS } from "@singularityfm/design-system/registry";
 import { describe, expect, it } from "vitest";
 
 /**
@@ -15,7 +15,7 @@ const STYLES = import.meta.dirname;
 const SRC = join(STYLES, "..");
 /** The pinned design system package: its stylesheets and its components (D382 step 8). */
 const SYSTEM = join(
-  dirname(createRequire(import.meta.url).resolve("@singularity/design-system/flags/LICENSE.txt")),
+  dirname(createRequire(import.meta.url).resolve("@singularityfm/design-system/flags/LICENSE.txt")),
   "..",
 );
 const SYSTEM_STYLES = join(SYSTEM, "styles");
@@ -142,7 +142,7 @@ const sourceFiles = () =>
 /** A file as the allowlists name it: under the reader's src, or by its package path. */
 const posix = (file: string) =>
   file.startsWith(SYSTEM)
-    ? `@singularity/design-system/${relative(SYSTEM, file).replaceAll("\\", "/")}`
+    ? `@singularityfm/design-system/${relative(SYSTEM, file).replaceAll("\\", "/")}`
     : relative(SRC, file).replaceAll("\\", "/");
 
 /** Source files that may hold a colour literal, each with why it is not a painted design colour. */
@@ -160,10 +160,10 @@ const LOCAL_EASES: [file: string, reason: string][] = [
 
 /** Files that may hold an inline <svg>: the Icon components, the mark, the art and named one-offs. */
 const RAW_SVG_ALLOWED: [file: string, reason: string][] = [
-  ["@singularity/design-system/src/Icon.astro", "the Icon component"],
+  ["@singularityfm/design-system/src/Icon.astro", "the Icon component"],
   ["player/ui/Icon.tsx", "the island Icon component"],
   ["player/ui/LazyIcon.tsx", "the lazy island Icon component"],
-  ["@singularity/design-system/src/BrandMark.astro", "the wordmark's own mark, not a glyph"],
+  ["@singularityfm/design-system/src/BrandMark.astro", "the wordmark's own mark, not a glyph"],
   ["components/EmptyArt.astro", "empty-state illustrations, coloured by classes (own rule above)"],
   [
     "components/EmptyArtHalloween.astro",

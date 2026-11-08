@@ -1,9 +1,9 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join, relative } from "node:path";
-import { SUPPORTED_TIMEZONES } from "@singularity/core/time";
-import { flagRegion, hasFlagArt } from "@singularity/design-system/flag";
-import { COMPONENTS } from "@singularity/design-system/registry";
+import { SUPPORTED_TIMEZONES } from "@singularityfm/core/time";
+import { flagRegion, hasFlagArt } from "@singularityfm/design-system/flag";
+import { COMPONENTS } from "@singularityfm/design-system/registry";
 import { describe, expect, it } from "vitest";
 
 /**
@@ -19,7 +19,7 @@ import { describe, expect, it } from "vitest";
  */
 const ROOT = join(import.meta.dirname, "..");
 const FLAGS = dirname(
-  createRequire(import.meta.url).resolve("@singularity/design-system/flags/LICENSE.txt"),
+  createRequire(import.meta.url).resolve("@singularityfm/design-system/flags/LICENSE.txt"),
 );
 const SRC = join(ROOT, "apps", "web", "src");
 /** Every app that draws the system: the admin app borrows the reader's stylesheets and components. */
@@ -267,7 +267,7 @@ describe("the design system file", () => {
   // Prevents a shared control that no lookup can find: it is added to the style test's list, and the
   // pinned package's system file (what `pnpm run ds` answers from) has no part for it.
   it("covers every shared control class", async () => {
-    const { default: system } = await import("@singularity/design-system/tokens/system.json");
+    const { default: system } = await import("@singularityfm/design-system/tokens/system.json");
     const text = readFileSync(join(SRC, "styles", "styles.test.ts"), "utf8");
     const start = text.indexOf("const SHARED_CONTROLS");
     const block = text.slice(start, text.indexOf("];", start));

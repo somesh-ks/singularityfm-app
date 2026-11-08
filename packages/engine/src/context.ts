@@ -1,4 +1,4 @@
-import type { Env } from "@singularity/core";
+import type { Env } from "@singularityfm/core";
 
 export interface Logger {
   debug(message: string, data?: Record<string, unknown>): void;

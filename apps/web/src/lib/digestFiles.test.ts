@@ -1,7 +1,7 @@
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { serializeDigestFile } from "@singularity/core";
+import { serializeDigestFile } from "@singularityfm/core";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { makeDigest, makeTimeline } from "../testing/digestFactory";
 import { READ_CONCURRENCY } from "./contentFiles";

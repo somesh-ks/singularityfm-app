@@ -1,4 +1,4 @@
-import { EMPTY_LISTING_FINGERPRINTS } from "@singularity/core";
+import { EMPTY_LISTING_FINGERPRINTS } from "@singularityfm/core";
 import { describe, expect, it } from "vitest";
 import { fetchFirecrawl } from "../src/fetch/firecrawl.js";
 import { fingerprintLinks, ListingMemory, mergeListings } from "../src/fetch/listingCheck.js";

@@ -1,5 +1,5 @@
-import { bannerClass, bannerText } from "@singularity/design-system/banner";
-import { buttonClass } from "@singularity/design-system/button";
+import { bannerClass, bannerText } from "@singularityfm/design-system/banner";
+import { buttonClass } from "@singularityfm/design-system/button";
 import { useLayoutEffect } from "react";
 import { createPortal } from "react-dom";
 import { noticeAction } from "./core/playerCopy";

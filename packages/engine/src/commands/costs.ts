@@ -1,5 +1,5 @@
 import { parseArgs } from "node:util";
-import { buildReport, GROUPS, type GroupBy, PERIODS, type Period } from "@singularity/core";
+import { buildReport, GROUPS, type GroupBy, PERIODS, type Period } from "@singularityfm/core";
 import type { CommandRun } from "../context.js";
 import { loadAllCosts } from "../cost/ledger.js";
 import { formatCostReport } from "../cost/report.js";

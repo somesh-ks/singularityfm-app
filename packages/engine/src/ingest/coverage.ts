@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { type Digest, digestRelPath, parseDigestFile } from "@singularity/core";
+import { type Digest, digestRelPath, parseDigestFile } from "@singularityfm/core";
 import { listDigestIds } from "../state/digestIds.js";
 import type { SqlClient } from "../store/configPaths.js";
 import { readIngestTally, readKnownItems } from "../store/ingestStore.js";

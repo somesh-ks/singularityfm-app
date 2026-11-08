@@ -67,7 +67,7 @@ jobs:
       # Only the engine's packages: the site's (Astro, React, Playwright) are not needed to run it, and
       # leaving them out takes the install from about 10 seconds to about 4.
       - name: Install
-        run: pnpm install --frozen-lockfile --ignore-scripts --filter . --filter @singularity/engine...
+        run: pnpm install --frozen-lockfile --ignore-scripts --filter . --filter @singularityfm/engine...
 
       # The Opus transcode (packages/engine/src/audio/transcode.ts) needs ffmpeg with libopus, which
       # the runner image does not carry: without it the Opus copy is skipped and the MP3 plays alone.

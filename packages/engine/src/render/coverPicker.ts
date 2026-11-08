@@ -1,4 +1,4 @@
-import { COVER_TEMPLATES, hashOf } from "@singularity/core";
+import { COVER_TEMPLATES, hashOf } from "@singularityfm/core";
 import type { CoverPicker } from "./buildDigest.js";
 
 const FALLBACK_PALETTE = "dusk";
@@ -9,7 +9,7 @@ const FALLBACK_PALETTE = "dusk";
  */
 export async function loadCoverPalettes(): Promise<string[]> {
   try {
-    const { PALETTE_IDS } = await import("@singularity/cover");
+    const { PALETTE_IDS } = await import("@singularityfm/cover");
     return PALETTE_IDS.length > 0 ? [...PALETTE_IDS] : [FALLBACK_PALETTE];
   } catch {
     return [FALLBACK_PALETTE];

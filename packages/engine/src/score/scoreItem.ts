@@ -6,7 +6,7 @@ import {
   NORMAL_TASTE,
   type Preferences,
   TECH_CATEGORY,
-} from "@singularity/core";
+} from "@singularityfm/core";
 import { clamp01, round4 } from "./numbers.js";
 import type { ScoreBreakdown, ScoredItem } from "./types.js";
 

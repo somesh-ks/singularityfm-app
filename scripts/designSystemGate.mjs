@@ -58,7 +58,7 @@ const APP_FILE = /\.(?:ts|tsx|astro|mjs|js|css)$/;
 const APP_SKIP = new Set(["node_modules", "dist", "test-results", "playwright-report"]);
 
 /**
- * Each import in an app that reaches another app's folder or package (`@singularity/web`, `admin`),
+ * Each import in an app that reaches another app's folder or package (`@singularityfm/web`, `admin`),
  * as "file: specifier", leaving out the reaches `allowed` lists.
  */
 export function appBoundaryProblems(sources, allowed = CROSS_APP_IMPORTS) {
@@ -72,7 +72,7 @@ export function appBoundaryProblems(sources, allowed = CROSS_APP_IMPORTS) {
         : specifier;
       const other =
         /^apps\/([^/]+)\//.exec(target)?.[1] ??
-        /^@singularity\/(web|admin)(?:\/|$)/.exec(specifier)?.[1];
+        /^@singularityfm\/(web|admin)(?:\/|$)/.exec(specifier)?.[1];
       return other !== undefined && other !== app && !allowed.includes(reach) ? [reach] : [];
     });
   });

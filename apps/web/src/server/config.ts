@@ -1,4 +1,4 @@
-import { DEFAULT_SECOND_VOICE } from "@singularity/engine/segments";
+import { DEFAULT_SECOND_VOICE } from "@singularityfm/engine/segments";
 
 /**
  * The environment the API routes need. All are Vercel environment variables. Generate and status use

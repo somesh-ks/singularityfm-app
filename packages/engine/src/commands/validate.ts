@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { parseArgs } from "node:util";
-import { parseDigestFile, VOICE_LIMITS } from "@singularity/core";
+import { parseDigestFile, VOICE_LIMITS } from "@singularityfm/core";
 import { type CommandRun, secretsFromEnv } from "../context.js";
 import { loadPool, loadSources } from "../curate/inputs.js";
 import { emit } from "../curate/output.js";

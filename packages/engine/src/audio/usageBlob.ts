@@ -1,4 +1,4 @@
-import { UsageFile } from "@singularity/core";
+import { UsageFile } from "@singularityfm/core";
 import {
   type BlobClient,
   type ConditionalBlobClient,

@@ -1,7 +1,7 @@
 import { access, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
-import { CONFIG_FILES, requireKey, type Source } from "@singularity/core";
+import { CONFIG_FILES, requireKey, type Source } from "@singularityfm/core";
 import { type CommandContext, type CommandRun, redact, secretsFromEnv } from "../context.js";
 import { createLimiter } from "../fetch/limiter.js";
 import { QUERIES_PATH } from "../fetch/queries.js";

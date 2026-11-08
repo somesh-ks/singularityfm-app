@@ -8,9 +8,9 @@
  * never send it again. The page says once, under its title, that what it shows is saved and not live.
  */
 
-import type { SourceFormat } from "@singularity/core";
-import { topicEmoji } from "@singularity/core/topicEmoji";
-import { shownText, showText } from "@singularity/design-system/flag";
+import type { SourceFormat } from "@singularityfm/core";
+import { topicEmoji } from "@singularityfm/core/topicEmoji";
+import { shownText, showText } from "@singularityfm/design-system/flag";
 import { outletsSummary, savedBlocked } from "../lib/blockedOutlets";
 import { chosenSummary } from "../lib/multiSelect";
 import { outboxOps } from "../lib/outbox";

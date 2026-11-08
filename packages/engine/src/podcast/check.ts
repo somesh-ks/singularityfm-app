@@ -1,4 +1,4 @@
-import type { PodcastRequest } from "@singularity/core";
+import type { PodcastRequest } from "@singularityfm/core";
 import type { Logger } from "../context.js";
 import { mapConcurrent } from "../llm/concurrency.js";
 import type { PodcastStory, ScriptTurn, ScriptWriter } from "./types.js";

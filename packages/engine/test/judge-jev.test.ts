@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { CATEGORIES, hashOf, loadEnv } from "@singularity/core";
+import { CATEGORIES, hashOf, loadEnv } from "@singularityfm/core";
 import { describe, expect, it } from "vitest";
 import { breakJev } from "../src/judge/breaker.js";
 import { DEFAULT_JEV_MODEL, type JevClientLike, JevJudge } from "../src/judge/jev.js";

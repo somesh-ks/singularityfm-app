@@ -8,7 +8,7 @@ import {
   type EpisodeIndexEntry,
   episodeRelPath,
   parseEpisodeFile,
-} from "@singularity/core";
+} from "@singularityfm/core";
 import type { BlobClient } from "./blob.js";
 import { listEpisodeIds } from "./publishEpisodes.js";
 

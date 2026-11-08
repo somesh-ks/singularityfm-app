@@ -4,7 +4,7 @@ import {
   EPISODE_FRAME_CHARS,
   type ScheduleFile,
   STORY_FRAME_CHARS,
-} from "@singularity/core";
+} from "@singularityfm/core";
 import type { RunMode } from "../gate/decideRun.js";
 
 // The pace and a story's share of it moved to core (storyCount.ts), where the Stories control reads
@@ -15,7 +15,7 @@ export {
   STORY_CHARS,
   STORY_FRAME_CHARS,
   storiesForMinutes,
-} from "@singularity/core";
+} from "@singularityfm/core";
 
 /**
  * The stories that fit one narration request, best first until the next would not fit. A 15-minute

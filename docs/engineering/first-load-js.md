@@ -126,7 +126,7 @@ Guardrails for any cut: the service worker follows script imports six levels dee
 
 ## How to measure again
 
-1. `SINGULARITY_STATIC_ONLY=1 npm run build -w @singularity/web` prints every page's total.
+1. `SINGULARITY_STATIC_ONLY=1 npm run build -w @singularityfm/web` prints every page's total.
 2. Chunk map: a tsx script that imports `entryScripts` and `staticImports` from `src/lib/bundleBudget.ts`, walks static imports from each page's entries (eager), then dynamic `import(...)` in the `"`, `'` and backtick forms (lazy), and gzips each file.
 3. Module shares: add `sourcemap: true` to `vite.build` in `apps/web/astro.config.mjs` for one build, decode each `.map`'s mappings into bytes per source, share the chunk's gzip size out in proportion, then revert the config.
 4. Runtime: the CDP run above. Run the variants interleaved, one run of each in turn, and say whether the machine was busy: absolute numbers move 2x with load.

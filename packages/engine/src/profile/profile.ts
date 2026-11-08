@@ -1,5 +1,5 @@
 import { join } from "node:path";
-import { AutoAdjust, emptyAutoAdjust } from "@singularity/core";
+import { AutoAdjust, emptyAutoAdjust } from "@singularityfm/core";
 import { z } from "zod";
 import { readJsonIfExists } from "../curate/inputs.js";
 

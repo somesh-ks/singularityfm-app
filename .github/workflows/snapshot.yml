@@ -34,7 +34,7 @@ jobs:
           cache: pnpm
 
       - name: Install
-        run: pnpm install --frozen-lockfile --ignore-scripts --filter . --filter @singularity/engine...
+        run: pnpm install --frozen-lockfile --ignore-scripts --filter . --filter @singularityfm/engine...
 
       - name: Snapshot
         env:

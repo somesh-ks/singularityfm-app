@@ -18,7 +18,7 @@ On demand: [docs/specs/](docs/specs/README.md) for what a capability does (code 
 - `pnpm run gate --build`: typecheck, `astro check`, lint, unit tests, the docs check and the static build.
 - Run commands through PowerShell, not Git Bash ([learnings](docs/learnings.md)). Never stop the listener on port 4321 (owner's dev server); give browser suites a `PORT` above 4400.
 - A worktree gets packages from `pnpm install --frozen-lockfile --offline` inside it (seconds, hard links from the shared store); `git worktree remove` is then safe.
-- `pnpm --filter @singularity/web run e2e` and `pnpm --filter @singularity/web run e2e:player`: the browser suites. Run both before a PR that touches the site, `packages` or the tokens; push once. Red check: [delivery failures](docs/engineering/delivery-failures.md) (D148).
+- `pnpm --filter @singularityfm/web run e2e` and `pnpm --filter @singularityfm/web run e2e:player`: the browser suites. Run both before a PR that touches the site, `packages` or the tokens; push once. Red check: [delivery failures](docs/engineering/delivery-failures.md) (D148).
 - `SINGULARITY_STATIC_ONLY=1 pnpm run build`: local site build (adapter fails on Windows symlinks).
 - `pnpm run dev`: the site with the Agentation toolbar; `checkBundle` fails a build that contains it. Stop it when done (`pnpm exec astro dev stop` in `apps/web`).
 

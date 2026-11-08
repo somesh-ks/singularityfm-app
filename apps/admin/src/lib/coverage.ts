@@ -12,7 +12,7 @@
 
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
-import type { PartKind, System } from "@singularity/design-system/scripts/system/types";
+import type { PartKind, System } from "@singularityfm/design-system/scripts/system/types";
 import { type BespokeControl, classTokens, readBespoke } from "./classReader";
 
 export interface PartUse {

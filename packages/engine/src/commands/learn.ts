@@ -1,6 +1,6 @@
 import { readFileSync, renameSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { CONFIG_FILES, Preferences, stockholmDate } from "@singularity/core";
+import { CONFIG_FILES, Preferences, stockholmDate } from "@singularityfm/core";
 import { z } from "zod";
 import type { CommandContext, CommandRun } from "../context.js";
 import { applyPatch, PreferencesPatch } from "../learn/patch.js";

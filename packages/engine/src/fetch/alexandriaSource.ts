@@ -1,4 +1,4 @@
-import type { Item } from "@singularity/core";
+import type { Item } from "@singularityfm/core";
 import { z } from "zod";
 import { type BuildContext, buildItems, type RawItem } from "../normalize/buildItem.js";
 import type { FetchDeps } from "./types.js";

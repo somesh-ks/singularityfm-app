@@ -1,4 +1,4 @@
-import { loadEnv, ModelRouting } from "@singularity/core";
+import { loadEnv, ModelRouting } from "@singularityfm/core";
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import { StreamInterruptedError } from "../src/llm/errors.js";

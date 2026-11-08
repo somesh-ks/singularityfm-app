@@ -11,10 +11,10 @@
  * The pure parts are exported and tested; the rest is wiring.
  */
 
-import type { SourceFormat } from "@singularity/core";
-import { topicEmoji } from "@singularity/core/topicEmoji";
-import { shownText, showText } from "@singularity/design-system/flag";
-import { rowExitClass } from "@singularity/design-system/rowExit";
+import type { SourceFormat } from "@singularityfm/core";
+import { topicEmoji } from "@singularityfm/core/topicEmoji";
+import { shownText, showText } from "@singularityfm/design-system/flag";
+import { rowExitClass } from "@singularityfm/design-system/rowExit";
 import { pickEmoji } from "../lib/pickEmoji";
 import { readableUrl } from "../lib/readableUrl";
 import { sourcesSummary } from "../lib/settingsSummary";

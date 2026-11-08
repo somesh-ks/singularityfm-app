@@ -1,4 +1,4 @@
-import { takeSharedSlot, windowOf } from "@singularity/engine/rate-counter";
+import { takeSharedSlot, windowOf } from "@singularityfm/engine/rate-counter";
 import { type DatabaseDeps, deploymentDatabaseUrl, guardedDatabase } from "./database";
 
 /**

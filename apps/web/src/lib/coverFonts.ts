@@ -1,6 +1,6 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
-import { FONT_FILE_BASENAMES, setFontDirectory } from "@singularity/cover";
+import { FONT_FILE_BASENAMES, setFontDirectory } from "@singularityfm/cover";
 import { findRepoRoot } from "./repoRoot";
 
 let ready = false;

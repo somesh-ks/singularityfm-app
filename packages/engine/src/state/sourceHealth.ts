@@ -1,4 +1,4 @@
-import type { Source, SourceHealthFile, SourcesFile } from "@singularity/core";
+import type { Source, SourceHealthFile, SourcesFile } from "@singularityfm/core";
 import type { SourceResult } from "../fetch/types.js";
 import { FAILURE_FLAG_THRESHOLD } from "../ops/healthLimits.js";
 

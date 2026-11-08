@@ -1,7 +1,7 @@
 import { mkdir, readdir, readFile, stat, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { JudgmentsFile, parseDigestFile, seedTopicsFile } from "@singularity/core";
-import { PALETTE_IDS } from "@singularity/cover";
+import { JudgmentsFile, parseDigestFile, seedTopicsFile } from "@singularityfm/core";
+import { PALETTE_IDS } from "@singularityfm/cover";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { makeCurateCommand } from "../src/commands/curate.js";
 import { makeRenderCommand } from "../src/commands/render.js";
@@ -674,7 +674,7 @@ describe("singularity render", () => {
 describe("singularity validate", () => {
   const writeDigest = async (name: string, mutate?: (text: string) => string): Promise<string> => {
     const { digest } = buildFixtureDigest(6);
-    const { serializeDigestFile } = await import("@singularity/core");
+    const { serializeDigestFile } = await import("@singularityfm/core");
     const path = join(tr.root, name);
     const text = serializeDigestFile(digest);
     await writeFile(path, mutate ? mutate(text) : text);

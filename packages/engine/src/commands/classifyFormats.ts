@@ -7,7 +7,7 @@ import {
   SOURCE_FORMATS,
   type Source,
   type SourceFormat,
-} from "@singularity/core";
+} from "@singularityfm/core";
 import { type CommandRun, redact, secretsFromEnv } from "../context.js";
 import { parseFeed } from "../fetch/feedParser.js";
 import { createHttpClient } from "../http.js";

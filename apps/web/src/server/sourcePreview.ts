@@ -1,12 +1,12 @@
 import { lookup } from "node:dns/promises";
 import { isIP } from "node:net";
-import { deriveSourceFormat, type SourceFormat } from "@singularity/core";
+import { deriveSourceFormat, type SourceFormat } from "@singularityfm/core";
 import {
   createPreviewHttp,
   PreviewError,
   previewSource,
   type SourcePreview,
-} from "@singularity/engine/source-preview";
+} from "@singularityfm/engine/source-preview";
 import type { ApiResult } from "./http";
 
 /**

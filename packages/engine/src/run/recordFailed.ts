@@ -1,4 +1,4 @@
-import { stockholmDate } from "@singularity/core";
+import { stockholmDate } from "@singularityfm/core";
 import { commitAndPush } from "../git/commit.js";
 import { gitOutput } from "../git/runGit.js";
 import { recordRunMetrics } from "../metrics/runMetrics.js";

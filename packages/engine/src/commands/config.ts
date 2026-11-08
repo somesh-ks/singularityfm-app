@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
-import { CONFIG_FILES, parseConfigOps, SourcesUserFile, STATE_FILES } from "@singularity/core";
+import { CONFIG_FILES, parseConfigOps, SourcesUserFile, STATE_FILES } from "@singularityfm/core";
 import {
   applyConfigOp,
   type ConfigBundle,
@@ -75,7 +75,7 @@ const USAGE = `Usage: singularity config <command>
                                      Write a snapshot's documents back into the store as new versions,
                                      creating the table if it is gone. Overwrites newer edits.
 
-Ops (see ConfigOp in @singularity/core):
+Ops (see ConfigOp in @singularityfm/core):
   {"op":"topic.upsert","topic":{"name":"...","description":"...","keywords":["..."]}}
   {"op":"topic.remove","id":"..."}
   {"op":"source.add","url":"https://...","topic_ids":["..."]}

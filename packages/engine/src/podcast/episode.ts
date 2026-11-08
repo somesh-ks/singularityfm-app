@@ -10,7 +10,7 @@ import {
   type Section,
   serializeEpisodeFile,
   stockholmDate,
-} from "@singularity/core";
+} from "@singularityfm/core";
 import { createFallbackCoverPicker, loadCoverPalettes } from "../render/coverPicker.js";
 import type { PodcastStory, ScriptTurn } from "./types.js";
 

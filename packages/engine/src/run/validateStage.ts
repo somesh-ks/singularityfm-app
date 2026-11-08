@@ -6,7 +6,7 @@ import {
   type Item,
   isBuiltinCategory,
   VOICE_LIMITS,
-} from "@singularity/core";
+} from "@singularityfm/core";
 import { buildSpokenText, SpokenTextTooLongError } from "../audio/spokenText.js";
 import { linkSourceIds, loadSources, readJsonIfExists, sourceNameMap } from "../curate/inputs.js";
 import { writeJson } from "../curate/output.js";

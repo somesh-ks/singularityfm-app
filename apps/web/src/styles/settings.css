@@ -12,7 +12,7 @@
  */
 
 /* The page frame and the section heads are the design system's (page-frame.css). */
-@import "@singularity/design-system/styles/page-frame.css";
+@import "@singularityfm/design-system/styles/page-frame.css";
 
 /* ------------------------------------------------------------------ a settings page's title */
 

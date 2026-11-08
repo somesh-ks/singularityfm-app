@@ -1,4 +1,4 @@
-import type { PodcastFormat, PodcastRequest } from "@singularity/core";
+import type { PodcastFormat, PodcastRequest } from "@singularityfm/core";
 import { describe, expect, it } from "vitest";
 import { charCount } from "../src/podcast/fit.js";
 import {

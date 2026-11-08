@@ -1,4 +1,4 @@
-import { autoStories } from "@singularity/core/storyCount";
+import { autoStories } from "@singularityfm/core/storyCount";
 import { type Hints, hintsFor } from "./regenHints";
 import { REGEN_LENGTHS } from "./regenLength";
 import { stepStories } from "./storyOptions";

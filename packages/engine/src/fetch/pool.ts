@@ -1,4 +1,4 @@
-import { DigestId, DigestKind, Item } from "@singularity/core";
+import { DigestId, DigestKind, Item } from "@singularityfm/core";
 import { z } from "zod";
 import { writeFileAtomic } from "../state/atomicWrite.js";
 import { stableStringify } from "../state/stableJson.js";

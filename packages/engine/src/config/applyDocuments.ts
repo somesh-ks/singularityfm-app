@@ -1,7 +1,7 @@
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
-import { type ParsedConfigOp, parseConfigOps } from "@singularity/core";
+import { type ParsedConfigOp, parseConfigOps } from "@singularityfm/core";
 import { combineOutcomes, readBundle, renderBundle } from "../commands/config.js";
 import { createHttpClient, type FetchImpl, type HttpClient, type RequestOptions } from "../http.js";
 import { AddSourceError } from "../sources/addSource.js";

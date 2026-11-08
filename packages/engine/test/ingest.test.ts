@@ -1,5 +1,5 @@
 import { PGlite } from "@electric-sql/pglite";
-import type { Item, Source } from "@singularity/core";
+import type { Item, Source } from "@singularityfm/core";
 import { afterAll, describe, expect, it, vi } from "vitest";
 import type { ExtractedText } from "../src/extract/extractText.js";
 import type { SourceFetcher } from "../src/fetch/types.js";

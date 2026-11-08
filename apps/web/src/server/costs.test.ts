@@ -1,4 +1,4 @@
-import type { PriceTable } from "@singularity/core";
+import type { PriceTable } from "@singularityfm/core";
 import { describe, expect, it } from "vitest";
 import { narrationRecords } from "./costs";
 import type { NarrationState } from "./narrationState";

@@ -7,7 +7,7 @@
  * in one `profile.vote` op: when the page is hidden or left, or SEND_AFTER_MS after the first vote
  * not yet sent. Only a story's final state is sent.
  */
-import type { ConfigOp } from "@singularity/core";
+import type { ConfigOp } from "@singularityfm/core";
 
 export const VOTES_KEY = "singularity:story-votes";
 /** How long the first unsent vote may wait before the batch goes. */

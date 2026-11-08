@@ -1,5 +1,5 @@
-import { CATEGORIES, MAX_KEYWORDS, TopicInput, TopicsFile } from "@singularity/core";
-import { applyOpsToDocuments } from "@singularity/engine/config-store";
+import { CATEGORIES, MAX_KEYWORDS, TopicInput, TopicsFile } from "@singularityfm/core";
+import { applyOpsToDocuments } from "@singularityfm/engine/config-store";
 import { describe, expect, it } from "vitest";
 import { parseConfigOp } from "./configEdit";
 

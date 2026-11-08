@@ -7,7 +7,7 @@ import {
   loadModelRouting,
   MAX_REGENERATIONS,
   type PodcastRequest,
-} from "@singularity/core";
+} from "@singularityfm/core";
 import { type CommandContext, type CommandRun, secretsFromEnv } from "../context.js";
 import { recordRunCosts } from "../cost/ledger.js";
 import { emit } from "../curate/output.js";

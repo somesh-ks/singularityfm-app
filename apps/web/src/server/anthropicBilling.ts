@@ -1,4 +1,4 @@
-import { type CostRecord, OWNER_USER, TIME_ZONE } from "@singularity/core";
+import { type CostRecord, OWNER_USER, TIME_ZONE } from "@singularityfm/core";
 
 /**
  * What Anthropic billed, from its cost report (Admin API). The ledger sees only the calls the app

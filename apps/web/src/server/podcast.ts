@@ -1,4 +1,4 @@
-import { isFieldRecord as isRecord, StoryCount } from "@singularity/core";
+import { isFieldRecord as isRecord, StoryCount } from "@singularityfm/core";
 import type { PodcastCreateResponse, PodcastRequest } from "../types/contracts";
 import { cancelTokenFor } from "./cancelToken";
 import { missingSettings, readServerConfig, secretsOf } from "./config";

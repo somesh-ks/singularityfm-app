@@ -7,13 +7,13 @@ import {
   menuListClass,
   menuTileClass,
   menuTilesClass,
-} from "@singularity/design-system/menu";
+} from "@singularityfm/design-system/menu";
 import {
   sheetHeadClass,
   sheetHeadingClass,
   sheetSubtitleClass,
   sheetTitleClass,
-} from "@singularity/design-system/sheet";
+} from "@singularityfm/design-system/sheet";
 import {
   type CSSProperties,
   type KeyboardEvent,
@@ -23,8 +23,8 @@ import {
   useState,
 } from "react";
 import { sendToast } from "../scripts/toastEvent";
-import "@singularity/design-system/styles/slider.css";
-import { glowFavorite } from "@singularity/design-system/glow";
+import "@singularityfm/design-system/styles/slider.css";
+import { glowFavorite } from "@singularityfm/design-system/glow";
 import { downloadFailure } from "../lib/downloadCopy";
 import { longDateFromDigestId } from "./core/formatTime";
 import { recordingCaption } from "./core/playerCopy";

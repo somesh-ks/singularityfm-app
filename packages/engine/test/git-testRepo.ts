@@ -3,7 +3,7 @@ import { rmSync } from "node:fs";
 import { cp, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
-import { serializeDigestFile } from "@singularity/core";
+import { serializeDigestFile } from "@singularityfm/core";
 import type { GitResult, GitRunner } from "../src/git/runGit.js";
 import { createGitRunner } from "../src/git/runGit.js";
 import { digestFor } from "./audio-fixtures.js";

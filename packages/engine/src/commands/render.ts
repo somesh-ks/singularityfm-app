@@ -1,6 +1,6 @@
 import { dirname, join } from "node:path";
 import { parseArgs } from "node:util";
-import { categoryIsOff, homeSectionFor, topicSectionTitles, zonedDate } from "@singularity/core";
+import { categoryIsOff, homeSectionFor, topicSectionTitles, zonedDate } from "@singularityfm/core";
 import { type CommandRun, secretsFromEnv } from "../context.js";
 import {
   linkSourceIds,

@@ -9,7 +9,7 @@ import {
   scaleStructure,
   serializeEpisodeFile,
   storedStructure,
-} from "@singularity/core";
+} from "@singularityfm/core";
 import type { Logger } from "../context.js";
 import { createHttpClient, type HttpClient } from "../http.js";
 import { createFileProfileStore, OWNER_ID } from "../profile/profile.js";

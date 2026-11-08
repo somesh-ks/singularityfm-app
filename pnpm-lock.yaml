@@ -24,12 +24,12 @@ importers:
       '@resvg/resvg-js':
         specifier: ^2.6.2
         version: 2.6.2
-      '@singularity/core':
+      '@singularityfm/core':
         specifier: workspace:*
         version: link:packages/core
-      '@singularity/design-system':
-        specifier: npm:@singularityfm/design-system@0.1.1
-        version: '@singularityfm/design-system@0.1.1(@base-ui/react@1.9.0(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(astro@7.4.4(@types/node@26.6.6)(@vercel/blob@2.8.2)(@vercel/functions@3.10.5(ws@8.22.1))(esbuild@0.28.2)(tsx@4.23.15)(yaml@2.9.1))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)'
+      '@singularityfm/design-system':
+        specifier: 0.1.1
+        version: 0.1.1(@base-ui/react@1.9.0(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(astro@7.4.4(@types/node@26.6.6)(@vercel/blob@2.8.2)(@vercel/functions@3.10.5(ws@8.22.1))(esbuild@0.28.2)(tsx@4.23.15)(yaml@2.9.1))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       '@types/node':
         specifier: ^26.6.6
         version: 26.6.6
@@ -63,7 +63,7 @@ importers:
       '@astrojs/react':
         specifier: ^7.1.2
         version: 7.1.2(@types/node@26.6.6)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(esbuild@0.28.2)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(tsx@4.23.15)(yaml@2.9.1)
-      '@singularity/engine':
+      '@singularityfm/engine':
         specifier: workspace:*
         version: link:../../packages/engine
       '@vercel/functions':
@@ -82,10 +82,10 @@ importers:
       '@astrojs/check':
         specifier: ^0.9.12
         version: 0.9.12(@emnapi/runtime@1.11.3)(prettier@3.9.9)(typescript@6.0.3)
-      '@singularity/design-system':
-        specifier: npm:@singularityfm/design-system@0.1.1
-        version: '@singularityfm/design-system@0.1.1(@base-ui/react@1.9.0(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(astro@7.4.4(@types/node@26.6.6)(@vercel/blob@2.8.2)(@vercel/functions@3.10.5(ws@8.22.1))(esbuild@0.28.2)(tsx@4.23.15)(yaml@2.9.1))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)'
-      '@singularity/web':
+      '@singularityfm/design-system':
+        specifier: 0.1.1
+        version: 0.1.1(@base-ui/react@1.9.0(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(astro@7.4.4(@types/node@26.6.6)(@vercel/blob@2.8.2)(@vercel/functions@3.10.5(ws@8.22.1))(esbuild@0.28.2)(tsx@4.23.15)(yaml@2.9.1))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@singularityfm/web':
         specifier: workspace:*
         version: link:../web
       '@types/react':
@@ -109,19 +109,19 @@ importers:
       '@base-ui/react':
         specifier: ^1.9.0
         version: 1.9.0(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
-      '@singularity/core':
+      '@singularityfm/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@singularity/cover':
+      '@singularityfm/cover':
         specifier: workspace:*
         version: link:../../packages/cover
-      '@singularity/design-system':
-        specifier: npm:@singularityfm/design-system@0.1.1
-        version: '@singularityfm/design-system@0.1.1(@base-ui/react@1.9.0(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(astro@7.4.4(@types/node@26.6.6)(@vercel/blob@2.8.2)(@vercel/functions@3.10.5(ws@8.22.1))(esbuild@0.28.2)(tsx@4.23.15)(yaml@2.9.1))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)'
-      '@singularity/engine':
+      '@singularityfm/design-system':
+        specifier: 0.1.1
+        version: 0.1.1(@base-ui/react@1.9.0(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(astro@7.4.4(@types/node@26.6.6)(@vercel/blob@2.8.2)(@vercel/functions@3.10.5(ws@8.22.1))(esbuild@0.28.2)(tsx@4.23.15)(yaml@2.9.1))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@singularityfm/engine':
         specifier: workspace:*
         version: link:../../packages/engine
-      '@singularity/sound':
+      '@singularityfm/sound':
         specifier: workspace:*
         version: link:../../packages/sound
       '@vercel/blob':
@@ -194,12 +194,12 @@ importers:
       '@resvg/resvg-js':
         specifier: ^2.6.2
         version: 2.6.2
-      '@singularity/core':
+      '@singularityfm/core':
         specifier: workspace:*
         version: link:../core
-      '@singularity/design-system':
-        specifier: npm:@singularityfm/design-system@0.1.1
-        version: '@singularityfm/design-system@0.1.1(@base-ui/react@1.9.0(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(astro@7.4.4(@types/node@26.6.6)(@vercel/blob@2.8.2)(@vercel/functions@3.10.5(ws@8.22.1))(esbuild@0.28.2)(tsx@4.23.15)(yaml@2.9.1))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)'
+      '@singularityfm/design-system':
+        specifier: 0.1.1
+        version: 0.1.1(@base-ui/react@1.9.0(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(astro@7.4.4(@types/node@26.6.6)(@vercel/blob@2.8.2)(@vercel/functions@3.10.5(ws@8.22.1))(esbuild@0.28.2)(tsx@4.23.15)(yaml@2.9.1))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       fontkitten:
         specifier: ^1.0.3
         version: 1.0.3
@@ -212,10 +212,10 @@ importers:
       '@neondatabase/serverless':
         specifier: 1.2.0
         version: 1.2.0
-      '@singularity/core':
+      '@singularityfm/core':
         specifier: workspace:*
         version: link:../core
-      '@singularity/cover':
+      '@singularityfm/cover':
         specifier: workspace:*
         version: link:../cover
       '@typesafe-ai/sdk':

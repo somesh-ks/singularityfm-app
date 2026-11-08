@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { DEFAULT_SCHEDULE } from "@singularity/core";
+import { DEFAULT_SCHEDULE } from "@singularityfm/core";
 import { describe, expect, it } from "vitest";
 import { storeChanges } from "./configView";
 

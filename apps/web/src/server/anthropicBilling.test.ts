@@ -1,4 +1,4 @@
-import type { CostRecord } from "@singularity/core";
+import type { CostRecord } from "@singularityfm/core";
 import { describe, expect, it } from "vitest";
 import { anthropicBilledDays, outsideAppRecords, resetBillingCache } from "./anthropicBilling";
 

@@ -1,5 +1,5 @@
 import type { Page, Route } from "@playwright/test";
-import { DEFAULT_SCHEDULE } from "@singularity/core";
+import { DEFAULT_SCHEDULE } from "@singularityfm/core";
 import { configHash } from "../src/lib/configHash";
 import { BUILT_FILES, routeConfigStore } from "./configServer";
 import {

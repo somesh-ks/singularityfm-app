@@ -1,5 +1,5 @@
 {
-  "name": "@singularity/cover",
+  "name": "@singularityfm/cover",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -9,8 +9,8 @@
   },
   "dependencies": {
     "@resvg/resvg-js": "^2.6.2",
-    "@singularity/core": "workspace:*",
-    "@singularity/design-system": "npm:@singularityfm/design-system@0.1.1",
+    "@singularityfm/core": "workspace:*",
+    "@singularityfm/design-system": "0.1.1",
     "fontkitten": "^1.0.3"
   }
 }

@@ -1,4 +1,4 @@
-import { Item, itemId } from "@singularity/core";
+import { Item, itemId } from "@singularityfm/core";
 import { describe, expect, it } from "vitest";
 import { buildItem, buildItems } from "../src/normalize/buildItem.js";
 import { canonicalizeUrl, unwrapRedirect } from "../src/normalize/canonicalizeUrl.js";

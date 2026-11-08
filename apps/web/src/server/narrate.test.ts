@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
-import { AudioTimeline, type Digest, serializeDigestFile } from "@singularity/core";
-import { buildSpokenText, type SpokenSegment, spokenSegments } from "@singularity/engine/audio";
-import { SEGMENT_CACHE_SECONDS } from "@singularity/engine/segments";
+import { AudioTimeline, type Digest, serializeDigestFile } from "@singularityfm/core";
+import { buildSpokenText, type SpokenSegment, spokenSegments } from "@singularityfm/engine/audio";
+import { SEGMENT_CACHE_SECONDS } from "@singularityfm/engine/segments";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { makeDigest, makeItem, makeTimeline } from "../testing/digestFactory";
 import { createFakeBlobStore, FAKE_BLOB_HOST } from "../testing/fakeBlobStore";

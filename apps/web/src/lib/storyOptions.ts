@@ -1,4 +1,4 @@
-import { autoStories, mostStories, STORY_COUNTS } from "@singularity/core/storyCount";
+import { autoStories, mostStories, STORY_COUNTS } from "@singularityfm/core/storyCount";
 
 /**
  * The Stories control beside Length (D377), on every surface that sets a podcast's size: the counts

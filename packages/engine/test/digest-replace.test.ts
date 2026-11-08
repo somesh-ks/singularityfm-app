@@ -1,5 +1,5 @@
 import { rm } from "node:fs/promises";
-import type { LastRunFile, Source } from "@singularity/core";
+import type { LastRunFile, Source } from "@singularityfm/core";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { CARRY_HOURS } from "../src/run/carriedPool.js";
 import { git } from "./git-testRepo.js";

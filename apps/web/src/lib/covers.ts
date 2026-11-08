@@ -2,13 +2,13 @@ import { createHash, randomUUID } from "node:crypto";
 import { mkdir, readdir, readFile, rename, writeFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { join } from "node:path";
-import type { Digest } from "@singularity/core";
+import type { Digest } from "@singularityfm/core";
 import {
   type CoverMode,
   coverColors,
   renderCoverPng,
   renderLiveCoverSvg,
-} from "@singularity/cover";
+} from "@singularityfm/cover";
 import { loadCoverFonts } from "./coverFonts";
 
 /**
@@ -114,7 +114,7 @@ let fingerprint: Promise<string> | undefined;
  */
 export function coverRendererFingerprint(root: string): Promise<string> {
   const palettes = createRequire(join(root, "packages", "cover", "package.json")).resolve(
-    "@singularity/design-system/tokens/covers.json",
+    "@singularityfm/design-system/tokens/covers.json",
   );
   fingerprint ??= rendererFingerprint(
     [join(root, "packages", "cover", "src"), join(root, "packages", "cover", "fonts")],

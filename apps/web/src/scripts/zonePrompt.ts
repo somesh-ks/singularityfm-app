@@ -12,8 +12,8 @@
  * store; until then a stale offer is possible and harmless, since the switch it asks for is the one
  * already saved.
  */
-import { sameClock, scheduleZone } from "@singularity/core/time";
-import { suggestZone } from "@singularity/core/zoneSuggest";
+import { sameClock, scheduleZone } from "@singularityfm/core/time";
+import { suggestZone } from "@singularityfm/core/zoneSuggest";
 import { isOnline } from "../lib/connectivity";
 import { SAVED_KEY } from "../lib/savedKey";
 import { parseSaved, savedFields, withStore } from "../lib/savedOverlay";

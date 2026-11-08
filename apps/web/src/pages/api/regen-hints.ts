@@ -1,4 +1,4 @@
-import { createCommentReader, createCommentValuesReader } from "@singularity/engine/comment-hints";
+import { createCommentReader, createCommentValuesReader } from "@singularityfm/engine/comment-hints";
 import type { APIRoute } from "astro";
 import { answerWithRef, toResponse } from "../../server/http";
 import { sharedLimit } from "../../server/rateLimit";

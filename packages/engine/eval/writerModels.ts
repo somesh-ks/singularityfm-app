@@ -32,7 +32,7 @@ import {
   loadModelRouting,
   type ModelRouting,
   repoRoot,
-} from "@singularity/core";
+} from "@singularityfm/core";
 import { noul } from "@typesafe-ai/sdk";
 import { z } from "zod";
 import { type Logger, secretsFromEnv } from "../src/context.js";

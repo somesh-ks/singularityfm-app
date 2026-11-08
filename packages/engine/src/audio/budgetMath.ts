@@ -1,4 +1,4 @@
-import { stockholmDate, type UsageFile } from "@singularity/core";
+import { stockholmDate, type UsageFile } from "@singularityfm/core";
 
 /**
  * The Speechify budget rules with no storage behind them. The engine and the site's narrate

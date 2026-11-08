@@ -115,10 +115,10 @@ describe("design-system gate", () => {
   it("fails an app that takes a part from another app's folder, and keeps the old reaches frozen", () => {
     const admin = "apps/admin/src/layouts/Shell.astro";
     const text = [
-      'import "@singularity/design-system/styles/page-frame.css";',
+      'import "@singularityfm/design-system/styles/page-frame.css";',
       'import "../../../web/src/styles/settings.css";',
-      'import { SUPPORTED_TIMEZONES } from "@singularity/core/time";',
-      'import { x } from "@singularity/web/lib/x";',
+      'import { SUPPORTED_TIMEZONES } from "@singularityfm/core/time";',
+      'import { x } from "@singularityfm/web/lib/x";',
     ].join("\n");
     // A stylesheet reaches by url() as well.
     expect(
@@ -134,7 +134,7 @@ describe("design-system gate", () => {
     ).toEqual(["apps/admin/src/styles/a.css: ../../../web/src/styles/b.css"]);
     expect(appBoundaryProblems([{ file: admin, text }], [])).toEqual([
       `${admin}: ../../../web/src/styles/settings.css`,
-      `${admin}: @singularity/web/lib/x`,
+      `${admin}: @singularityfm/web/lib/x`,
     ]);
     const sources = appSources(join(import.meta.dirname, ".."));
     expect(sources.some(({ file }) => file.startsWith("apps/admin/src/"))).toBe(true);

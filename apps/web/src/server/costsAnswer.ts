@@ -1,4 +1,4 @@
-import type { CostRecord, PriceTable } from "@singularity/core";
+import type { CostRecord, PriceTable } from "@singularityfm/core";
 import { waitUntil } from "@vercel/functions";
 import { outsideAppRecords } from "./anthropicBilling";
 import { type CostBody, type CostQuery, costBody } from "./costs";

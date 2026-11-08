@@ -2,7 +2,7 @@
 import { existsSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
-import { type Env, loadEnv, repoRoot } from "@singularity/core";
+import { type Env, loadEnv, repoRoot } from "@singularityfm/core";
 import { COMMANDS, type CommandSpec } from "./commandRegistry.js";
 import {
   type CommandContext,

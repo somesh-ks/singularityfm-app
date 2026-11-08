@@ -9,7 +9,7 @@ import {
   scheduleZone,
   stockholmDate,
   VOICE_LIMITS,
-} from "@singularity/core";
+} from "@singularityfm/core";
 import { z } from "zod";
 import type { EpisodeVoiceEnv } from "../audio/segmentStore.js";
 import { loadAllCosts } from "../cost/ledger.js";

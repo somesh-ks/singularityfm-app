@@ -13,7 +13,7 @@ const SHARED_RULES = [
     surface: "Design system pin (tokens, components and shared CSS on every page)",
     checks: [
       "pnpm run design-check",
-      "pnpm --filter @singularity/web run e2e e2e/designSystem.spec.ts",
+      "pnpm --filter @singularityfm/web run e2e e2e/designSystem.spec.ts",
     ],
   },
   {
@@ -22,14 +22,14 @@ const SHARED_RULES = [
     surface: "Shared CSS Primitives (buttons, chips, navigation, sheets across all pages)",
     checks: [
       "pnpm run design-check",
-      "pnpm --filter @singularity/web run e2e e2e/designSystem.spec.ts",
+      "pnpm --filter @singularityfm/web run e2e e2e/designSystem.spec.ts",
     ],
   },
   {
     pattern: /^apps\/web\/src\/layouts\//,
     risk: "HIGH",
     surface: "App Shell Layouts (BaseLayout, head scripts, viewport units)",
-    checks: ["pnpm --filter @singularity/web run check", "pnpm --filter @singularity/web run e2e"],
+    checks: ["pnpm --filter @singularityfm/web run check", "pnpm --filter @singularityfm/web run e2e"],
   },
   {
     pattern: /^packages\/core\//,
@@ -41,15 +41,15 @@ const SHARED_RULES = [
     pattern: /^apps\/web\/src\/player\//,
     risk: "MEDIUM",
     surface: "Interactive Audio Player Island (playback, transcript, scrubber, queue)",
-    checks: ["pnpm --filter @singularity/web run e2e:player"],
+    checks: ["pnpm --filter @singularityfm/web run e2e:player"],
   },
   {
     pattern: /^apps\/web\/src\/(?:sheets|components\/Create)/,
     risk: "MEDIUM",
     surface: "Creation & Drawer Sheets (New episode, prompt adjustments, topics panel)",
     checks: [
-      "pnpm --filter @singularity/web run check",
-      "pnpm --filter @singularity/web run e2e e2e/create.spec.ts",
+      "pnpm --filter @singularityfm/web run check",
+      "pnpm --filter @singularityfm/web run e2e e2e/create.spec.ts",
     ],
   },
   {
@@ -59,7 +59,7 @@ const SHARED_RULES = [
     surface: "Settings & Preferences (podcast structure, categories, voice, sound)",
     checks: [
       "pnpm exec vitest run apps/web/src/lib/structureView.test.ts",
-      "pnpm --filter @singularity/web run e2e e2e/settings.spec.ts e2e/topics.spec.ts",
+      "pnpm --filter @singularityfm/web run e2e e2e/settings.spec.ts e2e/topics.spec.ts",
     ],
   },
   {

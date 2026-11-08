@@ -1,5 +1,5 @@
 import { parseArgs } from "node:util";
-import { loadModelRouting } from "@singularity/core";
+import { loadModelRouting } from "@singularityfm/core";
 import { type CommandRun, redact, secretsFromEnv } from "../context.js";
 import { resolveFamilies } from "../llm/modelResolver.js";
 

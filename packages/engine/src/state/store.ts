@@ -28,7 +28,7 @@ import {
   TopicJudgmentsFile as TopicJudgmentsSchema,
   type UsageFile,
   UsageFile as UsageSchema,
-} from "@singularity/core";
+} from "@singularityfm/core";
 import type { ZodType } from "zod";
 import { writeFileAtomic } from "./atomicWrite.js";
 import { stableStringify } from "./stableJson.js";

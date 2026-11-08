@@ -7,10 +7,10 @@ import {
   type ScheduleFile,
   type SourceHealthFile,
   scheduleZone,
-} from "@singularity/core";
-import { rateVital, VITAL_THRESHOLDS, type VitalMetric } from "@singularity/core/vitals";
-import { type ClientFaultGroup, OPAQUE_SCRIPT_ERROR } from "@singularity/engine/faults-store";
-import { decideRun } from "@singularity/engine/gate";
+} from "@singularityfm/core";
+import { rateVital, VITAL_THRESHOLDS, type VitalMetric } from "@singularityfm/core/vitals";
+import { type ClientFaultGroup, OPAQUE_SCRIPT_ERROR } from "@singularityfm/engine/faults-store";
+import { decideRun } from "@singularityfm/engine/gate";
 import {
   CLIENT_ERRORS_PER_DAY,
   FAILURE_FLAG_THRESHOLD,
@@ -23,9 +23,9 @@ import {
   SHORT_EPISODE_WARN,
   SLOT_MISSED_AFTER_MS,
   THIN_DIGEST_ITEMS,
-} from "@singularity/engine/health-limits";
-import type { StoredHealth } from "@singularity/engine/health-store";
-import type { VitalSummary } from "@singularity/engine/vitals-store";
+} from "@singularityfm/engine/health-limits";
+import type { StoredHealth } from "@singularityfm/engine/health-store";
+import type { VitalSummary } from "@singularityfm/engine/vitals-store";
 import {
   HEALTH_DEVICES,
   HEALTH_JOBS,
@@ -40,7 +40,7 @@ import type { WorkflowRun } from "./github";
 
 /**
  * The Health page's answer (/api/health): what `singularity health` judges daily, read live from what
- * the site reaches, with the same lines (`@singularity/engine/health-limits`), plus the readings
+ * the site reaches, with the same lines (`@singularityfm/engine/health-limits`), plus the readings
  * health only logs: run times, workflow outcomes and the field p75s per device. Pure: the route
  * gathers the inputs (healthSources.ts) and this words every row.
  */

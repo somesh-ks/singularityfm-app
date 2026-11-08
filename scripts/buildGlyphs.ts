@@ -15,7 +15,7 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 export const GLYPHS_PATH = createRequire(import.meta.url).resolve(
-  "@singularity/design-system/tokens/glyphs.json",
+  "@singularityfm/design-system/tokens/glyphs.json",
 );
 export const PLAYER_REGISTRY_PATH = resolve(ROOT, "apps/web/src/player/ui/iconPaths.tsx");
 /** Every player glyph. Only code that loads on demand imports it, so its size costs no page load. */

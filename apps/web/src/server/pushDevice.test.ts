@@ -1,6 +1,6 @@
 import { PGlite } from "@electric-sql/pglite";
-import type { SqlClient } from "@singularity/engine/config-paths";
-import { MAX_DEVICES } from "@singularity/engine/push-store";
+import type { SqlClient } from "@singularityfm/engine/config-paths";
+import { MAX_DEVICES } from "@singularityfm/engine/push-store";
 import { afterAll, describe, expect, it, vi } from "vitest";
 import { handlePushDevice } from "./pushDevice";
 

@@ -5,7 +5,7 @@ import {
   type Episode,
   episodeRelPath,
   serializeEpisodeFile,
-} from "@singularity/core";
+} from "@singularityfm/core";
 import { describe, expect, it } from "vitest";
 import type { ConditionalBlobClient } from "./blob.js";
 import { applyContentDelta } from "./contentDelta.js";

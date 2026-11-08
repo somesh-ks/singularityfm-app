@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { loadEnv, type SourceHealthFile, type SourcesFile } from "@singularity/core";
+import { loadEnv, type SourceHealthFile, type SourcesFile } from "@singularityfm/core";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { run } from "../src/commands/fetch.js";
 import { type CommandContext, createLogger } from "../src/context.js";

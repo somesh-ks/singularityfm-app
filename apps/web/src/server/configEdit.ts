@@ -18,9 +18,9 @@ import {
   StructureBlocks,
   StructureProfile,
   scheduleZone,
-} from "@singularity/core";
+} from "@singularityfm/core";
 
-import { configStoreUrl, type SqlClient } from "@singularity/engine/config-paths";
+import { configStoreUrl, type SqlClient } from "@singularityfm/engine/config-paths";
 import { blockedDomainOf } from "../lib/blockedOutlets";
 import type { ConfigOp, ConfigResponse, PodcastRequest } from "../types/contracts";
 import { missingSettings, readServerConfig, type ServerConfig, secretsOf } from "./config";

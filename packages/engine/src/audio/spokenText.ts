@@ -1,5 +1,5 @@
-import type { Digest, DigestItem } from "@singularity/core";
-import { digestSections } from "@singularity/core";
+import type { Digest, DigestItem } from "@singularityfm/core";
+import { digestSections } from "@singularityfm/core";
 import { openingLine, rundownLine, sectionBridge, signOff, storyConnective } from "./hostFrame.js";
 
 /**

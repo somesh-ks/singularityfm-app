@@ -1,4 +1,4 @@
-import { CategoryId, DigestKind, VOICE_LIMITS } from "@singularity/core";
+import { CategoryId, DigestKind, VOICE_LIMITS } from "@singularityfm/core";
 import { z } from "zod";
 
 const isoDateTime = z.string().datetime({ offset: true });

@@ -1,7 +1,7 @@
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { DEFAULT_SCHEDULE } from "@singularity/core";
+import { DEFAULT_SCHEDULE } from "@singularityfm/core";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { loadSchedule, ScheduleError, serializeSchedule } from "../src/schedule/store.js";
 

@@ -1,5 +1,5 @@
 import { parseArgs } from "node:util";
-import type { Item } from "@singularity/core";
+import type { Item } from "@singularityfm/core";
 import { type CommandRun, redact, secretsFromEnv } from "../context.js";
 import { loadPool } from "../curate/inputs.js";
 import { resolveRunLocation } from "../curate/runDir.js";

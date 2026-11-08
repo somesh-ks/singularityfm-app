@@ -9,8 +9,6 @@ export interface ServerEnv {
   DATABASE_URL?: string;
   SINGULARITY_CONFIG_STORE?: string;
   SINGULARITY_GH_TOKEN?: string;
-  /** The token's name before 2026-11-08, read only until Vercel has the new one. */
-  GITHUB_SINGULARITY_TOKEN?: string;
   GITHUB_REPOSITORY?: string;
   SPEECHIFY_API_KEY?: string;
   SPEECHIFY_VOICE_ID?: string;
@@ -42,9 +40,7 @@ const REPOSITORY = /^([A-Za-z0-9_.-]+)\/([A-Za-z0-9_.-]+)$/;
 
 /** The site's GitHub token. */
 function tokenOf(env: ServerEnv): string | undefined {
-  // shortcut: reads the old name until Vercel has the new one (2026-11-08 rename); drop the
-  // fallback and its ServerEnv field once GITHUB_SINGULARITY_TOKEN is deleted on Vercel.
-  return (env.SINGULARITY_GH_TOKEN ?? env.GITHUB_SINGULARITY_TOKEN)?.trim() || undefined;
+  return env.SINGULARITY_GH_TOKEN?.trim() || undefined;
 }
 
 /** Returns null when anything is missing or malformed, so a half-configured site answers "unavailable". */

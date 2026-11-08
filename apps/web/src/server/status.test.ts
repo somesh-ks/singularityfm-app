@@ -15,7 +15,7 @@ import {
 
 const TOKEN = "github_pat_secret_value_123456";
 const env = {
-  GITHUB_SINGULARITY_TOKEN: TOKEN,
+  SINGULARITY_GH_TOKEN: TOKEN,
   GITHUB_REPOSITORY: REPO,
 };
 const config = readServerConfig(env);

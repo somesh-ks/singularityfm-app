@@ -42,7 +42,7 @@ Never paste a key into chat. The agent cannot read `.env`; keep it that way.
 | `SPEECHIFY_VOICE_ID` | Plain configuration, no secret |
 | `BLOB_READ_WRITE_TOKEN` | Section 1.5 |
 | `SINGULARITY_GIT_NAME`, `SINGULARITY_GIT_EMAIL` | Plain configuration, no secret. `Somesh Kesarla Suresh` and `26426782+somesh-ks@users.noreply.github.com` (section 1.4) |
-| `GITHUB_SINGULARITY_TOKEN`, `GITHUB_REPOSITORY` | Section 1.7. GitHub stores the token as `SINGULARITY_GH_TOKEN`: it refuses names that start with `GITHUB_` |
+| `SINGULARITY_GH_TOKEN`, `GITHUB_REPOSITORY` | Section 1.7 (named so because GitHub refuses secret names that start with `GITHUB_`) |
 | `ADMIN_PASSWORD`, `ADMIN_SESSION_SECRET` | You choose them; the command center's sign-in (section 1.4a). Sent to the admin project; the secret also goes to the reader (its `/api/costs` and `/api/health` verify the session, D257) |
 | Models | Not env vars: `config/models.json` routes each step (Section 1.3) |
 
@@ -64,7 +64,7 @@ Vercel deploys through its GitHub integration (D25). No Vercel token is needed i
 
 1. In the Vercel dashboard, choose Add New, Project, and import the GitHub repo `singularityfm-app`. Name the project `knowledge-hub` (the Vercel project kept its name when the repo was renamed, D382); the production branch is `main`.
 2. Set Root Directory to `apps/web`. Leave "Include source files outside the Root Directory" on (the default). `apps/web/vercel.json` already sets the install, build and ignore commands.
-3. Add the two Vercel environment variables (`GITHUB_SINGULARITY_TOKEN`, `GITHUB_REPOSITORY`) in section 1.9, or by hand in the dashboard.
+3. Add the two Vercel environment variables (`SINGULARITY_GH_TOKEN`, `GITHUB_REPOSITORY`) in section 1.9, or by hand in the dashboard.
 4. Hobby deploys only commits authored by the Hobby team owner. The GitHub login connected to Vercel must be the account that owns the team, and it must match the committer. The engine commits as that owner through the GitHub Actions variables `SINGULARITY_GIT_NAME` and `SINGULARITY_GIT_EMAIL`, which section 1.9 sends. If both are unset the engine commits as `singularity-bot`, and Hobby blocks those deploys.
 
 ### 1.4a Create the admin project (D224)
@@ -102,7 +102,7 @@ Do not add `www.news.someshks.work`. Do not turn the Cloudflare proxy on.
 1. In GitHub, open Settings, Developer settings, Fine-grained personal access tokens.
 2. Create a token with resource owner `somesh-ks`, access to the `singularityfm-app` repository only, and these repository permissions: Actions read and write, Variables read and write, Contents read. Nothing else.
 3. Set an expiry and record it in section 6.
-4. Put the token in `.env` as `GITHUB_SINGULARITY_TOKEN`. Set `GITHUB_REPOSITORY=somesh-ks/singularityfm-app`.
+4. Put the token in `.env` as `SINGULARITY_GH_TOKEN`. Set `GITHUB_REPOSITORY=somesh-ks/singularityfm-app`.
 
 ### 1.8 No passphrase
 
@@ -262,7 +262,7 @@ Rotate on a schedule, after any suspected leak, and before expiry. If a key appe
 1. Create the new key at the service. Delete the old one after the new one works.
 2. Edit the value in `.env`.
 3. Run `npm run secrets:push`.
-4. If the value feeds Vercel (`GITHUB_SINGULARITY_TOKEN`, `GITHUB_REPOSITORY`), redeploy from the Vercel dashboard (Deployments, Redeploy on the latest production deployment). Vercel applies new environment values only to new deployments.
+4. If the value feeds Vercel (`SINGULARITY_GH_TOKEN`, `GITHUB_REPOSITORY`), redeploy from the Vercel dashboard (Deployments, Redeploy on the latest production deployment). Vercel applies new environment values only to new deployments.
 
 | Key | Rotate at | Used by |
 | --- | --- | --- |
@@ -273,16 +273,16 @@ Rotate on a schedule, after any suspected leak, and before expiry. If a key appe
 | `GEMINI_API_KEY` | Google AI Studio | YouTube transcription fallback, topic emoji backup (also sent to Vercel) |
 | `SPEECHIFY_API_KEY` | Speechify API console | Audio |
 | `BLOB_READ_WRITE_TOKEN` | The Blob store's settings in Vercel | Audio upload and prune |
-| `GITHUB_SINGULARITY_TOKEN` | GitHub, Fine-grained personal access tokens | Generate button, workflow dispatch, reads and cancels, Actions variable writes, the scheduled dispatch (`/api/cron/run`) |
+| `SINGULARITY_GH_TOKEN` | GitHub, Fine-grained personal access tokens | Generate button, workflow dispatch, reads and cancels, Actions variable writes, the scheduled dispatch (`/api/cron/run`) |
 
 Track expiry here. Fill the dates when you create each token and set a calendar reminder two weeks before.
 
 | Token | Created | Expires | Renew by |
 | --- | --- | --- | --- |
-| `GITHUB_SINGULARITY_TOKEN` | | | |
+| `SINGULARITY_GH_TOKEN` | | | |
 | `VERCEL_TOKEN` (optional, the audio workflow's CLI fallback) | | | |
 
-When `GITHUB_SINGULARITY_TOKEN` expires, the Generate button stops working ("The server ran into a problem, so no briefing was started. Error ref ...") and `/api/cron/run` can no longer start the on-time scheduled run; GitHub's own schedule remains a fallback, so a briefing may come late. `run.yml` itself uses the built-in workflow token. `VERCEL_TOKEN` is optional: the audio workflow's Vercel CLI fallback uses it when `BLOB_READ_WRITE_TOKEN` is absent, so track its expiry here when you set one.
+When `SINGULARITY_GH_TOKEN` expires, the Generate button stops working ("The server ran into a problem, so no briefing was started. Error ref ...") and `/api/cron/run` can no longer start the on-time scheduled run; GitHub's own schedule remains a fallback, so a briefing may come late. `run.yml` itself uses the built-in workflow token. `VERCEL_TOKEN` is optional: the audio workflow's Vercel CLI fallback uses it when `BLOB_READ_WRITE_TOKEN` is absent, so track its expiry here when you set one.
 
 ---
 
@@ -340,7 +340,7 @@ Models are resolved at run start from the providers' lists. Symptoms: the run lo
 | Message | Cause | Fix |
 | --- | --- | --- |
 | "Generate is on cooldown. Try again in ..." or "Generate has reached its limit for today. Try again in ..." | One run in 6 hours, or three in 24 hours | Wait. Runs started by `gh` or the skills count too |
-| "The server ran into a problem, so ... Error ref 3f9a1c." (Create, Generate, Regenerate, Delete, saving settings) | The function answered but could not do the job: a Vercel variable is missing or malformed, or GitHub refused the dispatch (expired or under-privileged token) | Search the Vercel function logs for `ref 3f9a1c`: the lines name the missing variable or GitHub's answer. Then fix the variable, or rotate `GITHUB_SINGULARITY_TOKEN` (section 6) |
+| "The server ran into a problem, so ... Error ref 3f9a1c." (Create, Generate, Regenerate, Delete, saving settings) | The function answered but could not do the job: a Vercel variable is missing or malformed, or GitHub refused the dispatch (expired or under-privileged token) | Search the Vercel function logs for `ref 3f9a1c`: the lines name the missing variable or GitHub's answer. Then fix the variable, or rotate `SINGULARITY_GH_TOKEN` (section 6) |
 | "The server crashed before it could answer ..." | The function failed before it ran (a broken deploy, a missing native binary) or threw | Open the deployment's function logs in Vercel; redeploy or roll back. A thrown error is logged as `[api/...] [ref ...] crashed:` |
 
 ---

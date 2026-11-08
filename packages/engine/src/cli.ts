@@ -113,7 +113,7 @@ function loadProcessEnvFile(root: string): void {
 /** Secrets the typed env does not list but that must never reach a log. */
 const EXTRA_SECRET_NAMES = [
   "VERCEL_TOKEN",
-  "GITHUB_SINGULARITY_TOKEN",
+  "SINGULARITY_GH_TOKEN",
   "GITHUB_TOKEN",
   "GH_TOKEN",
 ] as const;

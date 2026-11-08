@@ -28,7 +28,7 @@ function setup(overrides: Partial<ConfigDeps> = {}) {
   const logs: string[] = [];
   const deps: ConfigDeps = {
     env: {
-      GITHUB_SINGULARITY_TOKEN: TOKEN,
+      SINGULARITY_GH_TOKEN: TOKEN,
       GITHUB_REPOSITORY: REPO,
     },
     fetch: github.fetch,
@@ -818,7 +818,7 @@ describe("handleConfig with the config store on (D149)", () => {
   const block: ConfigOp = { op: "profile.block", domain: "spam.example" };
   const storeDeps = (store: ReturnType<typeof fakeStore>): Partial<ConfigDeps> => ({
     env: {
-      GITHUB_SINGULARITY_TOKEN: TOKEN,
+      SINGULARITY_GH_TOKEN: TOKEN,
       GITHUB_REPOSITORY: REPO,
       DATABASE_URL: "postgres://fake",
       SINGULARITY_CONFIG_STORE: "postgres",

@@ -11,7 +11,7 @@ import {
 } from "./config";
 
 const GOOD = {
-  GITHUB_SINGULARITY_TOKEN: "github_pat_example",
+  SINGULARITY_GH_TOKEN: "github_pat_example",
   GITHUB_REPOSITORY: "somesh-ks/knowledge-hub",
 };
 
@@ -40,15 +40,22 @@ describe("readServerConfig", () => {
 
   it("trims stray whitespace from pasted values", () => {
     expect(
-      readServerConfig({ ...GOOD, GITHUB_SINGULARITY_TOKEN: " github_pat_example\n" })?.token,
+      readServerConfig({ ...GOOD, SINGULARITY_GH_TOKEN: " github_pat_example\n" })?.token,
     ).toBe("github_pat_example");
+  });
+
+  // The bug it prevents: the 2026-11-08 rename deploys before Vercel has the new name, and every
+  // Generate and settings save would answer "unavailable" until the owner's next secrets:push.
+  it("still reads the token under its old name", () => {
+    const { SINGULARITY_GH_TOKEN: token, ...rest } = GOOD;
+    expect(readServerConfig({ ...rest, GITHUB_SINGULARITY_TOKEN: token })?.token).toBe(token);
   });
 });
 
 describe("secretsOf", () => {
   it("lists the token for the log redactor", () => {
     const config = readServerConfig(GOOD);
-    expect(secretsOf(config)).toEqual([GOOD.GITHUB_SINGULARITY_TOKEN]);
+    expect(secretsOf(config)).toEqual([GOOD.SINGULARITY_GH_TOKEN]);
     expect(secretsOf(null)).toEqual([]);
   });
 });

@@ -79,7 +79,7 @@ function sitefetch(network: { down: boolean }): typeof fetch {
       },
       {
         env: {
-          GITHUB_SINGULARITY_TOKEN: "t",
+          SINGULARITY_GH_TOKEN: "t",
           GITHUB_REPOSITORY: "o/r",
         },
         fetch: githubFetch,

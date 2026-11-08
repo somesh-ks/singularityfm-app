@@ -5,7 +5,7 @@ import { handleCancel, handleGenerations, parseCancelBody } from "./generations"
 import { resetTimingsCaches } from "./status";
 
 const TOKEN = "github_pat_secret_value_123456";
-const env = { GITHUB_SINGULARITY_TOKEN: TOKEN, GITHUB_REPOSITORY: REPO };
+const env = { SINGULARITY_GH_TOKEN: TOKEN, GITHUB_REPOSITORY: REPO };
 const ORIGIN = "https://news.example";
 
 beforeEach(resetTimingsCaches);

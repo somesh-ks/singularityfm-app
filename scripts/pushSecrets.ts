@@ -7,17 +7,7 @@ import { join, resolve } from "node:path";
 interface Target {
   name: string;
   where: "github-secret" | "github-variable" | "vercel" | "vercel-admin";
-  /** The name it is stored under there, when that differs from its name in .env. */
-  as?: string;
 }
-
-/**
- * GitHub refuses a secret or variable whose name starts with GITHUB_ (HTTP 422), so a .env name with
- * that prefix is stored under another one there; the workflows read it by that name.
- */
-const GITHUB_NAMES: Record<string, string> = {
-  GITHUB_SINGULARITY_TOKEN: "SINGULARITY_GH_TOKEN",
-};
 
 /** Secrets used by the GitHub Actions workflows. */
 const GITHUB_SECRETS = [
@@ -36,7 +26,7 @@ const GITHUB_SECRETS = [
   "AUDIO_DATABASE_URL",
   // The daily health check (D360): Neon's compute hours, and the site's GitHub token's end date.
   "NEON_API_KEY",
-  "GITHUB_SINGULARITY_TOKEN",
+  "SINGULARITY_GH_TOKEN",
 ];
 
 /** Plain configuration, stored as GitHub Actions variables so it stays visible in workflow runs. */
@@ -56,7 +46,7 @@ const GITHUB_VARIABLES = [
  * /api/cron/run, which refuses every call without it (D61).
  */
 const VERCEL_ENV = [
-  "GITHUB_SINGULARITY_TOKEN",
+  "SINGULARITY_GH_TOKEN",
   "GITHUB_REPOSITORY",
   "SPEECHIFY_API_KEY",
   "SPEECHIFY_VOICE_ID",
@@ -90,20 +80,11 @@ const ADMIN_PROJECT_ID = "prj_2T9RXkKkI7mZBKGOEUzYVfsAuSjE";
 const SENSITIVE_PLACEHOLDER = "[SENSITIVE]";
 
 const TARGETS: Target[] = [
-  ...GITHUB_SECRETS.map(
-    (name): Target => ({ name, where: "github-secret", as: GITHUB_NAMES[name] }),
-  ),
-  ...GITHUB_VARIABLES.map(
-    (name): Target => ({ name, where: "github-variable", as: GITHUB_NAMES[name] }),
-  ),
+  ...GITHUB_SECRETS.map((name): Target => ({ name, where: "github-secret" })),
+  ...GITHUB_VARIABLES.map((name): Target => ({ name, where: "github-variable" })),
   ...VERCEL_ENV.map((name): Target => ({ name, where: "vercel" })),
   ...VERCEL_ADMIN_ENV.map((name): Target => ({ name, where: "vercel-admin" })),
 ];
-
-/** "NAME -> where", with the name it is stored under there when that differs. */
-function label(target: Target): string {
-  return `${target.name} -> ${target.where}${target.as ? ` as ${target.as}` : ""}`;
-}
 
 function parseDotenv(text: string): Record<string, string> {
   const out: Record<string, string> = {};
@@ -228,14 +209,14 @@ function main(): void {
     );
   }
 
-  // Before anything is sent: a GITHUB_ name here would fail at GitHub after the others went out.
+  // GitHub refuses secret and variable names that start with GITHUB_ (HTTP 422); stop before anything
+  // is sent rather than fail on one after the others went out.
   const refused = TARGETS.filter(
-    (target) =>
-      target.where.startsWith("github") && (target.as ?? target.name).startsWith("GITHUB_"),
+    (target) => target.where.startsWith("github") && target.name.startsWith("GITHUB_"),
   );
   if (refused.length) {
     console.error(
-      `GitHub refuses names that start with GITHUB_: ${refused.map((t) => t.name).join(", ")}. Give each one a name in GITHUB_NAMES.`,
+      `GitHub refuses names that start with GITHUB_: ${refused.map((target) => target.name).join(", ")}. Rename them.`,
     );
     process.exitCode = 1;
     return;
@@ -256,16 +237,16 @@ function main(): void {
       continue;
     }
     if (dryRun) {
-      sent.push(label(target));
+      sent.push(`${target.name} -> ${target.where}`);
       continue;
     }
     try {
       switch (target.where) {
         case "github-secret":
-          run("gh", ["secret", "set", target.as ?? target.name, "--repo", repo], value, childEnv);
+          run("gh", ["secret", "set", target.name, "--repo", repo], value, childEnv);
           break;
         case "github-variable":
-          run("gh", ["variable", "set", target.as ?? target.name, "--repo", repo], value, childEnv);
+          run("gh", ["variable", "set", target.name, "--repo", repo], value, childEnv);
           break;
         case "vercel":
           run(
@@ -296,10 +277,10 @@ function main(): void {
           throw new Error(`Unknown target ${String(unreachable)}`);
         }
       }
-      sent.push(label(target));
+      sent.push(`${target.name} -> ${target.where}`);
     } catch (error) {
       failed.push(target.name);
-      reasons.set(label(target), reasonOf(error, values));
+      reasons.set(`${target.name} -> ${target.where}`, reasonOf(error, values));
     }
   }
 

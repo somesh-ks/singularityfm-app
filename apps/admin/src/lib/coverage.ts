@@ -1,7 +1,8 @@
 /**
- * Coverage's numbers, counted at build from the reader's and this app's sources with the system's
- * own class reader (scripts/system/build.ts): how many files draw each shared part, and how many
- * draw each one-off control. A part is drawn by a file that writes one of its classes or imports
+ * Coverage's numbers, counted at build from the reader's and this app's sources: how many files draw
+ * each shared part, and how many draw each one-off control. The published design system describes
+ * its parts and nothing about who draws them (its DS-2), so the class reader and the one-off list
+ * are this report's own (D382 step 7). A part is drawn by a file that writes one of its classes or imports
  * one of its components; its own files are its definition, not a use. The numbers are as of this
  * app's build.
  *
@@ -11,12 +12,8 @@
 
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { classTokens } from "@singularity/design-system/scripts/system/build";
-import type {
-  BespokeControl,
-  PartKind,
-  System,
-} from "@singularity/design-system/scripts/system/types";
+import type { PartKind, System } from "@singularity/design-system/scripts/system/types";
+import { type BespokeControl, classTokens, readBespoke } from "./classReader";
 
 export interface PartUse {
   id: string;
@@ -40,12 +37,12 @@ export interface Coverage {
   oneOffUses: number;
 }
 
-/** The repository's root: the first folder up from the build's own that holds the design system's system.json. */
+/** The repository's root: the first folder up from the build's own that holds the pnpm workspace file. */
 export function repoRoot(from: string = process.cwd()): string {
   let dir = from;
-  while (!existsSync(join(dir, "packages/design-system/tokens/system.json"))) {
+  while (!existsSync(join(dir, "pnpm-workspace.yaml"))) {
     const up = dirname(dir);
-    if (up === dir) throw new Error(`No packages/design-system/tokens/system.json above ${from}`);
+    if (up === dir) throw new Error(`No pnpm-workspace.yaml above ${from}`);
     dir = up;
   }
   return dir;
@@ -64,9 +61,9 @@ interface Source {
 }
 
 /**
- * The apps' own files, as the system's reader reads them (sourceFiles in build.ts, which finds the
- * repository from its own path and so cannot from this app's bundle). The design system's files are
- * its definition, so a part one of them draws is not counted as the apps drawing it.
+ * The apps' own files, found from the repository root (this app's bundle has no path of its own). The
+ * design system's files are its definition, so a part one of them draws is not counted as the apps
+ * drawing it.
  */
 export function appSources(root: string = repoRoot()): Source[] {
   return ["apps/web/src", "apps/admin/src"]
@@ -88,14 +85,57 @@ export function appSources(root: string = repoRoot()): Source[] {
     });
 }
 
-export function countCoverage(system: System, sources: Source[] = appSources()): Coverage {
-  // A module more than one part names (Button.astro draws four) says nothing about which: those
+/** The one-off controls the reader's style test allows, each with why it is not a shared part. */
+export function bespokeControls(root: string = repoRoot()): BespokeControl[] {
+  return readBespoke(readFileSync(join(root, "apps/web/src/styles/styles.test.ts"), "utf8"));
+}
+
+/**
+ * The reader's files that define a part the library lists but the app draws (D382 step 7: the
+ * published system.json names only the package's own files). They are a part's definition, not a
+ * use, and importing one of them draws the part.
+ */
+export const APP_PART_FILES: Record<string, string[]> = {
+  drawer: ["apps/web/src/sheets/SheetFrame.tsx"],
+  "btn-action-tonal": ["apps/web/src/components/AppNav.astro"],
+  "play-chip": ["apps/web/src/components/PlayChip.astro"],
+  "segmented-nav": ["apps/web/src/scripts/segmentedNav.ts"],
+  toast: [
+    "apps/web/src/sheets/Toaster.tsx",
+    "apps/web/src/sheets/toastStore.ts",
+    "apps/web/src/scripts/toastEvent.ts",
+  ],
+  "empty-state": [
+    "apps/web/src/components/EmptyState.astro",
+    "apps/web/src/components/EmptyArt.astro",
+  ],
+  multiselect: ["apps/web/src/components/MultiSelect.astro", "apps/web/src/scripts/multiSelect.ts"],
+  cover: ["apps/web/src/components/Cover.astro", "apps/web/src/lib/covers.ts"],
+  fab: [
+    "apps/web/src/components/CreateFab.astro",
+    "apps/web/src/components/AddFab.astro",
+    "apps/web/src/components/PlayFab.astro",
+  ],
+};
+
+/** A part's own files: the package's, then the reader's. */
+const ownFiles = (part: System["parts"][number]): string[] => [
+  ...(part.files ?? []),
+  ...(APP_PART_FILES[part.id] ?? []),
+];
+
+export function countCoverage(
+  system: System,
+  sources: Source[] = appSources(),
+  bespoke: BespokeControl[] = bespokeControls(),
+): Coverage {
+  // A module more than one part names (Button.tsx draws four) says nothing about which: those
   // parts are told apart by the classes the reader finds (a Button's variant is one).
   const owners = new Map<string, number>();
   for (const part of system.parts)
-    for (const file of part.files ?? []) owners.set(stem(file), (owners.get(stem(file)) ?? 0) + 1);
+    for (const file of ownFiles(part)) owners.set(stem(file), (owners.get(stem(file)) ?? 0) + 1);
   const parts = system.parts.map((part): PartUse => {
-    const own = part.files ?? [];
+    const own = ownFiles(part);
     const modules = own.map(stem).filter((name) => owners.get(name) === 1);
     const files = sources.filter(
       (source) =>
@@ -106,8 +146,8 @@ export function countCoverage(system: System, sources: Source[] = appSources()):
     return { id: part.id, name: part.name, kind: part.kind, summary: part.summary, files };
   });
   // A bespoke class a part lists is used through that part; the rest are built for one place.
-  const oneOffs = system.bespoke
-    .filter((control: BespokeControl) => !control.part)
+  const oneOffs = bespoke
+    .filter((control) => !system.parts.some((part) => part.classes.includes(control.class)))
     .map((control) => ({
       name: control.class,
       reason: control.reason,

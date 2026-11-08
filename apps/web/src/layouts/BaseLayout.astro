@@ -12,7 +12,7 @@ import PlayFab, { type PageAudio } from "../components/PlayFab.astro";
 import Queue from "../components/Queue.astro";
 import SiteHeader from "../components/SiteHeader.astro";
 import Banner from "@singularity/design-system/Banner.astro";
-import { readBrandColors } from "../lib/brandColors";
+import { parseBrandColors } from "../lib/brandColors";
 import { BUILD_ID } from "../lib/buildId";
 import { loadConfigHash } from "../lib/configHash";
 import { fabFor } from "../lib/fab";
@@ -30,6 +30,7 @@ import backInit from "../scripts/backInit.js?raw";
 import { isShowingSavedContent } from "../server/contentRepo";
 import SheetsRoot from "../sheets/SheetsRoot";
 import "@singularity/design-system/styles/tokens.css";
+import tokensCss from "@singularity/design-system/styles/tokens.css?raw";
 import "@singularity/design-system/styles/foundations.css";
 import "@singularity/design-system/styles/fonts.css";
 import "@singularity/design-system/styles/shell.css";
@@ -102,7 +103,8 @@ const {
 // page with audio draws one, DigestHero.astro and EpisodeView.astro); data-has-tabs, the section
 // tabs (SectionTabs.astro, from two sections); data-library-page, the Library and whether it is empty.
 
-const colors = readBrandColors();
+// The installed package's tokens.css, bundled into the page code, so no function reads a file for it.
+const colors = parseBrandColors(tokensCss);
 // Create is the primary action, not a destination. Its page sits under the Library, where episodes
 // are kept and where its Back leads, so the Library is the current tab there.
 const destination =

@@ -3,9 +3,16 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { parseBrandColors } from "../apps/web/src/lib/brandColors";
-import { buildIcons, faviconSvg, ICON_SPECS, iconSvg, renderIcon, staleIcons } from "./buildIcons";
+import {
+  buildIcons,
+  faviconSvg,
+  ICON_SPECS,
+  iconSvg,
+  renderIcon,
+  staleIcons,
+  TOKENS,
+} from "./buildIcons";
 
-const TOKENS = join(import.meta.dirname, "..", "packages", "design-system", "styles", "tokens.css");
 const colors = parseBrandColors(readFileSync(TOKENS, "utf8"));
 const temporary: string[] = [];
 

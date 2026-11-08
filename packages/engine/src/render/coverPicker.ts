@@ -1,24 +1,16 @@
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
 import { COVER_TEMPLATES, hashOf } from "@singularity/core";
 import type { CoverPicker } from "./buildDigest.js";
 
 const FALLBACK_PALETTE = "dusk";
 
-/** Palette ids from tokens/covers.json: keys under "palettes", or the top-level non-$ keys. */
-export async function loadCoverPalettes(root: string): Promise<string[]> {
+/**
+ * The cover package's palette ids, or dusk alone when the package cannot load. It once parsed
+ * covers.json by path and took its top-level groups (cover, mode, style) for palettes (D382 step 7).
+ */
+export async function loadCoverPalettes(): Promise<string[]> {
   try {
-    const raw: unknown = JSON.parse(
-      await readFile(join(root, "packages", "design-system", "tokens", "covers.json"), "utf8"),
-    );
-    if (typeof raw !== "object" || raw === null) return [FALLBACK_PALETTE];
-    const record = raw as Record<string, unknown>;
-    const container =
-      typeof record.palettes === "object" && record.palettes !== null
-        ? (record.palettes as Record<string, unknown>)
-        : record;
-    const ids = Object.keys(container).filter((key) => !key.startsWith("$"));
-    return ids.length > 0 ? ids : [FALLBACK_PALETTE];
+    const { PALETTE_IDS } = await import("@singularity/cover");
+    return PALETTE_IDS.length > 0 ? [...PALETTE_IDS] : [FALLBACK_PALETTE];
   } catch {
     return [FALLBACK_PALETTE];
   }

@@ -68,6 +68,9 @@ describe("quoted (the class guard's reader)", () => {
   });
 });
 
+/** Files that read the classes to count them and draw none: Coverage's class reader (D382 step 7). */
+const CLASS_READERS = new Set(["apps/admin/src/lib/classReader.ts"]);
+
 describe("design-system components", () => {
   it.each(COMPONENTS)(
     "$name: no page in any app writes its classes, or the ones it replaced, by hand",
@@ -75,6 +78,7 @@ describe("design-system components", () => {
       const written = [...c.classes, ...c.retired];
       const offenders = APPS.flatMap((root) =>
         markupFiles(root).flatMap((file) => {
+          if (CLASS_READERS.has(relative(ROOT, file).split("\\").join("/"))) return [];
           const text = quoted(readFileSync(file, "utf8"));
           return written
             .filter((name) => wholeClass(name).test(text))

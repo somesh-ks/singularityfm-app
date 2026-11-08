@@ -1,6 +1,4 @@
 import { readFileSync } from "node:fs";
-import { join } from "node:path";
-import { findRepoRoot } from "./repoRoot";
 
 /**
  * sRGB values for the places that cannot take OKLCH: the theme-color meta, the manifest and the app
@@ -24,7 +22,9 @@ export function parseBrandColors(tokensCss: string): BrandColors {
   const surface = FOOTER_PATTERNS.surface.exec(tokensCss);
   const accent = FOOTER_PATTERNS.accent.exec(tokensCss);
   if (!surface?.[1] || !surface[2] || !accent?.[1] || !accent[2]) {
-    throw new Error("tokens.css has no derived sRGB footer. Run: npx tsx scripts/buildTokens.ts");
+    throw new Error(
+      "The design system package's tokens.css has no derived sRGB footer: pin a version that has it.",
+    );
   }
   return {
     surfaceLight: surface[1].toLowerCase(),
@@ -34,9 +34,7 @@ export function parseBrandColors(tokensCss: string): BrandColors {
   };
 }
 
-/** Page code is bundled, so the file is found from the repository root rather than from this module. */
-export function readBrandColors(
-  tokensPath: string = join(findRepoRoot(), "packages", "design-system", "styles", "tokens.css"),
-): BrandColors {
+/** For a script run outside the site's bundle (buildIcons.ts); a page imports the file's text instead. */
+export function readBrandColors(tokensPath: string): BrandColors {
   return parseBrandColors(readFileSync(tokensPath, "utf8"));
 }

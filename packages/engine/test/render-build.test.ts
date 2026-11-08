@@ -2,6 +2,7 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { COVER_TEMPLATES, Digest, parseDigestFile, serializeDigestFile } from "@singularity/core";
+import { PALETTE_IDS } from "@singularity/cover";
 import { afterEach, describe, expect, it } from "vitest";
 import { buildDigest } from "../src/render/buildDigest.js";
 import { createFallbackCoverPicker, loadCoverPalettes } from "../src/render/coverPicker.js";
@@ -441,21 +442,7 @@ describe("fallback cover picker", () => {
     expect(`${next.template}/${next.palette}`).not.toBe(`${first.template}/${first.palette}`);
   });
 
-  it("reads palette ids from tokens/covers.json, or falls back to dusk", async () => {
-    const root = await tempRoot();
-    expect(await loadCoverPalettes(root)).toEqual(["dusk"]);
-    await mkdir(join(root, "packages", "design-system", "tokens"), { recursive: true });
-    await writeFile(
-      join(root, "packages", "design-system", "tokens", "covers.json"),
-      JSON.stringify({ $schema: "x", palettes: { ink: {}, moss: {} } }),
-    );
-    expect(await loadCoverPalettes(root)).toEqual(["ink", "moss"]);
-    await writeFile(
-      join(root, "packages", "design-system", "tokens", "covers.json"),
-      JSON.stringify({ $description: "d", sand: {}, sea: {} }),
-    );
-    expect(await loadCoverPalettes(root)).toEqual(["sand", "sea"]);
-    await writeFile(join(root, "packages", "design-system", "tokens", "covers.json"), "not json");
-    expect(await loadCoverPalettes(root)).toEqual(["dusk"]);
+  it("picks from the cover package's palettes, not the token file's groups", async () => {
+    expect(await loadCoverPalettes()).toEqual([...PALETTE_IDS]);
   });
 });

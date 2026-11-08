@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import { createRequire } from "node:module";
 import { oklchStringToRgb, toHex } from "@singularity/design-system/scripts/colorMath";
 import tokens from "@singularity/design-system/tokens/tokens.json" with { type: "json" };
 import { describe, expect, it } from "vitest";
@@ -67,7 +67,7 @@ describe("ambient light contrast", () => {
 
   it("gives the play chip an opaque container fill, where its accent words keep their contrast", () => {
     const chip = readFileSync(
-      join(import.meta.dirname, "../../../../packages/design-system/styles/buttons.css"),
+      createRequire(import.meta.url).resolve("@singularity/design-system/styles/buttons.css"),
       "utf8",
     );
     expect(chip.replace(/\s+/g, " ")).toMatch(/\.chip \{[^}]*background: var\(--chip-bg\);/);

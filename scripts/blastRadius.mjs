@@ -29,7 +29,10 @@ const SHARED_RULES = [
     pattern: /^apps\/web\/src\/layouts\//,
     risk: "HIGH",
     surface: "App Shell Layouts (BaseLayout, head scripts, viewport units)",
-    checks: ["pnpm --filter @singularityfm/web run check", "pnpm --filter @singularityfm/web run e2e"],
+    checks: [
+      "pnpm --filter @singularityfm/web run check",
+      "pnpm --filter @singularityfm/web run e2e",
+    ],
   },
   {
     pattern: /^packages\/core\//,

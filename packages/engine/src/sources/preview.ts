@@ -1,4 +1,9 @@
-import { combineScoreParts, type ScoreLabel, type SourceType, scoreLabel } from "@singularityfm/core";
+import {
+  combineScoreParts,
+  type ScoreLabel,
+  type SourceType,
+  scoreLabel,
+} from "@singularityfm/core";
 import { parseHTML } from "linkedom";
 import { looksLikeFeed, type ParsedFeed, parseFeed } from "../fetch/feedParser.js";
 import {

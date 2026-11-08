@@ -212,6 +212,7 @@ D1 to D9 date from plan v2 (2026-10-05). D10 to D25 date from 2026-10-06. Reason
 - Cost: each merge first updates its branch and waits for CI again (about 4 minutes, 15 with the browser suites); with several PRs open they merge one at a time. Rulesets on a private repository need GitHub Pro.
 - Rejected: requiring the `review` check (Dependabot's PRs merge without the label, and the review runs only when the label is added); required approvals (one owner cannot approve their own PR); signed commits (the engine's are unsigned); a person as a bypass actor (then the rule is a habit again).
 - Revisit if: a workflow starts pushing with a token that is not the Actions app's (it would need its own bypass), or merges queue up behind the strict check for longer than they save.
+- Amended 2026-11-08: GitHub rejects the Actions app as a bypass actor on a personal repository ("invalid actor"), so the pull-request and checks rules cannot coexist with the engine's pushes to `main`. The live ruleset holds only no deletion, no force push and linear history, with no bypass; squash is the only merge method in Settings. The pull-request and checks rules return, with `browser gate` in place of `browser` (#551), once no workflow commits to `main` (D300 step 3 and the audio and digest commits).
 
 ## D192: CodeRabbit is the default PR review agent
 

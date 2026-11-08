@@ -416,16 +416,13 @@ If the database is down while the store is on, pages show the build's copy and a
 
 ## 12. Branch rules on `main` (D175)
 
-`main` is protected by a GitHub ruleset, kept as `.github/rulesets/main.json` so it is reviewed like code and can be re-imported. Rulesets on a private repository need GitHub Pro; the page says so if the plan lacks it.
+`main` is protected by a GitHub ruleset, kept as `.github/rulesets/main.json` so it is reviewed like code and can be re-imported.
 
-1. Settings → Rules → Rulesets → New ruleset → Import a ruleset → choose `.github/rulesets/main.json` → Create. Or with the API: `gh api -X POST repos/somesh-ks/singularityfm-app/rulesets --input .github/rulesets/main.json`.
-2. What it holds, and why each rule is there:
-   - No deletion, no force push, linear history: `main`'s record is append-only; PRs land as squash merges (the only merge method the rule allows), which is how they have landed so far.
-   - Every change goes through a pull request with its review threads resolved. No human approval count: one owner cannot approve their own PR, and code review is CodeRabbit (D143, D192).
-   - Required checks `check` and `browser` from `ci.yml`, and the branch must be up to date with `main` when it merges (strict). Two PRs that each passed alone broke `main` on 2026-10-24 (the docs budget); strict checks run CI on the merged state. The cost: before each merge, Update branch, then wait for CI (about 4 minutes, 15 with the browser suites). A `browser` job skipped by the path filter counts as passed.
-   - Bypass: the GitHub Actions app (integration 15368), always. The engine's workflows (`run.yml`, `audio.yml`, `podcast.yml`, `config.yml`, `automerge.yml`) push digests, narration, episodes and config straight to `main` with the workflow token; without this bypass every run would fail at its commit. No person bypasses: to make an exception, edit the ruleset.
-3. Not required, on purpose: the `review` check, because Dependabot's PRs merge without the label (`automerge.yml`); signed commits, because the engine's commits are unsigned.
-4. To change a rule, edit the JSON, import it over the existing ruleset (Settings → Rules → Rulesets → the ruleset → Import), and open a PR with the same change so the file matches.
+1. Settings → Rules → Rulesets → New ruleset → Import a ruleset → choose `.github/rulesets/main.json` → Create.
+2. What it holds: no deletion, no force push, linear history, and no bypass actor. The engine's workflows (`run.yml`, `audio.yml`, `podcast.yml`, `config.yml`) still push digests, narration, episodes and config straight to `main` with the workflow token, and GitHub rejects the Actions app as a bypass actor on a personal repository ("invalid actor"), so a pull-request rule would fail every one of those commits. To make an exception, edit the ruleset.
+3. Settings → General → Pull Requests: allow squash merging only (the `[deploy]` title rule needs it), and automatically delete head branches.
+4. Not yet: the rules for a pull request with its review threads resolved (no approval count: one owner cannot approve their own PR, and code review is CodeRabbit, D143, D192) and the required checks `check` and `browser gate` (`ci.yml`, #551; the bare `browser` job never reports on a site PR). Add them when no workflow commits to `main` any more (D300). Strict "up to date" checks cost a CI wait before each merge (about 4 minutes, 15 with the browser suites); decide then.
+5. To change a rule, edit the JSON, import it over the existing ruleset (Settings → Rules → Rulesets → the ruleset → Import), and open a PR with the same change so the file matches.
 
 ## 13. Share links (D153)
 

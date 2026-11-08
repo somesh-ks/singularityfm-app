@@ -136,3 +136,19 @@ describe("run.yml's Commit step", () => {
     expect(yml.slice(start, next).join("\n")).toContain("BLOB_READ_WRITE_TOKEN");
   });
 });
+
+// The bug: health.yml read secrets.GITHUB_SINGULARITY_TOKEN, a name GitHub refuses to store (HTTP 422
+// for any GITHUB_ prefix), so `secrets:push` failed on it and the health check never had the token.
+describe("the secrets the workflows read", () => {
+  it("never start with GITHUB_ except the token GitHub gives every run", () => {
+    const reserved = readdirSync(dir)
+      .filter((file) => /\.ya?ml$/.test(file))
+      .flatMap((file) =>
+        [...readFileSync(join(dir, file), "utf8").matchAll(/\b(?:secrets|vars)\.(GITHUB_\w+)/g)]
+          .map((match) => match[1])
+          .filter((name) => name !== "GITHUB_TOKEN")
+          .map((name) => `${file}: ${name}`),
+      );
+    expect(reserved).toEqual([]);
+  });
+});

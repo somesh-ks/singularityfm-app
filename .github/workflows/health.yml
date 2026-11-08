@@ -152,7 +152,7 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           FIRECRAWL_API_KEY: ${{ secrets.FIRECRAWL_API_KEY }}
           SPEECHIFY_API_KEY: ${{ secrets.SPEECHIFY_API_KEY }}
-          GITHUB_SINGULARITY_TOKEN: ${{ secrets.GITHUB_SINGULARITY_TOKEN }}
+          GITHUB_SINGULARITY_TOKEN: ${{ secrets.SINGULARITY_GH_TOKEN }}
           # Empty on a day without the probe, which health reads as nothing to judge.
           PERF: ${{ steps.probe.outputs.run == 'true' && format('{0}/perf.json', runner.temp) || '' }}
         run: |

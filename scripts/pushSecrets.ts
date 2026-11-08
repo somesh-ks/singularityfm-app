@@ -7,7 +7,17 @@ import { join, resolve } from "node:path";
 interface Target {
   name: string;
   where: "github-secret" | "github-variable" | "vercel" | "vercel-admin";
+  /** The name it is stored under there, when that differs from its name in .env. */
+  as?: string;
 }
+
+/**
+ * GitHub refuses a secret or variable whose name starts with GITHUB_ (HTTP 422), so a .env name with
+ * that prefix is stored under another one there; the workflows read it by that name.
+ */
+const GITHUB_NAMES: Record<string, string> = {
+  GITHUB_SINGULARITY_TOKEN: "SINGULARITY_GH_TOKEN",
+};
 
 /** Secrets used by the GitHub Actions workflows. */
 const GITHUB_SECRETS = [
@@ -80,11 +90,20 @@ const ADMIN_PROJECT_ID = "prj_2T9RXkKkI7mZBKGOEUzYVfsAuSjE";
 const SENSITIVE_PLACEHOLDER = "[SENSITIVE]";
 
 const TARGETS: Target[] = [
-  ...GITHUB_SECRETS.map((name): Target => ({ name, where: "github-secret" })),
-  ...GITHUB_VARIABLES.map((name): Target => ({ name, where: "github-variable" })),
+  ...GITHUB_SECRETS.map(
+    (name): Target => ({ name, where: "github-secret", as: GITHUB_NAMES[name] }),
+  ),
+  ...GITHUB_VARIABLES.map(
+    (name): Target => ({ name, where: "github-variable", as: GITHUB_NAMES[name] }),
+  ),
   ...VERCEL_ENV.map((name): Target => ({ name, where: "vercel" })),
   ...VERCEL_ADMIN_ENV.map((name): Target => ({ name, where: "vercel-admin" })),
 ];
+
+/** "NAME -> where", with the name it is stored under there when that differs. */
+function label(target: Target): string {
+  return `${target.name} -> ${target.where}${target.as ? ` as ${target.as}` : ""}`;
+}
 
 function parseDotenv(text: string): Record<string, string> {
   const out: Record<string, string> = {};
@@ -209,6 +228,19 @@ function main(): void {
     );
   }
 
+  // Before anything is sent: a GITHUB_ name here would fail at GitHub after the others went out.
+  const refused = TARGETS.filter(
+    (target) =>
+      target.where.startsWith("github") && (target.as ?? target.name).startsWith("GITHUB_"),
+  );
+  if (refused.length) {
+    console.error(
+      `GitHub refuses names that start with GITHUB_: ${refused.map((t) => t.name).join(", ")}. Give each one a name in GITHUB_NAMES.`,
+    );
+    process.exitCode = 1;
+    return;
+  }
+
   const sent: string[] = [];
   const skipped: string[] = [];
   const failed: string[] = [];
@@ -224,16 +256,16 @@ function main(): void {
       continue;
     }
     if (dryRun) {
-      sent.push(`${target.name} -> ${target.where}`);
+      sent.push(label(target));
       continue;
     }
     try {
       switch (target.where) {
         case "github-secret":
-          run("gh", ["secret", "set", target.name, "--repo", repo], value, childEnv);
+          run("gh", ["secret", "set", target.as ?? target.name, "--repo", repo], value, childEnv);
           break;
         case "github-variable":
-          run("gh", ["variable", "set", target.name, "--repo", repo], value, childEnv);
+          run("gh", ["variable", "set", target.as ?? target.name, "--repo", repo], value, childEnv);
           break;
         case "vercel":
           run(
@@ -264,10 +296,10 @@ function main(): void {
           throw new Error(`Unknown target ${String(unreachable)}`);
         }
       }
-      sent.push(`${target.name} -> ${target.where}`);
+      sent.push(label(target));
     } catch (error) {
       failed.push(target.name);
-      reasons.set(`${target.name} -> ${target.where}`, reasonOf(error, values));
+      reasons.set(label(target), reasonOf(error, values));
     }
   }
 

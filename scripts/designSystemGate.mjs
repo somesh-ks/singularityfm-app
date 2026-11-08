@@ -14,6 +14,8 @@ export const LABEL = "design-system";
 /** What says who owns the system and how the apps draw it: a change needs the label. */
 export const SYSTEM_PATHS = [
   ".github/CODEOWNERS",
+  // The gate itself: its lists of what it guards and of the old cross-app reaches.
+  "scripts/designSystemGate.mjs",
   ".claude/skills/feature/references/controls-guide.md",
 ];
 
@@ -91,8 +93,6 @@ export function appSources(root) {
   for (const app of ["web", "admin"]) walk(`apps/${app}`);
   return found;
 }
-
-const startsWithAny = (file, prefixes) => prefixes.some((prefix) => file.startsWith(prefix));
 
 /**
  * The lists that excuse code from a design-system check, by the file that holds them. Any pull request

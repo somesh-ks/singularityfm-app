@@ -262,3 +262,18 @@ describe("the Flag", () => {
     expect(drawn.map((file) => relative(SRC, file))).toEqual([]);
   });
 });
+
+describe("the design system file", () => {
+  // Prevents a shared control that no lookup can find: it is added to the style test's list, and the
+  // pinned package's system file (what `pnpm run ds` answers from) has no part for it.
+  it("covers every shared control class", async () => {
+    const { default: system } = await import("@singularity/design-system/tokens/system.json");
+    const text = readFileSync(join(SRC, "styles", "styles.test.ts"), "utf8");
+    const start = text.indexOf("const SHARED_CONTROLS");
+    const block = text.slice(start, text.indexOf("];", start));
+    const shared = [...block.matchAll(/"([a-z-]+)"/g)].map(([, name = ""]) => name);
+    const covered = new Set(system.parts.flatMap((part: { classes: string[] }) => part.classes));
+    expect(shared.length).toBeGreaterThan(5);
+    expect(shared.filter((name) => !covered.has(name))).toEqual([]);
+  });
+});

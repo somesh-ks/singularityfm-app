@@ -40,7 +40,7 @@ Audit all seven canonical states. Any state that does not apply must be explicit
 
 ### 3. Canonical Control Archetypes
 
-Pick every control and token with `npm run ds -- find "<need>"`: the part, when to use it, what to use instead, its markup and tokens. `node_modules/@singularity/design-system/tokens/llms.txt` is the one-page index; [references/controls-guide.md](references/controls-guide.md) has the markup contracts (section 2) and the universal rules (section 4). Neither repeats the other, so they cannot drift. Never invent bespoke control classes: a new one needs an entry in `BESPOKE_CONTROLS` in `apps/web/src/styles/styles.test.ts` with an owner-approved reason; a part that does not exist yet is a question for the owner, and a new part is added in `packages/design-system/scripts/system/parts.ts` in the same change.
+Pick every control and token with `npm run ds -- find "<need>"`: the part, when to use it, what to use instead, its markup and tokens. `node_modules/@singularity/design-system/tokens/llms.txt` is the one-page index; [references/controls-guide.md](references/controls-guide.md) has the markup contracts (section 2) and the universal rules (section 4). Neither repeats the other, so they cannot drift. Never invent bespoke control classes: a new one needs an entry in `BESPOKE_CONTROLS` in `apps/web/src/styles/styles.test.ts` with an owner-approved reason; a part that does not exist yet is a question for the owner, and a new part is added in the design system repo (`scripts/system/parts.ts`) first.
 
 For any transition, animation or gesture-driven movement, follow [the motion skill](../motion/SKILL.md) and [docs/specs/motion.md](../../../docs/specs/motion.md).
 

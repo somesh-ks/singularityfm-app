@@ -8,12 +8,12 @@ name: design-system
 on:
   pull_request:
     types: [opened, synchronize, reopened, labeled, unlabeled]
-    # SYSTEM_PATHS, then the ALLOWLISTS files, in scripts/designSystemGate.mjs, then the apps for the
-    # boundary check; its test fails when the two drift.
+    # SYSTEM_PATHS and the ALLOWLISTS files in scripts/designSystemGate.mjs, and the apps for the
+    # boundary check; its test fails when a guarded path is missing here.
     paths:
       - .github/CODEOWNERS
+      - scripts/designSystemGate.mjs
       - .claude/skills/feature/references/controls-guide.md
-      - apps/web/src/styles/styles.test.ts
       - scripts/systemUse.test.ts
       - apps/**
 

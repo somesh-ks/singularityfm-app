@@ -109,11 +109,11 @@ export async function rendererFingerprint(
 let fingerprint: Promise<string> | undefined;
 
 /**
- * Hashed once per build: the cover package's source and fonts, and the palettes of the pinned design
- * system package (D382 step 8: the package is installed, not a repo folder).
+ * Hashed once per build: the cover package's source and fonts, and the palettes it draws with, from
+ * the design system package it pins (D382 step 8: installed, not a repo folder).
  */
 export function coverRendererFingerprint(root: string): Promise<string> {
-  const palettes = createRequire(join(root, "apps", "web", "package.json")).resolve(
+  const palettes = createRequire(join(root, "packages", "cover", "package.json")).resolve(
     "@singularity/design-system/tokens/covers.json",
   );
   fingerprint ??= rendererFingerprint(

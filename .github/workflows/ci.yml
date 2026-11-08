@@ -43,9 +43,10 @@ jobs:
             echo "code=true" >> "$GITHUB_OUTPUT"; echo "web=true" >> "$GITHUB_OUTPUT"
             echo "shared=true" >> "$GITHUB_OUTPUT"; exit 0
           fi
-          # The tokens (a design system bump moves the lockfile) and the shared stylesheets carry most of
-          # the load-bearing design fixes.
-          if printf '%s\n' "$changed" | grep -qE '^(pnpm-lock\.yaml$|apps/web/src/styles/player\.css$)'; then
+          # The tokens (a design system bump moves a pin in a package.json) and the shared stylesheets
+          # carry most of the load-bearing design fixes.
+          if printf '%s\n' "$changed" | grep -qE '^apps/web/src/styles/player\.css$' ||
+            git diff "$BASE" HEAD -- '*package.json' | grep -qE '^[-+].*@singularityfm/design-system'; then
             echo "shared=true" >> "$GITHUB_OUTPUT"
           else
             echo "shared=false" >> "$GITHUB_OUTPUT"

@@ -98,8 +98,16 @@ describe("design-system gate", () => {
       join(import.meta.dirname, "../.github/workflows/design-system.yml"),
       "utf8",
     );
-    const filter = [...workflow.matchAll(/^ {6}- (\S+)$/gm)].map(([, glob]) => glob);
-    expect(filter).toEqual([...SYSTEM_PATHS, ...Object.keys(ALLOWLISTS), "apps/**"]);
+    const filter = [...workflow.matchAll(/^ {6}- (\S+)$/gm)].map(([, glob = ""]) => glob);
+    const covered = (path: string) =>
+      filter.some((glob) =>
+        glob.endsWith("/**") ? path.startsWith(glob.slice(0, -2)) : glob === path,
+      );
+    expect([...SYSTEM_PATHS, ...Object.keys(ALLOWLISTS)].filter((path) => !covered(path))).toEqual(
+      [],
+    );
+    // The boundary check reads every app.
+    expect(filter).toContain("apps/**");
   });
 
   // The guide drew its page frame and search field from the reader's folder (D382 step 4e), so a

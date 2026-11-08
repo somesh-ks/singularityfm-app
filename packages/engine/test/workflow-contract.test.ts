@@ -144,9 +144,9 @@ describe("the secrets the workflows read", () => {
     const reserved = readdirSync(dir)
       .filter((file) => /\.ya?ml$/.test(file))
       .flatMap((file) =>
-        [...readFileSync(join(dir, file), "utf8").matchAll(/\b(?:secrets|vars)\.(GITHUB_\w+)/g)]
-          .map((match) => match[1])
-          .filter((name) => name !== "GITHUB_TOKEN")
+        [...readFileSync(join(dir, file), "utf8").matchAll(/\b(?:secrets|vars)\.GITHUB_\w+/g)]
+          .map((match) => match[0])
+          .filter((name) => name !== "secrets.GITHUB_TOKEN")
           .map((name) => `${file}: ${name}`),
       );
     expect(reserved).toEqual([]);

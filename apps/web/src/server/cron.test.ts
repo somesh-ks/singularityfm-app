@@ -14,7 +14,7 @@ import { scheduleCopy } from "./github";
 const TOKEN = "github_pat_secret_value_123456";
 const SECRET = "cron-secret-of-enough-length";
 const env = {
-  GITHUB_SINGULARITY_TOKEN: TOKEN,
+  SINGULARITY_GH_TOKEN: TOKEN,
   GITHUB_REPOSITORY: REPO,
   CRON_SECRET: SECRET,
 };

@@ -329,8 +329,8 @@ async function githubTokenCheck(
   secrets: readonly string[],
 ): Promise<Check> {
   const id = "online.github";
-  const token = env.GITHUB_SINGULARITY_TOKEN;
-  if (token === undefined) return skipped(id, "GITHUB_SINGULARITY_TOKEN");
+  const token = env.SINGULARITY_GH_TOKEN;
+  if (token === undefined) return skipped(id, "SINGULARITY_GH_TOKEN");
   // The site refuses to dispatch without GITHUB_REPOSITORY, so a guessed default here could pass a
   // token for a repository the site is not set to use.
   const repo = env.GITHUB_REPOSITORY;
@@ -349,7 +349,7 @@ async function githubTokenCheck(
       return fail(
         id,
         "GitHub rejected the token (expired or revoked)",
-        "Create a fine-grained token for the repository with Actions and Variables write, put it in .env as GITHUB_SINGULARITY_TOKEN and run `npm run secrets:push`.",
+        "Create a fine-grained token for the repository with Actions and Variables write, put it in .env as SINGULARITY_GH_TOKEN and run `npm run secrets:push`.",
       );
     }
     // A spent rate limit also answers 403: the token is fine, the check just cannot say so.
@@ -372,7 +372,7 @@ async function githubTokenCheck(
       );
     }
     if (repository.status !== 200)
-      return httpProblem(id, "GitHub", repository.status, "GITHUB_SINGULARITY_TOKEN");
+      return httpProblem(id, "GitHub", repository.status, "SINGULARITY_GH_TOKEN");
     const variables = await probe(
       deps,
       secrets,

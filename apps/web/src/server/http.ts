@@ -150,6 +150,8 @@ export function toResponse(result: ApiResult<unknown>): Response {
 
 /** The settings whose values a crash message must never print. */
 const SECRET_SETTINGS = [
+  "SINGULARITY_GH_TOKEN",
+  // The same token under its old name, until Vercel has the new one (2026-11-08).
   "GITHUB_SINGULARITY_TOKEN",
   "SPEECHIFY_API_KEY",
   "ANTHROPIC_API_KEY",

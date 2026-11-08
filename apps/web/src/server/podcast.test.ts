@@ -39,7 +39,7 @@ function setup(overrides: Partial<PodcastDeps> = {}) {
   const logs: string[] = [];
   const deps: PodcastDeps = {
     env: {
-      GITHUB_SINGULARITY_TOKEN: TOKEN,
+      SINGULARITY_GH_TOKEN: TOKEN,
       GITHUB_REPOSITORY: REPO,
     },
     fetch: github.fetch,

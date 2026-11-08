@@ -284,7 +284,7 @@ describe("doctor: --online", () => {
       const { report, stdout } = await doctor(["--online"], {
         env: {
           ...env,
-          GITHUB_SINGULARITY_TOKEN: "gh-secret-888888888888",
+          SINGULARITY_GH_TOKEN: "gh-secret-888888888888",
           GITHUB_REPOSITORY: "somesh-ks/knowledge-hub",
         },
         deps: { fetchImpl: net.fetchImpl },
@@ -329,7 +329,7 @@ describe("doctor: --online", () => {
     expect((await run(() => reply(200, {}))).status).toBe("ok");
     // A token with no repository named is skipped: the site would refuse it too, and a guess could pass.
     const unnamed = await doctor(["--online"], {
-      env: { ...env, GITHUB_SINGULARITY_TOKEN: "gh-secret-888888888888" },
+      env: { ...env, SINGULARITY_GH_TOKEN: "gh-secret-888888888888" },
       deps: { fetchImpl: fakeFetch().fetchImpl },
     });
     expect(check(unnamed.report, "online.github").summary).toContain("GITHUB_REPOSITORY");

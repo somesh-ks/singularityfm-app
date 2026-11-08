@@ -61,8 +61,8 @@ jobs:
 
           check() {
             expect 405 /api/podcast "the server does not load" &&
-              expect 400 "/api/status?run=x" "the deployment is missing GITHUB_SINGULARITY_TOKEN or GITHUB_REPOSITORY" &&
-              { [ -z "$run_id" ] || expect 200 "/api/status?run=${run_id}" "GitHub refused the site's token (expired or revoked GITHUB_SINGULARITY_TOKEN)"; } &&
+              expect 400 "/api/status?run=x" "the deployment is missing SINGULARITY_GH_TOKEN or GITHUB_REPOSITORY" &&
+              { [ -z "$run_id" ] || expect 200 "/api/status?run=${run_id}" "GitHub refused the site's token (expired or revoked SINGULARITY_GH_TOKEN)"; } &&
               expect 200 / "the home page does not render (the content store, or the deploy)" &&
               expect 200 /library "the library does not render"
           }

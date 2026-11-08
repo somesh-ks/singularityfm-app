@@ -4,7 +4,7 @@ import { readServerConfig } from "./config";
 import { createGitHubClient, GitHubError } from "./github";
 
 const parsedConfig = readServerConfig({
-  GITHUB_SINGULARITY_TOKEN: "github_pat_secret_value_123456",
+  SINGULARITY_GH_TOKEN: "github_pat_secret_value_123456",
   GITHUB_REPOSITORY: REPO,
 });
 if (!parsedConfig) throw new Error("test config");

@@ -24,7 +24,7 @@ Cold items offloaded from active state. Each item maintains an explicit testable
   - Closed when: a run log reports judge request count with general topics enabled.
 - **Model orchestrator (D136)**: Multi-model runtime resolution.
   - Closed when: an engine run log names the resolved models.
-- **`config apply` end to end**: no E2E test applies a real op array through `config apply` (`doctor --online` checks `GITHUB_SINGULARITY_TOKEN` now).
+- **`config apply` end to end**: no E2E test applies a real op array through `config apply` (`doctor --online` checks `SINGULARITY_GH_TOKEN` now).
   - Closed when: such a test exists and passes in CI.
 - **Service worker preload race**: `serviceWorker.spec.ts:140` failed 1 of 373 local runs (icon stylesheet preload as page went offline).
   - Closed when: a trace identifies the cause or 500 consecutive test runs pass.

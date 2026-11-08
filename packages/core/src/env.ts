@@ -20,7 +20,7 @@ export const Env = z.object({
   /** Account token the audio workflow uses to run `vercel link` and `vercel env pull`. */
   VERCEL_TOKEN: optionalString,
   /** The token the site dispatches workflows and writes the RUN_CRON variable with (D259). */
-  GITHUB_SINGULARITY_TOKEN: optionalString,
+  SINGULARITY_GH_TOKEN: optionalString,
   /** "owner/repo"; `doctor --online` checks the site's token against it. */
   GITHUB_REPOSITORY: optionalString,
   /** The Actions token health.yml runs with; `health` reads runs, issues, alerts and artifacts with it. */

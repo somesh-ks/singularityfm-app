@@ -122,7 +122,7 @@ gh secret list -R somesh-ks/singularityfm-app
 gh variable list -R somesh-ks/singularityfm-app
 ```
 
-For the Vercel side, open the project's Settings, Environment Variables in the dashboard (or run `npx vercel link` once, choose the existing `knowledge-hub` project, then `cd apps/web && npx vercel env ls production`).
+For the Vercel side, open the project's Settings, Environment Variables in the dashboard (or run `npx vercel link` once, choose the existing `singularityfm-app` project, then `cd apps/web && npx vercel env ls production`).
 
 ### 1.10 Check the setup
 

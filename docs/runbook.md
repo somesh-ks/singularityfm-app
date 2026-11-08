@@ -416,7 +416,7 @@ If the database is down while the store is on, pages show the build's copy and a
 
 ## 12. Branch rules on `main` (D175, D384)
 
-`main` is protected by a GitHub ruleset, kept as `.github/rulesets/main.json` so it is reviewed like code and can be re-imported.
+`main` is to be protected by a GitHub ruleset, kept as `.github/rulesets/main.json` so it is reviewed like code and can be re-imported. It takes effect only once the owner imports it (step 1); `docs/state.md` says whether that has happened.
 
 1. Settings → Rules → Rulesets → New ruleset → Import a ruleset → choose `.github/rulesets/main.json` → Create.
 2. What it holds: no deletion, no force push, linear history, and no bypass actor. The engine's workflows (`run.yml`, `audio.yml`, `podcast.yml`, `config.yml`) still push digests, narration, episodes and config straight to `main` with the workflow token, and GitHub rejects the Actions app as a bypass actor on a personal repository ("invalid actor"), so a pull-request rule would fail every one of those commits. To make an exception, edit the ruleset.

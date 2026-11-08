@@ -3,6 +3,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { buildCss, loadTokens } from "@singularity/design-system/scripts/buildTokens";
 import { describe, expect, it } from "vitest";
+import { packageFile } from "./prototype/buildShared.js";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -17,7 +18,6 @@ describe("house rules for authored files", () => {
     "scripts",
     "packages/sound/src",
     "apps/web/src/styles",
-    "packages/design-system",
     "docs/prototype/sound-lab.html",
     "docs/prototype/ui-prototype.html",
   ];
@@ -47,10 +47,7 @@ describe("house rules for authored files", () => {
 // The prototype and the sound lab draw with the system's tokens from outside its package, so a token
 // the system removes is caught here (D378 folded --color-on-surface-subtle), not in the package.
 describe("the prototype stylesheets", () => {
-  const foundations = readFileSync(
-    resolve(ROOT, "packages/design-system/styles/foundations.css"),
-    "utf8",
-  );
+  const foundations = readFileSync(packageFile("styles/foundations.css"), "utf8");
   const defined = new Set(
     [...`${buildCss(loadTokens())}\n${foundations}`.matchAll(/(--[\w-]+)\s*:/g)].map(
       (match) => match[1] ?? "",

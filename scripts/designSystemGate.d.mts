@@ -26,10 +26,10 @@ export declare function boundaryProblems(sources: { file: string; text: string }
 export declare function systemSources(root: string): { file: string; text: string }[];
 /** What one app still takes from another app's folder, as "file: specifier"; the list only shrinks. */
 export declare const CROSS_APP_IMPORTS: string[];
-/** Imports in an app that reach another app (or, in the guide, a workspace package besides the system). */
+/** Imports in an app that reach another app. */
 export declare function appBoundaryProblems(
   sources: { file: string; text: string }[],
   allowed?: string[],
 ): string[];
-/** Every source file and stylesheet under apps/web, apps/admin and apps/design (read from `root`). */
+/** Every source file and stylesheet under apps/web and apps/admin (read from `root`). */
 export declare function appSources(root: string): { file: string; text: string }[];

@@ -1,21 +1,22 @@
 import { readFileSync, writeFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 /**
- * Compiles tokens/glyphs.json into the icon registries the site uses: one for Astro pages, and two
- * for the React player (a small one that loads with every page, and the full one for code that
- * loads on demand). Both come from the same file, so a glyph can never look different in
- * the two places.
+ * Compiles the design system's tokens/glyphs.json into the React player's two icon registries (a
+ * small one that loads with every page, and the full one for code that loads on demand). The
+ * package's Icon reads the same file, so a glyph can never look different in the two places.
+ * The package owns glyphs.json, its page registry and the fetch from Phosphor (D382 step 8).
  *
  *   npx tsx scripts/buildGlyphs.ts           writes the registries
  *   npx tsx scripts/buildGlyphs.ts --check   fails when a committed registry is stale
- *   npx tsx scripts/buildGlyphs.ts --fetch   rebuilds every path from the installed Phosphor package
  */
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-export const GLYPHS_PATH = resolve(ROOT, "packages/design-system/tokens/glyphs.json");
-export const PAGE_REGISTRY_PATH = resolve(ROOT, "packages/design-system/src/icons.ts");
+export const GLYPHS_PATH = createRequire(import.meta.url).resolve(
+  "@singularity/design-system/tokens/glyphs.json",
+);
 export const PLAYER_REGISTRY_PATH = resolve(ROOT, "apps/web/src/player/ui/iconPaths.tsx");
 /** Every player glyph. Only code that loads on demand imports it, so its size costs no page load. */
 export const PLAYER_LAZY_REGISTRY_PATH = resolve(ROOT, "apps/web/src/player/ui/iconPathsLazy.tsx");
@@ -45,7 +46,7 @@ export interface Glyph {
   bold?: string;
   /**
    * How the paths were cut from the Phosphor icon named above, when the set has no icon for the
-   * need. `--fetch` keeps a derived glyph's paths as written.
+   * need. The package's fetch keeps a derived glyph's paths as written.
    */
   derived?: string;
 }
@@ -89,14 +90,6 @@ export function validateGlyphs(doc: GlyphDocument): string[] {
   return problems;
 }
 
-/** The document as the formatter prints it: two-space JSON with each list of targets on one line. */
-export function serializeGlyphs(doc: GlyphDocument): string {
-  const json = JSON.stringify(doc, null, 2);
-  const oneLine = (_list: string, body: string): string =>
-    `[${body.trim().split(/,\s*/).join(", ")}]`;
-  return `${json.replace(/\[\n\s+([^\]{}]+?)\n\s+\]/g, oneLine)}\n`;
-}
-
 function namesFor(doc: GlyphDocument, target: GlyphTarget): string[] {
   return Object.keys(doc.glyphs)
     .filter((name) => doc.glyphs[name]?.targets.includes(target))
@@ -138,24 +131,6 @@ function boldRegistry(doc: GlyphDocument, names: string[]): string[] {
     "};",
     "",
   ];
-}
-
-export function buildPageRegistry(doc: GlyphDocument): string {
-  const lines = [
-    ...header("The icon registry for Astro pages."),
-    `export const ICON_VIEW_BOX = "${doc.viewBox}";`,
-    "",
-    "export const ICON_PATHS = {",
-    ...namesFor(doc, "page").map((name) =>
-      property(name, JSON.stringify(doc.glyphs[name]?.d ?? ""), "  "),
-    ),
-    "} as const;",
-    "",
-    "export type IconName = keyof typeof ICON_PATHS;",
-    "",
-    ...boldRegistry(doc, namesFor(doc, "page")),
-  ];
-  return lines.join("\n");
 }
 
 /** Null while no glyph targets the player, so the hand-written registry is left alone. */
@@ -202,46 +177,6 @@ export function isGenerated(source: string): boolean {
   return source.includes(GENERATED_HEADER);
 }
 
-/** Where an icon lives inside the Phosphor core package. */
-export function symbolFile(glyph: Pick<Glyph, "phosphor" | "weight">): string {
-  const suffix = glyph.weight === "regular" ? "" : `-${glyph.weight}`;
-  return `assets/${glyph.weight}/${glyph.phosphor}${suffix}.svg`;
-}
-
-/** Extracts the single path from a Phosphor file. Throws when the file has another shape. */
-export function pathFromSvg(svg: string): string {
-  const paths = [...svg.matchAll(/<path d="([^"]+)"\s*\/>/g)];
-  if (paths.length !== 1 || !paths[0]?.[1]) throw new Error("Expected exactly one path");
-  return paths[0][1];
-}
-
-/** Rebuilds every path from the installed @phosphor-icons/core package (a dev dependency). */
-export function rebuildGlyphs(doc: GlyphDocument): GlyphDocument {
-  const root = resolve(ROOT, "node_modules/@phosphor-icons/core");
-  const version = (
-    JSON.parse(readFileSync(resolve(root, "package.json"), "utf8")) as { version: string }
-  ).version;
-  const glyphs: Record<string, Glyph> = {};
-  for (const [name, glyph] of Object.entries(doc.glyphs)) {
-    if (glyph.derived) {
-      glyphs[name] = glyph;
-      continue;
-    }
-    const twin = { phosphor: glyph.phosphor, weight: "bold" as const };
-    // A bold twin left from an earlier weight would be written as an invalid record.
-    const { bold: _stale, ...rest } = glyph;
-    glyphs[name] = {
-      ...rest,
-      d: pathFromSvg(readFileSync(resolve(root, symbolFile(glyph)), "utf8")),
-      // A regular glyph keeps a bold twin; fill is already solid and bold is already bold.
-      ...(glyph.weight === "regular"
-        ? { bold: pathFromSvg(readFileSync(resolve(root, symbolFile(twin)), "utf8")) }
-        : {}),
-    };
-  }
-  return { ...doc, sourceVersion: version, glyphs };
-}
-
 function writeRegistries(doc: GlyphDocument, check: boolean): number {
   const problems = validateGlyphs(doc);
   if (problems.length > 0) {
@@ -249,7 +184,6 @@ function writeRegistries(doc: GlyphDocument, check: boolean): number {
     return 1;
   }
   const outputs: Array<[string, string | null]> = [
-    [PAGE_REGISTRY_PATH, buildPageRegistry(doc)],
     [PLAYER_REGISTRY_PATH, buildPlayerRegistry(doc)],
     [PLAYER_LAZY_REGISTRY_PATH, buildPlayerLazyRegistry(doc)],
   ];
@@ -278,13 +212,7 @@ function writeRegistries(doc: GlyphDocument, check: boolean): number {
 
 async function main(): Promise<number> {
   const args = new Set(process.argv.slice(2));
-  let doc = loadGlyphs();
-  if (args.has("--fetch")) {
-    doc = rebuildGlyphs(doc);
-    writeFileSync(GLYPHS_PATH, serializeGlyphs(doc), "utf8");
-    console.log(`Rebuilt ${Object.keys(doc.glyphs).length} glyphs at ${doc.sourceVersion}`);
-  }
-  return writeRegistries(doc, args.has("--check"));
+  return writeRegistries(loadGlyphs(), args.has("--check"));
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

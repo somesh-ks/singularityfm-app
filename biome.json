@@ -16,7 +16,6 @@
       "!loop/results",
       "!pnpm-lock.yaml",
       "!apps/web/public/emoji.json",
-      "!packages/design-system/tokens/system.json",
       "!state",
       "!config"
     ]
@@ -25,8 +24,7 @@
     "enabled": true,
     "indentStyle": "space",
     "indentWidth": 2,
-    "lineWidth": 100,
-    "includes": ["**", "!packages/design-system/styles/menu.css"]
+    "lineWidth": 100
   },
   "javascript": { "formatter": { "quoteStyle": "double", "semicolons": "always" } },
   "markdown": { "formatter": { "enabled": false } },

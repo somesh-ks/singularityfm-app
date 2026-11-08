@@ -1,8 +1,6 @@
-# The design system is a product with one owner. Every change to a component, a shared stylesheet,
-# the tokens or the guide is reviewed by the owner and merged by hand; it travels in a pull request
-# of its own, labelled design-system (scripts/designSystemGate.mjs, .github/workflows/design-system.yml).
-/packages/design-system/ @somesh-ks
-/apps/design/ @somesh-ks
+# The design system is a product with one owner. It lives in its own repository (D382 step 8); here
+# the owner reviews what bends it, labelled design-system (scripts/designSystemGate.mjs,
+# .github/workflows/design-system.yml).
 /.github/CODEOWNERS @somesh-ks
 /.claude/skills/feature/references/controls-guide.md @somesh-ks
 # The cross-app allowlist in this gate only shrinks; growth needs the owner's review.

@@ -14,7 +14,6 @@ const chains = [
   [
     { name: "site types", command: "pnpm --filter @singularity/web run check" },
     { name: "admin types", command: "pnpm --filter @singularity/admin run check" },
-    { name: "design types", command: "pnpm --filter @singularity/design run check" },
   ],
   [{ name: "docs", command: "node scripts/docsCheck.mjs" }],
 ];

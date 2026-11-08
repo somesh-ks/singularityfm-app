@@ -1,5 +1,6 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
-import { join, relative } from "node:path";
+import { createRequire } from "node:module";
+import { dirname, join, relative } from "node:path";
 import { SUPPORTED_TIMEZONES } from "@singularity/core/time";
 import { flagRegion, hasFlagArt } from "@singularity/design-system/flag";
 import { COMPONENTS } from "@singularity/design-system/registry";
@@ -13,14 +14,16 @@ import { describe, expect, it } from "vitest";
  */
 
 /**
- * The repository, the design system's package and the reader's source, whose pages draw the system.
- * These read the apps, so they live beside them, not in the package (D382 step 4c).
+ * The repository, the pinned design system package and the reader's source, whose pages draw the
+ * system. These read the apps, so they live beside them, not in the package (D382 step 4c).
  */
 const ROOT = join(import.meta.dirname, "..");
-const PACKAGE = join(ROOT, "packages", "design-system");
+const FLAGS = dirname(
+  createRequire(import.meta.url).resolve("@singularity/design-system/flags/LICENSE.txt"),
+);
 const SRC = join(ROOT, "apps", "web", "src");
 /** Every app that draws the system: the admin app borrows the reader's stylesheets and components. */
-const APPS = ["web", "admin", "design"]
+const APPS = ["web", "admin"]
   .map((app) => join(ROOT, "apps", app, "src"))
   .filter((dir) => existsSync(dir));
 
@@ -239,7 +242,7 @@ describe("the controls not yet components", () => {
 describe("the Flag", () => {
   // A flag with neither art nor the badge is a 404 and an empty box (the emoji picker's flags).
   it("has art, or draws the badge, for every flag the emoji list and the time zone list hold", () => {
-    const art = new Set(readdirSync(join(PACKAGE, "flags")));
+    const art = new Set(readdirSync(FLAGS));
     const emoji = readFileSync(join(SRC, "..", "public", "emoji.json"), "utf8");
     const regions = [
       ...[...emoji.matchAll(/[\u{1F1E6}-\u{1F1FF}]{2}/gu)].map((m) => flagRegion(m[0]) ?? ""),

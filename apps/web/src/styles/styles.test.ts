@@ -1,20 +1,23 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
-import { extname, join, relative } from "node:path";
+import { createRequire } from "node:module";
+import { dirname, extname, join, relative } from "node:path";
 import { COMPONENTS } from "@singularity/design-system/registry";
 import { describe, expect, it } from "vitest";
 
 /**
- * House rules for the CSS the reader ships: its own stylesheets and the design system's
- * (packages/design-system/styles), which the app draws as one set and names by file name. tokens.css
- * and foundations.css have their own tests (packages/design-system/scripts/buildTokens.test.ts).
+ * House rules for the CSS the reader ships: its own stylesheets and the pinned design system's
+ * (its styles/), which the app draws as one set and names by file name. tokens.css and
+ * foundations.css have their own tests in the design system's repo.
  * Biome holds the rules it can lint (`noImportantStyles` is an error in biome.json).
  */
 
 const STYLES = import.meta.dirname;
 const SRC = join(STYLES, "..");
-const ROOT = join(SRC, "..", "..", "..");
-/** The design system's package: its stylesheets and its components (D382 step 4). */
-const SYSTEM = join(ROOT, "packages", "design-system");
+/** The pinned design system package: its stylesheets and its components (D382 step 8). */
+const SYSTEM = join(
+  dirname(createRequire(import.meta.url).resolve("@singularity/design-system/flags/LICENSE.txt")),
+  "..",
+);
 const SYSTEM_STYLES = join(SYSTEM, "styles");
 const SYSTEM_SRC = join(SYSTEM, "src");
 const STYLE_DIRS = [STYLES, SYSTEM_STYLES];
@@ -136,9 +139,11 @@ const sourceFiles = () =>
     (file) => !/\.(?:test|spec)\.tsx?$|[\\/](?:fixtures|testing)[\\/]|testing\.ts$/.test(file),
   );
 
-/** A file as the allowlists name it: under the reader's src, or from the repository root. */
+/** A file as the allowlists name it: under the reader's src, or by its package path. */
 const posix = (file: string) =>
-  relative(file.startsWith(SYSTEM) ? ROOT : SRC, file).replaceAll("\\", "/");
+  file.startsWith(SYSTEM)
+    ? `@singularity/design-system/${relative(SYSTEM, file).replaceAll("\\", "/")}`
+    : relative(SRC, file).replaceAll("\\", "/");
 
 /** Source files that may hold a colour literal, each with why it is not a painted design colour. */
 const RAW_COLOR_ALLOWED: [file: string, reason: string][] = [
@@ -155,10 +160,10 @@ const LOCAL_EASES: [file: string, reason: string][] = [
 
 /** Files that may hold an inline <svg>: the Icon components, the mark, the art and named one-offs. */
 const RAW_SVG_ALLOWED: [file: string, reason: string][] = [
-  ["packages/design-system/src/Icon.astro", "the Icon component"],
+  ["@singularity/design-system/src/Icon.astro", "the Icon component"],
   ["player/ui/Icon.tsx", "the island Icon component"],
   ["player/ui/LazyIcon.tsx", "the lazy island Icon component"],
-  ["packages/design-system/src/BrandMark.astro", "the wordmark's own mark, not a glyph"],
+  ["@singularity/design-system/src/BrandMark.astro", "the wordmark's own mark, not a glyph"],
   ["components/EmptyArt.astro", "empty-state illustrations, coloured by classes (own rule above)"],
   [
     "components/EmptyArtHalloween.astro",

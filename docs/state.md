@@ -6,7 +6,7 @@ Updated 2026-11-06. Rewrite, never append.
 
 - Engine live: [engine](specs/engine.md). A run that loses stories or races a push degrades, not fails, and records health (D204): [resilience](engineering/generation-resilience.md), [metrics](engineering/metrics.md).
 - Reader: [library](specs/library.md), [settings](specs/settings.md), [health](specs/health.md), [look](specs/look-and-sound.md).
-- Desktop layout: the column is centred in the pane, and a page with a contents list centres the column and the list together, the Library's width (D287).
+- Desktop layout: the column, with any contents list, centres in the pane at the Library's width (D287).
 - Player as one surface: transcript, chapters, a queue keeping played items (D277): [player](specs/player.md).
 - Narration on Play, per story; `audio.yml` pre-narrates briefings, `podcast.yml` episodes (D198): [narration](specs/narration.md), [create](specs/create.md).
 - Live content: creates, deletes (tombstones) and regenerates show without a deploy (D199). Regenerate and Catch up queue with Cancel; ended runs stay for the day (D204, D231).
@@ -22,11 +22,12 @@ Unit (CI): 367 files, 5,572 tests, 2 min. Site e2e: 449, 14 min. Player: 80, 7 m
 
 ## Not working or unverified
 
+- DS pinned to npm 0.1.1 (D382 step 7). closed when: a clean day live; then step 8.
 - D318 edge cache. closed when: a week of his loads is mostly HIT or STALE.
 - Guardrails (D360): #673 awaits his merge, `secrets:push`. closed when: Health's Budgets are fresh.
 - Rewrite (D376), Stories (D377). closed when: his next rewrite fetches in 1 min, plays at 0:00; 20 stories at 5 min air 20 in 5.5 min.
 - Listen now streams (D366): parts as the script is written, for Catch up and Regenerate. closed when: Somesh's first live Catch up plays on his phone without a pause.
-- Blob on Pro trial to 11-13 (D251, D256). Plan call 11-08: keep Pro. closed when: chosen.
+- Blob on Pro trial to 11-13 (D251, D256). closed when: plan chosen.
 - Deploy batching (D375): 5 merges, 3 hours or `[deploy]`. closed when: a merge day builds at most 8 times; `[deploy]` ships in minutes.
 - Bottom bar ripple (D286, D347) and tab state. closed when: on his Android Chrome Settings pages rise, tabs slide at 250 ms, and the latest podcast keeps its tab lit.
 - Run state in Postgres (D381): switch off, untried on Neon (runbook 14, 14.1). closed when: a daily run with it on leaves rows equal to `state/`.

@@ -307,7 +307,7 @@ const facts = topic && {
             <h2 class="section-head text-heading">Sources</h2>
             <Button
               variant="tonal"
-              class="topic-add-source"
+              className="topic-add-source"
               aria-label={`Add source to ${name}`}
               data-add-source={addTo}
               data-needs-js
@@ -336,7 +336,7 @@ const facts = topic && {
             </ul>
             {
               hidden > 0 && (
-                <Button variant="text" class="topic-show-all" data-show-all>
+                <Button variant="text" className="topic-show-all" data-show-all>
                   {`Show ${hidden} more`}
                 </Button>
               )
@@ -367,7 +367,7 @@ const facts = topic && {
             <DialogTitle id="topic-delete-title">{`Delete ${name}?`}</DialogTitle>
             <p class="create-hint confirm-lede" id="topic-delete-lede">Its sources move to Other.</p>
             <DialogActions>
-              <Button variant="text" data-confirm-cancel autofocus>Cancel</Button>
+              <Button variant="text" data-confirm-cancel autoFocus>Cancel</Button>
               <Button variant="text" tone="danger" data-confirm-delete>Delete</Button>
             </DialogActions>
           </Dialog>

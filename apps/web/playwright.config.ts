@@ -10,6 +10,11 @@ const PORT = Number(process.env.PORT ?? 4321);
  * Each test runs in one project. Untagged tests run on the phone. A test that needs a mouse, the
  * keyboard, the side column or the pinned form is tagged `@desktop` and runs on the desktop only.
  * A sweep that must hold at both sizes is tagged `@both`.
+ *
+ * `pnpm run e2e` starts Playwright under the tsx loader: the design system's package ships its
+ * modules as TypeScript, and Node refuses to strip types from a file under node_modules.
+ * shortcut: a plain `playwright test` fails on a spec that imports the package; drop the loader
+ * once the package ships JavaScript (a library change).
  */
 export default defineConfig({
   testDir: "./e2e",

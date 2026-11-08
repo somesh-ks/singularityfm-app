@@ -130,7 +130,7 @@ function preloadPageModules() {
 }
 
 /**
- * The Flag's art lives in the design system (packages/design-system/flags, D367) and is served at
+ * The Flag's art lives in the design system's package (its flags/ folder, D367) and is served at
  * /flags/<region>.svg. Astro has one public folder, so the art is copied into public/flags (ignored by
  * git) before dev or a build starts, and the URLs stay what flagSrc() writes.
  */
@@ -139,7 +139,9 @@ function serveSystemFlags() {
     name: "singularity-system-flags",
     hooks: {
       "astro:config:setup": ({ config }) => {
-        const from = fileURLToPath(new URL("../../packages/design-system/flags", import.meta.url));
+        const from = dirname(
+          createRequire(import.meta.url).resolve("@singularity/design-system/flags/LICENSE.txt"),
+        );
         const to = join(fileURLToPath(config.publicDir), "flags");
         rmSync(to, { recursive: true, force: true });
         cpSync(from, to, { recursive: true });
@@ -183,11 +185,10 @@ function stubApiRoutesForStaticBuild() {
 }
 
 // A page rendered on request (D173) draws the same layout as a built one, which reads these from the
-// checkout: the brand colours from the tokens, the settings digest from the config files, and the
-// core package that marks the repository root. Nothing imports them, so the function would not carry
+// checkout: the settings digest from the config files, and the core package that marks the repository
+// root (the brand colours come bundled from the design system's package). Nothing imports them, so the function would not carry
 // them, and a missing config file reads as empty: a digest no settings answer matches, with no error.
 const FILES_PAGES_READ = [
-  "../../packages/design-system/styles/tokens.css",
   "../../packages/core/package.json",
   // The covers drawn on request (D256) load their fonts from the function's own copy of these.
   ...["Regular", "Medium", "Bold", "Black"].map(

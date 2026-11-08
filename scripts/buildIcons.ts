@@ -1,4 +1,5 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Resvg } from "@resvg/resvg-js";
@@ -17,7 +18,10 @@ import { type BrandColors, readBrandColors } from "../apps/web/src/lib/brandColo
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const OUT = join(HERE, "..", "apps", "web", "public");
-const TOKENS = join(HERE, "..", "packages", "design-system", "styles", "tokens.css");
+// The tokens the reader ships with: the design system version apps/web pins (D382 step 7).
+const TOKENS = createRequire(join(HERE, "..", "apps", "web", "package.json")).resolve(
+  "@singularity/design-system/styles/tokens.css",
+);
 
 /** The mark's own box, in the units of the brand SVG. */
 const MARK = { width: 24, height: 24 } as const;

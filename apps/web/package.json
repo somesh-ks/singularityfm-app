@@ -5,12 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
-    "prebuild": "tsx ../../packages/design-system/scripts/buildTokens.ts && tsx ../../scripts/pullConfig.ts && tsx ../../scripts/pullContent.ts",
+    "prebuild": "tsx ../../scripts/pullConfig.ts && tsx ../../scripts/pullContent.ts",
     "build": "astro build",
     "postbuild": "tsx scripts/checkBundle.ts && tsx scripts/checkFunction.ts",
     "preview": "node e2e/run.mjs",
     "check": "astro check",
-    "e2e": "playwright test",
+    "e2e": "node --import tsx node_modules/@playwright/test/cli.js test",
     "e2e:player": "playwright test -c src/player/e2e/playwright.config.ts"
   },
   "dependencies": {
@@ -19,7 +19,7 @@
     "@base-ui/react": "^1.9.0",
     "@singularity/core": "workspace:*",
     "@singularity/cover": "workspace:*",
-    "@singularity/design-system": "workspace:@singularityfm/design-system@*",
+    "@singularity/design-system": "npm:@singularityfm/design-system@0.1.1",
     "@singularity/engine": "workspace:*",
     "@singularity/sound": "workspace:*",
     "@vercel/blob": "^2.8.2",

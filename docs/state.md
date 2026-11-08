@@ -22,7 +22,7 @@ Unit (CI): 367 files, 5,572 tests, 2 min. Site e2e: 449, 14 min. Player: 80, 7 m
 
 ## Not working or unverified
 
-- DS pinned to npm 0.1.1 (D382 step 7), shipped 8 Nov. closed when: production reads 0.1.1 cleanly; step 8 (delete the copy) is in progress.
+- DS on npm 0.1.1 (D382 step 7), shipped 8 Nov. closed when: production runs it; step 8 underway.
 - D318 edge cache. closed when: a week of his loads is mostly HIT or STALE.
 - Guardrails (D360): #673 awaits his merge, `secrets:push`. closed when: Health's Budgets are fresh.
 - Rewrite (D376), Stories (D377). closed when: his next rewrite fetches in 1 min, plays at 0:00; 20 stories at 5 min air 20 in 5.5 min.

@@ -62,8 +62,8 @@ Coding agents building or modifying UI follow these contracts (adapted from Astr
 
 ## Agent lookup (D236)
 
-- The design system repo writes `tokens/system.json` and `llms.txt` from its tokens, stylesheets and `scripts/system/parts.ts`; the app reads them from the pinned package.
+- The design system repo writes `tokens/system.json` and `llms.txt` from its tokens, stylesheets and part list; the app reads them from the pinned package.
 - A part has an id, classes, use-when, not-when (with the part to use instead), markup, rules, files; the build adds who styles it, the tokens its rules read. A part with no markup use fails the test; the count of files that use it is checked in memory, not stored, so an ordinary UI edit does not make the file stale.
 - `npm run ds -- find "<need>"` ranks parts and tokens; `part <id>`, `part bespoke`, `token <words>`, `list`.
 - A new shared control needs a part in the same change. A family that becomes a design-system component deletes its entries from `parts.ts`.
-- Code and test: the package's `scripts/system/`.
+- Code and test: the design system repo.

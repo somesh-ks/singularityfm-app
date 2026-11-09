@@ -41,7 +41,7 @@
     "@playwright/test": "^1.64.1",
     "@resvg/resvg-js": "^2.6.2",
     "@singularityfm/core": "workspace:*",
-    "@singularityfm/design-system": "0.4.0",
+    "@singularityfm/design-system": "0.5.0",
     "@types/node": "^26.6.6",
     "@typesafe-ai/sdk": "^0.7.0",
     "emojibase-data": "18.0.0",

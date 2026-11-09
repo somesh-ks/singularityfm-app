@@ -105,10 +105,11 @@ One line each: symptom, cause, fix. Search before debugging; older gotchas are i
 - 2026-10-31: a Play control marked `aria-disabled` never reacted (`disabledGuard.ts` swallows clicks): use `data-silent`.
 - 2026-11-01: Downloads showed as a gallery after a Library visit: `libraryPage.ts` kept its `astro:page-load` listener and matched Downloads' `[data-library]`. Name the page (`#main.library`); a test must reach it by click, not `goto`.
 - 2026-11-01: a `.manage` rule for the voice page also reached Preferences: a row declares its `--row-reach`.
+- 2026-11-09: a new Vercel env var needs a build; the batch rule (D375) cancels Redeploy of any but the last deployed commit. Ship a `[deploy]` PR.
 - 2026-11-03: servers off Vercel with the real `DATABASE_URL` stored their own 5xx as production faults (~180 a day); telemetry takes `deploymentDatabaseUrl`. Astro's SSR header replaces vercel.json's CSP: `frame-ancestors` goes in `withFrameAncestors` (meta ignores it).
 - 2026-11-05: a white strip showed while Android's keyboard slid up on the Regenerate and Catch up panels: Chrome resizes the page at once and the window behind stays white. A native panel with a text field needs `fitAboveKeyboard`; only Topics and Block sources had it.
 - 2026-11-05: a CSS animation restarts when its node is re-inserted: repainting rows each poll restarts every shimmer. Engine timings (state/podcast-timings.json) cover engine work, not workflow steps.
-- 2026-11-06: a rewrite played from 4 minutes: the place was keyed by the digest id, which a rewrite keeps; it is saved with the recording's file address (`resume-of`). "More stories" aired 12 again: the count is the Length, and only a model moved the control; `wordLength` does it at once.
+- 2026-11-06: a rewrite played from 4 minutes: the place was keyed by the digest id, which a rewrite keeps; it is saved with the recording's file address (`resume-of`). "More stories" aired 12 again: the count is the Length; `wordLength` moves the control at once.
 
 ## Build and tooling
 

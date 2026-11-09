@@ -1,4 +1,4 @@
-import { COOKIE, cookieOf, sessionValid } from "../../../admin/src/gate/session";
+import { COOKIE, cookieOf, sessionValid } from "@singularityfm/contracts/session";
 import { toResponse } from "./http";
 
 export interface AdminGuardEnv {

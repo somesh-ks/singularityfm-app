@@ -1,6 +1,6 @@
+import { createSession } from "@singularityfm/contracts/session";
 import type { APIContext } from "astro";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createSession } from "../../../admin/src/gate/session";
 import { GET as costs } from "../pages/api/costs";
 import { GET as health } from "../pages/api/health";
 import { adminOnly } from "./adminGuard";

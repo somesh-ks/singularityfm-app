@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { createSession, sessionValid } from "../../../../packages/contracts/src/session";
 import { type GateEnv, guard } from "./gate";
-import { createSession, sessionValid } from "./session";
 
 const ENV = { password: "correct horse battery staple", secret: "x".repeat(40) };
 const NOW = Date.UTC(2026, 9, 29, 12);

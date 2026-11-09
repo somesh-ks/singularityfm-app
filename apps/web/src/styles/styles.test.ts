@@ -160,10 +160,10 @@ const LOCAL_EASES: [file: string, reason: string][] = [
 
 /** Files that may hold an inline <svg>: the Icon components, the mark, the art and named one-offs. */
 const RAW_SVG_ALLOWED: [file: string, reason: string][] = [
-  ["@singularityfm/design-system/src/Icon.astro", "the Icon component"],
+  ["@singularityfm/design-system/src/Icon.tsx", "the Icon component"],
   ["player/ui/Icon.tsx", "the island Icon component"],
   ["player/ui/LazyIcon.tsx", "the lazy island Icon component"],
-  ["@singularityfm/design-system/src/BrandMark.astro", "the wordmark's own mark, not a glyph"],
+  ["@singularityfm/design-system/src/BrandMark.tsx", "the wordmark's own mark, not a glyph"],
   ["components/EmptyArt.astro", "empty-state illustrations, coloured by classes (own rule above)"],
   [
     "components/EmptyArtHalloween.astro",
@@ -736,7 +736,9 @@ const RULES: Rule[] = [
     name: "no inline styling bypasses the tokens",
     offenders: () =>
       codeFiles([".astro", ".tsx"]).flatMap((file) => {
-        const markup = readFileSync(file, "utf8");
+        // A doc comment's line (` * ...`) describes a style, it sets none: RowExit.tsx names the
+        // `style="order: 1"` string it accepts.
+        const markup = readFileSync(file, "utf8").replace(/^\s*\*.*$/gm, "");
         return [...markup.matchAll(/\bstyle=(["{])/g)].flatMap((match) => {
           const start = (match.index ?? 0) + match[0].length;
           let end = start;
@@ -1132,7 +1134,9 @@ describe("the ⋮ of a podcast card and a queue row", () => {
 const PAGE_OVERRIDES: string[] = [
   "cover.css: .cover-play .icon-glyph",
   "create-sheet.css: .app-nav-create .icon-glyph",
+  "create-sheet.css: .play-fab .create-fab-label",
   "create-sheet.css: .play-fab-glyph > .icon-glyph",
+  "create-sheet.css: .play-fab[data-folded] .create-fab-label",
   'create-sheet.css: .play-fab[data-state="preparing"] .play-fab-glyph > .icon-glyph',
   "create-sheet.css: .share-dialog > .sheet-head",
   "create.css: .create-error > .icon-glyph",
@@ -1153,6 +1157,8 @@ const PAGE_OVERRIDES: string[] = [
   "library.css: .menu-list.card-menu-list",
   "library.css: .shelf-head > .button-text",
   "library.css: .status-mark .icon-glyph",
+  'library.css: html[data-library-page="empty"] .create-fab',
+  "library.css: html[data-search-empty] .create-fab",
   "manage.css: .manage-error .icon-glyph",
   "manage.css: .manage-fields:disabled :is(.switch-input, .field-input, .search-field)",
   "manage.css: .manage-fields:disabled :is(.switch-input, .field-input, .search-field)",
@@ -1204,6 +1210,12 @@ const PAGE_OVERRIDES: string[] = [
   'sheets.css: .sheet-actions .button-filled[data-busy="true"]',
   "sheets.css: .sheet-field-error .icon-glyph",
   "speed-panel.css: .player-speed .slider-input",
+  "speed-panel.css: .player-speed-stepper > .icon-btn-tonal",
+  'speed-panel.css: .player-speed-stepper > .icon-btn-tonal:where(:not(:disabled, [aria-disabled="true"])):active',
+  'speed-panel.css: .player-speed-stepper > .icon-btn-tonal:where(:not(:disabled, [aria-disabled="true"])):hover',
+  "story-controls.css: .icon-btn.story-vote",
+  'story-controls.css: .icon-btn.story-vote[aria-pressed="true"]',
+  'story-controls.css: .icon-btn.story-vote[aria-pressed="true"]',
   "story-controls.css: .menu-list.story-menu-list",
   "story-controls.css: .menu-list.story-menu-list",
   "story-controls.css: .story-vote .icon-glyph",

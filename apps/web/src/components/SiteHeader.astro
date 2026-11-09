@@ -1,6 +1,7 @@
 ---
 import BrandMark from "@singularityfm/design-system/BrandMark";
 import Icon from "@singularityfm/design-system/Icon";
+import IconButton from "@singularityfm/design-system/IconButton";
 import { getSite } from "../lib/site";
 import AccountSlot from "./AccountSlot.astro";
 
@@ -23,9 +24,9 @@ const homeLabel =
   <div class="app-bar-inner page">
     {
       back && (
-        <a class="icon-btn app-bar-back" href={back.href} aria-label={back.label} data-back hidden={back.hidden}>
+        <IconButton className="app-bar-back" href={back.href} label={back.label} data-back hidden={back.hidden}>
           <Icon name="arrowBack" />
-        </a>
+        </IconButton>
       )
     }
     <a class="wordmark" href="/" aria-label={homeLabel} data-astro-prefetch="hover">

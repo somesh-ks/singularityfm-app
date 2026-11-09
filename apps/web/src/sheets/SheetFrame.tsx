@@ -6,6 +6,7 @@ import {
   drawerViewportClass,
 } from "@singularityfm/design-system/drawer";
 import { quietNextClose } from "@singularityfm/design-system/gestureQuiet";
+import { iconButtonClass } from "@singularityfm/design-system/iconButton";
 import { sheetHeadClass, sheetTitleClass } from "@singularityfm/design-system/sheet";
 import {
   type ComponentProps,
@@ -106,7 +107,7 @@ export default function SheetFrame({
           <Drawer.Content className={drawerPanelClass()} data-full="">
             <div className={sheetHeadClass()}>
               <Drawer.Title className={sheetTitleClass()}>{title}</Drawer.Title>
-              <Drawer.Close className="icon-btn press" aria-label={closeLabel}>
+              <Drawer.Close className={iconButtonClass()} aria-label={closeLabel}>
                 <Icon name="close" size="lg" />
               </Drawer.Close>
             </div>

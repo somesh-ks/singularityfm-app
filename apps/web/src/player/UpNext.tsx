@@ -1,3 +1,4 @@
+import IconButton from "@singularityfm/design-system/IconButton";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { longDateFromDigestId } from "./core/formatTime";
 import { getPlayQueue, loadSuggested, playQueueItem } from "./core/playerRuntime";
@@ -46,14 +47,13 @@ function SuggestedRow({ id }: { id: string }) {
           <span className="player-upnext-hint">{meta?.caption ?? " "}</span>
         </span>
       </button>
-      <button
-        className="icon-btn player-queue-add"
-        type="button"
-        aria-label={`Add ${title} to the queue`}
+      <IconButton
+        className="player-queue-add"
+        label={`Add ${title} to the queue`}
         onClick={() => getPlayQueue().add(id)}
       >
         <Icon name="plus" />
-      </button>
+      </IconButton>
     </li>
   );
 }

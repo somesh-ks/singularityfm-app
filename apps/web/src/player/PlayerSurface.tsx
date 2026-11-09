@@ -1,4 +1,5 @@
 import { buttonClass } from "@singularityfm/design-system/button";
+import IconButton from "@singularityfm/design-system/IconButton";
 import { type PointerEvent, useDeferredValue, useEffect, useSyncExternalStore } from "react";
 import { longDateFromDigestId } from "./core/formatTime";
 import { recordingCaption } from "./core/playerCopy";
@@ -184,14 +185,13 @@ export default function PlayerSurface() {
               {/* A chevron at the top left on a phone (owner, 2026-10-20), so a listener who does not
                   know the page pulls down still sees how to put it away. From 64rem it shows only on
                   keyboard focus, as before: the bar is on screen there. */}
-              <button
-                className="icon-btn player-collapse"
-                type="button"
-                aria-label="Close the player"
+              <IconButton
+                className="player-collapse"
+                label="Close the player"
                 onClick={() => void playerSheet.collapse()}
               >
                 <Icon name="chevronDown" />
-              </button>
+              </IconButton>
               <PlayerMenu />
               <div className="player-cover-slot">
                 <div className="player-cover-box" data-player-cover>

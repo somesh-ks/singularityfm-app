@@ -1,5 +1,7 @@
 ---
+import { FAB_CLASSES } from "@singularityfm/design-system/fab";
 import Icon from "@singularityfm/design-system/Icon";
+import "@singularityfm/design-system/styles/fab.css";
 import { type ChipNoun, fabLabel, fabName, idleBriefingChip } from "../player/core/readerMath";
 
 /** The page's own audio, which the floating Play button plays: what the hero chip calls it. */
@@ -18,6 +20,9 @@ interface Props extends PageAudio {
 
 const { digestId, noun, length, expired = false } = Astro.props;
 const chip = idleBriefingChip(length, noun);
+// The FAB's own classes: the Fab draws one glyph and a word, and this face holds the spinner too, so
+// it draws its own button with them (fab.css), as an island takes iconButtonClass().
+const [fabClass, fabLabelClass] = FAB_CLASSES;
 ---
 
 {/* Play in the floating button's place on Today, a briefing or an episode, below 64rem (BaseLayout).
@@ -29,7 +34,7 @@ const chip = idleBriefingChip(length, noun);
      chip's hint. While the bar holds this page's audio the bar is its control, and it steps aside
      (readerSync.ts). */}
 <button
-  class="create-fab play-fab"
+  class:list={[fabClass, "play-fab"]}
   type="button"
   aria-label={fabName(chip, noun)}
   aria-describedby={expired ? "play-hint" : undefined}
@@ -42,5 +47,5 @@ const chip = idleBriefingChip(length, noun);
     <Icon name="play" size="lg" />
     <span class="spinner"></span>
   </span>
-  <span class="create-fab-label" aria-hidden="true" data-chip-label="fab">{fabLabel(chip)}</span>
+  <span class={fabLabelClass} aria-hidden="true" data-chip-label="fab">{fabLabel(chip)}</span>
 </button>

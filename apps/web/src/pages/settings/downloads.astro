@@ -4,6 +4,7 @@ import Dialog from "@singularityfm/design-system/Dialog.astro";
 import DialogActions from "@singularityfm/design-system/DialogActions.astro";
 import DialogTitle from "@singularityfm/design-system/DialogTitle.astro";
 import Icon from "@singularityfm/design-system/Icon";
+import IconButton from "@singularityfm/design-system/IconButton";
 import Menu from "@singularityfm/design-system/Menu.astro";
 import MenuItem from "@singularityfm/design-system/MenuItem.astro";
 import BriefingCard from "../../components/BriefingCard.astro";
@@ -46,16 +47,15 @@ const items = libraryItems(entries, episodes);
       <SettingsHead up={{ href: "/profile", label: "Profile" }} title="Downloads">
         {/* At the title's end, once there is something to delete: Delete all, which asks first. */}
         <div class="downloads-menu" slot="end" data-menu-wrap hidden>
-          <button
-            class="icon-btn icon-btn-end press"
-            type="button"
-            aria-label="More actions"
+          <IconButton
+            rowEnd
+            label="More actions"
             aria-haspopup="menu"
-            popovertarget="downloads-menu"
+            popoverTarget="downloads-menu"
             data-hero-more
           >
             <Icon name="moreVert" />
-          </button>
+          </IconButton>
           <Menu id="downloads-menu" title="Downloads">
             <MenuItem tone="danger" data-delete-all>
               <Icon name="trash" />Delete all downloads

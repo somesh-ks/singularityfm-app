@@ -1,5 +1,6 @@
 ---
 import Icon from "@singularityfm/design-system/Icon";
+import IconButton from "@singularityfm/design-system/IconButton";
 import Select from "@singularityfm/design-system/Select.astro";
 import type { AlbumOption } from "../lib/catchUps";
 import type { AudioMode } from "../lib/digests";
@@ -62,15 +63,15 @@ const unavailable = mode === "expired" ? AUDIO_UNAVAILABLE_COPY.expired : null;
        toast; the filled heart follows aria-pressed (hero.css). */}
   {
     favorite && (
-      <button
-        class="icon-btn icon-btn-tonal press hero-favorite"
-        type="button"
-        aria-label="Favorite"
+      <IconButton
+        variant="tonal"
+        className="hero-favorite"
+        label="Favorite"
         aria-pressed="false"
         data-favorite={favorite}
       >
         <Icon name="heartOutline" className="fav-add" /><Icon name="heart" className="fav-remove" />
-      </button>
+      </IconButton>
     )
   }
   {/* Share, the page's second action (D153), a secondary icon button after the filled Play (.hero-share in hero.css).
@@ -78,10 +79,10 @@ const unavailable = mode === "expired" ? AUDIO_UNAVAILABLE_COPY.expired : null;
        (data-share-early, scripts/shareLink.ts), so the share sheet opens inside the first tap. */}
   {
     share && (
-      <button
-        class="icon-btn icon-btn-tonal press hero-share"
-        type="button"
-        aria-label="Share"
+      <IconButton
+        variant="tonal"
+        className="hero-share"
+        label="Share"
         data-share={share.path}
         data-share-item={share.item}
         data-share-early={share.item ? "" : undefined}
@@ -89,7 +90,7 @@ const unavailable = mode === "expired" ? AUDIO_UNAVAILABLE_COPY.expired : null;
         data-share-of={share.of}
       >
         <Icon name="shareFat" />
-      </button>
+      </IconButton>
     )
   }
 </div>

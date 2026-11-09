@@ -1,5 +1,6 @@
 ---
 import Icon from "@singularityfm/design-system/Icon";
+import IconButton from "@singularityfm/design-system/IconButton";
 import Menu from "@singularityfm/design-system/Menu.astro";
 import PodcastMenuItems from "./PodcastMenuItems.astro";
 
@@ -61,17 +62,16 @@ const {
   data-title={page.title}
   data-audio={page.audio}
 >
-  <button
-    class="icon-btn hero-more press"
-    type="button"
-    aria-label="More actions"
+  <IconButton
+    className="hero-more"
+    label="More actions"
     aria-haspopup="menu"
-    popovertarget="hero-menu"
+    popoverTarget="hero-menu"
     data-hero-more
   >
     <Icon name="moreVert" className="more-icon" />
     <Icon name="check" className="more-done" />
-  </button>
+  </IconButton>
   <Menu id="hero-menu" title={page.title} subtitle={page.subtitle}>
     <PodcastMenuItems
       id={page.id}

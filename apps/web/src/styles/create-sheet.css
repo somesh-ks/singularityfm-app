@@ -1,7 +1,7 @@
 /*
- * Create as the one primary action: the button in the side column, the floating button below 64rem
- * (Play in its place on an episode or an older briefing) and the small share dialog. The sheet the
- * form opens in is sheet.css. The run's progress is the podcast queue (queue.css).
+ * Create as the one primary action: the button in the side column, the floating button's Play face
+ * below 64rem (the FAB itself is the design system's fab.css) and the small share dialog. The sheet
+ * the form opens in is sheet.css. The run's progress is the podcast queue (queue.css).
  * Tokens only. The stylesheet is global because every page carries the buttons and the indicator.
  *
  * Contract with the shell (shell.css): --bottom-nav-height, --dock-room (the player bar, while it
@@ -67,139 +67,7 @@
   }
 }
 
-/* ------------------------------------------------------------------ the floating button */
-
-/* On the root, so other chrome can size against the button. */
-:root {
-  --fab-size: 3.5rem;
-}
-
-.create-fab {
-  --color-focus-gap: var(--color-surface);
-  position: fixed;
-  inset-inline-end: max(var(--space-4), var(--safe-right));
-  /* Above the bottom bar, the player bar when it shows, and the run indicator when it is up. */
-  inset-block-end: calc(
-    var(--bottom-nav-height) +
-    var(--dock-room) +
-    var(--run-room) +
-    var(--fab-lift, 0px) +
-    var(--space-4)
-  );
-  z-index: var(--z-header);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  /* Folded it is a square of the button's size: the plus with equal padding round it. Extended, the
-     word adds its own width, and the button grows to the left from its fixed right edge. */
-  min-width: var(--fab-size);
-  height: var(--fab-size);
-  padding-inline: calc((var(--fab-size) - var(--size-icon-lg)) / 2 - var(--stroke-hairline));
-  /* Flat: its fill alone lifts it off the page, no shadow (owner, 2026-10-21) and no outline
-     (owner, 2026-11-03: "the fab button has a thin outline that shouldnt be there"; outlines are for
-     text fields, D54). The border stays transparent so forced colours still draw the button's edge. */
-  border: var(--stroke-hairline) solid transparent;
-  /* A pill, as every control is (D186): folded, a circle. */
-  border-radius: var(--shape-round);
-  /* The primary fill, the filled button's and the hero's Play (owner, 2026-11-04: "the fab and
-     primary buttons like play have different colors which shouldnt be the case"); it was the
-     tonal step, accent-container-high, a lighter colour beside the Play it repeats. */
-  background: var(--cta-bg);
-  color: var(--cta-fg);
-  text-decoration: none;
-  /* The transform is the press's (.press) as well as the slide: in fast, out softer, like every
-     pressable. This list replaces the utility's, so the press timing is spelt out here. The height
-     glides when the run indicator or the player bar comes or goes under the button. */
-  transition:
-    opacity var(--duration-state) var(--ease-out),
-    transform var(--duration-press-out) var(--ease-out),
-    background-color var(--duration-hover) var(--ease-hover),
-    visibility 0s,
-    inset-block-end var(--duration-enter) var(--ease-out);
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .create-fab:where(:not(:disabled, [aria-disabled="true"])):hover {
-    background: var(--cta-bg-hover);
-  }
-}
-
-.create-fab:where(:not(:disabled, [aria-disabled="true"])):active {
-  background: var(--cta-bg-pressed);
-  transition-duration:
-    var(--duration-state), var(--duration-press-in), var(--duration-hover), 0s,
-    var(--duration-enter);
-}
-
-/* Out of the way while the expanded player or a sheet owns the screen, and where it is already open.
-   data-dialog-open: a dialog is open (rootState.ts). */
-html[data-player="open"] .create-fab,
-html[data-dialog-open] .create-fab {
-  visibility: hidden;
-  opacity: 0;
-  transform: translateY(var(--space-4));
-  transition-duration:
-    var(--duration-exit), var(--duration-exit), var(--duration-hover), 0s, var(--duration-enter);
-  transition-delay: 0s, 0s, 0s, var(--duration-exit), 0s;
-}
-
-/* An open dialog takes the scrollbar away and the window's edge moves out by its width
-   (foundations.css): the button keeps that room as it fades, so it does not jump aside. */
-html[data-dialog-open] .create-fab {
-  inset-inline-end: calc(max(var(--space-4), var(--safe-right)) + var(--gutter, 0px));
-}
-
-/* With reduced motion it only fades, out and back in; it does not move. The fifth entry is the
-   inset-block-end glide, which is movement, so it takes no time (--duration-enter no longer
-   collapses: fades keep it). */
-@media (prefers-reduced-motion: reduce) {
-  .create-fab {
-    transition-duration:
-      var(--duration-state), var(--duration-press-out), var(--duration-hover), 0s, 0s;
-  }
-
-  .create-fab:where(:not(:disabled, [aria-disabled="true"])):active {
-    transition-duration:
-      var(--duration-state), var(--duration-press-in), var(--duration-hover), 0s, 0s;
-  }
-
-  html[data-player="open"] .create-fab,
-  html[data-dialog-open] .create-fab {
-    transform: none;
-    transition-duration: var(--duration-hover), 0s, var(--duration-hover), 0s, 0s;
-    transition-delay: 0s, 0s, 0s, var(--duration-hover), 0s;
-  }
-}
-
-/* The word folds away while scrolling down to read, and comes back at the top and on the way up. */
-.create-fab-label {
-  max-width: 6rem;
-  margin-inline: var(--space-2) var(--space-1);
-  overflow: hidden;
-  font-size: var(--text-label-size);
-  font-weight: var(--font-weight-medium);
-  line-height: var(--font-leading-label);
-  white-space: nowrap;
-  transition:
-    max-width var(--duration-state) var(--ease-out),
-    margin-inline var(--duration-state) var(--ease-out),
-    opacity var(--duration-hover) var(--ease-out);
-}
-
-.create-fab[data-folded] .create-fab-label {
-  max-width: 0;
-  margin-inline: 0;
-  opacity: 0;
-}
-
-/* Folding is a change of size, so with reduced motion the button stays extended. */
-@media (prefers-reduced-motion: reduce) {
-  .create-fab[data-folded] .create-fab-label {
-    max-width: 6rem;
-    margin-inline: var(--space-2) var(--space-1);
-    opacity: 1;
-  }
-}
+/* ------------------------------------------------------------------ the floating button as Play */
 
 /* Play says the hero chip's words, and "Resume · 12 min left" is wider than "New episode". */
 .play-fab .create-fab-label {
@@ -212,17 +80,9 @@ html[data-dialog-open] .create-fab {
   }
 }
 
-@media (width >= 64rem) {
-  .create-fab {
-    display: none;
-  }
-}
-
-/* ------------------------------------------------------------------ the floating button as Play */
-
 /* On an episode or an older briefing the floating button is Play (PlayFab.astro), with the shape,
-   place, motion and fold above. Its glyph slot holds the play mark and the spinner the hero chip
-   shows while narration makes the first file. */
+   place, motion and fold of the FAB (fab.css). Its glyph slot holds the play mark and the spinner
+   the hero chip shows while narration makes the first file. */
 .play-fab-glyph {
   display: grid;
   place-items: center;

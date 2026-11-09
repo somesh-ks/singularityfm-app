@@ -1,5 +1,6 @@
 ---
 import type { DigestItem } from "@singularityfm/core";
+import Link from "@singularityfm/design-system/Link";
 import { publisherOf } from "../lib/episodeHighlights";
 import { headlineParts } from "../lib/format";
 import { sourceHost } from "../lib/sourceLabel";
@@ -38,17 +39,16 @@ const publisher = publisherOf(item.source, host);
        accessibility tree, and the headline is the link a keyboard or a screen reader meets. */}
   {
     host && (
-      <a
-        class="source-link story-source"
+      <Link
+        variant="source"
+        className="story-source"
         href={item.url}
         target="_blank"
         rel="noopener noreferrer"
-        tabindex="-1"
+        tabIndex={-1}
         aria-hidden="true"
-        title={publisher}
-      >
-        <span>{publisher}</span>
-      </a>
+        title={publisher ?? undefined}
+      >{publisher}</Link>
     )
   }
   {/* The headline is the way to the story, as in any news list: a link to the source in a new tab.

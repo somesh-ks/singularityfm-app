@@ -1,3 +1,4 @@
+import { FAB_SELECTOR } from "@singularityfm/design-system/fab";
 import { setOnlineProbe } from "@singularityfm/design-system/idle";
 import { installRipple } from "@singularityfm/design-system/ripple";
 import { counted, installAnalytics } from "../lib/analytics";
@@ -81,8 +82,7 @@ addEventListener(
 addEventListener("pointerdown", inputBy("pointer"), { capture: true, passive: true });
 // An installed app has no browser chrome to copy an address from, so a long press on its own
 // navigation opens no context menu. External story links are not listed and stay copyable.
-const IN_APP_NAV =
-  ".app-nav-item, .app-nav-create, .app-bar-back, .wordmark, .create-fab, .card-link, .cover-art";
+const IN_APP_NAV = `.app-nav-item, .app-nav-create, .app-bar-back, .wordmark, ${FAB_SELECTOR}, .card-link, .cover-art`;
 if (matchMedia("(display-mode: standalone)").matches) {
   document.addEventListener("contextmenu", (event) => {
     if (event.target instanceof Element && event.target.closest(IN_APP_NAV)) event.preventDefault();

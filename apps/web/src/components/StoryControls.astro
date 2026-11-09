@@ -1,5 +1,6 @@
 ---
 import Icon from "@singularityfm/design-system/Icon";
+import IconButton from "@singularityfm/design-system/IconButton";
 import Menu from "@singularityfm/design-system/Menu.astro";
 import MenuItem from "@singularityfm/design-system/MenuItem.astro";
 import { sourceIdOf } from "../lib/sourceIds";
@@ -40,39 +41,36 @@ const menuId = `story-menu-${id}`;
   data-source-id={sourceId}
   data-outlet={outlet ?? undefined}
 >
-  <button
-    class="icon-btn story-vote press"
-    type="button"
+  <IconButton
+    className="story-vote"
+    label={`Like: ${headline}`}
     aria-pressed="false"
-    aria-label={`Like: ${headline}`}
     data-vote="up"
   >
     <Icon name="thumbsUp" />
     <Icon name="thumbsUpFill" />
-  </button>
-  <button
-    class="icon-btn story-vote press"
-    type="button"
+  </IconButton>
+  <IconButton
+    className="story-vote"
+    label={`Dislike: ${headline}`}
     aria-pressed="false"
-    aria-label={`Dislike: ${headline}`}
     data-vote="down"
   >
     <Icon name="thumbsDown" />
     <Icon name="thumbsDownFill" />
-  </button>
+  </IconButton>
   {
     canBlock && outlet && (
       <div class="story-menu" style={`--story-anchor: --sm-${id}`}>
-        <button
-          class="icon-btn story-more press"
-          type="button"
-          aria-label={`Story options: ${headline}`}
+        <IconButton
+          className="story-more"
+          label={`Story options: ${headline}`}
           aria-haspopup="menu"
-          popovertarget={menuId}
+          popoverTarget={menuId}
           data-hero-more
         >
           <Icon name="moreVert" />
-        </button>
+        </IconButton>
         <Menu id={menuId} title="Story options" class="story-menu-list">
           <MenuItem data-block>
             <Icon name="blocked" />Stop hearing from {outlet}

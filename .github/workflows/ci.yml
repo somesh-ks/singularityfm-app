@@ -139,3 +139,23 @@ jobs:
     needs: check
     if: needs.check.outputs.web == 'true'
     uses: ./.github/workflows/browser.yml
+
+  # The one browser check a ruleset can require (D385). A skipped `browser` caller job reports the
+  # bare name `browser`, and a run one reports `browser / site suite` and `browser / player suite`,
+  # so requiring `browser` would hang a site PR and block a docs PR. This job always runs and
+  # reports the same name: green when the suites passed or were skipped, red otherwise.
+  browser-gate:
+    name: browser gate
+    needs: browser
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Suites passed or were skipped
+        env:
+          RESULT: ${{ needs.browser.result }}
+        run: |
+          case "$RESULT" in
+            success|skipped) echo "browser suites: $RESULT" ;;
+            *) echo "::error::browser suites: $RESULT"; exit 1 ;;
+          esac

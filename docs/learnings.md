@@ -114,6 +114,8 @@ One line each: symptom, cause, fix. Search before debugging; older gotchas are i
 
 ## Build and tooling
 
+- Local site build: `SINGULARITY_STATIC_ONLY=1 pnpm run build` (the adapter fails on Windows symlinks).
+- `pnpm run dev` serves the site with the Agentation toolbar; `checkBundle` fails a build that contains it. Stop it when done (`pnpm exec astro dev stop` in `apps/web`).
 - 2026-11-08: the DS ships TS, which Node will not strip in node_modules, so e2e loads tsx. React Button: `className`, `autoFocus`.
 - 2026-10-31: a new stylesheet import reorders equal-specificity rules (icon.css flipped a chip's ink). Diff computed styles after one.
 - 2026-10-30: designSystem.test reads quoted text: a retired class equal to a file name or a selector string counts as writing it.

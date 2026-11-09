@@ -14,7 +14,7 @@ The highest tier of any changed file is the PR's tier. `git diff --stat origin/m
 
 ## The CLI before the push, where a miss is expensive
 
-The CodeRabbit CLI reviews the branch where it is, with the repository's `.coderabbit.yaml` and the organization's learnings, and draws on its own allowance: on the Advanced plan 10 CLI reviews an hour per developer, separate from the 10 PR reviews an hour. The PR review happens anyway, so a CLI pass is worth its run only where a second PR round is likely or costly: Tier 2 (the error-prone code), and a Tier 1 diff the thread expects to come back. A docs or style PR goes straight to the PR review.
+The CodeRabbit CLI reviews the branch where it is, with the repository's `.coderabbit.yaml` and the organization's learnings, and draws on its own allowance, separate from the PR reviews. Cloud sessions have no CLI. The PR review happens anyway, so a CLI pass is worth its run only where a second PR round is likely or costly: Tier 2 (the error-prone code), and a Tier 1 diff the thread expects to come back. A docs or style PR goes straight to the PR review.
 
 ```
 cr review --base main --committed            # Tier 1: the branch's commits against main
@@ -34,7 +34,7 @@ cr review --base main --committed --deep --agent --gate major   # exit 2 when a 
 `.coderabbit.yaml` sets `auto_incremental_review: false`: CodeRabbit reviews a PR when it opens, and after that only on `@coderabbitai review`. A draft gets no review, and marking it ready starts none (CodeRabbit skips that event). A push spends nothing, so a branch can take a day of commits from several threads and be reviewed once. A PR whose files `path_filters` all exclude (a lockfile bump) gets no review from either end: Dependabot's merges on green CI (`automerge.yml`), anyone else's is Tier 0 by construction.
 
 - Open as a draft while work continues; mark it ready when the checks are green, the diff lists only the task's files, the stills are OK'd for a taste change, and the PR body's Review section is filled. Then post `@coderabbitai review`: that is the first review.
-- Before asking, read CodeRabbit's last summary comment: "N remain after this review". The hour (10 reviews) is shared by every thread in the project. At 2 or fewer, wait for the hour and say so in the PR body.
+- Before asking, read CodeRabbit's last summary comment: "N remain after this review". The allowance is shared by every thread in the project. At 2 or fewer, wait for the hour and say so in the PR body.
 - Paused or skipped: when the summary says "Reviews paused" or rate-limited and the head is unreviewed, ask with `@coderabbitai review`. While the PR pool is out, a Tier 1 PR may merge on a `cr review` pass of the range, with the PR body saying so; a Tier 2 PR waits for the hour, since its merge rule below needs the PR review on the head. Never `@coderabbitai resume`: it brings back a review per push.
 - `@coderabbitai full review` only after a rebase or a squash rewrote the branch.
 - Before a merge, compare `git rev-parse HEAD` with the "Last reviewed commit" in the summary. Tier 2 must match. Tier 1 may differ by fix commits for the findings only.

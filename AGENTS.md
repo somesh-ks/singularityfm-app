@@ -19,8 +19,7 @@ On demand: [docs/specs/](docs/specs/README.md) for what a capability does (code 
 - Windows: PowerShell, not Git Bash. Cloud (Linux): `. /opt/nvm/nvm.sh && nvm install 24`, then `pnpm install --frozen-lockfile`, before any check. Never stop port 4321 (owner's dev server); browser suites take a `PORT` above 4400.
 - A worktree gets packages from `pnpm install --frozen-lockfile --offline` inside it (seconds, hard links from the shared store); `git worktree remove` is then safe.
 - `pnpm --filter @singularityfm/web run e2e` and `pnpm --filter @singularityfm/web run e2e:player`: the browser suites. Run both, one after the other (they share the build), before a PR that touches the site, `packages` or the tokens; push once. Red check: [delivery failures](docs/engineering/delivery-failures.md) (D148).
-- `SINGULARITY_STATIC_ONLY=1 pnpm run build`: local site build (adapter fails on Windows symlinks).
-- `pnpm run dev`: the site with the Agentation toolbar; `checkBundle` fails a build that contains it. Stop it when done (`pnpm exec astro dev stop` in `apps/web`).
+- Local build and dev server (`SINGULARITY_STATIC_ONLY=1 pnpm run build`, `pnpm run dev`): [learnings, Build and tooling](docs/learnings.md).
 
 ## Rules
 
@@ -29,10 +28,10 @@ On demand: [docs/specs/](docs/specs/README.md) for what a capability does (code 
 - No em dashes. Persisted data is snake_case; docs and config files are lowercase kebab-case.
 - Do not edit `Digests/` or `state/` by hand.
 - Changes to `.github/workflows` need his manual merge (the auto-merge token cannot merge them); only his own word lifts that, not another agent's.
-- Review before merge (D292): [code-review.md](docs/engineering/code-review.md). `[skip-review]` and green CI only if every file is Tier 0: docs outside `decisions/`, `engineering/`, `design/` and the ledger, test data, or a few-line copy fix outside Tier 2 (D254). Tier 2 (pipeline, store, auth, billing, workflows, design system, `AGENTS.md`, `.coderabbit.yaml`, gates): a review pass with your tool's review command (Claude Code: `/code-review`) before the PR. CodeRabbit skips drafts and reviews on open, then only on `@coderabbitai review`; a cancelled CI run (newer push) is not a failure.
+- Review before merge (D292): [code-review.md](docs/engineering/code-review.md). `[skip-review]` and green CI only if every file is Tier 0: docs outside `decisions/`, `engineering/`, `design/` and the ledger, test data, or a few-line copy fix outside Tier 2 (D254). Tier 2 (pipeline, store, auth, billing, workflows, design system, `AGENTS.md`, `.coderabbit.yaml`, gates): a review pass with your tool's review command (Claude Code: `/code-review`) before the PR. CodeRabbit does not review this repo on its own (under 10 stars, drafts skipped): `@coderabbitai review` asks for one, and it is rate-limited; a cancelled CI run (newer push) is not a failure.
 - TypeScript stays on 6.x.
 - Change log (D355): CI fails a `feat`/`fix`/`perf` PR while `lib/changelog.ts` is over 2 days old.
-- Scope: one PR per task per thread; review fixes and follow-ups go on its branch, never a new PR; batch small fixes (D254). Limits: CodeRabbit about 10 reviews an hour, Vercel 100 deploys a day. Before a PR, `git diff --stat origin/main` must list only the task's files; name any shared stylesheet or component in it, and why, in the PR body.
+- Scope: one PR per task per thread; review fixes and follow-ups go on its branch, never a new PR; batch small fixes (D254). Limits: Vercel 100 deploys a day. Before a PR, `git diff --stat origin/main` must list only the task's files; name any shared stylesheet or component in it, and why, in the PR body.
 - A visual change shows stills and gets his OK before the PR opens. Owner OK on stills: keep the PR mergeable (merge main in at each wake and before asking); a bare "ok" answers the latest ask. Ask in what he sees, never token names, with the default you will take, and keep building on it; stop only before a step that cannot be undone. State a paid probe's credit cost first.
 - Reply to him in plain words (define a term the first time), short, with links he can open (artifact or PR, never a `/mnt` path); give numbered steps with URLs for what is missing, and say what is left. "Decide yourself" means decide. A click, setting or merge only he can do goes in `docs/state.md` Next with `closed when:`. Docs name tokens, never pixel values.
 - State authority: the config store owns the owner's config; its files are not in git (D296). Edit in the app, never a PR; `config pull` fills `config/` locally.

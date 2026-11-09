@@ -43,7 +43,7 @@ export async function saveStateIfOn(
     const result = await pushState(
       root,
       await connectConfigStore(url),
-      undefined,
+      { info() {}, warn: (message) => process.stderr.write(`singularity: ${message}\n`) },
       (path) => (dbScope?.(path) ?? true) && isPathAllowed(path, allowlist),
     );
     return [...result.written, ...result.merged];

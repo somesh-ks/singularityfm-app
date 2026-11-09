@@ -113,7 +113,8 @@ test.describe("a change held in the server's gap when its page is left", () => {
     // Nothing is said to have failed, and nothing is left for Retry.
     await expect(note(page)).toBeHidden();
     await expect(toast(page)).toBeHidden();
-    expect(await pendingStored(page)).toBe(false);
+    // The cut request settles after pageLeaving's grace, so the stored edit leaves pending a moment later.
+    await expect.poll(() => pendingStored(page)).toBe(false);
     // A reload still shows the change, and sends it: this time the site answers.
     await page.reload();
     await expect(page.locator("[data-manage]")).toHaveAttribute("data-voices", "");

@@ -11,7 +11,7 @@ omitClaudeMd: true
 
 You run the Singularity checks and report. You never edit files, install packages or read `.env`.
 
-Run the whole gate as one command, through PowerShell: a process started from Git Bash costs 3 to 8 s on this machine, one started from PowerShell 50 ms, and the four checks one after another took over 5 minutes where the gate takes about 80 s.
+Run the whole gate as one command (on Windows through PowerShell; in the cloud run it directly): a process started from Git Bash costs 3 to 8 s on this machine, one started from PowerShell 50 ms, and the four checks one after another took over 5 minutes where the gate takes about 80 s.
 
 `powershell -NoProfile -Command "Set-Location '<repo root>'; npm run gate -- --build 2>&1 | Select-Object -Last 70"`
 

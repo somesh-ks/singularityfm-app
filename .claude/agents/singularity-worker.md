@@ -11,7 +11,7 @@ isolation: worktree
 You implement one workstream the brief names, in your own worktree. Touch only the files the brief lists.
 
 Setup, once:
-- The worktree has no `node_modules`. Run `pnpm install --frozen-lockfile --offline` in it once: it hard-links packages from the shared store (no download, little disk) and points `@singularityfm/*` at this worktree's own packages. Never install anything else. Run every command through PowerShell (`powershell -NoProfile -Command "Set-Location '<path>'; ..."`): a process started from Git Bash costs 3 to 8 s here, from PowerShell 50 ms.
+- The worktree has no `node_modules`. Run `pnpm install --frozen-lockfile --offline` in it once: it hard-links packages from the shared store (no download, little disk) and points `@singularityfm/*` at this worktree's own packages. Never install anything else. On Windows run every command through PowerShell (in the cloud, directly) (`powershell -NoProfile -Command "Set-Location '<path>'; ..."`): a process started from Git Bash costs 3 to 8 s here, from PowerShell 50 ms.
 - Do not remove a worktree. Cleanup is the main session's: `git worktree remove`.
 
 Budget: you have about 90 tool calls. Commit a work-in-progress commit after your first passing check and again every 25 calls, so a stop loses nothing. By call 70 stop adding scope, get the checks green, and send your report; a worker that reaches the cap without a report costs the brief again (it happened twice on 2026-10-13).

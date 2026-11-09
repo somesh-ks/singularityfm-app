@@ -1,8 +1,11 @@
 packages:
   - apps/*
   - packages/*
+allowBuilds:
+  esbuild: true
+  koffi: true
 
 # Moved from package.json "overrides" (npm). Same pins.
 overrides:
-  "@vercel/routing-utils>path-to-regexp": 6.3.0
   "@vercel/cli-config>zod": 4.6.7
+  "@vercel/routing-utils>path-to-regexp": 6.3.0

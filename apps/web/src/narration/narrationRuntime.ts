@@ -2,10 +2,11 @@
  * Narration on Play, assembled for the browser. Loaded on demand, the first time a listener presses
  * Play on a briefing that has no finished audio, so none of it weighs on an ordinary visit.
  */
+
+import { showToast } from "@singularityfm/design-system/toastStore";
 import { parseStreamDoc, type StreamDoc } from "../lib/liveStream";
 import { getPlayerAudio, getPlayerStore, narrationCancelSlot } from "../player/core/playerRuntime";
 import { tabShared } from "../player/core/tabSlot";
-import { showToast } from "../sheets/toastStore";
 import type { PlayerDigestData } from "../types/contracts";
 import { liveDigestFrom } from "./liveEpisode";
 import { createNarrationController, type NarrationController } from "./narrationController";

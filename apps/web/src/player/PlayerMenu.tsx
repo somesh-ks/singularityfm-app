@@ -15,6 +15,7 @@ import {
   sheetSubtitleClass,
   sheetTitleClass,
 } from "@singularityfm/design-system/sheet";
+import { sendToast } from "@singularityfm/design-system/toastEvent";
 import {
   type CSSProperties,
   type KeyboardEvent,
@@ -23,7 +24,6 @@ import {
   useEffect,
   useState,
 } from "react";
-import { sendToast } from "../scripts/toastEvent";
 import "@singularityfm/design-system/styles/slider.css";
 import { glowFavorite } from "@singularityfm/design-system/glow";
 import { downloadFailure } from "../lib/downloadCopy";

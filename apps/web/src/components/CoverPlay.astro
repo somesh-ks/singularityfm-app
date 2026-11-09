@@ -1,4 +1,5 @@
 ---
+import PlayingBars from "@singularityfm/design-system/PlayingBars";
 import PlayPauseIcons from "./PlayPauseIcons.astro";
 
 interface Props {
@@ -35,6 +36,6 @@ const { digestId, href, title, pointerOnly = false } = Astro.props;
     aria-hidden={pointerOnly ? "true" : undefined}
   >
     <PlayPauseIcons size="lg" />
-    <span class="chip-bars cover-bars" aria-hidden="true"><i></i><i></i><i></i></span>
+    <PlayingBars className="cover-bars" />
   </button>
 </span>

@@ -1,5 +1,5 @@
 /*
- * What the Generate and Settings sheets hold, and the toast. The drawer itself is drawer.css.
+ * What the Generate and Settings sheets hold, and where the toast sits. The drawer itself is drawer.css.
  *
  * A sheet is a flat surface with one accent. Its buttons are the shared ones (.button-filled, .button-text,
  * .icon-btn in buttons.css), so a page that mounts the sheets loads that file too. The Settings
@@ -71,112 +71,17 @@ fieldset.sheet-field {
 /* ------------------------------------------------------------------ toast */
 
 /*
- * One quiet message at a time: a flat, inverse surface with a hairline radius, an optional leading
- * icon (a check or an alert, so the outcome is not told by colour alone), the message at the label
- * size, at most one text action in the accent and, only while it stays until used, a close button.
- * A top-layer popover above whatever is docked at the bottom: the navigation bar, and the player once
- * it is showing. The fallbacks cover a page without the shell and a player that has not published
- * its height yet.
+ * The Toast is the library's (Toast.tsx, styles/toast.css); the reader only says where it sits, by the
+ * custom properties that file reads from the root. Unset, it clears the bottom navigation bar, or the
+ * safe area where there is none, and centres beside the navigation column.
  */
-.toast {
-  /* The navigation bar at the bottom, or the safe area where there is none. */
-  --toast-nav: var(--bottom-nav-height, var(--safe-bottom));
-  --toast-dock: 0px;
-  --toast-lift: 0px;
-  /* Above the bars while Safari plays the exit outside the top layer (the sheets and dialogs). */
-  z-index: var(--z-toast);
-  /* The page accent is tuned for the page; on the inverse surface the role takes the other theme's step. */
-  --toast-accent: var(--color-accent-on-inverse);
-  inset-block: auto calc(var(--toast-nav) + var(--toast-dock) + var(--toast-lift) + var(--space-4));
-  /* Centred on the page, not on the screen: from 64rem the navigation is a column at the side. */
-  inset-inline: var(--side-nav-width, 0px) 0;
-  /* Closed, a popover is display: none. Setting display here would keep it in the layout and the
-     tab order, so the open state alone turns it on, and the exit plays through allow-discrete. */
-  display: none;
-  align-items: center;
-  gap: var(--space-4);
-  width: max-content;
-  max-width: min(calc(100% - var(--page-gutter) * 2), var(--layout-dialog));
-  /* As tall as a 44px button and its padding, so a toast keeps its height when its buttons come and go. */
-  min-height: calc(var(--size-touch) + var(--space-1) * 2);
-  margin-inline: auto;
-  padding: var(--space-1) var(--space-2) var(--space-1) var(--space-4);
-  border: 0;
-  border-radius: var(--shape-md);
-  background: var(--toast-bg);
-  color: var(--toast-fg);
-  font-size: var(--text-label-size);
-  line-height: var(--font-leading-label);
-  --color-focus-gap: var(--color-surface-inverse);
-  --ghost-hover: var(--color-surface-inverse-hover);
-  --ghost-pressed: var(--color-surface-inverse-pressed);
-  /* A finger swipes it away sideways (Toaster.tsx); the page under it still scrolls up and down. */
-  touch-action: pan-y;
-  opacity: 0;
-  transform: translateY(var(--distance-medium));
-  /* Out in the exit time; the open state below comes in on the enter time (2026-11-02). The leave ran on
-     the press time, 100ms, and read as a cut. */
-  transition:
-    opacity var(--duration-exit) var(--ease-out),
-    transform var(--duration-exit) var(--ease-out),
-    translate var(--duration-exit) var(--ease-out),
-    overlay var(--duration-exit) allow-discrete,
-    display var(--duration-exit) allow-discrete;
-}
-
-/* The ring takes the toast's ink on its dark fill, after keys only: a tap clears the ring below the
-   root (foundations.css, data-input), and a colour set here would beat that and stay after a touch. */
-:root:not([data-input="pointer"]) .toast {
-  --color-focus-ring: var(--toast-fg);
-}
-
-/* A toast that asks to stay on one line (oneLine, toastStore.ts; the time zone offer, D239) keeps
-   its words whole and ends them with an ellipsis rather than wrap. Its copy is written to fit. */
-.toast[data-one-line] .toast-text {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* Under the finger the toast follows at once; the spring back and the leave run on the transition. */
-.toast[data-dragging] {
-  transition: none;
-}
-
-/* On a phone a toast keeps one width, the screen's less its gutters, whatever it says: sized to its
-   words, it jumped from 105 to 358px between Saving and what came of it. The words take the room,
-   so a button stays at its end. */
-@media (width < 40rem) {
-  .toast {
-    width: min(calc(100% - var(--page-gutter) * 2), var(--layout-dialog));
-  }
-
-  .toast-text {
-    flex: 1 1 auto;
-  }
-
-  /* A one-line toast gives its close button's room to its words on a phone, where a swipe takes it
-     away (Toaster.tsx), so "You're in Johannesburg" and its action fit without an ellipsis. The
-     button stays for a keyboard and a screen reader, as a sheet's Close does (D144, above). */
-  .toast[data-one-line] .toast-dismiss {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    min-height: 0;
-    padding: 0;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
-  }
-}
 
 /* The open player covers the navigation column too, so a toast centres on the player. */
-html[data-player="open"] .toast {
-  inset-inline-start: 0;
+html[data-player="open"] {
+  --toast-inline-start: 0px;
 }
 
-html[data-mini="visible"] .toast {
+html[data-mini="visible"] {
   --toast-dock: var(--player-dock-height, var(--nav-bar-height));
 }
 
@@ -188,11 +93,11 @@ html[data-mini="visible"] .toast {
  * when the toast leaves.
  */
 @media (width < 64rem) {
-  html[data-player="open"] .toast {
+  html[data-player="open"] {
     --toast-nav: var(--safe-bottom);
   }
 
-  html:not([data-player="open"]) .toast {
+  html:not([data-player="open"]) {
     --toast-lift: var(--run-room);
   }
 
@@ -206,101 +111,15 @@ html[data-mini="visible"] .toast {
    the reading column sits left of the window's middle: a toast centres on the column instead.
    data-library-page marks the Library page (BaseLayout.astro). */
 @media (width >= 80rem) {
-  html:not([data-player="open"]):not([data-library-page]) .toast {
-    inset-inline-end: calc(var(--space-12) + var(--layout-aside));
-  }
-}
-
-.toast:popover-open {
-  display: flex;
-  opacity: 1;
-  transform: none;
-  transition-duration: var(--duration-enter);
-}
-
-@starting-style {
-  .toast:popover-open {
-    opacity: 0;
-    transform: translateY(var(--distance-medium));
-  }
-}
-
-/* With no button at its end, the text has the same room on both sides. The settings toast keeps its
-   buttons in the page and hides them by its state (manage.css). */
-.toast:not(:has(button:not([hidden]))) {
-  padding-inline-end: var(--space-4);
-}
-
-.toast-icon {
-  flex: none;
-}
-
-.toast-text {
-  min-width: 0;
-}
-
-/* The words give way first: a button keeps its 44px however long the message runs. */
-.toast-action,
-.toast-dismiss {
-  flex: none;
-  min-height: var(--size-touch);
-}
-
-/* A text action: the accent on the inverse surface, no fill until it is pointed at or pressed. */
-.toast-action {
-  padding-inline: var(--space-4);
-  border-radius: var(--shape-round);
-  color: var(--toast-accent);
-  font-weight: var(--font-weight-medium);
-  transition: background-color var(--duration-hover) var(--ease-hover);
-}
-
-.toast-dismiss {
-  display: grid;
-  place-items: center;
-  width: var(--size-touch);
-  border-radius: var(--shape-round);
-  opacity: 0.8;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  /* The action's label is the accent, not the plain ink, so its fills are the inverse surface's
-     settled against that label (4.5:1 on a press in light, where the plain pressed step gave 4.0). */
-  .toast-action:hover {
-    background: var(--color-surface-inverse-action-hover);
-  }
-
-  .toast-dismiss:hover {
-    background: var(--ghost-hover);
-    opacity: 1;
-  }
-}
-
-.toast-action:active {
-  background: var(--color-surface-inverse-action-pressed);
-}
-
-.toast-dismiss:active {
-  background: var(--ghost-pressed);
-}
-
-.toast-dismiss:active {
-  opacity: 1;
-}
-
-/* No slide under reduced motion; the fade stays, and the zero durations of the token set do the rest. */
-@media (prefers-reduced-motion: reduce) {
-  .toast,
-  .toast:popover-open {
-    transform: none;
+  html:not([data-player="open"]):not([data-library-page]) {
+    --toast-inline-end: calc(var(--space-12) + var(--layout-aside));
   }
 }
 
 /* ------------------------------------------------------------------ preferences */
 
 @media (forced-colors: active) {
-  .sheet-panel,
-  .toast {
+  .sheet-panel {
     border: var(--stroke-hairline) solid CanvasText;
   }
 }

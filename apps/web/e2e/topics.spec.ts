@@ -95,8 +95,8 @@ async function open(page: Page, path = LIST): Promise<void> {
 /** A source of the topic, not one of the feeds suggested for it. */
 const source = (page: Page, name: string) =>
   page.locator("li.source-row:not(.is-suggested)", { hasText: name });
-const toast = (page: Page) => page.locator("[data-bar]");
-const toastText = (page: Page) => toast(page).locator("[data-bar-text]");
+/** The app's Toast: one at a time, so the one on the page. */
+const toast = (page: Page) => page.locator(".toast");
 /** A save that went through shows no toast; a screen reader hears it. */
 const spoken = (page: Page) => page.locator("[data-live]");
 const ops = (sent: Sent[]) => sent.flatMap((item) => [item.op].flat());
@@ -917,7 +917,7 @@ test.describe("a topic's page", () => {
       .getByRole("dialog", { name: "Delete Audio interfaces?" })
       .getByRole("button", { name: "Delete" })
       .click();
-    await expect(toastText(page)).toHaveText("Removing Audio interfaces");
+    await expect(toast(page)).toContainText("Removing Audio interfaces");
     // Gone from the page at once, before its request goes (D142).
     await expect(page.locator(".topic-gone")).toBeVisible();
     expect(ops(sent)).toEqual([]);
@@ -1018,7 +1018,7 @@ test.describe("a topic's page", () => {
     await confirm.getByRole("button", { name: "Delete", exact: true }).click();
     // Gone at once; the removal waits behind the scenes with Undo in the toast (D142).
     await expect(row).toBeHidden({ timeout: 1500 });
-    await expect(toastText(page)).toHaveText("Removing Quiet Motion");
+    await expect(toast(page)).toContainText("Removing Quiet Motion");
     await toast(page).getByRole("button", { name: "Undo" }).click();
     await expect(row).toBeVisible();
     expect(ops(sent)).toEqual([]);
@@ -1512,7 +1512,7 @@ test.describe("Blocked sources", () => {
     await page.goto("/settings/blocked-outlets");
     await expect(page.locator("[data-blocked]")).toHaveAttribute("data-ready", "");
     await page.getByRole("button", { name: "Unblock example.com" }).click();
-    await expect(toastText(page)).toHaveText("Removing example.com");
+    await expect(toast(page)).toContainText("Removing example.com");
     await expect(page.getByRole("button", { name: "Unblock example.com" })).toBeHidden();
     await toast(page).getByRole("button", { name: "Undo" }).click();
     await expect(page.getByRole("button", { name: "Unblock example.com" })).toBeVisible();

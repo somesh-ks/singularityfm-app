@@ -26,7 +26,7 @@ const APP_IMPORT = /(?:from|import)\s*\(?\s*["']([^"'\s]+)["']|url\(\s*["']?([^"
  * What one app still takes from another app's folder (D382 step 4e: the reader, the admin and the
  * guide each take a shared part from the package, never from another app). The guide takes nothing;
  * these are the admin's Health, Costs and Experiments pages, drawn with reader parts not yet in the
- * package (the toaster and its sheets, the settings rows),
+ * package (the sheets' styles, the settings rows),
  * the health checks' data both read, and the admin's session gate the reader's API checks. The list
  * only shrinks: a new reach fails, and so does an entry that no longer reaches.
  */
@@ -36,15 +36,12 @@ export const CROSS_APP_IMPORTS = [
   "apps/admin/src/layouts/Shell.astro: ../../../web/src/styles/health.css",
   "apps/admin/src/layouts/Shell.astro: ../../../web/src/styles/costs.css",
   "apps/admin/src/lib/pillars.ts: ../../../web/src/lib/healthRows",
-  "apps/admin/src/pages/experiments.astro: ../../../web/src/sheets/Toaster",
   "apps/admin/src/pages/experiments.astro: ../../../web/src/styles/create-sheet.css",
   "apps/admin/src/pages/experiments.astro: ../../../web/src/styles/episode-actions.css",
   "apps/admin/src/pages/experiments.astro: ../../../web/src/styles/sheets.css",
   "apps/admin/src/pages/experiments.astro: ../../../web/src/styles/player.css",
   "apps/admin/src/pages/health.astro: ../../../web/src/lib/healthRows",
   "apps/admin/src/scripts/costsPage.ts: ../../../web/src/lib/brandMarks",
-  "apps/admin/src/scripts/experiments.ts: ../../../web/src/scripts/pageLeaving",
-  "apps/admin/src/scripts/experiments.ts: ../../../web/src/scripts/toastEvent",
   "apps/admin/src/scripts/healthPage.ts: ../../../web/src/lib/healthRows",
   "apps/admin/src/scripts/healthSummary.ts: ../../../web/src/lib/healthRows",
   "apps/web/e2e/slowStore.spec.ts: ../../admin/src/lib/experimentsApi",

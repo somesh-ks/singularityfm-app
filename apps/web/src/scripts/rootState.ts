@@ -6,8 +6,8 @@
  *
  * - data-dialog-open: a <dialog> is open (foundations.css, shell.css, fab.css and
  *   library.css).
- * - data-toast-open: a .toast popover shows (sheets.css); data-manage-toast-open: the saving toast
- *   (ManageChrome.astro) shows (manage.css).
+ * - data-toast-open: a .toast popover shows (the toast's placement, sheets.css); data-manage-toast-open:
+ *   one shows on a page that saves itself (ManageChrome.astro's data-autosave; manage.css).
  *
  * An open dialog is seen by its `open` attribute, before the frame is drawn. A popover is seen in
  * `beforetoggle`, which runs as it is shown or hidden; `toggle` checks again once it settled, in
@@ -17,7 +17,7 @@
  */
 
 const TOAST = ".toast";
-const MANAGE_TOAST = ".manage-bar";
+const AUTOSAVE = "[data-autosave]";
 
 function setFlag(name: string, on: boolean): void {
   const root = document.documentElement;
@@ -44,8 +44,9 @@ function popoverShows(selector: string, changing?: Element, opening = false): bo
 }
 
 function syncToasts(changing?: Element, opening = false): void {
-  setFlag("data-toast-open", popoverShows(TOAST, changing, opening));
-  setFlag("data-manage-toast-open", popoverShows(MANAGE_TOAST, changing, opening));
+  const shows = popoverShows(TOAST, changing, opening);
+  setFlag("data-toast-open", shows);
+  setFlag("data-manage-toast-open", shows && document.querySelector(AUTOSAVE) !== null);
 }
 
 function sync(): void {

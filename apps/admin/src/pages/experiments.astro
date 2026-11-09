@@ -5,7 +5,7 @@ import Dialog from "@singularityfm/design-system/Dialog";
 import DialogActions from "@singularityfm/design-system/DialogActions";
 import DialogTitle from "@singularityfm/design-system/DialogTitle";
 import Switch from "@singularityfm/design-system/Switch";
-import Toaster from "../../../web/src/sheets/Toaster";
+import Toast from "@singularityfm/design-system/Toast";
 import AdminHead from "../components/AdminHead.astro";
 import Shell from "../layouts/Shell.astro";
 import { loadExperiments } from "../lib/experiments";
@@ -74,7 +74,7 @@ const WORDS = { on: "On", shadow: "Shadow", off: "Off" } as const;
       <Button variant="filled" data-confirm-go></Button>
     </DialogActions>
   </Dialog>
-  <Toaster client:load />
+  <Toast client:load />
 </Shell>
 
 <script>

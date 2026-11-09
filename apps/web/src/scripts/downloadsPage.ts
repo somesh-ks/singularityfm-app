@@ -6,11 +6,11 @@
  */
 
 import { whenIdle } from "@singularityfm/design-system/idle";
+import { sendToast } from "@singularityfm/design-system/toastEvent";
 import { downloadsSummary, SEARCH_FROM } from "../lib/downloads";
 import { normalize, textHasWords } from "../lib/library";
 import { installDownloadsSwipe, restoreRow } from "./downloadsSwipe";
 import { readDownloads, removeAllDownloads, removeDownload } from "./libraryDownloads";
-import { sendToast } from "./toastEvent";
 
 interface Ask {
   title: string;

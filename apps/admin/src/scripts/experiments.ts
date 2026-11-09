@@ -6,8 +6,8 @@
  * it is pressed; the change is kept across a reload until the store has it (lib/pendingFlags.ts).
  */
 
-import { endedByLeaving } from "../../../web/src/scripts/pageLeaving";
-import { sendToast } from "../../../web/src/scripts/toastEvent";
+import { endedByLeaving } from "@singularityfm/design-system/pageLeaving";
+import { sendToast } from "@singularityfm/design-system/toastEvent";
 import type { ExperimentAction, FlagRow, HitTotal } from "../lib/experimentsApi";
 import { fresh, intended, type PendingMap, parsePending, unsettled } from "../lib/pendingFlags";
 import {

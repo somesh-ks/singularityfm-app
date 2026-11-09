@@ -14,12 +14,12 @@
  */
 import { sameClock, scheduleZone } from "@singularityfm/core/time";
 import { suggestZone } from "@singularityfm/core/zoneSuggest";
+import { sendToast } from "@singularityfm/design-system/toastEvent";
 import { isOnline } from "../lib/connectivity";
 import { SAVED_KEY } from "../lib/savedKey";
 import { parseSaved, savedFields, withStore } from "../lib/savedOverlay";
 import { cachedStore } from "./configStoreRead";
 import type { SaveState } from "./managePageSave";
-import { sendToast } from "./toastEvent";
 
 /** The device zones whose offer was closed, kept until the device and the schedule agree. */
 export const DISMISSED_KEY = "singularity:zone-dismissed";

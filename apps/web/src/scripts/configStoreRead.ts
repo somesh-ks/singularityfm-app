@@ -13,10 +13,11 @@
  * new, is offered in a toast as a reload (D173). With no copy, an outage costs freshness, never the
  * page.
  */
+
+import { sendToast } from "@singularityfm/design-system/toastEvent";
 import { SAVED_KEY } from "../lib/savedKey";
 import { anyPending, parseSaved } from "../lib/savedOverlay";
 import type { ConfigOp, ConfigReadBody, StoreSource } from "../types/contracts";
-import { sendToast } from "./toastEvent";
 
 /** How long a page waits for the store before it keeps its built copy. */
 export const STORE_READ_TIMEOUT_MS = 2500;

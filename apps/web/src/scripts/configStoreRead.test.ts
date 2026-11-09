@@ -98,7 +98,7 @@ describe("loadStore", () => {
   it("offers a reload when the store answers after the page stopped waiting", async () => {
     vi.useFakeTimers();
     const { STORE_READ_TIMEOUT_MS, loadStore } = await fresh();
-    const { TOAST_EVENT } = await import("./toastEvent");
+    const { TOAST_EVENT } = await import("@singularityfm/design-system/toastEvent");
     const toasts: unknown[] = [];
     vi.stubGlobal("document", {
       querySelector: (selector: string) =>
@@ -229,7 +229,7 @@ describe("loadStore", () => {
     vi.useFakeTimers();
     const { CACHE_GRACE_MS, CACHE_KEY, loadStore } = await fresh();
     const { remember } = await import("./managePageSave");
-    const { TOAST_EVENT } = await import("./toastEvent");
+    const { TOAST_EVENT } = await import("@singularityfm/design-system/toastEvent");
     const toasts: unknown[] = [];
     vi.stubGlobal("document", {
       querySelector: (selector: string) =>

@@ -1,4 +1,4 @@
-import { autoStories } from "@singularityfm/core/storyCount";
+import { autoStories, FEWEST_STORIES, mostStories } from "@singularityfm/core/storyCount";
 import { type Hints, hintsFor } from "./regenHints";
 import { REGEN_LENGTHS } from "./regenLength";
 import { stepStories } from "./storyOptions";
@@ -46,7 +46,11 @@ export function wantedControls(
       answer.hints.length ||
       answer.values.length !== null,
     topics: words.topics || answer.hints.topics || answer.values.add.length > 0,
-    stories: words.stories || wordStories(text) !== null || answer.values.stories !== null,
+    stories:
+      words.stories ||
+      wordStories(text) !== null ||
+      wordCount(text) !== null ||
+      answer.values.stories !== null,
   };
 }
 
@@ -106,10 +110,75 @@ export function wordStories(text: string): "more" | "fewer" | null {
   return wayOf(text, WANTS_MORE, WANTS_FEWER, ["more", "fewer"] as const);
 }
 
+// A count in the words: "20 stories", "twenty items", "a dozen stories", "stories: 20", or one
+// relative to what aired, "5 more stories", "drop 2 stories". Not a description of what aired ("the
+// first 3 stories were boring", "it had 12 stories") nor a topic ("3 stories about AI").
+const UNITS =
+  "one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen";
+const TENS = "twenty|thirty|forty|fifty";
+const NUMBER = String.raw`(?:\d{1,3}|half a dozen|(?:a\s+)?dozen|(?:${TENS})(?:[\s-](?:one|two|three|four|five|six|seven|eight|nine))?|${UNITS})`;
+const STORIES = String.raw`(?:news\s+)?(?:stories|items)`;
+const DESCRIBED = String.raw`(?<!\b(?:first|last|top|those|these|the|other|same|of|from|had|has|got|aired|played|contained|included)\s+(?:only\s+|just\s+)?)`;
+const NOT_PAST = String.raw`(?!\s+(?:were|was|had|felt|seemed|that|which|repeated|got|did|aired|played|ago|in a row)\b|\s+(?:is|are)\s+(?!(?:enough|plenty|fine|good|better|ideal|right|perfect|ok|okay)\b))`;
+const ABSOLUTE = new RegExp(
+  String.raw`\b${DESCRIBED}(${NUMBER})\+?(?:\s+|-)${STORIES}${TOPIC}${NOT_PAST}|\b(?:stories|items)\s*(?::|=|to)\s*(\d{1,3})\b`,
+  "gi",
+);
+const RELATIVE = new RegExp(
+  String.raw`\b(?:(add|drop|cut|remove|lose|trim)\s+)?(${NUMBER})\s+(?:(more|extra|additional|fewer|less)\s+)?(?:news\s+)?(?:stories|story|items|item)\b${TOPIC}`,
+  "gi",
+);
+
+function numberOf(word: string): number {
+  const text = word.toLowerCase().replace(/^a\s+/, "");
+  if (/^\d+$/.test(text)) return Number(text);
+  if (text === "dozen") return 12;
+  if (text === "half a dozen") return 6;
+  const [tens, unit] = text.split(/[\s-]/);
+  const ones = UNITS.split("|");
+  const at = TENS.split("|").indexOf(tens ?? "");
+  if (at < 0) return ones.indexOf(text) + 1;
+  return (at + 2) * 10 + (unit ? ones.indexOf(unit) + 1 : 0);
+}
+
+/**
+ * The story count the words name: a count, or a change to what aired. Null when they name none, or
+ * two that disagree, so a guess never stands in for the listener.
+ */
+export function wordCount(text: string): { count: number } | { change: number } | null {
+  const found = new Set<string>();
+  for (const match of text.matchAll(RELATIVE)) {
+    const [, verb, number, way] = match;
+    if (!verb && !way) continue;
+    const size = numberOf(number ?? "");
+    const down = way ? /fewer|less/i.test(way) : !/add/i.test(verb ?? "");
+    if (size > 0) found.add(`change:${down ? -size : size}`);
+  }
+  for (const match of text.matchAll(ABSOLUTE)) {
+    const size = numberOf(match[1] ?? match[2] ?? "");
+    // "drop 2 stories" is a change, read above; its "2" is not a count too.
+    if (size > 0 && !/\b(?:add|drop|cut|remove|lose|trim)\s+$/i.test(text.slice(0, match.index)))
+      found.add(`count:${size}`);
+  }
+  if (found.size !== 1) return null;
+  const [kind, size] = [...found][0]?.split(":") ?? [];
+  return kind === "count" ? { count: Number(size) } : { change: Number(size) };
+}
+
+/** The count the words name, from `aired` (Auto's count when unknown), held to what `minutes` can air. */
+function namedCount(text: string, aired: number, minutes: number): number | null {
+  const named = wordCount(text);
+  if (!named) return null;
+  const from = Number.isFinite(aired) ? aired : autoStories(minutes);
+  const count = "count" in named ? named.count : from + named.change;
+  return Math.max(FEWEST_STORIES, Math.min(mostStories(minutes), count));
+}
+
 /**
  * The length an untouched control shows: the asked one, a step along when the comment asks. What
  * Haiku proposed wins; the words decide when it has not answered. More stories than `aired` that
- * the asked length cannot hold take a longer one too, so the ask is never sent unchanged (D377).
+ * the asked length cannot hold take a longer one too, so the ask is never sent unchanged (D377), and
+ * a count the words name takes the shortest length that holds it.
  */
 export function desiredLength(
   asked: number,
@@ -119,22 +188,30 @@ export function desiredLength(
 ): number {
   const direction = values.length ?? wordLength(text);
   if (direction) return stepLength(asked, direction);
+  const named = namedCount(text, aired, Math.max(...REGEN_LENGTHS));
+  if (named !== null) {
+    return (
+      REGEN_LENGTHS.find((minutes) => minutes >= asked && mostStories(minutes) >= named) ?? asked
+    );
+  }
   const full =
     (values.stories ?? wordStories(text)) === "more" && stepStories(aired, "more", asked) <= aired;
   return full ? stepLength(asked, "longer") : asked;
 }
 
 /**
- * The count an untouched Stories control shows: a step from what aired when the comment asks for
- * more or fewer, else "" (Auto, which sends nothing), as it is when the step lands on Auto's count.
- * What Haiku proposed wins.
+ * The count an untouched Stories control shows: the one the words name, else a step from what aired
+ * (Auto's count when unknown) when the comment asks for more or fewer, else "" (Auto), as it is when
+ * the count is Auto's. A named count beats what Haiku proposed, which only knows more or fewer.
  */
 export function desiredStories(aired: number, minutes: number, values: Values, text = ""): string {
+  const named = namedCount(text, aired, minutes);
   const way = values.stories ?? wordStories(text);
-  if (!way || !Number.isFinite(aired)) return "";
-  // A step that lands on Auto's count is Auto: the list offers that count only as Auto.
-  const count = stepStories(aired, way, minutes);
-  return count === autoStories(minutes) ? "" : String(count);
+  const count =
+    named ??
+    (way ? stepStories(Number.isFinite(aired) ? aired : autoStories(minutes), way, minutes) : null);
+  // A count equal to Auto's is Auto: the list offers that count only as Auto.
+  return count === null || count === autoStories(minutes) ? "" : String(count);
 }
 
 /** Whether an untouched category is ticked: as it was made, or ticked because the comment wants it. */

@@ -17,7 +17,7 @@ export interface StoryOption {
   hidden: boolean;
 }
 
-export function storyOptions(minutes: number): StoryOption[] {
+export function storyOptions(minutes: number, extra?: number): StoryOption[] {
   const most = mostStories(minutes);
   const auto = autoStories(minutes);
   const counts: StoryOption[] = STORY_COUNTS.map((count) => ({
@@ -25,14 +25,31 @@ export function storyOptions(minutes: number): StoryOption[] {
     label: String(count),
     hidden: count > most || count === auto,
   }));
-  const at = STORY_COUNTS.findIndex((count) => count >= auto);
-  counts.splice(at < 0 ? counts.length : at, 0, {
-    value: "",
-    label: `Auto (${auto})`,
-    wheel: String(auto),
-    hidden: false,
-  });
-  return counts;
+  // A count asked for in words or saved before the fives ("12 stories") is offered too: the fives
+  // make a pick easy, they are not a limit (owner, 2026-11-06).
+  if (
+    extra !== undefined &&
+    Number.isInteger(extra) &&
+    extra > 0 &&
+    extra !== auto &&
+    !(STORY_COUNTS as readonly number[]).includes(extra)
+  ) {
+    counts.push({ value: String(extra), label: String(extra), hidden: extra > most });
+  }
+  counts.push({ value: "", label: `Auto (${auto})`, wheel: String(auto), hidden: false });
+  // In order of count, Auto where its count falls.
+  const countOf = (entry: StoryOption): number => (entry.value === "" ? auto : Number(entry.value));
+  return counts.sort((a, b) => countOf(a) - countOf(b) || (a.value === "" ? -1 : 1));
+}
+
+/**
+ * What a Stories control shows for `want` among `options`: itself when offered, Auto when Auto now
+ * equals it, else the most the length holds.
+ */
+export function heldStory(options: readonly StoryOption[], want: string): string {
+  if (options.some((entry) => entry.value === want && !entry.hidden)) return want;
+  if (options.find((entry) => entry.value === "")?.wheel === want) return "";
+  return options.filter((entry) => !entry.hidden).at(-1)?.value ?? "";
 }
 
 /** The value a Stories control sends: null for Auto, else the count. */
@@ -41,46 +58,45 @@ export function storiesValue(value: string): number | null {
 }
 
 /**
- * The count one step from `from` along the counts this length holds: "more" is the next count above
- * it, "fewer" the next below. A step past either end stays at the end.
+ * The count one step from `from` along the counts this length holds: "more" is the next count at
+ * least `STEP_GAP` above it, "fewer" the next that far below, so 29 aired steps to 35, not a 30 no
+ * listener would hear. A step past either end stays at the end.
  */
+const STEP_GAP = 2;
 export function stepStories(from: number, direction: "more" | "fewer", minutes: number): number {
   const offered = STORY_COUNTS.filter((count) => count <= mostStories(minutes));
   if (offered.length === 0) return from;
   if (direction === "more")
-    return offered.find((count) => count > from) ?? (offered.at(-1) as number);
-  return [...offered].reverse().find((count) => count < from) ?? (offered[0] as number);
+    return offered.find((count) => count >= from + STEP_GAP) ?? (offered.at(-1) as number);
+  return [...offered].reverse().find((count) => count <= from - STEP_GAP) ?? (offered[0] as number);
 }
 
 /**
- * Keeps a Stories select to what `minutes` holds: Auto's count and place follow the length, a count
- * it cannot hold or that Auto now equals is hidden, and a pick of one moves to Auto if they are
- * equal, else to the most the length holds. Returns whether the pick
- * moved, so a page that saves on change can send it.
+ * Keeps a Stories select to what `minutes` holds: its options are `storyOptions` in order, Auto's
+ * count and place follow the length, a count it cannot hold or that Auto now equals is hidden, and a
+ * pick of one moves to Auto if they are equal, else to the most the length holds. `want` sets the
+ * pick first (a Regenerate's comment), and is offered even when it is not one of the fives. Returns
+ * whether the pick moved, so a page that saves on change can send it.
  */
-export function fitStories(select: HTMLSelectElement, minutes: number): boolean {
-  const options = storyOptions(minutes);
-  for (const option of select.options) {
-    const fit = options.find((entry) => entry.value === option.value);
-    if (!fit) continue;
-    option.textContent = fit.label;
-    if (fit.wheel) option.dataset.wheelText = fit.wheel;
-    option.hidden = fit.hidden;
-    option.disabled = fit.hidden;
+export function fitStories(select: HTMLSelectElement, minutes: number, want?: string): boolean {
+  const current = want ?? select.value;
+  const options = storyOptions(minutes, current === "" ? undefined : Number(current));
+  const byValue = new Map(Array.from(select.options, (option) => [option.value, option]));
+  for (const entry of options) {
+    const option = byValue.get(entry.value) ?? new Option(entry.label, entry.value);
+    byValue.delete(entry.value);
+    option.textContent = entry.label;
+    if (entry.wheel) option.dataset.wheelText = entry.wheel;
+    else delete option.dataset.wheelText;
+    option.hidden = entry.hidden;
+    option.disabled = entry.hidden;
+    // Appending in order moves an option into place; it keeps its selection.
+    select.append(option);
   }
-  // Auto moves to where its count now falls; a moved option keeps its selection.
-  const auto = Array.from(select.options).find((option) => option.value === "");
-  const after = options[options.findIndex((entry) => entry.value === "") + 1];
-  const next = after && Array.from(select.options).find((option) => option.value === after.value);
-  if (auto && auto.nextElementSibling !== (next ?? null)) select.insertBefore(auto, next ?? null);
-  const picked = select.selectedOptions[0];
-  const moved = picked?.disabled === true;
-  if (moved) {
-    // A pick Auto now equals becomes Auto; one the length cannot hold, the most it holds.
-    const same = options.find((entry) => entry.value === "")?.wheel === picked?.value;
-    const held = options.filter((entry) => !entry.hidden).at(-1);
-    select.value = same ? "" : (held?.value ?? "");
-  }
+  for (const stale of byValue.values()) stale.remove();
+  const value = heldStory(options, current);
+  const moved = value !== current || select.value !== value;
+  if (moved) select.value = value;
   select.dispatchEvent(new Event("picker:sync"));
   return moved;
 }

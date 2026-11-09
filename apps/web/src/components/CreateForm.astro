@@ -17,7 +17,7 @@ import {
 } from "../lib/createForm";
 import { loadManage } from "../lib/manage";
 import { loadScheduleView } from "../lib/schedule";
-import { storyOptions } from "../lib/storyOptions";
+import { heldStory, storyOptions } from "../lib/storyOptions";
 // The layout renders this form for the Create sheet on every page, so these styles are global. The
 // build links them before the layout's own stylesheets, so their rules never rely on coming last:
 // where one adjusts a shared rule, it does so with a more specific selector.
@@ -32,7 +32,9 @@ const { custom } = await loadScheduleView();
 const topics = topicOptions(sections, allTopics, custom.skip_topics);
 const startFormat = custom.format;
 const startLength = custom.length_minutes;
-const startStories = String(custom.stories ?? "");
+// A count saved before the fives (12) is offered and shown; one Auto now equals shows as Auto.
+const storyChoices = storyOptions(startLength, custom.stories ?? undefined);
+const startStories = heldStory(storyChoices, String(custom.stories ?? ""));
 // A readout's one select is "Voice"; in a discussion each select is a host's voice.
 const VOICES = [
   {
@@ -151,7 +153,7 @@ const COPY = {
       </h2>
       <Select id="create-stories" name="stories" data-saved={startStories} data-wheel autocomplete="off">
         {
-          storyOptions(startLength).map((entry) => (
+          storyChoices.map((entry) => (
             <option value={entry.value} data-wheel-text={entry.wheel} hidden={entry.hidden} disabled={entry.hidden} selected={entry.value === startStories}>
               {entry.label}
             </option>

@@ -7,6 +7,7 @@ import {
   NO_ANSWER,
   stepLength,
   wantedControls,
+  wordCount,
   wordLength,
   wordStories,
 } from "./regenFollow";
@@ -64,15 +65,47 @@ describe("regenFollow (D371)", () => {
     // More than the length holds takes the next length too, so the ask is never sent unchanged:
     // 3 minutes holds 14 at the shortest telling, so 12 aired steps to 5 minutes and 15 stories.
     expect(desiredLength(3, NO_ANSWER.values, "More stories", 12)).toBe(5);
-    // At 5 minutes the step from 12 lands on Auto's count, which the list offers only as Auto.
-    const more = desiredStories(12, 5, NO_ANSWER.values, "More stories");
-    expect(Number(more || autoStories(5))).toBeGreaterThan(12);
     expect(wantedControls("More stories", [], NO_ANSWER, 3, 12).length).toBe(true);
     // Haiku's answer beats the words once it comes.
     expect(desiredStories(12, 5, { length: null, stories: "fewer", add: [] }, "More stories")).toBe(
       "10",
     );
     expect(wantedControls("More stories", [], NO_ANSWER).stories).toBe(true);
+  });
+
+  // The bug it prevents (2026-11-09): "make it 20 stories" left Stories hidden on Auto, so the
+  // episode aired the count the length set; "the first 3 stories were boring" must not set 3.
+  it("sets the count the words name, and a length that holds it", () => {
+    const at = (text: string, asked: number, aired = 12) => {
+      const minutes = desiredLength(asked, NO_ANSWER.values, text, aired);
+      return [minutes, desiredStories(aired, minutes, NO_ANSWER.values, text)];
+    };
+    expect(at("make it 20 stories", 5)).toEqual([5, "20"]);
+    expect(at("twenty-five stories please", 3)).toEqual([5, "25"]);
+    expect(at("30 stories", 5)).toEqual([10, "30"]);
+    expect(at("a dozen items", 5)).toEqual([5, "12"]);
+    expect(at("5 more stories", 5)).toEqual([5, "17"]);
+    expect(at("drop 2 stories", 5)).toEqual([5, "10"]);
+    // Held to what can air: never under the floor, never over what the longest length holds.
+    expect(at("2 stories", 5)).toEqual([5, "3"]);
+    expect(at("100 stories", 5)).toEqual([10, "48"]);
+    // A count equal to Auto's is Auto.
+    expect(at("15 stories", 5)).toEqual([5, ""]);
+    expect(wantedControls("make it 20 stories", [], NO_ANSWER).stories).toBe(true);
+    // A description of what aired, a topic, or two counts that disagree name none.
+    for (const text of [
+      "the first 3 stories were boring",
+      "2 stories were repeated",
+      "it had 12 stories",
+      "3 stories about AI",
+      "10 stories or 20 stories",
+    ]) {
+      expect(wordCount(text)).toBeNull();
+      expect(wantedControls(text, [], NO_ANSWER).stories).toBe(false);
+    }
+    // An unknown aired count steps from Auto's, and a step is one a listener hears.
+    expect(desiredStories(Number.NaN, 5, NO_ANSWER.values, "fewer stories")).toBe("10");
+    expect(desiredStories(29, 10, NO_ANSWER.values, "more stories")).toBe("35");
   });
 
   it("steps the length on words about time", () => {

@@ -16,7 +16,7 @@ import {
 } from "../lib/regenFollow";
 import { DEFAULT_REGEN_LENGTH, nearestRegenLength, REGEN_LENGTHS } from "../lib/regenLength";
 import { idsOfChips, isChipOn, type RegenChip } from "../lib/regenTopics";
-import { storiesValue, storyOptions } from "../lib/storyOptions";
+import { heldStory, storiesValue, storyOptions } from "../lib/storyOptions";
 import { playUiCue } from "../player/sound/soundController";
 import { cueForGenerate } from "../player/sound/soundMap";
 import Icon from "../player/ui/LazyIcon";
@@ -146,13 +146,14 @@ export default function GenerateSheet({ open, handoff, onOpenChange }: GenerateS
   const length = lengthPick ?? String(desiredLength(Number(asked), answer.values, comment, aired));
   // Stories (D377): Auto unless the comment asks for more or fewer than aired, or the listener picks.
   // A pick the length no longer holds shows the most it holds.
-  const storyChoices = storyOptions(Number(length));
   const shownStories = wanted.stories || storiesPick !== null;
   const wantedStories =
     storiesPick ?? desiredStories(aired, Number(length), answer.values, comment);
-  const stories = storyChoices.some((entry) => entry.value === wantedStories && !entry.hidden)
-    ? wantedStories
-    : (storyChoices.filter((entry) => !entry.hidden).at(-1)?.value ?? "");
+  const storyChoices = storyOptions(
+    Number(length),
+    wantedStories === "" ? undefined : Number(wantedStories),
+  );
+  const stories = heldStory(storyChoices, wantedStories);
   const isOn = (chip: RegenChip): boolean =>
     picked.get(chip.value) ??
     desiredChip(chip.label, page ? isChipOn(chip, page.selected) : false, answer.values);

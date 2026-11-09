@@ -1085,6 +1085,7 @@ describe("the ⋮ of a podcast card and a queue row", () => {
  * forks, page by page.
  */
 const PAGE_OVERRIDES: string[] = [
+  "blocked.css: .blocked-row .icon-btn",
   "cover.css: .cover-play .icon-glyph",
   "create-sheet.css: .app-nav-create .icon-glyph",
   "create-sheet.css: .play-fab .create-fab-label",
@@ -1132,6 +1133,9 @@ const PAGE_OVERRIDES: string[] = [
   "podcast.css: .daily-panel input.field-input",
   "podcast.css: .daily-panel input.field-input:focus-visible",
   "podcast.css: .daily-panel input.field-input[aria-invalid]",
+  "queue.css: .icon-btn.queue-play",
+  "queue.css: .icon-btn.queue-play:active",
+  "queue.css: .icon-btn.queue-play:hover",
   "queue.css: .menu-list.queue-pop",
   "queue.css: .menu-list.queue-pop, .menu-list.queue-pop:popover-open",
   "queue.css: .menu-list.queue-pop:popover-open",

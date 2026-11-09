@@ -2,6 +2,7 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, extname, join, relative } from "node:path";
 import { COMPONENTS } from "@singularityfm/design-system/registry";
+import { offGrid } from "@singularityfm/design-system/rules";
 import { describe, expect, it } from "vitest";
 
 /**
@@ -508,64 +509,16 @@ const RULES: Rule[] = [
     // (owner, 2026-11-05: "every spacing value is to be on the grid"). This one resolves each spacing
     // value made of space and component tokens to pixels and holds the result to 8, 16, 24 and up,
     // 4px where ALLOWED_4PX says. A value built from a dimension (an icon, a touch target, a stroke)
-    // is that part's geometry, centring or a hit area, and stays out, as widths do above.
+    // is that part's geometry, centring or a hit area, and stays out, as widths do above. The
+    // resolver is the design system's (offGrid in its rules), so the app and `ds validate` read one
+    // copy; the app passes its own 4px cases.
     name: "spacing tokens and calc() resolve to the 8pt grid",
-    offenders: () => {
-      const spacing =
-        /^(?:margin|padding|gap|row-gap|column-gap|inset|top|right|bottom|left|scroll-margin|scroll-padding)(?:-[a-z-]+)?$/;
-      const dimension =
-        /size|height|width|thumb|track|icon|touch|stroke|hairline|ring|cover|avatar|fab|glyph|radius|shape|font|leading|dock|bar|room|safe|keyboard|nav|sticky|measure|travel|ink|range|scrubber|switch|chip|player|gutter|top/;
-      const px = (expression: string, depth = 0): number | null => {
-        if (depth > 8) return null;
-        let failed = false;
-        const numeric = expression
-          .replace(/var\((--[\w-]+)(?:,[^()]*)?\)/g, (_, name: string) => {
-            if (dimension.test(name)) failed = true;
-            const value = tokenValue(`var(${name})`);
-            const resolved = value.startsWith("var(") ? null : px(value, depth + 1);
-            if (resolved === null) failed = true;
-            return `(${resolved ?? 0})`;
-          })
-          .replace(/calc\(/g, "(")
-          .replace(/(-?\d*\.?\d+)rem\b/g, (_, n: string) => `(${Number(n) * 16})`)
-          .replace(/(-?\d*\.?\d+)px\b/g, "($1)");
-        if (failed || !/^[\d\s.+\-*/()]+$/.test(numeric)) return null;
-        const value = Number(Function(`"use strict"; return (${numeric});`)());
-        return Number.isFinite(value) ? Math.round(value * 100) / 100 : null;
-      };
-      const terms = (value: string) => {
-        const out = [""];
-        let depth = 0;
-        for (const character of value) {
-          depth += character === "(" ? 1 : character === ")" ? -1 : 0;
-          if (/\s/.test(character) && depth === 0) out.push("");
-          else out[out.length - 1] += character;
-        }
-        return out.filter(Boolean);
-      };
-      return [
-        ...ownCss(),
-        ["foundations.css", withoutComments(read("foundations.css"))] as const,
-      ].flatMap(([file, css]) =>
-        rulesOf(css).flatMap(([selector, body]) =>
-          declarationsOf(body)
-            .filter(([property]) => spacing.test(property))
-            .flatMap(([property, value]) =>
-              terms(value)
-                .filter((term) => term.includes("var("))
-                .flatMap((term) => {
-                  const resolved = px(term);
-                  if (resolved === null) return [];
-                  const size = Math.abs(resolved);
-                  if (size % 8 === 0) return [];
-                  const fine = ALLOWED_4PX.some(([allowed]) => wholeName(allowed).test(selector));
-                  if (size === 4 && fine) return [];
-                  return [`${file}: ${selector} { ${property}: ${term} } = ${resolved}px`];
-                }),
-            ),
+    offenders: () =>
+      [...OWN_FILES, "foundations.css"].flatMap((file) =>
+        offGrid(read(file), file, ALLOWED_4PX).map(
+          ({ line, message }) => `${file}:${line} ${message}`,
         ),
-      );
-    },
+      ),
   },
   {
     // Headings are regular weight: the type's size and the space around it carry the hierarchy.

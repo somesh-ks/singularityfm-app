@@ -1,6 +1,7 @@
 ---
 import Button from "@singularityfm/design-system/Button";
 import Icon from "@singularityfm/design-system/Icon";
+import IconButton from "@singularityfm/design-system/IconButton";
 import RowExit from "@singularityfm/design-system/RowExit";
 import Sheet from "@singularityfm/design-system/Sheet.astro";
 import EmptyArt from "../../components/EmptyArt.astro";
@@ -81,14 +82,9 @@ const offers = (await loadSourceCatalog()).flatMap((offer) => {
                 <RowExit className="blocked-row" data-domain={domain}>
                   <div class="settings-row">
                     <span class="settings-label">{domain}</span>
-                    <button
-                      class="icon-btn icon-btn-end"
-                      type="button"
-                      aria-label={`Unblock ${domain}`}
-                      data-remove
-                    >
+                    <IconButton rowEnd label={`Unblock ${domain}`} data-remove>
                       <Icon name="close" />
-                    </button>
+                    </IconButton>
                   </div>
                 </RowExit>
               ))
@@ -103,9 +99,9 @@ const offers = (await loadSourceCatalog()).flatMap((offer) => {
           <RowExit className="blocked-row">
             <div class="settings-row">
               <span class="settings-label"></span>
-              <button class="icon-btn icon-btn-end" type="button" data-remove>
+              <IconButton rowEnd label="Unblock" data-remove>
                 <Icon name="close" />
-              </button>
+              </IconButton>
             </div>
           </RowExit>
         </template>

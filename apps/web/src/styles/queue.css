@@ -18,7 +18,7 @@
  *
  * Contract with the shell (shell.css): the dock rests on --bottom-nav-height and --dock-room, and
  * scripts/queue.ts publishes its height as --run-room so the floating button, the toasts and the
- * page's foot clear it (create-sheet.css). html[data-run] marks it while it shows.
+ * page's foot clear it (fab.css). html[data-run] marks it while it shows.
  */
 
 /* ------------------------------------------------------------------ the dock (below 64rem) */

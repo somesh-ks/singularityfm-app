@@ -184,7 +184,7 @@ html[data-mini="visible"] .toast {
  * Below 64rem the open player slides the bottom bar away, and its own bar comes down onto the safe
  * area: a toast clears only that. Otherwise it sits 16px above the run line, at the bottom as a
  * Material snackbar does. The floating button rises by the toast's height while one shows
- * (--fab-lift, create-sheet.css), as it does under Android's CoordinatorLayout, and settles back
+ * (--fab-lift, fab.css), as it does under Android's CoordinatorLayout, and settles back
  * when the toast leaves.
  */
 @media (width < 64rem) {

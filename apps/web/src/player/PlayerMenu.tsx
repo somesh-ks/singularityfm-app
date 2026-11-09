@@ -1,3 +1,4 @@
+import IconButton from "@singularityfm/design-system/IconButton";
 import {
   MENU_BACK,
   MENU_TILE_SELECTOR,
@@ -263,15 +264,9 @@ export default function PlayerMenu() {
   const head = (name: string, subtitle: string | null, back: boolean) => (
     <div className={sheetHeadClass()} data-has-back={back ? "" : undefined}>
       {back ? (
-        <button
-          className="icon-btn press"
-          type="button"
-          aria-label="Back"
-          {...{ [MENU_BACK]: "" }}
-          onClick={() => setScreen("menu")}
-        >
+        <IconButton label="Back" {...{ [MENU_BACK]: "" }} onClick={() => setScreen("menu")}>
           <Icon name="chevronLeft" size="lg" />
-        </button>
+        </IconButton>
       ) : null}
       {subtitle ? (
         <div className={sheetHeadingClass()}>
@@ -285,15 +280,9 @@ export default function PlayerMenu() {
           {name}
         </h2>
       )}
-      <button
-        className="icon-btn press"
-        type="button"
-        aria-label="Close"
-        popoverTarget={menuId}
-        popoverTargetAction="hide"
-      >
+      <IconButton label="Close" popoverTarget={menuId} popoverTargetAction="hide">
         <Icon name="close" size="lg" />
-      </button>
+      </IconButton>
     </div>
   );
 
@@ -301,16 +290,15 @@ export default function PlayerMenu() {
 
   return (
     <>
-      <button
-        className="icon-btn player-more"
-        type="button"
+      <IconButton
+        className="player-more"
         popoverTarget={menuId}
         aria-haspopup="menu"
-        aria-label="More for this podcast"
+        label="More for this podcast"
         disabled={!digest}
       >
         <Icon name="moreVert" />
-      </button>
+      </IconButton>
       <div
         id={menuId}
         className={`${menuListClass()} player-menu`}

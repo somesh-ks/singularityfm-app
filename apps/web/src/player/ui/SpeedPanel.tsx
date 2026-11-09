@@ -1,3 +1,4 @@
+import IconButton from "@singularityfm/design-system/IconButton";
 import { sliderClass, sliderWaveFieldClass } from "@singularityfm/design-system/slider";
 import type { CSSProperties } from "react";
 import "@singularityfm/design-system/styles/slider.css";
@@ -34,15 +35,14 @@ export default function SpeedPanel({
   return (
     <div className="player-speed">
       <div className="player-speed-stepper">
-        <button
-          className="icon-btn icon-btn-tonal press"
-          type="button"
-          aria-label="Slower"
+        <IconButton
+          variant="tonal"
+          label="Slower"
           disabled={rate <= MIN_PLAYBACK_RATE}
           onClick={() => onRate(rate - PLAYBACK_RATE_STEP)}
         >
           <Icon name="minus" />
-        </button>
+        </IconButton>
         <output
           className="player-speed-readout num"
           aria-hidden="true"
@@ -50,15 +50,14 @@ export default function SpeedPanel({
         >
           {rateFace(rate)}
         </output>
-        <button
-          className="icon-btn icon-btn-tonal press"
-          type="button"
-          aria-label="Faster"
+        <IconButton
+          variant="tonal"
+          label="Faster"
           disabled={rate >= MAX_PLAYBACK_RATE}
           onClick={() => onRate(rate + PLAYBACK_RATE_STEP)}
         >
           <Icon name="plus" />
-        </button>
+        </IconButton>
       </div>
       <div
         className={sliderWaveFieldClass()}

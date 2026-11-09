@@ -4,7 +4,7 @@
  * element might change its answer, which kept the first load's blocking time over budget (D147);
  * an attribute on the root restyles only the elements its rules name.
  *
- * - data-dialog-open: a <dialog> is open (foundations.css, shell.css, create-sheet.css and
+ * - data-dialog-open: a <dialog> is open (foundations.css, shell.css, fab.css and
  *   library.css).
  * - data-toast-open: a .toast popover shows (sheets.css); data-manage-toast-open: the saving toast
  *   (ManageChrome.astro) shows (manage.css).

@@ -1,4 +1,6 @@
 ---
+import Link from "@singularityfm/design-system/Link";
+
 interface Props {
   /** The page's own name, which is its heading. Left out, the head is the crumb alone (a category's page, whose card holds the name). */
   title?: string;
@@ -26,9 +28,7 @@ const {
   {
     crumb && (
       <nav class="settings-crumb" aria-label="Breadcrumb">
-        <a class="text-link" href={up.href}>
-          {up.label}
-        </a>
+        <Link href={up.href}>{up.label}</Link>
         <span aria-hidden="true"> /</span>
       </nav>
     )

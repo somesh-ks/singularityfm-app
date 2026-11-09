@@ -1,3 +1,5 @@
+import { FAB_SELECTOR } from "@singularityfm/design-system/fab";
+
 /**
  * The floating button, as Android draws a screen's primary action: Create on the Library, Play on
  * Today, a briefing or an episode, both .create-fab. Extended (the glyph and the word) at
@@ -47,7 +49,7 @@ export function installFabScroll(): void {
       return;
     }
     last = now;
-    document.querySelector<HTMLElement>(".create-fab")?.toggleAttribute("data-folded", folded);
+    document.querySelector<HTMLElement>(FAB_SELECTOR)?.toggleAttribute("data-folded", folded);
   };
   window.addEventListener(
     "scroll",

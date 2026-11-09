@@ -7,6 +7,7 @@ import DialogActions from "@singularityfm/design-system/DialogActions.astro";
 import DialogTitle from "@singularityfm/design-system/DialogTitle.astro";
 import Flag from "@singularityfm/design-system/Flag";
 import Icon from "@singularityfm/design-system/Icon";
+import IconButton from "@singularityfm/design-system/IconButton";
 import Menu from "@singularityfm/design-system/Menu.astro";
 import MenuItem from "@singularityfm/design-system/MenuItem.astro";
 import AddFab from "../../../components/AddFab.astro";
@@ -212,10 +213,9 @@ const facts = topic && {
                    home topic's edit. */}
               {
                 (topic || homeUpsert) && (
-                  <button
-                    class="icon-btn press topic-emoji-pick"
-                    type="button"
-                    aria-label={`Change emoji for ${name}`}
+                  <IconButton
+                    className="topic-emoji-pick"
+                    label={`Change emoji for ${name}`}
                     aria-haspopup="dialog"
                     aria-controls="emoji-picker"
                     data-change-emoji
@@ -223,7 +223,7 @@ const facts = topic && {
                     data-home={group?.home}
                     data-needs-js
                     data-text={pickedEmoji}
-                  ><Flag text={pickedEmoji} /></button>
+                  ><Flag text={pickedEmoji} /></IconButton>
                 )
               }
             </div>
@@ -234,17 +234,17 @@ const facts = topic && {
             {
               topic && (
                 <div class="topic-card-menu">
-                  <button
-                    class="icon-btn icon-btn-end topic-more press"
-                    type="button"
-                    aria-label={`More actions for ${name}`}
+                  <IconButton
+                    rowEnd
+                    className="topic-more"
+                    label={`More actions for ${name}`}
                     aria-haspopup="menu"
-                    popovertarget="topic-menu"
+                    popoverTarget="topic-menu"
                     data-hero-more
                     data-needs-js
                   >
                     <Icon name="moreVert" />
-                  </button>
+                  </IconButton>
                   <Menu id="topic-menu" title={name}>
                     <MenuItem
                       aria-haspopup="dialog"

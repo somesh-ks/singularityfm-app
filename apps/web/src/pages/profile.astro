@@ -2,6 +2,7 @@
 import Avatar from "@singularityfm/design-system/Avatar.astro";
 import Button from "@singularityfm/design-system/Button";
 import Icon from "@singularityfm/design-system/Icon";
+import IconButton from "@singularityfm/design-system/IconButton";
 import { menuBodyClass, menuListClass } from "@singularityfm/design-system/menu";
 import SheetHeader from "@singularityfm/design-system/SheetHeader.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
@@ -25,18 +26,18 @@ import "../styles/profile.css";
         </div>
         {/* The edit button names the sheet it opens (popovertarget); data-hero-more is how the shared
              menu script (heroMenu.ts) finds the button to return focus to and to place the sheet by. */}
-        <button
-          class="icon-btn icon-btn-tonal press profile-edit"
-          type="button"
-          aria-label="Change picture"
+        <IconButton
+          variant="tonal"
+          className="profile-edit"
+          label="Change picture"
           aria-haspopup="dialog"
           aria-expanded="false"
-          popovertarget="profile-shapes"
+          popoverTarget="profile-shapes"
           data-hero-more
           data-avatar-edit
         >
           <Icon name="pencilSimple" />
-        </button>
+        </IconButton>
 
         {/* The shapes this mood offers, in the menu's bottom sheet (menu.css): a phone's sheet with
              its rounded top and Close, a popover under the button from 40rem. profilePage.ts fills

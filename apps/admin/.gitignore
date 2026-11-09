@@ -1,6 +1,6 @@
 .astro/
 dist/
 .vercel/
-
-.vercel
 .env*
+test-results/
+playwright-report/

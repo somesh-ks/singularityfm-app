@@ -10,7 +10,7 @@
 import { sendToast } from "@singularityfm/design-system/toastEvent";
 import { connectivity } from "../lib/connectivity";
 import { appendOutbox } from "../lib/outbox";
-import { CANNOT_KEEP, KEPT } from "../lib/saveCopy";
+import { CANNOT_KEEP, KEPT, TIME_REFUSED } from "../lib/saveCopy";
 import type { Pending, SaveContext, SaveState } from "./managePageSave";
 
 type Saver = typeof import("./managePageSave");
@@ -67,8 +67,21 @@ export interface Autosave {
 
 /** Toasts asked for before the store loads are one: the latest. */
 const TOAST_KEY = "autosave";
-/** The toast that shows, for the air kept above the control just changed. */
-const TOAST_OPEN = ".toast:popover-open";
+/** How long the control just changed waits for the toast to show: the Toast island may wake first. */
+const REVEAL_WAIT_MS = 5000;
+
+/** The toast that shows, or null; Safari before 17 has no popovers and throws on the selector. */
+function openToast(): HTMLElement | null {
+  try {
+    return document.querySelector<HTMLElement>(".toast:popover-open");
+  } catch {
+    return null;
+  }
+}
+
+/** The Toast draws a flag as art, not text, so its words are the message without the flag letters. */
+const says = (toast: Element | null, message: string): boolean =>
+  toast?.textContent?.includes(message.replace(/[\u{1F1E6}-\u{1F1FF}]/gu, "")) === true;
 
 /**
  * Wires the app's toast and the timers to `changes`. `settled` runs after each request that went
@@ -81,6 +94,7 @@ export function mountAutosave(
   options: AutosaveOptions = {},
 ): Autosave {
   const live = root.querySelector<HTMLElement>("[data-live]");
+  const popovers = typeof HTMLElement.prototype.showPopover === "function";
   let still = 0;
   /** The sending module, once loaded: leaving the page needs it at once, not a promise later. */
   let saver: Saver | null = null;
@@ -109,7 +123,11 @@ export function mountAutosave(
    * focus to the control the toast is about, or to the page when that is gone, so the next Tab does
    * not start again from the top of the document.
    */
-  const inToast = (): boolean => document.activeElement?.closest(TOAST_OPEN) != null;
+  // Only this page's toast: focus in another one (a run's end, the zone offer) stays where it is.
+  const inToast = (): boolean => {
+    const toast = openToast();
+    return !!shown && says(toast, shown.message) && !!toast?.contains(document.activeElement);
+  };
   const handBack = (): void => {
     if (!inToast()) return;
     if (touched instanceof HTMLElement && touched.isConnected) touched.focus();
@@ -152,15 +170,15 @@ export function mountAutosave(
   const revealWhenShown = (message: string): void => {
     const off = new AbortController();
     const check = (): void => {
-      const toast = document.querySelector<HTMLElement>(TOAST_OPEN);
-      if (!toast?.textContent?.includes(message)) return;
+      const toast = openToast();
+      if (!toast || !says(toast, message)) return;
       off.abort();
       reveal(toast);
     };
     document.addEventListener("toggle", check, { capture: true, signal: off.signal });
     requestAnimationFrame(() => requestAnimationFrame(check));
     // A toast that never shows (no Popover API) leaves nothing to wait for.
-    window.setTimeout(() => off.abort(), 1000);
+    window.setTimeout(() => off.abort(), REVEAL_WAIT_MS);
   };
 
   const show = (message: string, state: SaveState): void => {
@@ -172,14 +190,17 @@ export function mountAutosave(
       return;
     }
     // The Toast speaks its own words (an error as an alert), so the page's region stays quiet:
-    // two regions would say the same words twice. An outcome to read goes by itself; Undo and
-    // Retry stay until they are used or closed.
-    if (live) live.textContent = "";
+    // two regions would say the same words twice. Without popovers (Safari before 17) no toast
+    // shows, so the region says it. An outcome to read goes by itself; Undo and Retry stay until
+    // they are used or closed.
+    if (live) live.textContent = popovers ? "" : message;
     shown = { message, state };
     sendToast(
       {
         message,
-        ...(state === "done" ? { kind: "success" } : {}),
+        // A time the engine would not change is a partial failure, as the outbox tells it
+        // (managePageSave.ts); a change kept for the connection is an outcome that worked.
+        ...(state === "done" ? { kind: message === TIME_REFUSED ? "error" : "success" } : {}),
         ...(state === "error" ? { kind: "error", actionLabel: "Retry", onAction: used(now) } : {}),
         ...(state === "undo" ? { actionLabel: "Undo", onAction: used(options.undo) } : {}),
         onDismiss: used(),

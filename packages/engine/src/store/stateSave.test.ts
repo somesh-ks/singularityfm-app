@@ -22,13 +22,13 @@ describe("saving the run state with the commit (D381)", () => {
         DATABASE_URL: "postgres://unreachable",
         SINGULARITY_STATE_STORE: "postgres",
       }),
-    ).resolves.toBeUndefined();
+    ).resolves.toEqual([]);
   });
 
   it("does nothing with the switch off", async () => {
     await expect(
       saveStateIfOn(root, "run", { DATABASE_URL: "postgres://unreachable" }),
-    ).resolves.toBeUndefined();
+    ).resolves.toEqual([]);
   });
 });
 

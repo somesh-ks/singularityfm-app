@@ -119,7 +119,16 @@ async function refreshEpisodeIndex(
   client: BlobClient | null,
   outcome: CommitOutcome,
 ): Promise<void> {
-  if (!client || outcome.status !== "pushed") return;
+  // The episode is in the content store, not git (D300), so a run that left git nothing to commit
+  // still added it. A local --no-push commit has no store to index.
+  if (
+    !client ||
+    (outcome.status !== "pushed" &&
+      outcome.status !== "saved" &&
+      outcome.status !== "nothing_to_commit")
+  ) {
+    return;
+  }
   try {
     const { index, skipped } = await publishEpisodeIndex(client, ctx.root, ctx.now());
     ctx.log.info(`Episode index: ${index.episodes.length} episodes.`);

@@ -98,6 +98,8 @@ function reportCommit(
       return report(reason, { status: committed.status, sha: committed.sha, message }, dryRun);
     case "nothing_to_commit":
       return report(reason, { status: "nothing_to_commit", message }, dryRun);
+    case "saved":
+      return report(reason, { status: "saved", message }, dryRun);
     case "refused":
       return report(
         `${reason} The commit was refused (${committed.reason}).`,

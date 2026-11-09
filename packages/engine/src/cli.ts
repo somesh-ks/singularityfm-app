@@ -24,6 +24,7 @@ import {
 } from "./store/configDocs.js";
 import { missingConfigFiles, REQUIRED_CONFIG_DOCUMENTS } from "./store/configExamples.js";
 import { hasPullRecord, pullState, stateScopeFor } from "./store/stateDocs.js";
+import { STATE_SAVING_COMMANDS } from "./store/stateSave.js";
 
 /** Where the CLI prints and what it reads, so tests drive it without touching the process. */
 export interface CliIo {
@@ -297,6 +298,20 @@ export async function runCli(argv: readonly string[], io: CliIo = {}): Promise<n
     const stateUrl = stateStoreUrl(env);
     // A switch that is on with no URL (the audio job's secret unset or misspelled) would otherwise
     // skip the pull and save quietly, and the next job would write older rows over its ledger.
+    // Git no longer carries the run state (D300 step 5): a job in Actions with the switch off would
+    // run from empty files and lose what it writes, republishing stories the store has marked seen.
+    if (
+      stateUrl === null &&
+      env.SINGULARITY_STATE_STORE !== "postgres" &&
+      source.GITHUB_ACTIONS === "true" &&
+      !bestEffort &&
+      STATE_SAVING_COMMANDS.has(spec.name)
+    ) {
+      err(
+        "singularity: the run state store is off, and the run state is not in git. Set the SINGULARITY_STATE_STORE repository variable to postgres (docs/runbook.md 14.1).\n",
+      );
+      return 1;
+    }
     if (stateUrl === null && env.SINGULARITY_STATE_STORE === "postgres") {
       const message = "the state store is switched on but has no database URL";
       if (!bestEffort) {

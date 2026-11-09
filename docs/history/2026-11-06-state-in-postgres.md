@@ -12,3 +12,7 @@
 - Step 4 wires `run.yml` and `podcast.yml` to the switch and adds the seed step to `seed.yml`; the switch itself is a repository variable the owner sets (runbook 14.1). Step 3c (this thread's third PR) gives the audio job its own login, `audio_state` with row-level security on its two kinds of file, and `publish` pulls and saves only those; it takes effect once the owner runs the SQL in runbook 14 and adds `AUDIO_DATABASE_URL`.
 - The write guard still reads `git status`; it needs hash-baseline change detection before `state/` stops being committed (step 5).
 - Unverified on Neon.
+
+## 9 Nov: the cutover (step 5)
+
+The first real daily with the switch on (run 809, 9 Nov) pushed its commit, and its audio job pulled and saved through the restricted login, both green. Step 5 then took `state/` out of git: the site reads the store (PR 5a), and the engine saves to it alone (PR 5b). With state and content both out of git, a run leaves git nothing to commit, so the save moved to the case where there is nothing to commit (outcome `saved`). The write guard's allowlist now filters which changed files are sent, since `git status` no longer sees them.

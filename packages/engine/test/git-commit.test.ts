@@ -755,8 +755,9 @@ describe("commitAndPush: the run state store (D381)", () => {
   // The bug it prevents: saving state for a digest the remote never got marks its stories seen.
   it("saves nothing when the git push failed, or when nothing was asked to push", async () => {
     const saved: string[] = [];
-    const saveState = async (root: string): Promise<void> => {
+    const saveState = async (root: string): Promise<string[]> => {
       saved.push(root);
+      return [];
     };
     await put(pair.a, "state/seen.json", "{}\n");
     await commitAndPush({ root: pair.a, message: MESSAGE, command: "run", push: false, saveState });
@@ -775,8 +776,9 @@ describe("commitAndPush: the run state store (D381)", () => {
 
   it("saves after a successful push, and only for the commands that write run state", async () => {
     const saved: string[] = [];
-    const saveState = async (root: string): Promise<void> => {
+    const saveState = async (root: string): Promise<string[]> => {
       saved.push(root);
+      return [];
     };
     await put(pair.a, "state/seen.json", "{}\n");
     await commitAndPush({ root: pair.a, message: MESSAGE, command: "run", push: true, saveState });
@@ -800,6 +802,39 @@ describe("commitAndPush: the run state store (D381)", () => {
       saveState,
     });
     expect(saved).toEqual([pair.a, pair.a]);
+  });
+});
+
+describe("saving the run state when git has nothing to commit (D300)", () => {
+  // The bug it prevents: with state/ and the content out of git, every run leaves git nothing to
+  // commit; returning at that point skipped the only place the run state is saved, so the next run
+  // started from the old seen list and published the same stories again.
+  it("saves the state and says so, and fails the commit when the save fails", async () => {
+    const calls: string[] = [];
+    const saveState = async (_root: string, command: string): Promise<string[]> => {
+      calls.push(command);
+      return ["state/seen.json"];
+    };
+    const base = { root: pair.a, message: MESSAGE, command: "run", push: true } as const;
+    expect(await commitAndPush({ ...base, saveState })).toEqual({
+      status: "saved",
+      paths: ["state/seen.json"],
+    });
+    expect(calls).toEqual(["run"]);
+    expect(await commitAndPush({ ...base, saveState: async () => [] })).toEqual({
+      status: "nothing_to_commit",
+    });
+    const failed = await commitAndPush({
+      ...base,
+      saveState: async () => {
+        throw new Error("the store is down");
+      },
+    });
+    expect(failed).toMatchObject({ status: "push_failed", reason: "state_store", sha: "" });
+    // A local run, and a command with no run state, never touch the store.
+    await commitAndPush({ ...base, push: false, saveState });
+    await commitAndPush({ ...base, command: "learn", saveState });
+    expect(calls).toEqual(["run"]);
   });
 });
 

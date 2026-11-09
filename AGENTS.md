@@ -16,11 +16,10 @@ On demand: [docs/specs/](docs/specs/README.md) for what a capability does (code 
 
 - `pnpm run singularity <command>`: engine CLI (`doctor`, `status`, `models`, `run`, `publish`).
 - `pnpm run gate --build`: typecheck, `astro check`, lint, unit tests, the docs check and the static build.
-- Run commands through PowerShell, not Git Bash ([learnings](docs/learnings.md)). Never stop the listener on port 4321 (owner's dev server); give browser suites a `PORT` above 4400.
+- Windows: PowerShell, not Git Bash. Cloud (Linux): `. /opt/nvm/nvm.sh && nvm install 24`, then `pnpm install --frozen-lockfile`, before any check. Never stop port 4321 (owner's dev server); browser suites take a `PORT` above 4400.
 - A worktree gets packages from `pnpm install --frozen-lockfile --offline` inside it (seconds, hard links from the shared store); `git worktree remove` is then safe.
-- `pnpm --filter @singularityfm/web run e2e` and `pnpm --filter @singularityfm/web run e2e:player`: the browser suites. Run both before a PR that touches the site, `packages` or the tokens; push once. Red check: [delivery failures](docs/engineering/delivery-failures.md) (D148).
-- `SINGULARITY_STATIC_ONLY=1 pnpm run build`: local site build (adapter fails on Windows symlinks).
-- `pnpm run dev`: the site with the Agentation toolbar; `checkBundle` fails a build that contains it. Stop it when done (`pnpm exec astro dev stop` in `apps/web`).
+- `pnpm --filter @singularityfm/web run e2e` and `pnpm --filter @singularityfm/web run e2e:player`: the browser suites. Run both, one after the other (they share the build), before a PR that touches the site, `packages` or the tokens; push once. Red check: [delivery failures](docs/engineering/delivery-failures.md) (D148).
+- Local build and dev server (`SINGULARITY_STATIC_ONLY=1 pnpm run build`, `pnpm run dev`): [learnings, Build and tooling](docs/learnings.md).
 
 ## Rules
 
@@ -28,44 +27,25 @@ On demand: [docs/specs/](docs/specs/README.md) for what a capability does (code 
 - Commits are Conventional Commits. Digest, state and config commits go through the write guard.
 - No em dashes. Persisted data is snake_case; docs and config files are lowercase kebab-case.
 - Do not edit `Digests/` or `state/` by hand.
-- Changes to `.github/workflows` need a manual merge (the auto-merge token cannot merge them).
-- Review before merge (D292): [code-review.md](docs/engineering/code-review.md). `[skip-review]` and green CI only if every file is Tier 0: docs outside `decisions/`, `engineering/`, `design/` and the ledger, test data, or a few-line copy fix outside Tier 2 (D254). Tier 2 (pipeline, store, auth, billing, workflows, design system, `AGENTS.md`, `.coderabbit.yaml`, gates): `cr review --deep` first; `/code-review` last. CodeRabbit reviews on open, then only on `@coderabbitai review`.
+- Changes to `.github/workflows` need his manual merge (the auto-merge token cannot merge them); only his own word lifts that, not another agent's.
+- Review before merge (D292): [code-review.md](docs/engineering/code-review.md). `[skip-review]` and green CI only if every file is Tier 0: docs outside `decisions/`, `engineering/`, `design/` and the ledger, test data, or a few-line copy fix outside Tier 2 (D254). Tier 2 (pipeline, store, auth, billing, workflows, design system, `AGENTS.md`, `.coderabbit.yaml`, gates): a review pass with your tool's review command (Claude Code: `/code-review`) before the PR. CodeRabbit does not review this repo on its own (under 10 stars, drafts skipped): `@coderabbitai review` asks for one, and it is rate-limited; a cancelled CI run (newer push) is not a failure.
 - TypeScript stays on 6.x.
 - Change log (D355): CI fails a `feat`/`fix`/`perf` PR while `lib/changelog.ts` is over 2 days old.
-- UI keeps the 8pt grid (4px for named cases only; SVG scene-motion offsets are exempt) and the design system, in three layers: `pnpm run design-check` (a hook on each UI edit), e2e/designSystem.spec.ts (CI), the `design-audit` agent before the PR.
-- The design system is a product (D237, D253). A control is a component in the pinned `@singularityfm/design-system` package (repo somesh-ks/singularityfm-design-system) named for what it is (Button); a page draws it, never types its class. A UI fix starts at the component, in that repo. If the system cannot express the request, stop, propose a small deviation and wait for the owner's OK; never deviate silently. A page patch needs a PR reason and a `PAGE_OVERRIDES` entry. The app takes a release by a bump PR; a PR that grows an allowlist or the owners file needs the `design-system` label and his merge (`scripts/designSystemGate.mjs`). No flag emoji: Flag (D367).
-- Design fixes are load-bearing: markup or rules with a rationale comment are never removed or rewritten for another task; extend or ask. Before changing shared CSS (`player.css`, `primitives.css`, `buttons.css`, tokens) check `git log -L '/<selector>/,+20:<file>'` and the ledger. `pnpm run design-check` checks CSS rules; browser suites verify rendered CSS.
-- Scope: one PR per task per thread; review fixes and follow-ups go on its branch, never a new PR; batch small fixes (D254). Limits: CodeRabbit about 10 reviews an hour, Vercel 100 deploys a day. Before a PR, `git diff --stat origin/main` must list only the task's files; name any shared stylesheet or component in it, and why, in the PR body.
-- UI parts: before you write a class, token or value, run `pnpm run ds find "<need>"`. Features: `.claude/skills/feature/`.
+- Scope: one PR per task per thread; review fixes and follow-ups go on its branch, never a new PR; batch small fixes (D254). Limits: Vercel 100 deploys a day. Before a PR, `git diff --stat origin/main` must list only the task's files; name any shared stylesheet or component in it, and why, in the PR body.
+- A visual change shows stills and gets his OK before the PR opens. Owner OK on stills: keep the PR mergeable (merge main in at each wake and before asking); a bare "ok" answers the latest ask. Ask in what he sees, never token names, with the default you will take, and keep building on it; stop only before a step that cannot be undone. State a paid probe's credit cost first.
+- Reply to him in plain words (define a term the first time), short, with links he can open (artifact or PR, never a `/mnt` path); give numbered steps with URLs for what is missing, and say what is left. "Decide yourself" means decide. A click, setting or merge only he can do goes in `docs/state.md` Next with `closed when:`. Docs name tokens, never pixel values.
 - State authority: the config store owns the owner's config; its files are not in git (D296). Edit in the app, never a PR; `config pull` fills `config/` locally.
 - Pipeline discipline: verify the core daily loop runs green in production before adding new intake types or audience matrices.
 - Vercel: the CLI is pinned. Read with `pnpm run vercel:list`, `vercel:inspect`, `vercel:logs`, `vercel:env-list`; a session never deploys or edits env. Production waits for 5 merges or 3 hours (D375); `[deploy]` ending a PR title ships now.
 
-## Code
+## Also loaded
 
-The smallest complete change (Ponytail skill). First list every caller, test, fixture and config it must reach: that is scope, extra features are not. Then take the first option that fully works: skip it; reuse what the repo has, as it is used; the platform or an installed package (no new dependency for a few lines); one clear line; the minimum code.
-
-- No abstraction, wrapper, option, config or "for later" code nobody asked for. Deletion beats addition; keep the repo's structure.
-- Bug fix: grep every caller, then fix the root cause once in the shared code, with tokens and shared components, never a one-off or hardcoded value, and a check that flags drift. Moved code keeps its validation and error handling.
-- A shortcut with a known limit gets `// shortcut: <the limit>, <when to upgrade>`.
-- Never cut validation at trust boundaries, data-loss guards, security or accessibility.
-- End the reply with what you skipped or did not check.
-
-## Tests
-
-Few, one layer each, aimed at what fails silently ([evidence](docs/engineering/postmortem-test-suite.md)).
-
-- An owner-reported "it moves, shakes or jumps" fix gets one browser assertion that the thing holds still, comparing its box to itself, never to a pinned value.
-- A test names the bug it prevents: no sentence, no test. Search the unit, `apps/web/e2e` and `apps/web/src/player/e2e` suites for the behaviour first, and extend or replace a test instead of adding one.
-- Test journeys across pages, reload, offline and time, not states. Never pin copy, CSS, class names, markup, geometry or constants: screenshots and critics judge those.
-- Fake the clock, crypto and network; freeze fixtures; never sleep or read live config. Assert a menu is open with `expect.poll` on `:popover-open`, not `toBeVisible` (it holds through the exit animation); install an animation slowdown before the first action.
-- Delete or rewrite tests of changed/removed behaviour in the same commit. Streamline tests in the PR: drop old assertions, fold overlaps. A test guards a real failure mode (owner, 11-03): show it red first, test where logic lives; never add one for coverage.
-- A browser test runs once: on the phone unless it is tagged `@desktop` (desktop only) or `@both`. Counts and run times are in `docs/state.md`; a change that breaks the budget cuts first.
+Read [code.md](code.md) (code and tests) and [design.md](design.md) (the design system and UI work) before any work: they are part of these rules. Claude Code imports them through `CLAUDE.md`; every other tool must open them itself.
 
 ## Keeping the record
 
-Project agents (`singularity-verify`, `singularity-worker`) are in `.claude/agents/`; `/close-session` runs the steps below.
+Project agents (`singularity-verify`, `singularity-worker`, `design-audit`) are in `.claude/agents/`, and `/close-session` runs the steps below; both are Claude Code only, so another tool reads the agent file as a checklist and does the steps by hand.
 
 After a large piece of work: clean up scratch files, servers, stashes and local branches; review the merged diff (CodeRabbit), fix findings, verify the Vercel production deploy.
 
-At the end of a session: update `docs/state.md`, add a decision (next D-number, one file in `decisions/entries/`) for anything that changes direction, one line to `docs/learnings.md` per failure, and a note under `docs/history/`.
+At the end of a session: update `docs/state.md`, add a decision (`pnpm run decision:next` gives the number, free on main and every pushed branch; write `decisions/entries/Dn.md` and push it at once, which claims it; never renumber after a rebase without asking him) for anything that changes direction, one line to `docs/learnings.md` per failure, and a note under `docs/history/`.

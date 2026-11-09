@@ -122,6 +122,11 @@ jobs:
       - name: Test
         if: steps.diff.outputs.code == 'true'
         run: pnpm test
+      # The admin repository installs @singularityfm/contracts from npm as compiled JavaScript; the
+      # workspace link serves .ts source, so only a packed and installed copy shows a broken export (#485).
+      - name: Contracts package
+        if: steps.diff.outputs.code == 'true'
+        run: node scripts/contractsPack.mjs
       - name: Build site
         if: steps.diff.outputs.code == 'true'
         env:

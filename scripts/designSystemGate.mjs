@@ -27,7 +27,7 @@ const APP_IMPORT = /(?:from|import)\s*\(?\s*["']([^"'\s]+)["']|url\(\s*["']?([^"
  * guide each take a shared part from the package, never from another app). The guide takes nothing;
  * these are the admin's Health, Costs and Experiments pages, drawn with reader parts not yet in the
  * package (the sheets' styles, the settings rows),
- * the health checks' data both read, and the admin's session gate the reader's API checks. The list
+ * and the health checks' data both read. The admin's session cookie lives in @singularityfm/contracts. The list
  * only shrinks: a new reach fails, and so does an entry that no longer reaches.
  */
 export const CROSS_APP_IMPORTS = [
@@ -45,8 +45,6 @@ export const CROSS_APP_IMPORTS = [
   "apps/admin/src/scripts/healthPage.ts: ../../../web/src/lib/healthRows",
   "apps/admin/src/scripts/healthSummary.ts: ../../../web/src/lib/healthRows",
   "apps/web/e2e/slowStore.spec.ts: ../../admin/src/lib/experimentsApi",
-  "apps/web/src/server/adminGuard.test.ts: ../../../admin/src/gate/session",
-  "apps/web/src/server/adminGuard.ts: ../../../admin/src/gate/session",
 ];
 
 const APP_FILE = /\.(?:ts|tsx|astro|mjs|js|css)$/;

@@ -1,0 +1,63 @@
+name: contracts
+
+# Publishes @singularityfm/contracts (D382 step 3): the store readers and the admin session cookie, as
+# compiled JavaScript, for the admin app once it lives in its own repository. A version bump in
+# packages/contracts/package.json, merged to main, publishes that version; a version already on npm is
+# a no-op.
+#
+# No NPM_TOKEN: npm trusted publishing exchanges the job's OIDC token (id-token: write), and npm adds
+# provenance on its own from this public repository. npm can only trust a workflow for a package that
+# exists, so the owner publishes 0.1.0 once by hand and then names this repository and `contracts.yml`
+# as its trusted publisher (docs/runbook.md). Until then the job finds no package and stops green.
+on:
+  push:
+    branches: [main]
+    paths:
+      - packages/contracts/package.json
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: contracts
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+      - id: version
+        run: |
+          version=$(jq -r .version packages/contracts/package.json)
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          if ! npm view @singularityfm/contracts version >/dev/null 2>&1; then
+            echo "::notice::@singularityfm/contracts is not on npm yet; the first publish is the owner's (docs/runbook.md)."
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          elif npm view "@singularityfm/contracts@$version" version >/dev/null 2>&1; then
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.version.outputs.publish == 'true'
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - if: steps.version.outputs.publish == 'true'
+        run: node scripts/contractsPack.mjs
+      # pnpm swaps in publishConfig.exports (dist), runs prepack (tsc) and hands the upload to the npm
+      # that ships with Node 24, which does the OIDC exchange. Verbose: a failed exchange otherwise
+      # shows only E404.
+      - if: steps.version.outputs.publish == 'true'
+        env:
+          NPM_CONFIG_LOGLEVEL: verbose
+        run: pnpm --filter @singularityfm/contracts publish --no-git-checks

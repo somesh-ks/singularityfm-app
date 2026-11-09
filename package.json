@@ -19,6 +19,7 @@
     "dev": "pnpm --filter @singularityfm/web run dev",
     "dev:admin": "pnpm --filter @singularityfm/admin run dev",
     "ds": "tsx node_modules/@singularityfm/design-system/scripts/system/cli.ts",
+    "decision:next": "node scripts/nextDecision.mjs",
     "design-check": "vitest run apps/web/src/styles/styles.test.ts scripts/houseRules.test.ts",
     "blast-radius": "node scripts/blastRadius.mjs",
     "glyphs": "tsx scripts/buildGlyphs.ts",

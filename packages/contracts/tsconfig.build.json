@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "allowImportingTsExtensions": false,
+    "declaration": true,
+    "rootDir": "..",
+    "outDir": "dist",
+    "types": []
+  },
+  "files": ["src/session.ts", "src/store.ts"]
+}

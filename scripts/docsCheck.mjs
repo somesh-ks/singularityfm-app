@@ -6,17 +6,20 @@ import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-// Bytes. Read-first is what every session reads: AGENTS.md and state.md.
+// Bytes. Read-first is what every session reads: AGENTS.md, the two rule files it imports (code.md,
+// design.md) and state.md.
 export const BUDGETS = {
-  "AGENTS.md": 9_000,
+  "AGENTS.md": 7_000,
+  "code.md": 3_500,
+  "design.md": 2_500,
   "docs/state.md": 12_000,
   "docs/learnings.md": 26_000,
   "docs/specs/README.md": 4_000,
 };
 export const SPEC_BUDGET = 8_000;
-// What every session reads: AGENTS.md and state.md. The Index is searched, never read whole, so it has
-// a budget of its own (D283).
-export const READ_FIRST_BUDGET = 21_000;
+// What every session reads: AGENTS.md, code.md, design.md and state.md. The Index is searched, never
+// read whole, so it has a budget of its own (D283).
+export const READ_FIRST_BUDGET = 22_500;
 export const INDEX_BUDGET = 40_000;
 // Folders with an index of their own, left out of the docs README check.
 const OWN_INDEX = ["decisions/", "history/", "ledger/", "prototype/", "specs/"];
@@ -82,7 +85,7 @@ export function checkDocs(root) {
   }
   const allRows = `${index}\n${archive}\n${filed.join("\n")}`;
   const decisions = entryFiles.map(read).join("\n");
-  const readFirst = ["AGENTS.md", "docs/state.md"]
+  const readFirst = ["AGENTS.md", "code.md", "design.md", "docs/state.md"]
     .filter((rel) => existsSync(at(rel)))
     .reduce((sum, rel) => sum + size(rel), 0);
   if (readFirst > READ_FIRST_BUDGET)
@@ -153,7 +156,8 @@ export function checkDocs(root) {
   }
 
   const docs = markdownFiles(at("docs"));
-  for (const file of [at("AGENTS.md"), ...docs].filter(existsSync)) {
+  const ruleFiles = [at("AGENTS.md"), at("code.md"), at("design.md")];
+  for (const file of [...ruleFiles, ...docs].filter(existsSync)) {
     const text = read(file)
       .replace(/```[\s\S]*?```/g, "")
       .replace(/`[^`\n]*`/g, "");
@@ -168,7 +172,7 @@ export function checkDocs(root) {
 
   // A doc that names a repo file in backticks goes stale silently when the file moves, so the read-first docs
   // and the specs must name only files that exist (history notes are a record and may name gone files).
-  const named = ["AGENTS.md", "docs/state.md", "docs/learnings.md"]
+  const named = ["AGENTS.md", "code.md", "design.md", "docs/state.md", "docs/learnings.md"]
     .map(at)
     .concat(markdownFiles(at("docs/specs")));
   // The owner's config is in the config store, not in git (D296): its paths are named, never present.

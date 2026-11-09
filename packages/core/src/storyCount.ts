@@ -60,6 +60,9 @@ export function autoStories(minutes: number): number {
   return storiesForMinutes(minutes, VOICE_LIMITS.items.floor, VOICE_LIMITS.items.hardMax);
 }
 
+/** The fewest stories a podcast airs: under this nothing publishes. */
+export const FEWEST_STORIES = VOICE_LIMITS.items.floor;
+
 /** The most stories a length holds, each told in `MIN_TELLING_WORDS`. */
 export function mostStories(minutes: number): number {
   const room = minutes * BRIEFING_CHARS_PER_MINUTE - EPISODE_FRAME_CHARS;

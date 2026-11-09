@@ -6,7 +6,7 @@ import Icon from "@singularityfm/design-system/Icon";
 import Switch from "@singularityfm/design-system/Switch.astro";
 import { LENGTHS } from "../lib/createForm";
 import { CADENCES, hourLabel, WEEKDAYS } from "../lib/schedule";
-import { storyOptions } from "../lib/storyOptions";
+import { heldStory, storyOptions } from "../lib/storyOptions";
 import "@singularityfm/design-system/styles/picker.css";
 
 interface Props {
@@ -51,6 +51,9 @@ const zones = SUPPORTED_TIMEZONES.map((zone) => ({
 // A topic is in the podcast unless every topic it stands for is on the skip list.
 const inScope = (ids: readonly string[]): boolean =>
   !ids.every((topic) => values.skipTopics.includes(topic));
+// A count saved before the fives (12) is offered and shown; one Auto now equals shows as Auto.
+const stories = storyOptions(values.lengthMinutes, values.stories ?? undefined);
+const shownStories = heldStory(stories, String(values.stories ?? ""));
 ---
 
 <div class="podcast-profile" data-profile={id}>
@@ -90,13 +93,13 @@ const inScope = (ids: readonly string[]): boolean =>
       <div class="settings-row">
         <label class="settings-label" for={`${id}-stories`}>Stories</label>
         <Select class="value-select" id={`${id}-stories`} data-f={`${id}.stories`} data-wheel autocomplete="off">
-          {storyOptions(values.lengthMinutes).map((entry) => (
+          {stories.map((entry) => (
             <option
               value={entry.value}
               data-wheel-text={entry.wheel}
               hidden={entry.hidden}
               disabled={entry.hidden}
-              selected={entry.value === String(values.stories ?? "")}
+              selected={entry.value === shownStories}
             >
               {entry.label}
             </option>

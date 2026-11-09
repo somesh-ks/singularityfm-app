@@ -267,8 +267,11 @@ test.describe("regenerate and delete an episode", () => {
 
   // Owner, 2026-11-06: "More stories" came back with the same 12, since the length set the count.
   // The count is its own control now (D377): the words step it from what aired before any model
-  // answers, the run gets it, and the length stays as made.
-  test("'More stories' sends more stories than aired, at the same length", async ({ page }) => {
+  // answers, the run gets it, and the length stays as made. Owner, 2026-11-09: a count named in the
+  // words sets it too, even one off the fives, which the list has no option for until it is asked.
+  test("'More stories' or a named count sends that many stories, at the same length", async ({
+    page,
+  }) => {
     await page.route("**/api/regen-hints", (route) =>
       route.fulfill({ json: { length: null, stories: null, add: [], by: "none" } }),
     );
@@ -291,10 +294,11 @@ test.describe("regenerate and delete an episode", () => {
       ).match(/\d+/)?.[0],
     );
     expect(shown).toBeGreaterThan(aired);
+    await panel(page).getByLabel("What went wrong?").fill("Make it 13 stories");
+    await expect(field).toHaveValue("13");
     await panel(page).getByRole("button", { name: "Regenerate episode" }).click();
     await expect.poll(() => bodies.length).toBe(1);
-    expect(bodies[0]).toHaveProperty("stories");
-    expect(bodies[0]?.stories ?? shown).toBe(shown);
+    expect(bodies[0]?.stories).toBe(13);
     expect(bodies[0]).not.toHaveProperty("length_minutes");
   });
 

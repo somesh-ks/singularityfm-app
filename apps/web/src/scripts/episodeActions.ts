@@ -138,10 +138,12 @@ function bind(kind: Kind, dialog: HTMLDialogElement, root: HTMLElement): void {
     if (storiesGroup) storiesGroup.hidden = !(wanted.stories || storiesTouched);
     if (storiesSelect) {
       const minutes = Number(lengths.find((radio) => radio.checked)?.value ?? asked);
-      if (!storiesTouched) {
-        storiesSelect.value = desiredStories(aired, minutes, answer.values, feedback.value);
-      }
-      fitStories(storiesSelect, minutes);
+      // A count the words name is offered even when it is not one of the fives.
+      fitStories(
+        storiesSelect,
+        minutes,
+        storiesTouched ? undefined : desiredStories(aired, minutes, answer.values, feedback.value),
+      );
     }
     chips.forEach((chip, at) => {
       if (!chip.disabled && !touchedChips.has(chip)) {

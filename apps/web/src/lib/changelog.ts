@@ -18,6 +18,12 @@ export interface Release {
 
 export const CHANGELOG: readonly Release[] = [
   {
+    version: "0.23",
+    date: "2026-11-09",
+    description:
+      "Write how many stories you want in a Regenerate comment, like \"20 stories\", \"a dozen\" or \"5 more stories\", and Stories shows that count, with a longer length if it needs one. Mentioning stories that aired, like \"the first 3 stories were boring\", no longer changes the count, and asking for more or fewer always moves it by a step you can hear.",
+  },
+  {
     version: "0.22.1",
     date: "2026-11-07",
     description:

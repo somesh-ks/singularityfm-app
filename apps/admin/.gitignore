@@ -1,5 +1,6 @@
 .astro/
 dist/
 .vercel/
+.env*
 test-results/
 playwright-report/

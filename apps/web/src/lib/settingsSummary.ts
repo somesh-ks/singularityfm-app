@@ -33,20 +33,34 @@ function summaryHour(hour: number): string {
   return String(hour);
 }
 
-/** "Every other day at 7", "Every other day at 9 (New York)". */
+/**
+ * A row for a podcast that is switched off says so, not when it would have aired: the Weekly row
+ * read "Sundays at 8" for the week its switch was off and no weekly aired (2026-11-08).
+ */
+const OFF = "Off";
+
+/** "Every other day at 7", "Every other day at 9 (New York)", "Off". */
 export function dailySummary(input: {
   hour: number;
   cadenceDays: number;
   timezone?: string;
+  enabled?: boolean;
 }): string {
+  if (input.enabled === false) return OFF;
   const cadence =
     CADENCES.find((entry) => entry.days === input.cadenceDays)?.label ??
     `Every ${input.cadenceDays} days`;
   return `${cadence} at ${summaryHour(input.hour)}${zoneNote(input.timezone)}`;
 }
 
-/** "Sundays at 7", "Sundays at 7 (Tokyo)". The weekly podcast is always on. */
-export function weeklySummary(input: { day: number; hour: number; timezone?: string }): string {
+/** "Sundays at 7", "Sundays at 7 (Tokyo)", "Off". */
+export function weeklySummary(input: {
+  day: number;
+  hour: number;
+  timezone?: string;
+  enabled?: boolean;
+}): string {
+  if (input.enabled === false) return OFF;
   const day = WEEKDAYS[input.day] ?? WEEKDAYS[0];
   return `${day}s at ${summaryHour(input.hour)}${zoneNote(input.timezone)}`;
 }

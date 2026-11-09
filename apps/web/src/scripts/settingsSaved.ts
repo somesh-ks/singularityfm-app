@@ -78,9 +78,11 @@ export function overlayIndex(root: ParentNode, ops: readonly ConfigOp[]): boolea
     "daily.hour": daily?.dataset.hour ?? "",
     "daily.cadence": daily?.dataset.cadence ?? "",
     "daily.timezone": daily?.dataset.timezone ?? "",
+    "daily.enabled": daily?.dataset.enabled ?? "true",
     "weekly.day": weekly?.dataset.day ?? "",
     "weekly.hour": weekly?.dataset.hour ?? "",
     "weekly.timezone": weekly?.dataset.timezone ?? "",
+    "weekly.enabled": weekly?.dataset.enabled ?? "true",
   };
   const now = { ...baked, ...savedFields(baked, ops) };
   let shown = false;
@@ -92,6 +94,7 @@ export function overlayIndex(root: ParentNode, ops: readonly ConfigOp[]): boolea
           hour: Number(now["daily.hour"]),
           cadenceDays: Number(now["daily.cadence"]),
           timezone: now["daily.timezone"],
+          enabled: now["daily.enabled"] !== "false",
         }),
       ) || shown;
   if (weekly)
@@ -102,6 +105,7 @@ export function overlayIndex(root: ParentNode, ops: readonly ConfigOp[]): boolea
           day: Number(now["weekly.day"]),
           hour: Number(now["weekly.hour"]),
           timezone: now["weekly.timezone"],
+          enabled: now["weekly.enabled"] !== "false",
         }),
       ) || shown;
 

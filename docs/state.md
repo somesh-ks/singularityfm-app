@@ -1,6 +1,6 @@
 # State
 
-Updated 2026-11-06. Rewrite, never append.
+Updated 2026-11-09. Rewrite, never append.
 
 ## Working
 
@@ -42,7 +42,8 @@ Unit (CI): 367 files, 5,572 tests, 2 min. Site e2e: 449, 14 min. Player: 80, 7 m
 - Three regenerations per podcast, counted in its own file (D212). closed when: the page shows "2 of 3 regenerations left".
 - Short podcasts (D204, D216 to D225). 11-05: dailies 1.04 and 1.02, metrics 7 of 10 runs at 1.02. closed when: two dailies in a row air within 10% of length, and `singularity metrics` shows ten runs at `length_share` 0.9+, `failure_rate` 0.1 or less.
 - Every Claude step starts at Haiku medium, then Haiku high, then Sonnet medium (D308, D333, D334). 11-03 daily: share 1.04, 11 cents. closed when: two scheduled runs drop no more voice or grounding (`lost_reasons`) than the last Sonnet-only runs, and a podcast script holds `length_share` 0.9+ (else tell the owner).
-- Ingest in shadow (D233, D251). 11-05: held 50% (Exa blogs miss), read 93%, not met. closed when: for 7 days the store holds 90% of each daily's stories and reads 90% of pages tried (`ingest --coverage`, in the health log).
+- Ingest in shadow (D233, D251). 11-05: held 50%, read 93%, not met. closed when: 7 days at 90% held and 90% read (`ingest --coverage`).
+- Weekly switch (D386). closed when: a switched-off Weekly faults on the Saturday health run and its Settings row reads Off.
 - One Speechify count in Blob, a weekly Exa stop (D339). closed when: health shows the shared count after a narration and 450 Exa requests in a week warn.
 - Trusted publishers (D234) and community lift (D240), shipped off. closed when: both on and a daily airs a lab story and a community-voted one, no source over 30%.
 - Run names (D217), Neon run log (D221). closed when: a scheduled daily is named `daily <date>`, is off the queue, and has its row.
@@ -80,7 +81,7 @@ Unit (CI): 367 files, 5,572 tests, 2 min. Site e2e: 449, 14 min. Player: 80, 7 m
 
 ## Next
 
-1. Free the lane in the hold ([D209](decisions/engine.md)): step 1 is built (#399); steps 2, 4 and 5 are not. Step 3, the batch, shipped as D294. A batch left open is listed in `.cache/run/open-batches.json` and settled by run.yml's "Settle batches" step (`batch-settle`); unproven live. closed when: a scheduled run's write stage logs "Writer first pass by batch" with `back` above 0, and a run that gave up on a batch logs "Settled a batch the run had left open".
+1. Free the lane in the hold ([D209](decisions/engine.md)): step 1 is built (#399); steps 2, 4 and 5 are not. Step 3 shipped as D294. A batch left open is settled by run.yml's "Settle batches" step. closed when: a scheduled run's write stage logs "Writer first pass by batch" with `back` above 0, and a run that gave up on a batch logs "Settled a batch the run had left open".
 2. Owner: regenerate the 3-story 10-27 briefing? Revoke the Vercel token; delete empty store `store_JmrDq8MB5Kwn3ejW`; open calls: [PWA note](history/2026-10-16-pwa-launch-and-one-model-select.md).
 3. Firecrawl: owner prunes from the yield report. The free change check (D342) skips unchanged listings. closed when: a run skips one, then scrapes a changed one.
 4. Lighthouse CSS defer parked: inlined critical CSS paints a cold phone in 1.0 s, not 3.2 s, but the CSP blocks it.

@@ -21,7 +21,7 @@ One line each: symptom, cause, fix. Search before debugging; older gotchas are i
 - 2026-10-10: a lone IntersectionObserver threshold of 1 reports a target partly past the root edge as not intersecting and never calls back. To tell a sticky element is stuck, observe `[0, 1]` and compare its `top` with `rootBounds.top`.
 - 2026-10-09: headless Chromium draws WebGL in software, logs "GPU stall" each frame, failing the player suite; skip WebGL there (`WEBGL_debug_renderer_info`).
 - 2026-11-02: lay a popover out on its base rule (exit drops `:popover-open`).
-- 2026-11-03: a pill test read `NaN` on a busy CI: lengthen the animation (`CSSStyleSheet`, not `<style>`: CSP). A box read mid-move is a transform: wait for its end.
+- 2026-11-03: a pill test read `NaN` on a busy CI: lengthen the animation (`CSSStyleSheet`, not `<style>`: CSP). A box read mid-move is a transform: wait it out.
 - 2026-11-03: the class guard reads a regex quote as a string: parse in `design-system/`.
 - 2026-11-03: `pan-y` lets Chrome scroll and cancel a slanted swipe; hold it with a non-passive `touchmove`.
 
@@ -41,16 +41,16 @@ One line each: symptom, cause, fix. Search before debugging; older gotchas are i
 - 2026-11-01: a shared `last_fetch_at` let an on-demand briefing cut the daily's window to 6 h (each kind keeps `fetched_through`); the refill wrote Tech stories validation trimmed: offer a section only the room its allowance has left.
 - 2026-10-31: `serializeTopics` lists fields, `upsertTopic` branches by origin: a new `Topic` field needs both.
 - 2026-10-28: a run record's `at` is publish time (96 min for 3); time a run as `generated_at` less `window.to` (D203).
-- 2026-10-27: a briefing shipped 3 stories (79 s): grounding dropped 5 of 8 and the reserve was empty, since the structure's section caps capped it too (#373).
-- 2026-10-27: the runner has no ffmpeg with libopus, so Opus and its test skipped silently; ffprobe counts MP3 padding (52 ms a turn). Workflows install it and measure turns by decoding. The install hung behind `-qq`: bound apt, log it, `continue-on-error` (#388).
-- 2026-10-25: `urlKey` (sources/import.ts) dropped the query string, so every YouTube feed (`?channel_id=`) matched every other: a second channel failed "Already a source", and the store's replay of an added channel could not read it. A feed's key keeps `channel_id`.
+- 2026-10-27: a briefing shipped 3 stories (79 s): grounding dropped 5 of 8 and the reserve was empty, as section caps capped it too (#373).
+- 2026-10-27: the runner has no ffmpeg with libopus, so Opus and its test skipped; ffprobe counts MP3 padding (52 ms a turn). Workflows install it and time turns by decoding. The install hung behind `-qq`: bound apt, log it, `continue-on-error` (#388).
+- 2026-10-25: `urlKey` (sources/import.ts) dropped the query string, so every YouTube feed (`?channel_id=`) matched every other: a second channel failed "Already a source", and the store could not replay an added channel. A feed's key keeps `channel_id`.
 - 2026-10-23: Vercel's Neon integration names variables `NEON_*`, which nothing reads: seed before the GitHub variable goes on. lightningcss rejects `::picker(select)::backdrop`: use a `0 0 0 100vmax` shadow. A long-press drag in a scrolling list needs `draggable`.
 - 2026-10-24: a 5-minute daily aired 3.0: 14 written, validation cut 7, nothing refilled. Validation refills once from `reserve.json`. Grounding never saw the title the writer read.
-- 2026-10-22: three review rounds of new `health` checks each found false faults (a waking Neon, an edit during a run, a Dependabot merge, a regenerate read as late). A fault must be actionable and hold a day; the rest are warnings.
-- 2026-10-20: a group page saved its mix on a fallback home while the engine read the fixed one, and the outlet cap keyed by `source_id` let BBC's five feeds through; one helper (`groupHomeId`) and the story's host fix both.
+- 2026-10-22: three review rounds of new `health` checks each found false faults (a waking Neon, an edit mid-run, a Dependabot merge, a regenerate read as late). A fault must be actionable and hold a day; the rest are warnings.
+- 2026-10-20: a group page saved its mix on a fallback home while the engine read the fixed one, and the outlet cap keyed by `source_id` let BBC's five feeds through; `groupHomeId` and the story's host fix both.
 - 2026-10-19: adding a YouTube channel said "The address could not be read": the preview caps a page at 1 MB, a channel page is 1.3 MB, and the resolver swallowed the throw. The id comes from the path, `navigation/resolve_url`, then the page.
 - 2026-10-24: YouTube refuses datacenter addresses: the player API says 429 and yt-dlp hits "Sign in to confirm you're not a bot"; cookies lift it, PO tokens do not. Firecrawl's `youtube-com/videos/video_transcript` calls from its network (5 credits).
-- 2026-10-24: no YouTube video had reached the judge (25 fetched since 9 Oct, `asked` 0 in `state/source-stats.json`): the prefilter keeps only keyword, author, high-signal or tagged items, and titles name no keyword. Channels are high-signal now. Check `asked` first.
+- 2026-10-24: no YouTube video had reached the judge (25 fetched since 9 Oct, `asked` 0 in source-stats): the prefilter keeps only keyword, author, high-signal or tagged items, and titles name no keyword. Channels are high-signal now. Check `asked` first.
 - 2026-10-30: the judge flagged all 21 favorite-creator videos since 9 Oct: it read links and a sponsor line. The Judge step lacked `FIRECRAWL_API_KEY`, so 3 videos a run (Gemini cap) got a transcript; a stage reads only its own `env`.
 - 2026-10-19: a YouTube finalist reached the writer with only its description (a watch page has no speech). YouTube items go through `extract/youtubeText.ts` (cache, Firecrawl, then Gemini; `state/video-text.json`); failure falls back to the description.
 - 2026-10-07: `audio.yml` failed at the write guard ("changes outside the publish allowlist: .gitignore"): `vercel link` and `vercel env pull` edit `.gitignore` and write `.vercel`; run them in a scratch directory outside the checkout.
@@ -68,11 +68,12 @@ One line each: symptom, cause, fix. Search before debugging; older gotchas are i
 - 2026-10-11: `singularity sources import` keeps an existing source's `enabled` and `options`: write a seed change into `config/sources.json` after (`--fresh` loses discovered feeds). Run `biome format` on it.
 - 2026-10-11: a judge with a fallback (Jev, then Nebius) shares the fallback's token budget with the writer: score-only work uses the primary judge alone.
 - 2026-11-01: `content sync` mirrors a checkout and deletes what it lacks: safe only while git holds content. Out of git, a job saves with `content push`, a diff against what it pulled.
+- 2026-11-09: a switched-off podcast is never due: the weekly missed 8 Nov with health green (D386).
 
 ## Site and service worker
 
-- 2026-11-02: offline showed a bare "You are offline" page for good: the worker stood in for unopened pages, its script does not rerun on a router swap, and its reload fired on a premature `online`. One connectivity state, recovery in the app script (D330).
-- 2026-11-03: the open player vanished at an alert: a waiting deploy reloaded the hidden page (D202); it now waits, and a reload restores it.
+- 2026-11-02: offline showed a bare "You are offline" page: the worker stood in for unopened pages, its script does not rerun on a router swap, and its reload fired on a premature `online`. One connectivity state, recovery in the app script (D330).
+- 2026-11-03: the open player vanished at an alert: a waiting deploy reloaded the hidden page (D202); it now waits; a reload restores it.
 - 2026-11-03: no click comes for a tap after a fast flick or one that stops a fling (`tapRecovery.ts`). A swap re-adds head metas: theme-color ones carry `transition:persist`. State written after a swap eases in view: write the incoming page at `astro:before-swap`.
 - 2026-11-02: `caches.match` walks the caches by age, so the install copy answered Latest offline. The router moved the address to a `#` link's own `#` before Try again ran: listen in capture.
 - 2026-11-02: a press rule before a hover rule of the same weight loses while the mouse is down; a control with no `:active` rule shows no press (Library view toggle). Press after hover; shoot rest, hover, press.
@@ -108,7 +109,7 @@ One line each: symptom, cause, fix. Search before debugging; older gotchas are i
 - 2026-11-09: a new Vercel env var needs a build; the batch rule (D375) cancels Redeploy of other commits. Ship a `[deploy]` PR.
 - 2026-11-03: servers off Vercel with the real `DATABASE_URL` stored their own 5xx as production faults (~180 a day); telemetry takes `deploymentDatabaseUrl`. Astro's SSR header replaces vercel.json's CSP: `frame-ancestors` goes in `withFrameAncestors` (meta ignores it).
 - 2026-11-05: a white strip showed while Android's keyboard slid up on the Regenerate and Catch up panels: Chrome resizes the page at once and the window behind stays white. A native panel with a text field needs `fitAboveKeyboard`; only Topics and Block sources had it.
-- 2026-11-05: a CSS animation restarts when its node is re-inserted: repainting rows each poll restarts every shimmer. Engine timings (state/podcast-timings.json) cover engine work, not workflow steps.
+- 2026-11-05: a CSS animation restarts when its node is re-inserted: repainting rows each poll restarts every shimmer. Engine timings (podcast-timings.json) cover engine work, not workflow steps.
 - 2026-11-06: a rewrite played from 4 minutes: the place was keyed by the digest id, which a rewrite keeps; it is saved with the recording's file address (`resume-of`). "More stories" aired 12 again: the count is the Length; `wordLength` moves the control at once.
 
 ## Build and tooling

@@ -2,7 +2,13 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { deflateRawSync } from "node:zlib";
-import { digestRelPath, serializeDigestFile, VITAL_THRESHOLDS } from "@singularityfm/core";
+import {
+  digestRelPath,
+  type LastRunFile,
+  ScheduleFile,
+  serializeDigestFile,
+  VITAL_THRESHOLDS,
+} from "@singularityfm/core";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { freeKeyChecks } from "../src/ops/doctorOnline.js";
 import { collectHealth, type HealthFetch } from "../src/ops/health.js";
@@ -21,6 +27,7 @@ import {
   checkRunsDied,
   checkSideRuns,
   checkStore,
+  checkWeeklyAired,
   FIELD_MIN_SAMPLES,
   readDeploymentCount,
   readStore,
@@ -808,6 +815,49 @@ describe("singularity health", () => {
     expect(report.findings.find((each) => each.code === "config_store_missing")?.message).toContain(
       "config/preferences.json",
     );
+  });
+
+  // 2026-11-08: the Weekly switch had been off since 4 Nov, the Sunday aired no weekly, and health,
+  // which counts a switched-off podcast as never due, was green. The check speaks once, around the
+  // week after one that aired, and not every week of a weekly that stays off.
+  it("faults a weekly that will not air, or did not, the week after one aired, and then goes quiet", () => {
+    const schedule = (enabled: boolean) =>
+      ScheduleFile.parse({
+        version: 1,
+        hour: 7,
+        cadence_days: 2,
+        length_minutes: 5,
+        skip_topics: [],
+        weekly: { enabled, day: 0, hour: 8 },
+      });
+    const aired = (at: string): LastRunFile =>
+      ({
+        version: 1,
+        weekly: { at, items: 12, outcome: "published", digest_id: "2026-11-01-weekly" },
+      }) as LastRunFile;
+    const said = (enabled: boolean, lastRun: LastRunFile, now: string) => {
+      const found: string[] = [];
+      checkWeeklyAired(schedule(enabled), lastRun, new Date(now), {
+        fault: (code) => found.push(code),
+        warn: () => undefined,
+        passed: [],
+      });
+      return found;
+    };
+    const last = aired("2026-11-01T06:57:00Z");
+    // Saturday the 7th and Sunday the 8th: it will not air. The Monday after: it did not.
+    expect(said(false, last, "2026-11-07T09:41:00Z")).toEqual(["weekly_off"]);
+    expect(said(false, last, "2026-11-08T09:41:00Z")).toEqual(["weekly_off"]);
+    expect(said(false, last, "2026-11-09T09:41:00Z")).toEqual(["weekly_missed"]);
+    // On, and the Sunday run died or never started: the next day says so.
+    expect(said(true, last, "2026-11-09T09:41:00Z")).toEqual(["weekly_missed"]);
+    // Aired on its day, or off since: the miss is said for a week, then nothing, so the issue can close.
+    expect(said(true, aired("2026-11-08T06:57:00Z"), "2026-11-09T09:41:00Z")).toEqual([]);
+    // 00:30 Stockholm on the Sunday is still the 7th in UTC: the day is read on the schedule's clock.
+    expect(said(true, aired("2026-11-07T23:30:00Z"), "2026-11-09T09:41:00Z")).toEqual([]);
+    expect(said(false, last, "2026-11-15T09:41:00Z")).toEqual(["weekly_missed"]);
+    expect(said(false, last, "2026-11-16T09:41:00Z")).toEqual([]);
+    expect(said(false, last, "2026-11-21T09:41:00Z")).toEqual([]);
   });
 
   // health does not hydrate config: a briefing switched off only in the store read as overdue.

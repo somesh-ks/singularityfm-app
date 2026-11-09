@@ -36,4 +36,4 @@ Why pull requests, CI, builds and deployments failed from 2026-10-15 to 2026-10-
 
 ## The merge flow, as designed (not failures)
 
-Every PR carries `review`, so it merges by hand after the review lands (D143); `automerge` merges Dependabot only. A PR that edits `.github/workflows` needs a manual merge (the token cannot). `browser` (`browser.yml`: a player and a site job) runs for any PR that changes `apps/web`, `packages`, the tokens, the build scripts or the lockfile, on every push to `main` except docs, digest and state commits, and nightly at 02:17 UTC (2026-10-26; it was path-gated before and #346 skipped it).
+Every PR carries `review`, so it merges after the review lands, by its thread (D143; `code-review.md`, Who merges); `automerge` merges Dependabot only, and its token cannot merge a PR that edits `.github/workflows`. `browser` (`browser.yml`: a player and a site job) runs for any PR that changes `apps/web`, `packages`, the tokens, the build scripts or the lockfile, on every push to `main` except docs, digest and state commits, and nightly at 02:17 UTC (2026-10-26; it was path-gated before and #346 skipped it).

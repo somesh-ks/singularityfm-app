@@ -73,13 +73,12 @@ The command center is a second Vercel project, `singularity-admin`, from the sam
 
 The design guide is a third project, `singularity-design-system`, built from the design system repo (Root Directory `apps/design`, D382). The reader's `apps/web/vercel.json` rewrites `/design` to its `singularity-design.vercel.app` address.
 
-### 1.4b Publish the contracts package once (D382)
+### 1.4b The contracts package's trusted publisher (D382)
 
-`@singularityfm/contracts` carries the store readers and the admin session cookie to the admin repository as compiled JavaScript. npm can only trust a workflow for a package that already exists, so the first version goes up by hand, once:
+`@singularityfm/contracts` carries the store readers and the admin session cookie to the admin repository as compiled JavaScript. `contracts.yml` publishes it, with no token, once npm trusts that workflow:
 
-1. On your machine, on an up-to-date `main`: `npm login` (the `singularityfm` org, with 2FA).
-2. `pnpm install --frozen-lockfile`, then `pnpm --filter @singularityfm/contracts publish --access public`. It builds `dist` itself.
-3. On https://www.npmjs.com/package/@singularityfm/contracts/access, under Trusted Publisher, pick GitHub Actions: owner `somesh-ks`, repository `singularityfm-app`, workflow `contracts.yml`, no environment. Then set Publishing access to "Require two-factor authentication and disallow tokens".
+1. On https://www.npmjs.com/package/@singularityfm/contracts/access (or the org's package settings before the first version), add a Trusted Publisher: GitHub Actions, owner `somesh-ks`, repository `singularityfm-app`, workflow `contracts.yml`, no environment.
+2. npm marks it pending until a publish validates it, within two days. Run the `contracts` workflow (Actions, then Run workflow on `main`) to publish the current version.
 
 After that, a version bump in `packages/contracts/package.json` publishes on merge.
 

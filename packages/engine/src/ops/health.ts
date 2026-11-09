@@ -48,6 +48,7 @@ import {
   checkRunsDied,
   checkSideRuns,
   checkStore,
+  checkWeeklyAired,
   type DeploymentReading,
   type FieldReading,
   type HealthAspect,
@@ -250,6 +251,11 @@ export async function collectHealth(options: HealthOptions): Promise<HealthRepor
         `The ${due.runWeekly ? "weekly podcast" : "briefing"} was due at its scheduled time (${due.publishAt.toISOString()}) and has not published.`,
       );
     }
+  }
+
+  // The weekly switched off is never due, so the checks above cannot see it miss.
+  if (slotSchedule !== null && slotLastRun !== undefined) {
+    checkWeeklyAired(slotSchedule, slotLastRun, now, { fault, warn, passed });
   }
 
   if (options.runs) {

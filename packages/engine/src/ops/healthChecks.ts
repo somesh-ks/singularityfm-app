@@ -4,6 +4,7 @@ import { join, posix } from "node:path";
 import { promisify } from "node:util";
 import {
   episodeRelPath,
+  type LastRunFile,
   loadModelRouting,
   Preferences,
   PriceTable,
@@ -13,11 +14,14 @@ import {
   ScheduleFile,
   SourcesUserFile,
   StructureFile,
+  scheduleZone,
   TopicsFile,
   VITAL_DEVICES,
   VITAL_METRICS,
   VITAL_THRESHOLDS,
   type VitalMetric,
+  weekday,
+  zonedDate,
 } from "@singularityfm/core";
 import {
   type EpisodeVoiceEnv,
@@ -464,6 +468,62 @@ export function checkRunsDied(
   if (cancelled) sink.warn("run_cancelled", "reliability", text(cancelled));
   if (!died && !cancelled && runs.length > 0) {
     sink.passed.push("every recent run recorded its outcome");
+  }
+}
+
+/** A YYYY-MM-DD date moved by whole days. */
+function shiftDate(date: string, days: number): string {
+  return new Date(Date.parse(`${date}T00:00:00Z`) + days * DAY_MS).toISOString().slice(0, 10);
+}
+
+/**
+ * `weekly_off` and `weekly_missed`: a weekly podcast that aired last week and will not, or did not,
+ * air on its day. A switched-off podcast is never due, so run_overdue, slot_missed and the Sunday
+ * run saw nothing when the Weekly switch was off from 4 Nov and 8 Nov aired no weekly. The check
+ * reads the effective schedule and the last weekly record and says the cause. It speaks only about
+ * the week after one that aired (the record is the last weekly, not a history): a weekly switched
+ * off for good is one fault, not a standing red that would hold the health issue's healing.
+ * `weekly_missed` runs from the day after its day until the next one; `weekly_off` is the day before
+ * and the day itself. A failed weekly is run_failed's.
+ */
+export function checkWeeklyAired(
+  schedule: ScheduleFile,
+  lastRun: LastRunFile,
+  now: Date,
+  sink: Sink,
+): void {
+  const { weekly } = schedule;
+  const zone = scheduleZone(schedule.timezone);
+  const today = zonedDate(now, zone);
+  const record = lastRun.weekly;
+  const aired =
+    record && (record.outcome === "published" || record.outcome === "nothing")
+      ? zonedDate(new Date(record.at), zone)
+      : undefined;
+  if (aired === undefined) return;
+  // The weekly day most recently gone by: today's slot is slot_missed's.
+  const lastDay = shiftDate(today, -((weekday(today) - weekly.day + 7) % 7 || 7));
+  if (aired < lastDay && aired >= shiftDate(lastDay, -7)) {
+    sink.fault(
+      "weekly_missed",
+      "reliability",
+      weekly.enabled
+        ? `The weekly podcast was due on ${lastDay} and no weekly run has published since (${aired}).`
+        : `The weekly podcast was due on ${lastDay} and did not air: the Weekly switch is off (the last one aired ${aired}). Switch it on in Settings, Weekly.`,
+    );
+  }
+  const nextDay = [today, shiftDate(today, 1)].find((date) => weekday(date) === weekly.day);
+  if (
+    !weekly.enabled &&
+    nextDay !== undefined &&
+    aired < nextDay &&
+    aired >= shiftDate(nextDay, -7)
+  ) {
+    sink.fault(
+      "weekly_off",
+      "reliability",
+      `The weekly podcast is due on ${nextDay} and the Weekly switch is off, so it will not air. Switch it on in Settings, Weekly.`,
+    );
   }
 }
 

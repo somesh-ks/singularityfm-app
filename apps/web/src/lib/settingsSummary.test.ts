@@ -14,6 +14,15 @@ describe("settings summaries", () => {
     expect(dailySummary({ hour: 7, cadenceDays: 5 })).toBe("Every 5 days at 7");
   });
 
+  // 2026-11-08: the Weekly switch was off and its row still read "Sundays at 8", so nothing on the list
+  // told the owner no weekly would air.
+  it("do not word a switched-off podcast as when it airs", () => {
+    const weekly = { day: 0, hour: 8 };
+    expect(weeklySummary({ ...weekly, enabled: false })).not.toBe(weeklySummary(weekly));
+    const daily = { hour: 7, cadenceDays: 2 };
+    expect(dailySummary({ ...daily, enabled: false })).not.toBe(dailySummary(daily));
+  });
+
   it("say how many of a topic's sources are active", () => {
     expect(activeSummary(3, 3)).toBe("3 sources active");
     expect(activeSummary(3, 2)).toBe("2 of 3 sources active");

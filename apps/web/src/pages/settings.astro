@@ -37,6 +37,7 @@ const PODCAST: Row[] = [
       hour: schedule.hour,
       cadence: schedule.cadenceDays,
       timezone: schedule.timezone,
+      enabled: String(schedule.enabled),
     },
   },
   {
@@ -48,6 +49,7 @@ const PODCAST: Row[] = [
       day: schedule.weekly.day,
       hour: schedule.weekly.hour,
       timezone: schedule.timezone,
+      enabled: String(schedule.weekly.enabled),
     },
   },
   {

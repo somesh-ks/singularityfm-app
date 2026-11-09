@@ -4,6 +4,7 @@ One note per session, newest first. Read a note only to learn why something was 
 
 | Date | Note | Summary |
 | :--- | :--- | :--- |
+| 2026-11-09 | [Weekly switch off](2026-11-09-weekly-switch-off.md) | The 8 Nov weekly did not air because the Weekly switch was off since 4 Nov; health now faults a weekly that will not air, and Settings says Off (D386) |
 | 2026-11-06 | [Stories control](2026-11-06-stories-control.md) | Stories sits beside Length everywhere a podcast is sized; a pick above Auto shortens each telling, and "more stories" in a Regenerate steps the count (D377) |
 | 2026-11-05 | [Queue dock](2026-11-05-queue-dock.md) | The queue opens over the page with 3.5 rows, eases on the spring tokens, says Taking longer than usual only when a timed step is slow, and its shimmer no longer restarts |
 | 2026-11-04 | [Up next rework](2026-11-04-up-next-rework.md) | Any row may go above the playing one, the list glides on every change, a phone swipe shows the red strip, a removed podcast is not suggested again, and the player's tabs show on its first screen (D357) |

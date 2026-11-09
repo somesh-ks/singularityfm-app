@@ -114,6 +114,8 @@ One line each: symptom, cause, fix. Search before debugging; older gotchas are i
 
 ## Build and tooling
 
+- Local site build: `SINGULARITY_STATIC_ONLY=1 pnpm run build` (the adapter fails on Windows symlinks).
+- `pnpm run dev` serves the site with the Agentation toolbar; `checkBundle` fails a build that contains it. Stop it when done (`pnpm exec astro dev stop` in `apps/web`).
 - 2026-11-08: the DS ships TS, which Node will not strip in node_modules, so e2e loads tsx. React Button: `className`, `autoFocus`.
 - 2026-10-31: a new stylesheet import reorders equal-specificity rules (icon.css flipped a chip's ink). Diff computed styles after one.
 - 2026-10-30: designSystem.test reads quoted text: a retired class equal to a file name or a selector string counts as writing it.
@@ -145,7 +147,6 @@ One line each: symptom, cause, fix. Search before debugging; older gotchas are i
 - 2026-11-02: `git checkout <file>` threw away uncommitted token edits; the session transcript's edit scripts recovered them. Commit or stash first.
 - 2026-11-01: 40 of #525's 44 commits were unreviewed: CodeRabbit pauses after five reviewed commits, noted only in its summary ("Last reviewed commit"). Before a merge, that commit must be the head (D292).
 - 2026-10-27: a squash merge leaves a branch's commits off main, so `git branch --merged` and commit searches miss them: find a branch's fate through PR search.
-- 2026-10-27: Windows junctions from `worktreeLinks.mjs` deleted the main checkout's `node_modules` twice: use `--remove` before `git worktree remove`.
 - 2026-10-23: a design-audit agent in a worktree-isolated session took no screenshot: the guard refused every heredoc, absolute path or glob in its Bash. Brief it to write scripts with the Write tool into the scratchpad and run `node <path>`.
 - 2026-10-22: two sessions took D157 at once, and D159 and D176 collided later the same way. Workers add no decision; the lead numbers them and checks `main`'s Index again right before merging.
 - 2026-10-24: `gh api repos/<repo>/rules/branches/main` returns `[]`: the D175 ruleset is not enforced, so auto-merge merges before CI (#265 did). Merge by hand once checks pass; read `statusCheckRollup`, as `gh pr checks` can list a finished job as pending.
@@ -155,9 +156,6 @@ One line each: symptom, cause, fix. Search before debugging; older gotchas are i
 - 2026-10-22: another session's cleanup removed this worktree (no commits looks merged): commit a WIP early; remove only yours.
 - 2026-10-22: one `astro dev` per install, so a second worktree's is refused; never `--force` it (that kills the other): `PORT=47xx node e2e/run.mjs --serve-only`.
 - 2026-10-22: #160 merged without its review fixes: they were on a detached HEAD, so `git push` said "Everything up-to-date". After a push, compare `git ls-remote origin <branch>` with `git rev-parse HEAD`.
-- 2026-10-14: squash-merged branches never pass `git branch -d`, and auto mode refuses `-D`. Match commit subjects against main's squash bodies, keep a bundle of the heads in `.git/`, and let the owner force delete.
-- 2026-10-12: cherry-pick a worker's non-merge commits (`git log --no-merges --reverse <lead>..<branch>`), then rerun `biome check`: formatting differences show on the combined tree.
-- 2026-10-21: workers hit the 90-call cap: one piece each, WIP commit after the first pass. A finished worker's worktree stays locked: `remove -f -f`.
 - 2026-11-02: a new `More for this podcast` button matched the queue specs' `/^More for /` and shifted every row index. Name a control so no role query catches it, or tighten the query in the same PR.
 - 2026-11-02: a hover or press rule on a disableable class painted on disabled controls (native or aria-disabled). Write the exclusion in the component rule (`:where(:not(:disabled, [aria-disabled="true"]))`);
 - 2026-11-02: an exit on `--ease-drawer` looks done in 120 ms; use `--ease-in-out` when a sheet must stay while something arrives.

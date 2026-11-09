@@ -4,7 +4,7 @@ Loaded every session with AGENTS.md. Rules for how to write and test code here.
 
 ## Code
 
-The smallest complete change (Ponytail skill). First list every caller, test, fixture and config it must reach: that is scope, extra features are not. Then take the first option that fully works: skip it; reuse what the repo has, as it is used; the platform or an installed package (no new dependency for a few lines); one clear line; the minimum code.
+The smallest complete change. First list every caller, test, fixture and config it must reach: that is scope, extra features are not. Then take the first option that fully works: skip it; reuse what the repo has, as it is used; the platform or an installed package (no new dependency for a few lines); one clear line; the minimum code.
 
 - No abstraction, wrapper, option, config or "for later" code nobody asked for. Deletion beats addition; keep the repo's structure.
 - Bug fix: grep every caller, then fix the root cause once in the shared code, with tokens and shared components, never a one-off or hardcoded value, and a check that flags drift. Moved code keeps its validation and error handling.

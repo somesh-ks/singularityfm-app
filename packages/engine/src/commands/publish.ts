@@ -62,6 +62,8 @@ function describeCommit(outcome: CommitOutcome): string {
   switch (outcome.status) {
     case "nothing_to_commit":
       return "nothing to commit";
+    case "saved":
+      return `run state saved (${outcome.paths.length} ${outcome.paths.length === 1 ? "file" : "files"})`;
     case "refused":
       return `commit refused (${outcome.reason}): ${outcome.offending.join(", ")}`;
     case "committed":

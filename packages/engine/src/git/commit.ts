@@ -60,7 +60,7 @@ export interface CommitAndPushInput {
   /** Injected for tests; defaults to real git in `root`. */
   git?: GitRunner;
   /** Injected for tests; defaults to saving the run state to Postgres when that store is on (D381). */
-  saveState?: (root: string, command: GitCommand) => Promise<void>;
+  saveState?: (root: string, command: GitCommand) => Promise<string[]>;
 }
 
 /** `state_store`: the commit is on the remote but the run state did not reach Postgres. */
@@ -75,6 +75,8 @@ export type CommitOutcome =
   | { status: "nothing_to_commit" }
   | { status: "refused"; reason: "guard" | "message"; offending: string[] }
   | { status: "committed"; sha: string; paths: string[] }
+  /** Nothing for git (the run state is not in it, D300): the run state went to Postgres alone. */
+  | { status: "saved"; paths: string[] }
   | { status: "pushed"; sha: string; paths: string[]; retries: number }
   | {
       status: "push_failed";
@@ -124,7 +126,21 @@ export async function commitAndPush(input: CommitAndPushInput): Promise<CommitOu
     return { status: "refused", reason: "message", offending: [subject] };
 
   const changed = await readChangedPaths(run);
-  if (changed.length === 0) return { status: "nothing_to_commit" };
+  if (changed.length === 0) {
+    // The run state and the content are not in git (D300), so a run leaves git nothing to commit and
+    // its state goes to Postgres alone. A local --no-push run saves nothing.
+    if (!input.push || !STATE_SAVING_COMMANDS.has(input.command)) {
+      return { status: "nothing_to_commit" };
+    }
+    try {
+      const saved = await (input.saveState ?? saveStateIfOn)(input.root, input.command);
+      return saved.length === 0
+        ? { status: "nothing_to_commit" }
+        : { status: "saved", paths: saved };
+    } catch (error) {
+      return stateStoreFailure("", [], 0, error);
+    }
+  }
 
   const offending = findViolations(changed, ALLOWLISTS[input.command]);
   if (offending.length === 0 && input.command === "publish") {
@@ -168,17 +184,26 @@ export async function commitAndPush(input: CommitAndPushInput): Promise<CommitOu
   try {
     await (input.saveState ?? saveStateIfOn)(input.root, input.command);
   } catch (error) {
-    return {
-      status: "push_failed",
-      reason: "state_store",
-      sha,
-      paths,
-      retries: pushed.retries,
-      detail: `the run state was not saved to Postgres: ${error instanceof Error ? error.message : String(error)}`,
-      conflicts: [],
-    };
+    return stateStoreFailure(sha, paths, pushed.retries, error);
   }
   return pushed;
+}
+
+function stateStoreFailure(
+  sha: string,
+  paths: string[],
+  retries: number,
+  error: unknown,
+): CommitOutcome {
+  return {
+    status: "push_failed",
+    reason: "state_store",
+    sha,
+    paths,
+    retries,
+    detail: `the run state was not saved to Postgres: ${error instanceof Error ? error.message : String(error)}`,
+    conflicts: [],
+  };
 }
 
 interface PushInput {

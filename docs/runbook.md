@@ -468,10 +468,9 @@ Do this only after section 14 is done and its pull request is merged, and not ne
 2. Actions → seed → Run workflow with `state` on and `dry_run` on. The step "Seed the run state" lists the files it would write.
 3. Run it again with `dry_run` off. It writes one row per `state/*.json` on `main` that has none, and never replaces a row.
 4. Check it worked: start a `dry_run` daily (Actions → run). The Gate log has a `state store:` line and the Commit step is green. Then in the Neon SQL editor, as the owner role: `select path, version, updated_at from state_documents order by updated_at desc limit 5`. The newest `state/costs-...json` row has the time of that dry run.
-
 5. The site reads the run state from the same table once it has the switch too (`state/last-run.json` for the cron and the status polls, D300 step 5). Vercel → the project → Settings → Environment Variables → add `SINGULARITY_STATE_STORE` = `postgres` for Production, then redeploy. Until it is set the site reads `main`, as before. Set it before the pull request that stops committing `state/` merges: after that `main`'s copy is frozen.
 
-To turn it off: delete the variable (in GitHub and in Vercel). The jobs go back to the files in git, which still carry every run (D300 step 5 stops that, later). The rows then fall behind, and switching on again without clearing them would write old `seen.json` and `judgments.json` over newer files. So before switching on again, clear the table as the owner role (`delete from state_documents`) and repeat steps 1 to 3.
+After the cutover (D300 step 5) there is no turning it off: git holds no `state/`, so a job without the switch stops in Actions. To go back to an earlier state, run `singularity state pull` in a checkout, which writes the rows over `state/`.
 
 ## 15. Rename the repository to `singularityfm-app` (D382, once)
 

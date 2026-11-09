@@ -116,6 +116,8 @@ function describeCommit(outcome: CommitOutcome): CommitReport["commit"] {
       return { status: "committed", sha: outcome.sha };
     case "pushed":
       return { status: "pushed", sha: outcome.sha };
+    case "saved":
+      return { status: "saved" };
     case "refused":
       return { status: "refused", detail: `${outcome.reason}: ${outcome.offending.join(", ")}` };
     case "push_failed":
@@ -479,6 +481,7 @@ export async function commitStage(deps: RunDeps, options: RunOptions): Promise<C
   if (
     committed.status === "committed" ||
     committed.status === "pushed" ||
+    committed.status === "saved" ||
     committed.status === "push_failed"
   ) {
     if (adopted) {
@@ -497,7 +500,7 @@ export async function commitStage(deps: RunDeps, options: RunOptions): Promise<C
       committed.status === "refused"
         ? `The commit was refused (${committed.reason}): ${committed.offending.join(", ")}`
         : committed.reason === "state_store"
-          ? `Committed and pushed ${committed.sha.slice(0, 7)} but ${committed.detail}. The store is now behind git: do not run \`state pull\` here until the state is saved.`
+          ? `${committed.detail}. Do not run \`state pull\` here until the state is saved.`
           : `Committed ${committed.sha.slice(0, 7)} locally but the push failed (${committed.reason}). Run git push once the remote is reachable.`;
     return failedReport(false, reason, commit, finalReports);
   }

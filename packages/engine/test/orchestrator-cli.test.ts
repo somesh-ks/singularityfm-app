@@ -485,6 +485,20 @@ describe("the run state is in Postgres when its switch is on (D381)", () => {
     expect(ran).toEqual([]);
   });
 
+  // The bug it prevents: git no longer holds the run state, so a job in Actions with the switch unset
+  // (the variable deleted or never set) would run from empty files, publish stories the store has
+  // marked seen, and lose what it writes. A developer's machine keeps working on its own files.
+  it("stops a saving command in Actions when the switch is off", async () => {
+    const ran: string[] = [];
+    const base = ioFor(async () => ({ query: async () => [] }), ran);
+    expect(
+      await runCli(["run", "--stage", "gate"], { ...base, env: { GITHUB_ACTIONS: "true" } }),
+    ).toBe(1);
+    expect(ran).toEqual([]);
+    await runCli(["run", "--stage", "gate"], { ...base, env: {} });
+    expect(ran).not.toEqual([]);
+  });
+
   // The bug it prevents: a job that died before its gate (install, checkout) records `failed` in
   // git only; the next pull then writes the old last-run row over it and health never sees the failure.
   it("a failure record pulls when its job has not, and goes on when the store is down", async () => {

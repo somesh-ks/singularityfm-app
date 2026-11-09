@@ -341,6 +341,7 @@ async function runCommit(argv: string[], ctx: CommandContext): Promise<number> {
   });
   switch (outcome.status) {
     case "nothing_to_commit":
+    case "saved":
       print(ctx.json ? JSON.stringify({ status: outcome.status }) : "Nothing to commit.");
       return 0;
     case "committed":

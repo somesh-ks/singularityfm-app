@@ -185,6 +185,7 @@ export type CommitStatus =
   | "nothing_to_commit"
   | "committed"
   | "pushed"
+  | "saved"
   | "dry_run"
   | "refused"
   | "push_failed";

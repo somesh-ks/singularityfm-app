@@ -43,4 +43,6 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
           SINGULARITY_CONFIG_STORE: ${{ vars.SINGULARITY_CONFIG_STORE }}
+          # The run state is in the store, not git (D300 step 5).
+          SINGULARITY_STATE_STORE: ${{ vars.SINGULARITY_STATE_STORE }}
         run: pnpm run --silent singularity -- ingest

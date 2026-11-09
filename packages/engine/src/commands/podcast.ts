@@ -118,8 +118,15 @@ async function refreshEpisodeIndex(
   ctx: CommandContext,
   client: BlobClient | null,
   outcome: CommitOutcome,
+  pushing: boolean,
 ): Promise<void> {
-  if (!client || outcome.status !== "pushed") return;
+  // The episode is in the content store, not git (D300), so a run that left git nothing to commit
+  // (a removal that changes no state) still changed it. A local --no-push run has no store to index.
+  const changed =
+    outcome.status === "pushed" ||
+    outcome.status === "saved" ||
+    (outcome.status === "nothing_to_commit" && pushing);
+  if (!client || !changed) return;
   try {
     const { index, skipped } = await publishEpisodeIndex(client, ctx.root, ctx.now());
     ctx.log.info(`Episode index: ${index.episodes.length} episodes.`);
@@ -283,6 +290,7 @@ export function makePodcastCommand(deps: PodcastDeps = {}): CommandRun {
           ctx,
           deps.blob ?? blobClientFrom(ctx.env.BLOB_READ_WRITE_TOKEN),
           outcome,
+          values["no-push"] !== true,
         );
         emit(ctx, [`Removed ${relPath}.`, command.id], {
           outcome: outcome.status,
@@ -462,7 +470,7 @@ export function makePodcastCommand(deps: PodcastDeps = {}): CommandRun {
         return 1;
       }
       await live.stream?.done();
-      await refreshEpisodeIndex(ctx, blobClient, outcome);
+      await refreshEpisodeIndex(ctx, blobClient, outcome, values["no-push"] !== true);
       const emptyNote =
         result.empty_topics.length > 0
           ? ` No stories in ${result.empty_topics.join(", ")} in the window.`

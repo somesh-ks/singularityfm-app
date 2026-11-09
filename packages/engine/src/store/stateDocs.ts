@@ -279,10 +279,15 @@ export async function pushState(
   await rm(join(root, STATE_BASELINE_PATH), { force: true });
   const result: PushResult = { written: [], merged: [] };
   const conflicts: { path: string; reason: string }[] = [];
-  for (const path of await localStatePaths(root, scope)) {
+  for (const path of await localStatePaths(root)) {
     const mine = await readText(join(root, path));
     const base = baseline[path];
     if (mine === null || (base !== undefined && sha256(mine) === base.hash)) continue;
+    // Not this command's to save (D300 step 5: the write guard's rule, now that git cannot see it).
+    if (scope && !scope(path)) {
+      log.warn(`state: ${path} changed but is outside this command's scope, so it was not saved`);
+      continue;
+    }
     try {
       const landed = await pushOne(sql, path, mine, base, result, scope);
       if (landed.content !== mine) await writeFileAtomic(join(root, path), landed.content);

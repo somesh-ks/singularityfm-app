@@ -184,8 +184,8 @@ jobs:
           DELETE_ID: ${{ inputs.delete }}
           SINGULARITY_GIT_NAME: ${{ vars.SINGULARITY_GIT_NAME }}
           SINGULARITY_GIT_EMAIL: ${{ vars.SINGULARITY_GIT_EMAIL }}
-          # The run state (D381): the step pulls or saves it through the shared store while the switch is
-          # on, and does nothing while it is off. Git still carries the same files (step 5 stops that).
+          # The run state (D381): git no longer carries it (D300 step 5), so the step saves it through the
+          # shared store, and stops the job in Actions if the switch is off.
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           SINGULARITY_STATE_STORE: ${{ vars.SINGULARITY_STATE_STORE }}
         run: pnpm run --silent singularity -- run --delete "$DELETE_ID" --json

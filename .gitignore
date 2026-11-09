@@ -20,7 +20,10 @@ node_modules
 /config/structure.json
 /config/writer.json
 /config/profiles/
-/state/source-candidates.json
+# The run state lives in Postgres, not git (D300 step 3, D381). Jobs fill state/ with `singularity state
+# pull` and send their changes back with `state push`; the saved copy of each file is a row of
+# state_documents. Rollback: `singularity state pull` into a checkout.
+/state/
 
 # Digests and episodes live in the content store, not in git (D300 step 2b). Jobs fill them with
 # `singularity content pull --track` and send their changes back with `content push`; the site build

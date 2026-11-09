@@ -143,7 +143,7 @@ jobs:
           SINGULARITY_GIT_NAME: ${{ vars.SINGULARITY_GIT_NAME }}
           SINGULARITY_GIT_EMAIL: ${{ vars.SINGULARITY_GIT_EMAIL }}
           # The run state (D381): the job pulls and saves its own two kinds of file through the
-          # restricted login. Either one unset leaves the state in git alone.
+          # restricted login. Git does not carry them (D300 step 5), so the job stops if either is unset.
           DATABASE_URL: ${{ secrets.AUDIO_DATABASE_URL }}
           SINGULARITY_STATE_STORE: ${{ vars.SINGULARITY_STATE_STORE }}
           PRUNE_NOW: ${{ inputs.prune_now }}

@@ -67,7 +67,7 @@ For any transition, animation or gesture-driven movement, follow [the motion ski
 
 ## Phase 3: Multi-Layer Verification & Review
 
-Run commands through PowerShell on the owner's machine ([AGENTS.md](../../../AGENTS.md)). Before declaring the feature complete, execute all required checks in sequence:
+On the owner's Windows machine run commands through PowerShell; in the cloud (Linux) run them directly ([AGENTS.md](../../../AGENTS.md)). Before declaring the feature complete, execute all required checks in sequence:
 
 1. **Preflight**:
    Run `python .claude/skills/feature/scripts/verify_feature.py --check` for em dashes in the changed files and `npm run design-check`, which holds the colour-token, grid and control rules.

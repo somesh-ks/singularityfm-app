@@ -6,6 +6,10 @@ import Shell from "../layouts/Shell.astro";
 
 const title = "Costs";
 
+// The longest label, which a select reserves so it keeps one width whichever option is chosen.
+const widest = (options: { label: string }[]) =>
+  options.map((option) => option.label).reduce((a, b) => (b.length > a.length ? b : a));
+
 // The range sets both the window and the column: a column a day, a week or a month.
 const RANGES = [
   { value: "day", days: 30, label: "30 days" },
@@ -31,10 +35,10 @@ const SPLITS = [
     <section class="card-group costs-card" aria-label="Spend">
       <div class="costs-head">
         <div class="costs-filters">
-          <Select variant="tonal" label="Range" id="costs-range" autoComplete="off">
+          <Select variant="tonal" label="Range" reserve={widest(RANGES)} id="costs-range" autoComplete="off">
             {RANGES.map((range) => <option value={range.value} data-days={range.days}>{range.label}</option>)}
           </Select>
-          <Select variant="tonal" label="Breakdown" id="costs-by" autoComplete="off">
+          <Select variant="tonal" label="Breakdown" reserve={widest(SPLITS)} id="costs-by" autoComplete="off">
             {SPLITS.map((split) => <option value={split.value}>{split.label}</option>)}
           </Select>
         </div>

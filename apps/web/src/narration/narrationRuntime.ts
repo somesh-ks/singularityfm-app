@@ -12,7 +12,7 @@ import { liveDigestFrom } from "./liveEpisode";
 import { createNarrationController, type NarrationController } from "./narrationController";
 import { prewarmWelcome, startPrewarm } from "./prewarmPage";
 
-const PREPARING_LABEL = "Preparing audio";
+const PREPARING_LABEL = "Preparing";
 
 /** Shows the briefing's Play control as busy while its first file is made, and settles it after. */
 function setPreparing(digestId: string | null): void {

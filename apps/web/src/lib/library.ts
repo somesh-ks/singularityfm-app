@@ -37,6 +37,11 @@ export const LIBRARY_SORTS: ReadonlyArray<{ id: LibrarySort; label: string }> = 
   { id: "longest", label: "Longest first" },
 ];
 
+/** The longest sort label, which the Sort select reserves so it keeps one width whichever is chosen. */
+export const LIBRARY_SORT_RESERVE = LIBRARY_SORTS.map((sort) => sort.label).reduce((a, b) =>
+  b.length > a.length ? b : a,
+);
+
 /** The `kind` a podcast episode's card carries, beside the kinds of briefing. */
 export const EPISODE_KIND = "episode";
 

@@ -69,17 +69,6 @@
 
 /* ------------------------------------------------------------------ the floating button as Play */
 
-/* Play says the hero chip's words, and "Resume · 12 min left" is wider than "New episode". */
-.play-fab .create-fab-label {
-  max-width: 10rem;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .play-fab[data-folded] .create-fab-label {
-    max-width: 10rem;
-  }
-}
-
 /* On an episode or an older briefing the floating button is Play (PlayFab.astro), with the shape,
    place, motion and fold of the FAB (fab.css). Its glyph slot holds the play mark and the spinner
    the hero chip shows while narration makes the first file. */

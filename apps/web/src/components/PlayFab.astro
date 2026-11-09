@@ -47,5 +47,9 @@ const [fabClass, fabLabelClass] = FAB_CLASSES;
     <Icon name="play" size="lg" />
     <span class="spinner"></span>
   </span>
-  <span class={fabLabelClass} aria-hidden="true" data-chip-label="fab">{fabLabel(chip)}</span>
+  {/* The words that change sit in one child; the label reserves the widest ones, so the button keeps
+       its width as it prepares, plays and fails (DS-9). */}
+  <span class={fabLabelClass} aria-hidden="true" data-reserve="Resume · 88 min left"
+    ><span data-chip-label="fab">{fabLabel(chip)}</span></span
+  >
 </button>

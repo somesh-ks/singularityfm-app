@@ -330,19 +330,9 @@
   }
 }
 
-/* While the request is out the button keeps its fill and shows a spinner beside "Starting…"
-   (createPage.ts swaps the words): it is working, not unavailable. The spinner is in the button's
-   row, next to the words it belongs to. createPage.ts ignores a press then, so the press does not
-   shrink it. */
-.create-view .button-filled > .spinner {
-  display: none;
-}
-
-.create-view .button-filled[data-busy="true"] > .spinner {
-  display: block;
-  flex: none;
-}
-
+/* While the request is out the button keeps its fill and its spinner shows (the Button draws it in its
+   start padding, so "Starting…" stays where it was): it is working, not unavailable. createPage.ts
+   ignores a press then, so the press does not shrink it. */
 .create-submit .button-filled[data-busy="true"] {
   background: var(--cta-bg);
   color: var(--cta-fg);

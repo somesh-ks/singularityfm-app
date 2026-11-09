@@ -484,7 +484,12 @@ test.describe("library filters and order", () => {
     await page.goto("/library");
     await ready(page);
     const sort = page.getByRole("combobox", { name: "Sort" });
+    // The chip keeps one width whichever order is chosen (DS-9): it reserves the longest label.
+    const chipWidth = () =>
+      sort.evaluate((node) => node.parentElement?.getBoundingClientRect().width);
+    const newestWidth = await chipWidth();
     await sort.selectOption("oldest");
+    expect(await chipWidth()).toBe(newestWidth);
     // Sorted by day. The discussion and the Wednesday briefing share a day: their order within it
     // is library.test.ts's to check.
     const oldest = await titles(page);
@@ -492,6 +497,7 @@ test.describe("library filters and order", () => {
     expect([...oldest.slice(3)].sort()).toEqual([DISCUSSION, "Wednesday 7 October"].sort());
     // The longest recording or estimate first: 8, 5, 3, 3 (the newer of the two first), then 1 minute.
     await sort.selectOption("longest");
+    expect(await chipWidth()).toBe(newestWidth);
     expect(await titles(page)).toEqual([
       "Sunday 4 October",
       DISCUSSION,

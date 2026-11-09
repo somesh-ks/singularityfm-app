@@ -17,7 +17,7 @@ import {
   SESSION_SECONDS,
   same,
   sessionValid,
-} from "./session.js";
+} from "../../../../packages/contracts/src/session.js";
 
 export interface GateEnv {
   /** The owner password (ADMIN_PASSWORD). */

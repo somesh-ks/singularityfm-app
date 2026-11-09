@@ -1,6 +1,6 @@
 // The fast checks in parallel: typecheck, the site's type check (astro check), lint and the unit tests,
 // plus the static site build with --build (it follows the site's type check: both write apps/web/.astro),
-// and the docs check (scripts/docsCheck.mjs).
+// the docs check (scripts/docsCheck.mjs) and the contracts package as published (scripts/contractsPack.mjs).
 // One process starts the others, so a shell that is slow to spawn (Git Bash on Windows: 3 to 8 s a
 // process, against 50 ms from PowerShell) pays once. Exit 1 if any step fails.
 //
@@ -16,6 +16,7 @@ const chains = [
     { name: "admin types", command: "pnpm --filter @singularityfm/admin run check" },
   ],
   [{ name: "docs", command: "node scripts/docsCheck.mjs" }],
+  [{ name: "contracts pack", command: "node scripts/contractsPack.mjs" }],
 ];
 if (process.argv.includes("--build")) {
   // Behind the type checks: each app writes its own .astro, and the site's build follows its check.

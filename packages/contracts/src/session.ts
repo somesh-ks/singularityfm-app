@@ -1,5 +1,5 @@
 /**
- * The command center's session cookie: a signed end time, made by the gate (gate.ts) at sign-in and
+ * The command center's session cookie: a signed end time, made by the admin gate (apps/admin/src/gate/gate.ts) at sign-in and
  * read by whoever must know the owner is signed in, which is the gate and the reader's two report
  * routes (apps/web/src/server/adminGuard.ts). Web Crypto only, so it runs in Vercel Routing
  * Middleware, a function and the reader's server alike.

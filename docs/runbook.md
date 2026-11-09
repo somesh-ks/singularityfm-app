@@ -73,6 +73,16 @@ The command center is a second Vercel project, `singularity-admin`, from the sam
 
 The design guide is a third project, `singularity-design-system`, built from the design system repo (Root Directory `apps/design`, D382). The reader's `apps/web/vercel.json` rewrites `/design` to its `singularity-design.vercel.app` address.
 
+### 1.4b Publish the contracts package once (D382)
+
+`@singularityfm/contracts` carries the store readers and the admin session cookie to the admin repository as compiled JavaScript. npm can only trust a workflow for a package that already exists, so the first version goes up by hand, once:
+
+1. On your machine, on an up-to-date `main`: `npm login` (the `singularityfm` org, with 2FA).
+2. `pnpm install --frozen-lockfile`, then `pnpm --filter @singularityfm/contracts publish --access public`. It builds `dist` itself.
+3. On https://www.npmjs.com/package/@singularityfm/contracts/access, under Trusted Publisher, pick GitHub Actions: owner `somesh-ks`, repository `singularityfm-app`, workflow `contracts.yml`, no environment. Then set Publishing access to "Require two-factor authentication and disallow tokens".
+
+After that, a version bump in `packages/contracts/package.json` publishes on merge.
+
 ### 1.5 Create the Blob store
 
 1. In the Vercel dashboard, open Storage and create a Blob store (or run `vercel blob store add`).

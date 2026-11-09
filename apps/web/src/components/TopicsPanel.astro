@@ -7,8 +7,8 @@ import Select from "@singularityfm/design-system/Select.astro";
 import { FORMAT_LABEL } from "../lib/sourceFilter";
 // The unsaved-changes dialog (sheetGuard.ts) is a Dialog: its styles come with BaseLayout.
 import "../styles/episode-actions.css";
-import Button from "@singularityfm/design-system/Button.astro";
-import Icon from "@singularityfm/design-system/Icon.astro";
+import Button from "@singularityfm/design-system/Button";
+import Icon from "@singularityfm/design-system/Icon";
 import Sheet from "@singularityfm/design-system/Sheet.astro";
 import MultiSelect from "./MultiSelect.astro";
 
@@ -214,7 +214,7 @@ const { topics } = Astro.props;
           <span class="edit-address-label">Address</span>
           <a class="edit-address-link" href="" target="_blank" rel="noopener noreferrer" data-edit-open>
             <span data-edit-host></span>
-            <Icon name="openInNew" class="edit-address-icon" />
+            <Icon name="openInNew" className="edit-address-icon" />
           </a>
         </div>
         {/* The scorecard: its title and the rating on one line, then what the rating is made of. A
@@ -292,8 +292,8 @@ const { topics } = Astro.props;
       </span>
     </span>
     <button class="source-plus-btn press" type="button">
-      <Icon name="plus" class="suggested-plus" />
-      <Icon name="check" class="suggested-check" />
+      <Icon name="plus" className="suggested-plus" />
+      <Icon name="check" className="suggested-check" />
     </button>
   </li>
 </template>

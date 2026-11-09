@@ -1,5 +1,5 @@
 ---
-import Icon from "@singularityfm/design-system/Icon.astro";
+import Icon from "@singularityfm/design-system/Icon";
 import MenuItem from "@singularityfm/design-system/MenuItem.astro";
 import type { PodcastAction } from "../lib/podcastActions";
 import { regenerationHint } from "../lib/regenerations";
@@ -24,7 +24,7 @@ const regen = regenerationHint(regenerations);
 {
   action === "favorite" ? (
     <MenuItem data-menu="favorite" aria-disabled={pending}>
-      <Icon name="heartOutline" class="fav-add" /><Icon name="heart" class="fav-remove" /><span data-menu-label>Favorite</span>
+      <Icon name="heartOutline" className="fav-add" /><Icon name="heart" className="fav-remove" /><span data-menu-label>Favorite</span>
     </MenuItem>
   ) : action === "queue" ? (
     <MenuItem data-menu="queue" aria-disabled={pending}>
@@ -36,7 +36,7 @@ const regen = regenerationHint(regenerations);
     </MenuItem>
   ) : action === "download" ? (
     <MenuItem data-menu="download" aria-disabled={pending}>
-      <Icon name="download" class="dl-add" /><Icon name="trash" class="dl-remove" /><span data-menu-label>Download</span>
+      <Icon name="download" className="dl-add" /><Icon name="trash" className="dl-remove" /><span data-menu-label>Download</span>
     </MenuItem>
   ) : action === "regenerate" && kind === "episode" ? (
     <MenuItem data-episode-action="regenerate" title={regen.title} disabled={regen.exhausted}>

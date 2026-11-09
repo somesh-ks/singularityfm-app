@@ -1,5 +1,5 @@
 ---
-import Icon from "@singularityfm/design-system/Icon.astro";
+import Icon from "@singularityfm/design-system/Icon";
 
 interface Props {
   /** "Excellent", "Good", "Fair", "Poor" or "New". */
@@ -20,7 +20,7 @@ const { label, score = null } = Astro.props;
       <span class="score-new">New</span>
     ) : (
       <>
-        <Icon name="star" class="score-star" />
+        <Icon name="star" className="score-star" />
         <span class="score-number" aria-hidden="true">{score.toFixed(1)}</span>
         <span class="sr-only">{`Rated ${score.toFixed(1)} of 5, ${label}`}</span>
       </>

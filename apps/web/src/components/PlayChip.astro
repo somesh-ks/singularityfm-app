@@ -1,5 +1,5 @@
 ---
-import Icon from "@singularityfm/design-system/Icon.astro";
+import Icon from "@singularityfm/design-system/Icon";
 import type { HTMLAttributes } from "astro/types";
 import PlayPauseIcons from "./PlayPauseIcons.astro";
 
@@ -27,9 +27,9 @@ const { label, state = "idle", class: className, ...rest } = Astro.props;
   <span class="chip-glyph" aria-hidden="true">
     <PlayPauseIcons />
     <span class="chip-bars"><i></i><i></i><i></i></span>
-    <Icon name="check" class="chip-check" />
-    <Icon name="replay" class="chip-replay" />
-    <Icon name="refresh" class="chip-refresh" />
+    <Icon name="check" className="chip-check" />
+    <Icon name="replay" className="chip-replay" />
+    <Icon name="refresh" className="chip-refresh" />
     <span class="spinner"></span>
   </span>
   <span class="chip-text">

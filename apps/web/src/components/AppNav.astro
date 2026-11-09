@@ -1,8 +1,8 @@
 ---
-import BrandMark from "@singularityfm/design-system/BrandMark.astro";
-import Icon from "@singularityfm/design-system/Icon.astro";
+import BrandMark from "@singularityfm/design-system/BrandMark";
+import Icon from "@singularityfm/design-system/Icon";
 import type { IconName } from "@singularityfm/design-system/icons";
-import Ripple from "@singularityfm/design-system/Ripple.astro";
+import Ripple from "@singularityfm/design-system/Ripple";
 import { buildDay } from "../lib/buildDay";
 import { getSite } from "../lib/site";
 import QueueRing from "./QueueRing.astro";
@@ -77,8 +77,8 @@ const destinations: Array<{
               {/* Both drawings are in the page, so the item can light up on the press, before its page arrives.
                    The indicator is the pill behind the icon in the bottom bar; the side column draws the row itself. */}
               <span class="app-nav-indicator">
-                <Icon name={destination.icon} size="lg" class="app-nav-icon-rest" />
-                <Icon name={destination.iconCurrent} size="lg" class="app-nav-icon-current" />
+                <Icon name={destination.icon} size="lg" className="app-nav-icon-rest" />
+                <Icon name={destination.iconCurrent} size="lg" className="app-nav-icon-current" />
               </span>
               <span>{destination.label}</span>
             </a>

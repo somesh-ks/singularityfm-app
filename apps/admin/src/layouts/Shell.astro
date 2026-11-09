@@ -1,7 +1,7 @@
 ---
-import Badge from "@singularityfm/design-system/Badge.astro";
-import BrandMark from "@singularityfm/design-system/BrandMark.astro";
-import Icon from "@singularityfm/design-system/Icon.astro";
+import Badge from "@singularityfm/design-system/Badge";
+import BrandMark from "@singularityfm/design-system/BrandMark";
+import Icon from "@singularityfm/design-system/Icon";
 import themeInit from "@singularityfm/design-system/scripts/themeInit.js?raw";
 import AdminNav from "../components/AdminNav.astro";
 import SignOut from "../components/SignOut.astro";
@@ -60,7 +60,7 @@ const { title, current, bare = false } = Astro.props;
         <a class="wordmark" href={href("")} aria-label="Singularity admin">
           <BrandMark />
           <span>Singularity</span>
-          <Badge class="admin-tag">Admin</Badge>
+          <Badge className="admin-tag">Admin</Badge>
         </a>
         {!bare && <SignOut class="admin-signout" />}
       </div>

@@ -40,7 +40,7 @@
     "@playwright/test": "^1.64.1",
     "@resvg/resvg-js": "^2.6.2",
     "@singularityfm/core": "workspace:*",
-    "@singularityfm/design-system": "0.1.1",
+    "@singularityfm/design-system": "file:/tmp/claude-0/-home-user/cbe44592-118f-5be6-b63e-3f008620deaa/scratchpad/ds-030/singularityfm-design-system-0.3.0.tgz",
     "@types/node": "^26.6.6",
     "@typesafe-ai/sdk": "^0.7.0",
     "emojibase-data": "18.0.0",

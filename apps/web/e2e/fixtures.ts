@@ -27,12 +27,6 @@ export const test = base.extend<Options & { problems: Problems }>({
       // The page's own reports (client errors and CSP violations) go to /api/report, which the
       // static site does not have; the API takes them with 204.
       await page.route("**/api/report", (route) => route.fulfill({ status: 204 }));
-      // The Costs page draws from /api/costs: a frozen report, split by the breakdown it asks for.
-      await page.route("**/api/costs**", (route) =>
-        route.fulfill({
-          json: costsReport(new URL(route.request().url()).searchParams.get("by") ?? "provider"),
-        }),
-      );
       // The podcast queue asks which runs are going while this browser has one on record: none, unless a
       // test says otherwise (a later route answers first).
       // The Sources pages ask for the current ratings; none changes a built row.
@@ -42,10 +36,6 @@ export const test = base.extend<Options & { problems: Problems }>({
       await page.route("**/api/generations", (route) =>
         route.fulfill({ status: 200, json: { generations: [] } }),
       );
-      // The Health page draws from /api/health: a frozen answer with a reading of every tone.
-      await page.route("**/api/health", (route) => route.fulfill({ json: healthReport() }));
-      // Its Stage times card draws from the admin function: a frozen answer of two kinds of run.
-      await page.route("**/api/stages", (route) => route.fulfill({ json: stageTimings() }));
       // The sources' own icons (https://<host>/favicon.ico) are on invented hosts; a one-pixel image
       // answers them, so the page is not blamed for a network that is not there.
       await page.route("**/api/site-icon**", (route) =>
@@ -150,110 +140,7 @@ export const SITE_PAGES = [
   "/settings/categories",
   "/settings/categories/audio_interfaces",
   "/settings/categories/other",
-  // Left out until 2026-10-23, so a change to the card tokens reached the Costs card unchecked.
-  "/admin/costs",
-  "/admin/health",
-  "/admin/coverage",
 ];
-
-/** A frozen /api/stages answer: a daily run's stages out of pipeline order and a Catch up's. */
-export function stageTimings() {
-  const row = (workflow: string, kind: string, stage: string, p50_ms: number, p90_ms: number) => ({
-    workflow,
-    kind,
-    stage,
-    runs: 6,
-    p50_ms,
-    p90_ms,
-  });
-  return {
-    days: 14,
-    timings: [
-      row("run", "daily", "write", 96_000, 141_000),
-      row("run", "daily", "fetch", 41_000, 66_000),
-      row("podcast", "catch_up", "script", 74_000, 98_000),
-    ],
-  };
-}
-
-/** A frozen /api/health answer: a row of each tone, and both devices' speed. */
-export function healthReport() {
-  const row = (id: string, value: string, detail: string, tone: string) => ({
-    id,
-    value,
-    detail,
-    tone,
-  });
-  return {
-    checked_at: "2026-10-22T10:00:00.000Z",
-    attention: { count: 2, tone: "bad" },
-    tiles: {
-      last_briefing: "5 h ago",
-      briefing_time: "3.4 min",
-      page_load: "1.8 s",
-      errors_today: "0",
-    },
-    rows: [
-      row("daily", "5 h ago", "8 stories", "good"),
-      row("weekly", "2 d ago", "The last run failed", "bad"),
-      row("catch_up", "Never", "No episode made yet", "none"),
-      row("narration", "4.6 min", "92% of its 5 min", "good"),
-      row("fallbacks", "1", "In the last run", "warn"),
-      row("time_daily", "3.4 min", "Last 3.6 min, median of 6 runs", "none"),
-      row("time_weekly", "5.3 min", "Last 5.0 min, median of 2 runs", "none"),
-      row("lcp.mobile", "1.8 s", "Good, 212 visits", "good"),
-      row("inp.mobile", "96 ms", "Good, 180 visits", "good"),
-      row("cls.mobile", "0.02", "Good, 212 visits", "good"),
-      row("lcp.desktop", "1.1 s", "Too few to judge, 4 visits", "none"),
-      row("inp.desktop", "No data", "No visits measured this week", "none"),
-      row("cls.desktop", "0.00", "Too few to judge, 4 visits", "none"),
-      row("page_errors", "0", "None this week", "good"),
-      row("blocked_scripts", "0", "2 this week, most on /", "good"),
-      row("server_errors", "0", "None this week", "good"),
-      row("timeouts", "0", "None this week", "good"),
-      row("job_run", "All passed", "9 runs this week, last 5 h ago", "good"),
-      row("job_podcast", "All passed", "3 runs this week, last 1 d ago", "good"),
-      row("job_audio", "All passed", "6 runs this week, last 5 h ago", "good"),
-      row("job_content", "All passed", "14 runs this week, last 5 h ago", "good"),
-      row("job_health", "All passed", "7 runs this week, last 2 h ago", "good"),
-      row("sources", "All fetching", "176 fetched this week", "good"),
-      row("database", "Answering", "Field data and reports", "good"),
-      row("content", "Answering", "Pages read it live", "good"),
-    ],
-    parts: { content: "ok", database: "ok", github: "ok" },
-  };
-}
-
-/**
- * A frozen /api/costs report: two days, two providers on the first, split by the breakdown asked
- * for (`by`), so a split by use loses the providers as the real one does.
- */
-export function costsReport(by: string) {
-  const day = (date: string, usd: number, split: Record<string, number>) => ({
-    bucket: date,
-    total: { usd, runs: 1, shared_usd: 0 },
-    groups: Object.fromEntries(
-      Object.entries(split).map(([key, value]) => [key, { usd: value, runs: 1, shared_usd: 0 }]),
-    ),
-  });
-  const byProvider = by === "provider";
-  return {
-    time_zone: "Europe/Stockholm",
-    prices_as_of: "2026-10-01",
-    unconfirmed: ["speechify/*"],
-    site: "ok",
-    report: {
-      buckets: [
-        day("2026-10-18", 0.6, byProvider ? { anthropic: 0.4, speechify: 0.2 } : { daily: 0.6 }),
-        day("2026-10-20", 0.3, byProvider ? { speechify: 0.3 } : { narration_on_play: 0.3 }),
-      ],
-      total: { usd: 0.9, runs: 2, shared_usd: 0 },
-      per_run_usd: 0.45,
-      per_user_usd: 0.9,
-      users: 1,
-    },
-  };
-}
 
 /**
  * Seeds storage before the first page of the test loads, and only then: a page saves its own state

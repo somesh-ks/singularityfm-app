@@ -5,10 +5,11 @@ import { fileURLToPath } from "node:url";
 
 /**
  * A static server for the admin's browser suite. It serves the build under /admin, the way the
- * reader's rewrite reaches it in production, with the headers from this app's vercel.json. The data
+ * reader's rewrite reaches it in production, with the headers the page gets there: the reader's
+ * vercel.json (its Content-Security-Policy, so a violation fails a test) and this app's own. The data
  * routes are the reader's or this app's functions and are not served: the tests answer them.
- * shortcut: production also carries the reader's headers (its Content-Security-Policy) through the
- * rewrite, which this server does not apply; add them here if the admin ever answers on its own domain.
+ * shortcut: the reader's headers are read from its folder in this repository; when the admin moves
+ * to its own (D382 step 5), carry the policy into the admin's vercel.json and read only that.
  */
 
 const HERE = fileURLToPath(new URL(".", import.meta.url));
@@ -27,8 +28,9 @@ const TYPES = {
 };
 
 function loadHeaderRules() {
-  const config = JSON.parse(readFileSync(join(HERE, "..", "vercel.json"), "utf8"));
-  return (config.headers ?? []).map((rule) => ({
+  const configs = [join(HERE, "..", "..", "web", "vercel.json"), join(HERE, "..", "vercel.json")];
+  const rules = configs.flatMap((file) => JSON.parse(readFileSync(file, "utf8")).headers ?? []);
+  return rules.map((rule) => ({
     // vercel.json sources use "(.*)" as a wildcard. Swap it out first so its own dot is not escaped.
     pattern: new RegExp(
       `^${rule.source.replaceAll("(.*)", "*").replaceAll(".", "\\.").replaceAll("*", ".*")}$`,

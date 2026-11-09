@@ -46,9 +46,10 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile --ignore-scripts
+      # From the suite's own app: each resolves its own Playwright, whose browser build must match.
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
-        working-directory: apps/web
+        working-directory: apps/${{ matrix.suite == 'admin' && 'admin' || 'web' }}
       - name: Player suite
         if: matrix.suite == 'player'
         run: pnpm --filter @singularityfm/web run e2e:player

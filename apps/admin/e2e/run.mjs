@@ -15,7 +15,7 @@ import { startServer } from "./staticServer.mjs";
 
 const appRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
 const flags = new Set(process.argv.slice(2));
-const port = Number(process.env.PORT ?? 4322);
+const port = Number(process.env.PORT ?? 4502);
 const require = createRequire(import.meta.url);
 
 if (!flags.has("--serve-only")) {

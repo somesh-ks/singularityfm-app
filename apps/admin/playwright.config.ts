@@ -1,6 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const PORT = Number(process.env.PORT ?? 4322);
+const PORT = Number(process.env.PORT ?? 4502);
 
 /**
  * The admin's browser suite (D382 step 4): builds the app with the fixture config, serves it under

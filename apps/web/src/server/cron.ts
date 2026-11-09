@@ -22,6 +22,7 @@ import {
 } from "./github";
 import type { ApiResult } from "./http";
 import { describeError } from "./redact";
+import { readStateFile, StateUnreadable } from "./stateRead";
 
 /**
  * GET /api/cron/run: what starts the scheduled briefing on time (D61). Since late August 2026
@@ -39,7 +40,14 @@ import { describeError } from "./redact";
 export type CronBody =
   | { dispatched: true; run_id: number | null; reason: string }
   | { dispatched: false; reason: string }
-  | { error: "unauthorized" | "unavailable" | "github_failed" | "config_store_unavailable" };
+  | {
+      error:
+        | "unauthorized"
+        | "unavailable"
+        | "github_failed"
+        | "config_store_unavailable"
+        | "state_store_unavailable";
+    };
 
 export interface CronDeps {
   env: ServerEnv;
@@ -283,7 +291,7 @@ export async function handleCron(
     // and stops with the reason.
     const lastRun =
       parseJson(
-        await github.readFile("state/last-run.json", "main"),
+        await readStateFile("state/last-run.json", github, deps.env),
         (value) => LastRunFile.safeParse(value).data ?? null,
       ) ?? EMPTY_LAST_RUN;
     const decision = decideRun({
@@ -313,6 +321,10 @@ export async function handleCron(
   } catch (error) {
     if (error instanceof StoreUnreadable) {
       return { status: 503, body: { error: "config_store_unavailable" } };
+    }
+    if (error instanceof StateUnreadable) {
+      deps.log?.("the run state store did not answer; nothing dispatched");
+      return { status: 503, body: { error: "state_store_unavailable" } };
     }
     deps.log?.(`GitHub failed: ${describeError(error, [...secretsOf(config), secret])}`);
     return { status: 502, body: { error: "github_failed" } };

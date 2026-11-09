@@ -414,15 +414,15 @@ The files are not in git, so a fresh checkout has none. `npm run singularity -- 
 
 If the database is down while the store is on, pages show the build's copy and an edit answers "unavailable" and stays pending on the page. A run, a podcast, an ingest or a build stops when it holds no config files; the cron answers 503. Nothing is made from defaults.
 
-## 12. Branch rules on `main` (D175, D384)
+## 12. Branch rules on `main` (D175, D385)
 
-`main` is to be protected by a GitHub ruleset, kept as `.github/rulesets/main.json` so it is reviewed like code and can be re-imported. It takes effect only once the owner imports it (step 1); `docs/state.md` says whether that has happened.
+`main` is protected by a GitHub ruleset, kept as `.github/rulesets/main.json` so it is reviewed like code and can be re-imported. It takes effect only once the owner imports it (step 1); `docs/state.md` says whether that has happened.
 
-1. Settings → Rules → Rulesets → New ruleset → Import a ruleset → choose `.github/rulesets/main.json` → Create.
-2. What it holds: no deletion, no force push, linear history, and no bypass actor. The engine's workflows (`run.yml`, `audio.yml`, `podcast.yml`, `config.yml`) still push digests, narration, episodes and config straight to `main` with the workflow token, and GitHub rejects the Actions app as a bypass actor on a personal repository ("invalid actor"), so a pull-request rule would fail every one of those commits. To make an exception, edit the ruleset.
+1. Settings → Rules → Rulesets → New ruleset → Import a ruleset → choose `.github/rulesets/main.json` → Create. If an older copy is listed, edit that one instead (step 4).
+2. What it holds: no deletion, no force push, linear history, a pull request with its review threads resolved and squash as the only merge method, and the required checks `check` and `browser gate`. No approval count (one owner cannot approve their own PR; code review is CodeRabbit, D143, D192), no bypass actor (GitHub rejects the Actions app as one on a personal repository), and no "up to date" requirement (it costs a CI wait before each merge, about 4 minutes, 15 with the browser suites).
 3. Settings → General → Pull Requests: allow squash merging only (the `[deploy]` title rule needs it), and automatically delete head branches.
-4. Not yet: the rules for a pull request with its review threads resolved (no approval count: one owner cannot approve their own PR, and code review is CodeRabbit, D143, D192) and the required checks `check` and `browser gate` (`ci.yml`, #551; the bare `browser` job never reports on a site PR). Add them when no workflow commits to `main` any more (D300). Strict "up to date" checks cost a CI wait before each merge (about 4 minutes, 15 with the browser suites); decide then.
-5. To change a rule, edit the existing ruleset in Settings → Rules → Rulesets and Save changes, then open a PR with the same change to the JSON so the file matches. Do not import a second copy: two active rulesets both apply.
+4. To change a rule, edit the existing ruleset in Settings → Rules → Rulesets and Save changes, then open a PR with the same change to the JSON so the file matches. Do not import a second copy: two active rulesets both apply.
+5. Rollback: set the ruleset's enforcement to Disabled. A direct push to `main` is refused while it is active, so a deploy goes through a PR whose title ends `[deploy]`.
 
 ## 13. Share links (D153)
 

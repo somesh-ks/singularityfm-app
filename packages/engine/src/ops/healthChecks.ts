@@ -502,6 +502,7 @@ export function checkWeeklyAired(
       : undefined;
   if (aired === undefined) return;
   // The weekly day most recently gone by: today's slot is slot_missed's.
+  // shortcut: health runs at 09:41 UTC; for a late Sunday slot in a far-west zone a weekly still running then reads as missed, and the fault closes itself on the next run. Upgrade if such a zone is used.
   const lastDay = shiftDate(today, -((weekday(today) - weekly.day + 7) % 7 || 7));
   if (aired < lastDay && aired >= shiftDate(lastDay, -7)) {
     sink.fault(

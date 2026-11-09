@@ -1,5 +1,5 @@
 ---
-import Icon from "@singularityfm/design-system/Icon.astro";
+import Icon from "@singularityfm/design-system/Icon";
 import type { IconSize } from "@singularityfm/design-system/icon";
 
 interface Props {
@@ -10,6 +10,6 @@ const { size = "md" } = Astro.props;
 ---
 
 <span class="swap">
-  <Icon name="play" size={size} class="swap-paused" />
-  <Icon name="pause" size={size} class="swap-playing" />
+  <Icon name="play" size={size} className="swap-paused" />
+  <Icon name="pause" size={size} className="swap-playing" />
 </span>

@@ -2,7 +2,7 @@
 import Select from "@singularityfm/design-system/Select.astro";
 import "@singularityfm/design-system/styles/field.css";
 import { SUPPORTED_TIMEZONES, zoneLabel } from "@singularityfm/core";
-import Icon from "@singularityfm/design-system/Icon.astro";
+import Icon from "@singularityfm/design-system/Icon";
 import Switch from "@singularityfm/design-system/Switch.astro";
 import { LENGTHS } from "../lib/createForm";
 import { CADENCES, hourLabel, WEEKDAYS } from "../lib/schedule";
@@ -185,7 +185,7 @@ const inScope = (ids: readonly string[]): boolean =>
                 checked={inScope(topic.ids)}
                 autocomplete="off"
               />
-              <Icon name="check" class="filter-chip-check" />
+              <Icon name="check" className="filter-chip-check" />
               <span>{topic.name}</span>
             </label>
           ))}

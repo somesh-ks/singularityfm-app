@@ -56,6 +56,24 @@ export function classTokens(text: string): Set<string> {
     found.add("icon-glyph-lg");
   }
   if (/<PlayPauseIcons\b[^>]*\bsize="lg"/.test(code)) found.add("icon-glyph-lg");
+  // The Icon button, the Link and the FAB draw their classes from their props (D237): the tag or the
+  // class helper, the tonal and row-end variants by their props, the Play face by the FAB's classes.
+  // The lookaheads keep these patterns from matching their own text here, and a Link has an address,
+  // so a type (`Promise<Link>`) is no use.
+  if (/<IconButton(?=[\s/>])|\biconButtonClass\(/.test(code)) found.add("icon-btn");
+  if (/<IconButton(?=\s)[^>]*\bvariant="tonal"|\biconButtonClass\(\s*["']tonal["']/.test(code)) {
+    found.add("icon-btn-tonal");
+  }
+  if (/<IconButton(?=\s)[^>]*\browEnd\b|\biconButtonClass\([^)]*\btrue\b/.test(code)) {
+    found.add("icon-btn-end");
+  }
+  for (const [, props = ""] of code.matchAll(/<Link(?=\s)([^>]*\bhref=[^>]*)>/g)) {
+    found.add(/\bvariant="source"/.test(props) ? "source-link" : "text-link");
+  }
+  if (/<Fab(?=[\s/>])|\bimport \{[^}]*\bFAB_CLASSES\b[^}]*\} from/.test(code)) {
+    found.add("create-fab");
+    found.add("create-fab-label");
+  }
   // The Badge is a single-class component, drawn by the tag or by the class helper.
   if (/<Badge\b|\bbadgeClass\(/.test(code)) found.add("badge-label");
   // The Switch and the Slider are single-class components, drawn by the tag or by the class helper.

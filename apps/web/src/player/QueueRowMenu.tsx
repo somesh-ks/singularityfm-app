@@ -1,4 +1,5 @@
 import { glowFavorite } from "@singularityfm/design-system/glow";
+import IconButton from "@singularityfm/design-system/IconButton";
 import {
   MENU_TILES_MAX,
   menuBodyClass,
@@ -220,16 +221,15 @@ export default function QueueRowMenu({
 
   return (
     <>
-      <button
-        className="icon-btn player-queue-more"
-        type="button"
+      <IconButton
+        className="player-queue-more"
         popoverTarget={menuId}
         aria-haspopup="menu"
-        aria-label={`More for ${title}`}
+        label={`More for ${title}`}
         style={{ "--queue-anchor": anchor } as CSSProperties}
       >
         <Icon name="moreVert" />
-      </button>
+      </IconButton>
       <div
         id={menuId}
         className={`${menuListClass()} player-queue-menu`}
@@ -246,15 +246,9 @@ export default function QueueRowMenu({
             </h2>
             {subtitle ? <p className={sheetSubtitleClass()}>{subtitle}</p> : null}
           </div>
-          <button
-            className="icon-btn press"
-            type="button"
-            aria-label="Close"
-            popoverTarget={menuId}
-            popoverTargetAction="hide"
-          >
+          <IconButton label="Close" popoverTarget={menuId} popoverTargetAction="hide">
             <Icon name="close" size="lg" />
-          </button>
+          </IconButton>
         </div>
         <div className={menuBodyClass()} role="menu" aria-label={title} onKeyDown={onKeyDown}>
           {tiles.length > 0 ? (

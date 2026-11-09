@@ -1,7 +1,8 @@
 ---
-import Badge from "@singularityfm/design-system/Badge.astro";
-import BrandMark from "@singularityfm/design-system/BrandMark.astro";
-import Icon from "@singularityfm/design-system/Icon.astro";
+import Badge from "@singularityfm/design-system/Badge";
+import BrandMark from "@singularityfm/design-system/BrandMark";
+import Icon from "@singularityfm/design-system/Icon";
+import IconButton from "@singularityfm/design-system/IconButton";
 import themeInit from "@singularityfm/design-system/scripts/themeInit.js?raw";
 import AdminNav from "../components/AdminNav.astro";
 import SignOut from "../components/SignOut.astro";
@@ -52,15 +53,15 @@ const { title, current, bare = false } = Astro.props;
         {/* The bar shows below 64rem, where the nav's foot link is hidden; the reader's Back button, to the reader. */}
         {
           !bare && (
-            <a class="icon-btn app-bar-back" href={READER_HREF} aria-label="Back to the app">
+            <IconButton className="app-bar-back" href={READER_HREF} label="Back to the app">
               <Icon name="arrowBack" />
-            </a>
+            </IconButton>
           )
         }
         <a class="wordmark" href={href("")} aria-label="Singularity admin">
           <BrandMark />
           <span>Singularity</span>
-          <Badge class="admin-tag">Admin</Badge>
+          <Badge className="admin-tag">Admin</Badge>
         </a>
         {!bare && <SignOut class="admin-signout" />}
       </div>

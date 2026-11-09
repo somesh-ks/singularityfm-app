@@ -1,6 +1,7 @@
 ---
-import Button from "@singularityfm/design-system/Button.astro";
-import Icon from "@singularityfm/design-system/Icon.astro";
+import Button from "@singularityfm/design-system/Button";
+import Icon from "@singularityfm/design-system/Icon";
+import IconButton from "@singularityfm/design-system/IconButton";
 import { menuListClass } from "@singularityfm/design-system/menu";
 import { QUEUE_ACTION_ICONS, QUEUE_STATUS_ICONS } from "../lib/queueIcons";
 import { UPDATING_LABEL } from "../lib/runStages";
@@ -116,7 +117,7 @@ const icons = QUEUE_STATUS_ICONS;
           <span class="queue-stage-icon" data-queue-head-icon="fold"></span>
         </QueueRing>
         <span class="queue-fold-text queue-word" data-queue-title></span>
-        <Icon name="chevronDown" size="md" class="queue-chevron" />
+        <Icon name="chevronDown" size="md" className="queue-chevron" />
       </button>
     </div>
     <div class="queue-body" data-queue-body>
@@ -163,9 +164,9 @@ const icons = QUEUE_STATUS_ICONS;
           <QueueRing class="queue-ring-row" data-queue-ring role="progressbar" aria-valuemin="0" aria-valuemax="100" />
           <span class="queue-time" data-queue-time></span>
         </div>
-        <a class="icon-btn press queue-play" href="#" data-queue-play hidden>
+        <IconButton className="queue-play" href="#" label="Start listening" data-queue-play hidden>
           <Icon name={QUEUE_ACTION_ICONS.play} size="lg" />
-        </a>
+        </IconButton>
         <span class="queue-end-icon" data-queue-end-icon hidden></span>
       </div>
       <div class="queue-main">
@@ -176,12 +177,12 @@ const icons = QUEUE_STATUS_ICONS;
         <p class="queue-status queue-slow" data-queue-slow></p>
       </div>
       {/* Cancel is the X at the row's end, while the run goes; once it has ended the same X takes the item out of the queue. */}
-      <button class="icon-btn icon-btn-end press queue-cancel" type="button" data-queue-cancel hidden>
+      <IconButton rowEnd className="queue-cancel" label="Cancel" data-queue-cancel hidden>
         <Icon name={QUEUE_ACTION_ICONS.cancel} size="lg" />
-      </button>
-      <button class="icon-btn icon-btn-end press queue-remove" type="button" data-queue-remove hidden>
+      </IconButton>
+      <IconButton rowEnd className="queue-remove" label="Remove from the queue" data-queue-remove hidden>
         <Icon name={QUEUE_ACTION_ICONS.remove} size="lg" />
-      </button>
+      </IconButton>
       {/* What can be done to a run that ended or is lost, under the text. */}
       <div class="queue-actions">
         <Button variant="text" size="small" className="queue-listen" data-queue-listen hidden>Listen now</Button>

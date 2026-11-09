@@ -2,6 +2,7 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, extname, join, relative } from "node:path";
 import { COMPONENTS } from "@singularityfm/design-system/registry";
+import { offGrid } from "@singularityfm/design-system/rules";
 import { describe, expect, it } from "vitest";
 
 /**
@@ -160,10 +161,10 @@ const LOCAL_EASES: [file: string, reason: string][] = [
 
 /** Files that may hold an inline <svg>: the Icon components, the mark, the art and named one-offs. */
 const RAW_SVG_ALLOWED: [file: string, reason: string][] = [
-  ["@singularityfm/design-system/src/Icon.astro", "the Icon component"],
+  ["@singularityfm/design-system/src/Icon.tsx", "the Icon component"],
   ["player/ui/Icon.tsx", "the island Icon component"],
   ["player/ui/LazyIcon.tsx", "the lazy island Icon component"],
-  ["@singularityfm/design-system/src/BrandMark.astro", "the wordmark's own mark, not a glyph"],
+  ["@singularityfm/design-system/src/BrandMark.tsx", "the wordmark's own mark, not a glyph"],
   ["components/EmptyArt.astro", "empty-state illustrations, coloured by classes (own rule above)"],
   [
     "components/EmptyArtHalloween.astro",
@@ -508,64 +509,16 @@ const RULES: Rule[] = [
     // (owner, 2026-11-05: "every spacing value is to be on the grid"). This one resolves each spacing
     // value made of space and component tokens to pixels and holds the result to 8, 16, 24 and up,
     // 4px where ALLOWED_4PX says. A value built from a dimension (an icon, a touch target, a stroke)
-    // is that part's geometry, centring or a hit area, and stays out, as widths do above.
+    // is that part's geometry, centring or a hit area, and stays out, as widths do above. The
+    // resolver is the design system's (offGrid in its rules), so the app and `ds validate` read one
+    // copy; the app passes its own 4px cases.
     name: "spacing tokens and calc() resolve to the 8pt grid",
-    offenders: () => {
-      const spacing =
-        /^(?:margin|padding|gap|row-gap|column-gap|inset|top|right|bottom|left|scroll-margin|scroll-padding)(?:-[a-z-]+)?$/;
-      const dimension =
-        /size|height|width|thumb|track|icon|touch|stroke|hairline|ring|cover|avatar|fab|glyph|radius|shape|font|leading|dock|bar|room|safe|keyboard|nav|sticky|measure|travel|ink|range|scrubber|switch|chip|player|gutter|top/;
-      const px = (expression: string, depth = 0): number | null => {
-        if (depth > 8) return null;
-        let failed = false;
-        const numeric = expression
-          .replace(/var\((--[\w-]+)(?:,[^()]*)?\)/g, (_, name: string) => {
-            if (dimension.test(name)) failed = true;
-            const value = tokenValue(`var(${name})`);
-            const resolved = value.startsWith("var(") ? null : px(value, depth + 1);
-            if (resolved === null) failed = true;
-            return `(${resolved ?? 0})`;
-          })
-          .replace(/calc\(/g, "(")
-          .replace(/(-?\d*\.?\d+)rem\b/g, (_, n: string) => `(${Number(n) * 16})`)
-          .replace(/(-?\d*\.?\d+)px\b/g, "($1)");
-        if (failed || !/^[\d\s.+\-*/()]+$/.test(numeric)) return null;
-        const value = Number(Function(`"use strict"; return (${numeric});`)());
-        return Number.isFinite(value) ? Math.round(value * 100) / 100 : null;
-      };
-      const terms = (value: string) => {
-        const out = [""];
-        let depth = 0;
-        for (const character of value) {
-          depth += character === "(" ? 1 : character === ")" ? -1 : 0;
-          if (/\s/.test(character) && depth === 0) out.push("");
-          else out[out.length - 1] += character;
-        }
-        return out.filter(Boolean);
-      };
-      return [
-        ...ownCss(),
-        ["foundations.css", withoutComments(read("foundations.css"))] as const,
-      ].flatMap(([file, css]) =>
-        rulesOf(css).flatMap(([selector, body]) =>
-          declarationsOf(body)
-            .filter(([property]) => spacing.test(property))
-            .flatMap(([property, value]) =>
-              terms(value)
-                .filter((term) => term.includes("var("))
-                .flatMap((term) => {
-                  const resolved = px(term);
-                  if (resolved === null) return [];
-                  const size = Math.abs(resolved);
-                  if (size % 8 === 0) return [];
-                  const fine = ALLOWED_4PX.some(([allowed]) => wholeName(allowed).test(selector));
-                  if (size === 4 && fine) return [];
-                  return [`${file}: ${selector} { ${property}: ${term} } = ${resolved}px`];
-                }),
-            ),
+    offenders: () =>
+      [...OWN_FILES, "foundations.css"].flatMap((file) =>
+        offGrid(read(file), file, ALLOWED_4PX).map(
+          ({ line, message }) => `${file}:${line} ${message}`,
         ),
-      );
-    },
+      ),
   },
   {
     // Headings are regular weight: the type's size and the space around it carry the hierarchy.
@@ -736,7 +689,9 @@ const RULES: Rule[] = [
     name: "no inline styling bypasses the tokens",
     offenders: () =>
       codeFiles([".astro", ".tsx"]).flatMap((file) => {
-        const markup = readFileSync(file, "utf8");
+        // A doc comment's line (` * ...`) describes a style, it sets none: RowExit.tsx names the
+        // `style="order: 1"` string it accepts.
+        const markup = readFileSync(file, "utf8").replace(/^\s*\*.*$/gm, "");
         return [...markup.matchAll(/\bstyle=(["{])/g)].flatMap((match) => {
           const start = (match.index ?? 0) + match[0].length;
           let end = start;
@@ -1130,9 +1085,12 @@ describe("the ⋮ of a podcast card and a queue row", () => {
  * forks, page by page.
  */
 const PAGE_OVERRIDES: string[] = [
+  "blocked.css: .blocked-row .icon-btn",
   "cover.css: .cover-play .icon-glyph",
   "create-sheet.css: .app-nav-create .icon-glyph",
+  "create-sheet.css: .play-fab .create-fab-label",
   "create-sheet.css: .play-fab-glyph > .icon-glyph",
+  "create-sheet.css: .play-fab[data-folded] .create-fab-label",
   'create-sheet.css: .play-fab[data-state="preparing"] .play-fab-glyph > .icon-glyph',
   "create-sheet.css: .share-dialog > .sheet-head",
   "create.css: .create-error > .icon-glyph",
@@ -1153,6 +1111,8 @@ const PAGE_OVERRIDES: string[] = [
   "library.css: .menu-list.card-menu-list",
   "library.css: .shelf-head > .button-text",
   "library.css: .status-mark .icon-glyph",
+  'library.css: html[data-library-page="empty"] .create-fab',
+  "library.css: html[data-search-empty] .create-fab",
   "manage.css: .manage-error .icon-glyph",
   "manage.css: .manage-fields:disabled :is(.switch-input, .field-input, .search-field)",
   "manage.css: .manage-fields:disabled :is(.switch-input, .field-input, .search-field)",
@@ -1173,6 +1133,9 @@ const PAGE_OVERRIDES: string[] = [
   "podcast.css: .daily-panel input.field-input",
   "podcast.css: .daily-panel input.field-input:focus-visible",
   "podcast.css: .daily-panel input.field-input[aria-invalid]",
+  "queue.css: .icon-btn.queue-play",
+  "queue.css: .icon-btn.queue-play:active",
+  "queue.css: .icon-btn.queue-play:hover",
   "queue.css: .menu-list.queue-pop",
   "queue.css: .menu-list.queue-pop, .menu-list.queue-pop:popover-open",
   "queue.css: .menu-list.queue-pop:popover-open",
@@ -1204,6 +1167,12 @@ const PAGE_OVERRIDES: string[] = [
   'sheets.css: .sheet-actions .button-filled[data-busy="true"]',
   "sheets.css: .sheet-field-error .icon-glyph",
   "speed-panel.css: .player-speed .slider-input",
+  "speed-panel.css: .player-speed-stepper > .icon-btn-tonal",
+  'speed-panel.css: .player-speed-stepper > .icon-btn-tonal:where(:not(:disabled, [aria-disabled="true"])):active',
+  'speed-panel.css: .player-speed-stepper > .icon-btn-tonal:where(:not(:disabled, [aria-disabled="true"])):hover',
+  "story-controls.css: .icon-btn.story-vote",
+  'story-controls.css: .icon-btn.story-vote[aria-pressed="true"]',
+  'story-controls.css: .icon-btn.story-vote[aria-pressed="true"]',
   "story-controls.css: .menu-list.story-menu-list",
   "story-controls.css: .menu-list.story-menu-list",
   "story-controls.css: .story-vote .icon-glyph",

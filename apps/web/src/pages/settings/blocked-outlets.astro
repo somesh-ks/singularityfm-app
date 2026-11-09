@@ -1,7 +1,8 @@
 ---
-import Button from "@singularityfm/design-system/Button.astro";
-import Icon from "@singularityfm/design-system/Icon.astro";
-import RowExit from "@singularityfm/design-system/RowExit.astro";
+import Button from "@singularityfm/design-system/Button";
+import Icon from "@singularityfm/design-system/Icon";
+import IconButton from "@singularityfm/design-system/IconButton";
+import RowExit from "@singularityfm/design-system/RowExit";
 import Sheet from "@singularityfm/design-system/Sheet.astro";
 import EmptyArt from "../../components/EmptyArt.astro";
 import ManageChrome from "../../components/ManageChrome.astro";
@@ -78,17 +79,12 @@ const offers = (await loadSourceCatalog()).flatMap((offer) => {
           <ul class="rows card-group" role="list" data-list aria-labelledby="blocked-head">
             {
               domains.map((domain) => (
-                <RowExit class="blocked-row" data-domain={domain}>
+                <RowExit className="blocked-row" data-domain={domain}>
                   <div class="settings-row">
                     <span class="settings-label">{domain}</span>
-                    <button
-                      class="icon-btn icon-btn-end"
-                      type="button"
-                      aria-label={`Unblock ${domain}`}
-                      data-remove
-                    >
+                    <IconButton rowEnd label={`Unblock ${domain}`} data-remove>
                       <Icon name="close" />
-                    </button>
+                    </IconButton>
                   </div>
                 </RowExit>
               ))
@@ -100,12 +96,12 @@ const offers = (await loadSourceCatalog()).flatMap((offer) => {
         </section>
 
         <template data-row>
-          <RowExit class="blocked-row">
+          <RowExit className="blocked-row">
             <div class="settings-row">
               <span class="settings-label"></span>
-              <button class="icon-btn icon-btn-end" type="button" data-remove>
+              <IconButton rowEnd label="Unblock" data-remove>
                 <Icon name="close" />
-              </button>
+              </IconButton>
             </div>
           </RowExit>
         </template>
@@ -157,8 +153,8 @@ const offers = (await loadSourceCatalog()).flatMap((offer) => {
                   </span>
                 </span>
                 <button class="source-plus-btn press" type="button" aria-pressed="false" data-pick>
-                  <Icon name="plus" class="suggested-plus" />
-                  <Icon name="check" class="suggested-check" />
+                  <Icon name="plus" className="suggested-plus" />
+                  <Icon name="check" className="suggested-check" />
                 </button>
               </li>
               {
@@ -200,8 +196,8 @@ const offers = (await loadSourceCatalog()).flatMap((offer) => {
                         aria-pressed="false"
                         data-pick
                       >
-                        <Icon name="plus" class="suggested-plus" />
-                        <Icon name="check" class="suggested-check" />
+                        <Icon name="plus" className="suggested-plus" />
+                        <Icon name="check" className="suggested-check" />
                       </button>
                     </li>
                   );

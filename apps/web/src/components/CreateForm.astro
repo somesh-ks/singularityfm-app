@@ -1,7 +1,7 @@
 ---
-import Button from "@singularityfm/design-system/Button.astro";
+import Button from "@singularityfm/design-system/Button";
 import Field from "@singularityfm/design-system/Field.astro";
-import Icon from "@singularityfm/design-system/Icon.astro";
+import Icon from "@singularityfm/design-system/Icon";
 import Select from "@singularityfm/design-system/Select.astro";
 import {
   DEFAULTS,
@@ -118,7 +118,7 @@ const COPY = {
                 data-ids={topic.ids.join(" ")}
                 checked={topic.ticked}
               />
-              <Icon name="check" class="filter-chip-check" />
+              <Icon name="check" className="filter-chip-check" />
               <span>{topic.label}</span>
             </label>
           ))
@@ -182,7 +182,7 @@ const COPY = {
           <span class="create-more-title">More options</span>
           <span class="create-more-values" data-more-values data-template={MORE_OPTIONS_TEMPLATE}>{moreSummary}</span>
         </span>
-        <Icon name="chevronDown" class="create-more-chevron" />
+        <Icon name="chevronDown" className="create-more-chevron" />
       </summary>
       <div class="create-more-body">
         <section class="create-group" aria-labelledby="create-format-label">

@@ -1,5 +1,5 @@
 ---
-import Icon from "@singularityfm/design-system/Icon.astro";
+import Icon from "@singularityfm/design-system/Icon";
 ---
 
 {/* What the settings pages share besides their rows: the live regions the script writes to (one
@@ -10,8 +10,8 @@ import Icon from "@singularityfm/design-system/Icon.astro";
 <p class="sr-only" role="alert" data-alert></p>
 
 <div class="toast manage-bar" popover="manual" data-bar data-state="saved">
-  <Icon name="check" class="toast-icon manage-bar-done" />
-  <Icon name="alert" class="toast-icon manage-bar-error" />
+  <Icon name="check" className="toast-icon manage-bar-done" />
+  <Icon name="alert" className="toast-icon manage-bar-error" />
   <span class="toast-text" data-bar-text></span>
   <button class="toast-action" type="button" data-act="undo">Undo</button>
   <button class="toast-action" type="button" data-act="retry">Retry</button>

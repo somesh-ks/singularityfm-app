@@ -1,3 +1,4 @@
+import IconButton from "@singularityfm/design-system/IconButton";
 import {
   type PointerEvent as ReactPointerEvent,
   useCallback,
@@ -148,16 +149,15 @@ function DockExpand() {
     () => false,
   );
   return (
-    <button
-      className="icon-btn press dock-expand"
-      type="button"
+    <IconButton
+      className="dock-expand"
       aria-expanded={open}
       aria-controls={PLAYER_PAGE_ID}
-      aria-label={open ? "Collapse player" : "Expand player"}
+      label={open ? "Collapse player" : "Expand player"}
       onClick={() => void playerSheet.toggle()}
     >
       <Icon name="chevronDown" />
-    </button>
+    </IconButton>
   );
 }
 

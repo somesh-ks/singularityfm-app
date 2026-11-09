@@ -424,7 +424,7 @@ The files are not in git, so a fresh checkout has none. `npm run singularity -- 
 
 If the database is down while the store is on, pages show the build's copy and an edit answers "unavailable" and stays pending on the page. A run, a podcast, an ingest or a build stops when it holds no config files; the cron answers 503. Nothing is made from defaults.
 
-## 12. Branch rules on `main` (D175, D385)
+## 12. Branch rules on `main` (D175, D385, D387)
 
 `main` is protected by a GitHub ruleset, kept as `.github/rulesets/main.json` so it is reviewed like code and can be re-imported. It takes effect only once the owner imports it (step 1); `docs/state.md` says whether that has happened.
 

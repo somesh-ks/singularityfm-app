@@ -44,9 +44,9 @@ One line each: symptom, cause, fix. Search before debugging; older gotchas are i
 - 2026-10-27: a briefing shipped 3 stories (79 s): grounding dropped 5 of 8 and the reserve was empty, since the structure's section caps capped it too (#373).
 - 2026-10-27: the runner has no ffmpeg with libopus, so Opus and its test skipped silently; ffprobe counts MP3 padding (52 ms a turn). Workflows install it and measure turns by decoding. The install hung behind `-qq`: bound apt, log it, `continue-on-error` (#388).
 - 2026-10-25: `urlKey` (sources/import.ts) dropped the query string, so every YouTube feed (`?channel_id=`) matched every other: a second channel failed "Already a source", and the store's replay of an added channel could not read it. A feed's key keeps `channel_id`.
-- 2026-10-23: Vercel's Neon integration names its variables `NEON_*`, which nothing reads: seed before the GitHub variable goes on. lightningcss rejects `::picker(select)::backdrop`: scrim with a `0 0 0 100vmax` shadow. A long-press drag on a scrolling list needs `draggable`.
+- 2026-10-23: Vercel's Neon integration names variables `NEON_*`, which nothing reads: seed before the GitHub variable goes on. lightningcss rejects `::picker(select)::backdrop`: use a `0 0 0 100vmax` shadow. A long-press drag in a scrolling list needs `draggable`.
 - 2026-10-24: a 5-minute daily aired 3.0: 14 written, validation cut 7, nothing refilled. Validation refills once from `reserve.json`. Grounding never saw the title the writer read.
-- 2026-10-22: three review rounds of new `health` checks each found false faults (a waking Neon, an edit during a run, Dependabot merges Hobby never deploys, a regenerate read as late). A fault must be actionable and hold a day; make the rest warnings.
+- 2026-10-22: three review rounds of new `health` checks each found false faults (a waking Neon, an edit during a run, a Dependabot merge, a regenerate read as late). A fault must be actionable and hold a day; the rest are warnings.
 - 2026-10-20: a group page saved its mix on a fallback home while the engine read the fixed one, and the outlet cap keyed by `source_id` let BBC's five feeds through; one helper (`groupHomeId`) and the story's host fix both.
 - 2026-10-19: adding a YouTube channel said "The address could not be read": the preview caps a page at 1 MB, a channel page is 1.3 MB, and the resolver swallowed the throw. The id comes from the path, `navigation/resolve_url`, then the page.
 - 2026-10-24: YouTube refuses datacenter addresses: the player API says 429 and yt-dlp hits "Sign in to confirm you're not a bot"; cookies lift it, PO tokens do not. Firecrawl's `youtube-com/videos/video_transcript` calls from its network (5 credits).
@@ -105,10 +105,11 @@ One line each: symptom, cause, fix. Search before debugging; older gotchas are i
 - 2026-10-31: a Play control marked `aria-disabled` never reacted (`disabledGuard.ts` swallows clicks): use `data-silent`.
 - 2026-11-01: Downloads showed as a gallery after a Library visit: `libraryPage.ts` kept its `astro:page-load` listener and matched Downloads' `[data-library]`. Name the page (`#main.library`); a test must reach it by click, not `goto`.
 - 2026-11-01: a `.manage` rule for the voice page also reached Preferences: a row declares its `--row-reach`.
+- 2026-11-09: a new Vercel env var needs a build; the batch rule (D375) cancels Redeploy of other commits. Ship a `[deploy]` PR.
 - 2026-11-03: servers off Vercel with the real `DATABASE_URL` stored their own 5xx as production faults (~180 a day); telemetry takes `deploymentDatabaseUrl`. Astro's SSR header replaces vercel.json's CSP: `frame-ancestors` goes in `withFrameAncestors` (meta ignores it).
 - 2026-11-05: a white strip showed while Android's keyboard slid up on the Regenerate and Catch up panels: Chrome resizes the page at once and the window behind stays white. A native panel with a text field needs `fitAboveKeyboard`; only Topics and Block sources had it.
 - 2026-11-05: a CSS animation restarts when its node is re-inserted: repainting rows each poll restarts every shimmer. Engine timings (state/podcast-timings.json) cover engine work, not workflow steps.
-- 2026-11-06: a rewrite played from 4 minutes: the place was keyed by the digest id, which a rewrite keeps; it is saved with the recording's file address (`resume-of`). "More stories" aired 12 again: the count is the Length, and only a model moved the control; `wordLength` does it at once.
+- 2026-11-06: a rewrite played from 4 minutes: the place was keyed by the digest id, which a rewrite keeps; it is saved with the recording's file address (`resume-of`). "More stories" aired 12 again: the count is the Length; `wordLength` moves the control at once.
 
 ## Build and tooling
 

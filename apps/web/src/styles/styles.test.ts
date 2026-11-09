@@ -1130,12 +1130,6 @@ describe("the ⋮ of a podcast card and a queue row", () => {
  * forks, page by page.
  */
 const PAGE_OVERRIDES: string[] = [
-  "banner.css: .banner-notice > .button-text",
-  "banner.css: .banner-notice > .icon-glyph",
-  "buttons.css: .chip-glyph .icon-glyph",
-  "buttons.css: .dialog-actions > :is(.button-filled, .button-tonal)",
-  "buttons.css: .icon-btn .icon-glyph",
-  "buttons.css: .swap > .icon-glyph",
   "cover.css: .cover-play .icon-glyph",
   "create-sheet.css: .app-nav-create .icon-glyph",
   "create-sheet.css: .play-fab-glyph > .icon-glyph",
@@ -1162,21 +1156,10 @@ const PAGE_OVERRIDES: string[] = [
   "manage.css: .manage-error .icon-glyph",
   "manage.css: .manage-fields:disabled :is(.switch-input, .field-input, .search-field)",
   "manage.css: .manage-fields:disabled :is(.switch-input, .field-input, .search-field)",
-  "menu.css: .menu-sheet .menu-item .icon-glyph",
-  "menu.css: .menu-sheet > .sheet-head:not([data-has-back])",
-  "menu.css: .menu-sheet > .sheet-head:not([data-has-back])",
-  "menu.css: .menu-sheet:has(> .menu-sheet-items > .menu-item:not([hidden], .menu-item-danger)):not( :has( > .menu-sheet-items > .menu-item:not([hidden]) ~ .menu-item:not([hidden]), > .menu-sheet-items > .menu-item-danger:not([hidden]), > .menu-sheet-items > .menu-tiles ) ) > .sheet-head:not([data-has-back])",
   "multiselect.css: .multiselect-trigger > .icon-glyph",
   "multiselect.css: .multiselect-trigger > .icon-glyph",
   'multiselect.css: .multiselect-trigger[aria-expanded="true"] > .icon-glyph',
   "multiselect.css: .settings-row .multiselect-trigger > .icon-glyph",
-  "picker.css: .picker > .icon-glyph",
-  "picker.css: .picker > .icon-glyph",
-  // The picker's rows place the Flag in their grid (D367): a column and the gap, not its look.
-  "picker.css: .picker-option > .flag-mark",
-  "picker.css: .picker-option:has(> .flag-mark)",
-  'picker.css: .picker-option[aria-selected="true"]:has(> .flag-mark)::after',
-  'picker.css: .picker:has(> .picker-trigger[aria-expanded="true"]) > .icon-glyph',
   "player.css: .dock-btn[data-primary] .icon-glyph",
   "player.css: .dock-expand .icon-glyph",
   "player.css: .dock-expand .icon-glyph",
@@ -1190,14 +1173,6 @@ const PAGE_OVERRIDES: string[] = [
   "podcast.css: .daily-panel input.field-input",
   "podcast.css: .daily-panel input.field-input:focus-visible",
   "podcast.css: .daily-panel input.field-input[aria-invalid]",
-  "primitives.css: .card-group .settings-row[data-models] .value-select > select.field-input",
-  "primitives.css: .card-group-accent :is(.settings-hint, .button-text)",
-  "primitives.css: .filter-chip > .icon-glyph",
-  "primitives.css: .filter-chip > .icon-glyph",
-  "primitives.css: .filter-chip:has(input:checked) > .icon-glyph",
-  "primitives.css: .segmented-nav-tab:has(> .icon-glyph)",
-  "primitives.css: .source-link .icon-glyph",
-  "primitives.css: .suggest-box > .icon-glyph",
   "queue.css: .menu-list.queue-pop",
   "queue.css: .menu-list.queue-pop, .menu-list.queue-pop:popover-open",
   "queue.css: .menu-list.queue-pop:popover-open",
@@ -1206,9 +1181,6 @@ const PAGE_OVERRIDES: string[] = [
   "queue.css: .queue-stage-icon > .icon-glyph",
   "queue.css: .queue-stage-icon > .icon-glyph, .queue-stage-icon > .icon-glyph[data-leaving]",
   "queue.css: .queue-stage-icon > .icon-glyph[data-leaving]",
-  "select.css: .select-outlined > .icon-glyph",
-  "select.css: .select-outlined > .icon-glyph",
-  "select.css: .select-tonal > .icon-glyph",
   "settings.css: .settings-row .value-select > .icon-glyph",
   "settings.css: .settings-row .value-select > .icon-glyph",
   "settings.css: .settings-row .value-select > .icon-glyph",
@@ -1228,13 +1200,9 @@ const PAGE_OVERRIDES: string[] = [
   "settings.css: .settings-view:not([data-ready]) .switch-input::before",
   "settings.css: :is(.settings-view, .manage) .row-action .icon-glyph",
   "settings.css: :where(.settings-row) > .slider-input",
-  "sheet.css: dialog.sheet-side .create-submit > .button-filled",
   'sheets.css: .sheet-actions .button-filled[aria-disabled="true"]:active',
   'sheets.css: .sheet-actions .button-filled[data-busy="true"]',
   "sheets.css: .sheet-field-error .icon-glyph",
-  "shell.css: .app-nav-indicator > .icon-glyph",
-  "shell.css: .app-nav-item .icon-glyph",
-  "shell.css: .app-nav-item:active .icon-glyph",
   "speed-panel.css: .player-speed .slider-input",
   "story-controls.css: .menu-list.story-menu-list",
   "story-controls.css: .menu-list.story-menu-list",
@@ -1341,7 +1309,9 @@ describe("design-system components in page stylesheets", () => {
     for (const component of COMPONENTS) {
       const named = new RegExp(`\\.(?:${component.classes.join("|")})(?![\\w-])`);
       for (const [file, css] of ownCss()) {
-        if (file === component.sheet) continue;
+        // The package's own sheets are its repo's to check (D382): a release that styles a component
+        // on its own surfaces is not a page override, and this list cannot shrink for it here.
+        if (file === component.sheet || existsSync(join(SYSTEM_STYLES, file))) continue;
         // A rule's selector is the text before its `{`; an at-rule's own prelude names no class.
         for (const [, prelude] of css.matchAll(/([^{}]+)\{/g)) {
           const selector = (prelude ?? "").replace(/\s+/g, " ").trim();

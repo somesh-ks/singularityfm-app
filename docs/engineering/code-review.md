@@ -35,7 +35,7 @@ cr review --base main --committed --deep --agent --gate major   # exit 2 when a 
 
 - Open as a draft while work continues; mark it ready when the checks are green, the diff lists only the task's files, the stills are OK'd for a taste change, and the PR body's Review section is filled. Then post `@coderabbitai review`: that is the first review.
 - Before asking, read CodeRabbit's last summary comment: "N remain after this review". The allowance is shared by every thread in the project. At 2 or fewer, wait for the hour and say so in the PR body.
-- Paused or skipped: when the summary says "Reviews paused" or rate-limited and the head is unreviewed, ask with `@coderabbitai review`. While the PR pool is out, a Tier 1 PR may merge on a `cr review` pass of the range, with the PR body saying so; a Tier 2 PR waits for the hour, since its merge rule below needs the PR review on the head. Never `@coderabbitai resume`: it brings back a review per push.
+- Paused or skipped: when the summary says "Reviews paused" or rate-limited and the head is unreviewed, ask with `@coderabbitai review`. While the PR pool is out (the Free plan allows about one review an hour per developer), a Tier 1 PR may merge on a `cr review` pass of the range or on a `@greptileai` review of the head, with the PR body saying so; a Tier 2 PR waits for the hour, since its merge rule below needs the PR review on the head. Never `@coderabbitai resume`: it brings back a review per push.
 - `@coderabbitai full review` only after a rebase or a squash rewrote the branch.
 - Before a merge, compare `git rev-parse HEAD` with the "Last reviewed commit" in the summary. Tier 2 must match. Tier 1 may differ by fix commits for the findings only.
 
@@ -52,9 +52,9 @@ cr review --base main --committed --deep --agent --gate major   # exit 2 when a 
 
 A second reviewer pays only where the two fail differently. CodeRabbit is strongest on the diff and the rules it is given; Greptile indexes the whole repository, so its edge is the change that breaks a consumer elsewhere. Greptile stays off automatically (`autoReview` empty in its config, so the `[skip-review]` keyword never matters to it) and is asked by comment:
 
-- When: a Tier 2 PR, after CodeRabbit's pass and the fixes; or any PR whose CodeRabbit summary rates merge risk moderate or higher, or whose `npm run blast-radius` lists three or more consumer surfaces. Never a design-system bump PR (taste is `design-audit`'s), never Tier 0 or a plain Tier 1.
+- When: a Tier 2 PR, after CodeRabbit's pass and the fixes; a Tier 1 PR CodeRabbit has rate-limited (ask Greptile instead of waiting; owner, 2026-11-09); or any PR whose CodeRabbit summary rates merge risk moderate or higher, or whose `npm run blast-radius` lists three or more consumer surfaces. Never a design-system bump PR (taste is `design-audit`'s), never Tier 0, and a plain Tier 1 only when CodeRabbit is rate-limited.
 - How: the thread that owns the PR posts `@greptileai` once (`@greptileai review this at plus` for a Tier 2 diff over about 400 lines). Its findings get the same fix-or-reply as CodeRabbit's; where the two disagree, the thread decides and says so in the Review section. A 👎 on a finding that fights a house rule trains it.
-- Budget: the Starter plan is free for one developer with 50 credits a month (Base 1, Plus 3, Apex 10). Every thread spends the owner's credits; at 10 or fewer left, Tier 2 only.
+- Budget: the Starter plan is free for one developer with 50 credits a month (Base 1, Plus 3, Apex 10). Every thread spends the owner's credits; at 10 or fewer left, Tier 2 only; a rate-limited Tier 1 PR then waits for CodeRabbit's hour.
 - Reassess after five uses: keep it only if at least one found a real defect CodeRabbit missed.
 
 ## Findings

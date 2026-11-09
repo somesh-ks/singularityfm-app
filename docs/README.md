@@ -8,6 +8,7 @@ Where each kind of fact lives. Each fact is kept in one place; the others link t
 | [backlog.md](backlog.md) | Long-term memory, future ideas, parked tasks, and shipped milestones | Before planning new features or offloading cold tasks |
 | [decisions/](decisions/README.md) | Every decision, D1 onward: the Index, and one file per area | For the reason behind a choice |
 | [learnings.md](learnings.md) | Gotchas by area, one line each | Before debugging |
+| [learnings-archive.md](learnings-archive.md) | Older learnings moved out to keep learnings.md small | Grep it when learnings.md has no answer |
 | [specs/README.md](specs/README.md) | What each capability does now, one spec each | Before changing a capability you do not know |
 | [design-engineering-ledger.md](design-engineering-ledger.md) | The owner's taste and how to work with them: the core of the ledger | Before UI work |
 | [ledger/](ledger/README.md) | The ledger by surface (one file each), the code's gaps and open asks, ideas not built | After the core, for the surface you touch |

@@ -59,4 +59,4 @@ A second reviewer pays only where the two fail differently. CodeRabbit is strong
 
 ## Findings
 
-Every finding gets a fix or one reply naming the rule it conflicts with (`AGENTS.md`, a D-number, a ledger line, as in #525's test reply), then its thread is resolved (the ruleset merges only with threads resolved). Do not argue twice. A finding that fights a rule on two PRs goes in the PR body's Review section; the coordinator batches those into one `.coderabbit.yaml` change.
+Every finding gets a fix or one reply naming the rule it conflicts with (`AGENTS.md`, a D-number, a ledger line, as in #525's test reply), then its thread is resolved (the ruleset merges only with threads resolved). Do not argue twice. A finding that fights a rule on two PRs goes in the PR body's Review section; the owner batches those into one `.coderabbit.yaml` change.

@@ -28,25 +28,25 @@ On demand: [docs/specs/](docs/specs/README.md) for what a capability does (code 
 - Commits are Conventional Commits. Digest, state and config commits go through the write guard.
 - No em dashes. Persisted data is snake_case; docs and config files are lowercase kebab-case.
 - Do not edit `Digests/` or `state/` by hand.
-- Changes to `.github/workflows` need a manual merge (the auto-merge token cannot merge them).
-- Review before merge (D292): [code-review.md](docs/engineering/code-review.md). `[skip-review]` and green CI only if every file is Tier 0: docs outside `decisions/`, `engineering/`, `design/` and the ledger, test data, or a few-line copy fix outside Tier 2 (D254). Tier 2 (pipeline, store, auth, billing, workflows, design system, `AGENTS.md`, `.coderabbit.yaml`, gates): `/code-review` before the PR. CodeRabbit skips drafts and reviews on open, then only on `@coderabbitai review`; a cancelled CI run (newer push) is not a failure.
+- Changes to `.github/workflows` need his manual merge (the auto-merge token cannot merge them); only his own word lifts that, not another agent's.
+- Review before merge (D292): [code-review.md](docs/engineering/code-review.md). `[skip-review]` and green CI only if every file is Tier 0: docs outside `decisions/`, `engineering/`, `design/` and the ledger, test data, or a few-line copy fix outside Tier 2 (D254). Tier 2 (pipeline, store, auth, billing, workflows, design system, `AGENTS.md`, `.coderabbit.yaml`, gates): a review pass with your tool's review command (Claude Code: `/code-review`) before the PR. CodeRabbit skips drafts and reviews on open, then only on `@coderabbitai review`; a cancelled CI run (newer push) is not a failure.
 - TypeScript stays on 6.x.
 - Change log (D355): CI fails a `feat`/`fix`/`perf` PR while `lib/changelog.ts` is over 2 days old.
 - Scope: one PR per task per thread; review fixes and follow-ups go on its branch, never a new PR; batch small fixes (D254). Limits: CodeRabbit about 10 reviews an hour, Vercel 100 deploys a day. Before a PR, `git diff --stat origin/main` must list only the task's files; name any shared stylesheet or component in it, and why, in the PR body.
-- A visual change shows stills and gets his OK before the PR opens. Owner OK on stills: keep the PR mergeable (merge main in at each wake and before asking); a bare "ok" answers the latest ask. Ask in what he sees, never token names, with the default you will take. State a paid probe's credit cost first.
-- Reply to him in plain words (define a term the first time), with links he can open (artifact or PR, never a `/mnt` path), and say what is left. Docs name tokens, never pixel values.
+- A visual change shows stills and gets his OK before the PR opens. Owner OK on stills: keep the PR mergeable (merge main in at each wake and before asking); a bare "ok" answers the latest ask. Ask in what he sees, never token names, with the default you will take, and keep building on it; stop only before a step that cannot be undone. State a paid probe's credit cost first.
+- Reply to him in plain words (define a term the first time), short, with links he can open (artifact or PR, never a `/mnt` path); give numbered steps with URLs for what is missing, and say what is left. "Decide yourself" means decide. A click, setting or merge only he can do goes in `docs/state.md` Next with `closed when:`. Docs name tokens, never pixel values.
 - State authority: the config store owns the owner's config; its files are not in git (D296). Edit in the app, never a PR; `config pull` fills `config/` locally.
 - Pipeline discipline: verify the core daily loop runs green in production before adding new intake types or audience matrices.
 - Vercel: the CLI is pinned. Read with `pnpm run vercel:list`, `vercel:inspect`, `vercel:logs`, `vercel:env-list`; a session never deploys or edits env. Production waits for 5 merges or 3 hours (D375); `[deploy]` ending a PR title ships now.
 
 ## Also loaded
 
-[code.md](code.md) (code and tests) and [design.md](design.md) (the design system and UI work) are part of these rules; Claude Code imports them through `CLAUDE.md`, other tools read them from here.
+Read [code.md](code.md) (code and tests) and [design.md](design.md) (the design system and UI work) before any work: they are part of these rules. Claude Code imports them through `CLAUDE.md`; every other tool must open them itself.
 
 ## Keeping the record
 
-Project agents (`singularity-verify`, `singularity-worker`) are in `.claude/agents/`; `/close-session` runs the steps below.
+Project agents (`singularity-verify`, `singularity-worker`, `design-audit`) are in `.claude/agents/`, and `/close-session` runs the steps below; both are Claude Code only, so another tool reads the agent file as a checklist and does the steps by hand.
 
 After a large piece of work: clean up scratch files, servers, stashes and local branches; review the merged diff (CodeRabbit), fix findings, verify the Vercel production deploy.
 
-At the end of a session: update `docs/state.md`, add a decision (ask the coordinator for the D-number, else the next free one across `entries/` and open PRs; never renumber after a rebase without asking; one file in `decisions/entries/`) for anything that changes direction, one line to `docs/learnings.md` per failure, and a note under `docs/history/`.
+At the end of a session: update `docs/state.md`, add a decision (`pnpm run decision:next` gives the number, free on main and every pushed branch; write `decisions/entries/Dn.md` and push it at once, which claims it; never renumber after a rebase without asking him) for anything that changes direction, one line to `docs/learnings.md` per failure, and a note under `docs/history/`.

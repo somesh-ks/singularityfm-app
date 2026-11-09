@@ -853,6 +853,8 @@ describe("singularity health", () => {
     expect(said(true, last, "2026-11-09T09:41:00Z")).toEqual(["weekly_missed"]);
     // Aired on its day, or off since: the miss is said for a week, then nothing, so the issue can close.
     expect(said(true, aired("2026-11-08T06:57:00Z"), "2026-11-09T09:41:00Z")).toEqual([]);
+    // 00:30 Stockholm on the Sunday is still the 7th in UTC: the day is read on the schedule's clock.
+    expect(said(true, aired("2026-11-07T23:30:00Z"), "2026-11-09T09:41:00Z")).toEqual([]);
     expect(said(false, last, "2026-11-15T09:41:00Z")).toEqual(["weekly_missed"]);
     expect(said(false, last, "2026-11-16T09:41:00Z")).toEqual([]);
     expect(said(false, last, "2026-11-21T09:41:00Z")).toEqual([]);

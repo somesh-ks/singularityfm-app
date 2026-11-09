@@ -19,8 +19,14 @@ describe("settings summaries", () => {
   it("do not word a switched-off podcast as when it airs", () => {
     const weekly = { day: 0, hour: 8 };
     expect(weeklySummary({ ...weekly, enabled: false })).not.toBe(weeklySummary(weekly));
+    expect(weeklySummary({ ...weekly, enabled: false })).toBe(
+      weeklySummary({ ...weekly, hour: 9, enabled: false }),
+    );
     const daily = { hour: 7, cadenceDays: 2 };
     expect(dailySummary({ ...daily, enabled: false })).not.toBe(dailySummary(daily));
+    expect(dailySummary({ ...daily, enabled: false })).toBe(
+      dailySummary({ ...daily, hour: 8, enabled: false }),
+    );
   });
 
   it("say how many of a topic's sources are active", () => {

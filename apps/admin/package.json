@@ -19,7 +19,7 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.12",
-    "@singularityfm/design-system": "file:/tmp/claude-0/-home-user/cbe44592-118f-5be6-b63e-3f008620deaa/scratchpad/ds-030/singularityfm-design-system-0.3.0.tgz",
+    "@singularityfm/design-system": "0.3.0",
     "@singularityfm/web": "workspace:*",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",

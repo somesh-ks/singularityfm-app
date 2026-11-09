@@ -8,6 +8,8 @@ export interface ServerEnv {
   /** Neon Postgres (D149); the config store is used only with SINGULARITY_CONFIG_STORE=postgres too. */
   DATABASE_URL?: string;
   SINGULARITY_CONFIG_STORE?: string;
+  /** The run state store (D381); with DATABASE_URL, the site reads state/*.json from it, not from main. */
+  SINGULARITY_STATE_STORE?: string;
   SINGULARITY_GH_TOKEN?: string;
   GITHUB_REPOSITORY?: string;
   SPEECHIFY_API_KEY?: string;

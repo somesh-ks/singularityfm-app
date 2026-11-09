@@ -29,7 +29,7 @@ import {
 } from "./github";
 import type { ApiResult } from "./http";
 import { describeError } from "./redact";
-import { readStateFile, type StateReadDeps } from "./stateRead";
+import { readStateFile, type StateReadEnv } from "./stateRead";
 
 /**
  * GET /api/status?run=<id>: progress of one Generate run. It answers only for a workflow_dispatch run
@@ -215,19 +215,19 @@ export function parseOnDemandRecord(text: string): OnDemandRecord | null {
   }
 }
 
-/** state/podcast-timings.json from the state store, kept per instance for a minute: every poll asks. */
+/** state/podcast-timings.json (the state store, D381), kept per instance for a minute: every poll asks. */
 const TIMINGS_TTL_MS = 60_000;
 let timingsCache: { at: number; runs: TimedRun[] } | null = null;
 
 async function readTimings(
   github: ReturnType<typeof createGitHubClient>,
-  env?: StateReadDeps["env"],
+  env: StateReadEnv,
 ): Promise<TimedRun[]> {
   if (timingsCache && Date.now() - timingsCache.at < TIMINGS_TTL_MS) return timingsCache.runs;
   let runs: TimedRun[] = [];
   try {
     const file = JSON.parse(
-      (await readStateFile("state/podcast-timings.json", github, { env })) ?? "null",
+      (await readStateFile("state/podcast-timings.json", github, env)) ?? "null",
     );
     // A record that is not an object with stages would throw in the median: only sound ones count.
     if (Array.isArray(file?.runs)) {
@@ -258,22 +258,20 @@ const BRIEFING_TIMED_RUNS = 10;
 let briefingTimingsCache: { at: number; runs: Record<string, number>[] } | null = null;
 
 /**
- * The stage times of the newest finished briefing runs in state/run-metrics.json from the state store (kept per
+ * The stage times of the newest finished briefing runs in state/run-metrics.json (kept per
  * instance for a minute, as the episodes' are). A run has an entry for each pass, all with the run's
  * one stage clock, so the entries of a run count once. None before the metrics have run.
  */
 async function readBriefingTimings(
   github: ReturnType<typeof createGitHubClient>,
-  env?: StateReadDeps["env"],
+  env: StateReadEnv,
 ): Promise<Record<string, number>[]> {
   if (briefingTimingsCache && Date.now() - briefingTimingsCache.at < TIMINGS_TTL_MS) {
     return briefingTimingsCache.runs;
   }
   let runs: Record<string, number>[] = [];
   try {
-    const file = JSON.parse(
-      (await readStateFile("state/run-metrics.json", github, { env })) ?? "null",
-    );
+    const file = JSON.parse((await readStateFile("state/run-metrics.json", github, env)) ?? "null");
     if (Array.isArray(file?.runs)) {
       const seen = new Set<string>();
       runs = file.runs
@@ -303,7 +301,7 @@ async function readBriefingTimings(
  */
 export async function briefingEstimates(
   github: ReturnType<typeof createGitHubClient>,
-  env?: StateReadDeps["env"],
+  env: StateReadEnv,
 ): Promise<(number | null)[] | null> {
   const runs = await readBriefingTimings(github, env);
   if (runs.length < 3) return null;
@@ -351,8 +349,8 @@ async function readFailure(deps: StatusDeps, runId: number) {
 export async function progressOf(
   run: WorkflowRun,
   github: ReturnType<typeof createGitHubClient>,
-  about?: { format?: string | null; length?: string | null },
-  env?: StateReadDeps["env"],
+  about: { format?: string | null; length?: string | null } | undefined,
+  env: StateReadEnv,
 ): Promise<{
   state: StatusResponse["state"];
   step: GenerateStep | null;
@@ -492,7 +490,7 @@ export async function handleStatus(
       };
     }
 
-    const recordText = await readStateFile("state/last-run.json", github, { env: deps.env });
+    const recordText = await readStateFile("state/last-run.json", github, deps.env);
     const record = recordText ? parseOnDemandRecord(recordText) : null;
     const startedAt = Date.parse(run.startedAt ?? run.createdAt);
     const isFresh = record !== null && Date.parse(record.at) >= startedAt - RECORD_SLACK_MS;

@@ -1,5 +1,5 @@
 ---
-import Icon from "@singularityfm/design-system/Icon.astro";
+import Icon from "@singularityfm/design-system/Icon";
 import Select from "@singularityfm/design-system/Select.astro";
 import type { AlbumOption } from "../lib/catchUps";
 import type { AudioMode } from "../lib/digests";
@@ -69,7 +69,7 @@ const unavailable = mode === "expired" ? AUDIO_UNAVAILABLE_COPY.expired : null;
         aria-pressed="false"
         data-favorite={favorite}
       >
-        <Icon name="heartOutline" class="fav-add" /><Icon name="heart" class="fav-remove" />
+        <Icon name="heartOutline" className="fav-add" /><Icon name="heart" className="fav-remove" />
       </button>
     )
   }

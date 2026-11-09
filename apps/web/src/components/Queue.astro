@@ -1,6 +1,6 @@
 ---
-import Button from "@singularityfm/design-system/Button.astro";
-import Icon from "@singularityfm/design-system/Icon.astro";
+import Button from "@singularityfm/design-system/Button";
+import Icon from "@singularityfm/design-system/Icon";
 import { menuListClass } from "@singularityfm/design-system/menu";
 import { QUEUE_ACTION_ICONS, QUEUE_STATUS_ICONS } from "../lib/queueIcons";
 import { UPDATING_LABEL } from "../lib/runStages";
@@ -116,7 +116,7 @@ const icons = QUEUE_STATUS_ICONS;
           <span class="queue-stage-icon" data-queue-head-icon="fold"></span>
         </QueueRing>
         <span class="queue-fold-text queue-word" data-queue-title></span>
-        <Icon name="chevronDown" size="md" class="queue-chevron" />
+        <Icon name="chevronDown" size="md" className="queue-chevron" />
       </button>
     </div>
     <div class="queue-body" data-queue-body>

@@ -18,7 +18,7 @@ Updated 2026-11-09. Rewrite, never append.
 
 ## Tests
 
-Unit (CI): 367 files, 5,572 tests, 2 min. Site e2e: 449, 14 min. Player: 80, 7 min.
+Unit (CI): 367 files, 5,572 tests, 2 min. Site e2e: 468, 14 min. Player: 80, 7 min. Admin: 21, 1 min.
 
 ## Not working or unverified
 

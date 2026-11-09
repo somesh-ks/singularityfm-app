@@ -49,7 +49,6 @@ export const CROSS_APP_IMPORTS = [
   "apps/admin/src/scripts/healthPage.ts: ../../../web/src/lib/healthRows",
   "apps/admin/src/scripts/healthPage.ts: ../../../web/src/scripts/segmentedNav",
   "apps/admin/src/scripts/healthSummary.ts: ../../../web/src/lib/healthRows",
-  "apps/web/e2e/slowStore.spec.ts: ../../admin/src/lib/experimentsApi",
 ];
 
 const APP_FILE = /\.(?:ts|tsx|astro|mjs|js|css)$/;

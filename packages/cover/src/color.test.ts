@@ -1,4 +1,4 @@
-import { oklchToRgb, toHex } from "@singularity/design-system/scripts/colorMath";
+import { oklchToRgb, toHex } from "@singularityfm/design-system/scripts/colorMath";
 import { describe, expect, it } from "vitest";
 import {
   clampToGamut,

@@ -18,7 +18,7 @@ import {
   VITAL_METRICS,
   VITAL_THRESHOLDS,
   type VitalMetric,
-} from "@singularity/core";
+} from "@singularityfm/core";
 import {
   type EpisodeVoiceEnv,
   planEpisodeNarration,

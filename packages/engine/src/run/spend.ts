@@ -1,5 +1,5 @@
 import { join } from "node:path";
-import type { RunSpend } from "@singularity/core";
+import type { RunSpend } from "@singularityfm/core";
 import { z } from "zod";
 import { writeJsonAtomic } from "../audio/atomicFile.js";
 import type { Logger } from "../context.js";

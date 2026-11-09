@@ -1,4 +1,4 @@
-import type { Category, DigestItem, Section } from "@singularity/core";
+import type { Category, DigestItem, Section } from "@singularityfm/core";
 
 /**
  * Invented content for the fixture digests. Every name, project and study here is made up and every

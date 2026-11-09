@@ -1,4 +1,4 @@
-import { generalTopicTitle, type Item, type Source } from "@singularity/core";
+import { generalTopicTitle, type Item, type Source } from "@singularityfm/core";
 import type { Logger } from "../context.js";
 import { clusterStories } from "../dedupe/storyCluster.js";
 import { entryToRaw, loadFeed } from "../fetch/feedItems.js";

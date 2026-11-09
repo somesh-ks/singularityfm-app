@@ -5,7 +5,7 @@ import {
   StructureFile,
   type StructureProfile,
   storedStructure,
-} from "@singularity/core";
+} from "@singularityfm/core";
 import { blockedDomainsIn } from "../lib/blockedProfile";
 import { configHash } from "../lib/configHash";
 import { buildManage, type ManageData, type ManageSource, type ManageTopic } from "../lib/manage";

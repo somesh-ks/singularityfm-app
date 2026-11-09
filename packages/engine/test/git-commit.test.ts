@@ -1,6 +1,6 @@
 import { access } from "node:fs/promises";
 import { join } from "node:path";
-import { serializeDigestFile } from "@singularity/core";
+import { serializeDigestFile } from "@singularityfm/core";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { commitAndPush, DEFAULT_BOT, identityFromEnv } from "../src/git/commit.js";
 import { digestFor, must } from "./audio-fixtures.js";

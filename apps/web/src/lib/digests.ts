@@ -4,9 +4,9 @@ import {
   type Digest,
   type DigestItem,
   digestSections,
-} from "@singularity/core";
-import { paletteAccent } from "@singularity/cover";
-import { leadInWords } from "@singularity/engine/audio";
+} from "@singularityfm/core";
+import { paletteAccent } from "@singularityfm/cover";
+import { leadInWords } from "@singularityfm/engine/audio";
 import type { PlayerDigestData, PlayerItem, PlayerSection } from "../types/contracts";
 import { coverSrc } from "./covers";
 import type { DigestSource } from "./digestFiles";

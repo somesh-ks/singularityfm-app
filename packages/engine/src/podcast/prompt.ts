@@ -7,7 +7,7 @@ import {
   type HostNames,
   hostNamesFor,
   type PodcastRequest,
-} from "@singularity/core";
+} from "@singularityfm/core";
 import { boundaryLine, untrustedInstruction, wrapUntrusted } from "../llm/untrusted.js";
 import { tasteNote } from "../profile/tasteNote.js";
 import { charCount } from "./fit.js";

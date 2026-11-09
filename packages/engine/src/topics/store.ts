@@ -5,7 +5,7 @@ import {
   resolveTopics,
   type TopicsFile,
   TopicsFile as TopicsSchema,
-} from "@singularity/core";
+} from "@singularityfm/core";
 import { writeFileAtomic } from "../state/atomicWrite.js";
 
 export class TopicsError extends Error {

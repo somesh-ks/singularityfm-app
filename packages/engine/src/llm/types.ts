@@ -1,4 +1,4 @@
-import type { ModelStep } from "@singularity/core";
+import type { ModelStep } from "@singularityfm/core";
 import type { z } from "zod";
 
 export interface ChatMessage {

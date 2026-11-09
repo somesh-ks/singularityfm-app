@@ -1,4 +1,4 @@
-import { createFormatClassifier } from "@singularity/engine/source-preview";
+import { createFormatClassifier } from "@singularityfm/engine/source-preview";
 import type { APIRoute } from "astro";
 import { recordingFaults, toResponse } from "../../server/http";
 import { sharedLimit } from "../../server/rateLimit";

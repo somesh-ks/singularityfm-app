@@ -1,6 +1,6 @@
 import { readFile, stat } from "node:fs/promises";
 import { join } from "node:path";
-import { parseDigestFile } from "@singularity/core";
+import { parseDigestFile } from "@singularityfm/core";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { makeCurateCommand } from "../src/commands/curate.js";
 import { makeRenderCommand } from "../src/commands/render.js";

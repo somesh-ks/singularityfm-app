@@ -1,4 +1,4 @@
-import type { AudioTimeline, Digest, DigestItem, Section } from "@singularity/core";
+import type { AudioTimeline, Digest, DigestItem, Section } from "@singularityfm/core";
 
 /** Builders for tests. Everything is invented and every link points at example.com. */
 

@@ -1,4 +1,4 @@
-import { MAX_REGENERATIONS, StoryCount } from "@singularity/core";
+import { MAX_REGENERATIONS, StoryCount } from "@singularityfm/core";
 import type { GenerateResponse } from "../types/contracts";
 import { cancelTokenFor } from "./cancelToken";
 import { missingSettings, readServerConfig, type ServerEnv, secretsOf } from "./config";

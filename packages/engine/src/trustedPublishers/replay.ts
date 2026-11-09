@@ -1,4 +1,4 @@
-import type { Item, JudgmentEntry, JudgmentsFile, Preferences } from "@singularity/core";
+import type { Item, JudgmentEntry, JudgmentsFile, Preferences } from "@singularityfm/core";
 import { DEFAULT_JEV_MODEL } from "../judge/jev.js";
 import { QUESTIONS_HASH } from "../judge/questions.js";
 import { scoreItem } from "../score/scoreItem.js";

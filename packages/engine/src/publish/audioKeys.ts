@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { DigestId, EpisodeId } from "@singularity/core";
+import { DigestId, EpisodeId } from "@singularityfm/core";
 
 /**
  * The narration keys in Blob, apart from the client in blob.ts: the site's function imports these on

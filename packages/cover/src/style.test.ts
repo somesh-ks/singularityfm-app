@@ -10,7 +10,7 @@ import { STYLE_RULES } from "./style.js";
  */
 describe("tokens.css holds each style's cover numbers", () => {
   const css = readFileSync(
-    createRequire(import.meta.url).resolve("@singularity/design-system/styles/tokens.css"),
+    createRequire(import.meta.url).resolve("@singularityfm/design-system/styles/tokens.css"),
     "utf8",
   );
   const readIn = (block: RegExp, style: string, property: string): number => {

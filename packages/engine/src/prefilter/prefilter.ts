@@ -4,7 +4,7 @@ import {
   type Preferences,
   type Source,
   type SourceType,
-} from "@singularity/core";
+} from "@singularityfm/core";
 import {
   categoryHint,
   isDesignHinted,

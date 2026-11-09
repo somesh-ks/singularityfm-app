@@ -1,4 +1,4 @@
-import { pickCover } from "@singularity/cover";
+import { pickCover } from "@singularityfm/cover";
 import { type CommandContext, secretsFromEnv } from "../context.js";
 import { type ApiRuntime, createApiRuntime } from "../curate/apiRuntime.js";
 import { createGitRunner } from "../git/runGit.js";

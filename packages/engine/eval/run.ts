@@ -24,7 +24,7 @@ import {
   loadEnv,
   loadModelRouting,
   repoRoot,
-} from "@singularity/core";
+} from "@singularityfm/core";
 import { type Logger, secretsFromEnv } from "../src/context.js";
 import { loadPreferences } from "../src/curate/inputs.js";
 import { JevJudge } from "../src/judge/jev.js";

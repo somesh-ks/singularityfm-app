@@ -1,4 +1,4 @@
-import type { SeenFile } from "@singularity/core";
+import type { SeenFile } from "@singularityfm/core";
 import { describe, expect, it } from "vitest";
 import { dedupe } from "../src/dedupe/dedupe.js";
 import { jaccard, titleTokens } from "../src/dedupe/titleTokens.js";

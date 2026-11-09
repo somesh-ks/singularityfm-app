@@ -6,14 +6,14 @@ import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { hexFor, loadTokens } from "@singularity/design-system/scripts/buildTokens";
+import { hexFor, loadTokens } from "@singularityfm/design-system/scripts/buildTokens";
 import { build } from "esbuild";
 
 export const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 
 /** A file of the pinned design system package, by its path inside the package. */
 export function packageFile(path: string): string {
-  return createRequire(import.meta.url).resolve(`@singularity/design-system/${path}`);
+  return createRequire(import.meta.url).resolve(`@singularityfm/design-system/${path}`);
 }
 
 export function readText(relativePath: string): string {

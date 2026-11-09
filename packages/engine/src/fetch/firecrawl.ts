@@ -1,4 +1,4 @@
-import type { Item } from "@singularity/core";
+import type { Item } from "@singularityfm/core";
 import { z } from "zod";
 import { cleanMarkdown } from "../extract/cleanMarkdown.js";
 import { type HttpClient, HttpError } from "../http.js";

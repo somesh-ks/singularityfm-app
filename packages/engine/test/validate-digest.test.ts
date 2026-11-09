@@ -6,7 +6,7 @@ import {
   type Source,
   StructureBlocks,
   seedTopicsFile,
-} from "@singularity/core";
+} from "@singularityfm/core";
 import { describe, expect, it } from "vitest";
 import { buildDigest } from "../src/render/buildDigest.js";
 import { sectionPlanFor } from "../src/score/sectionPlan.js";

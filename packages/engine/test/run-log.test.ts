@@ -2,7 +2,7 @@ import { cp, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { PGlite } from "@electric-sql/pglite";
-import { findPrice, loadEnv } from "@singularity/core";
+import { findPrice, loadEnv } from "@singularityfm/core";
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { makeLogRunCommand } from "../src/commands/logRun.js";
 import { loadPrices, priceSpend } from "../src/cost/ledger.js";

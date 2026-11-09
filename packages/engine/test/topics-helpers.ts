@@ -1,4 +1,4 @@
-import { activeCustomTopics, resolveTopics, type Topic } from "@singularity/core";
+import { activeCustomTopics, resolveTopics, type Topic } from "@singularityfm/core";
 
 /** The topics of a repository that has never had one added: the resolved seed. */
 export function loadTopicsFromSeed(): { custom: Topic[] } {
@@ -10,7 +10,7 @@ export function loadTopicsFromSeed(): { custom: Topic[] } {
 import { readFileSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
-import { loadEnv } from "@singularity/core";
+import { loadEnv } from "@singularityfm/core";
 import { type CommandContext, createLogger } from "../src/context.js";
 import { makeSource } from "./fetch-helpers.js";
 import {

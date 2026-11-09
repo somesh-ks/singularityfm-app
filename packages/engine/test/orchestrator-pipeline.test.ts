@@ -8,7 +8,7 @@ import {
   type SeenFile,
   type SourceHealthFile,
   type SourceStatsFile,
-} from "@singularity/core";
+} from "@singularityfm/core";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { readRunMetrics } from "../src/metrics/runMetrics.js";
 import { git } from "./git-testRepo.js";

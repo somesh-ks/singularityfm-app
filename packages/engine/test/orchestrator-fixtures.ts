@@ -12,8 +12,8 @@ import {
   type Source,
   seedTopicsFile,
   serializeDigestFile,
-} from "@singularity/core";
-import { pickCover } from "@singularity/cover";
+} from "@singularityfm/core";
+import { pickCover } from "@singularityfm/cover";
 import type { Logger } from "../src/context.js";
 import type { ApiRuntime } from "../src/curate/apiRuntime.js";
 import type { PoolFile } from "../src/fetch/pool.js";

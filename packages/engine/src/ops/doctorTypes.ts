@@ -1,5 +1,5 @@
 import { readFile } from "node:fs/promises";
-import type { Env } from "@singularity/core";
+import type { Env } from "@singularityfm/core";
 import { z } from "zod";
 import type { GitRunner } from "../git/runGit.js";
 import type { JevClientLike } from "../judge/jev.js";

@@ -1,4 +1,4 @@
-import { MIN_JUDGED, type SourceStatsFile } from "@singularity/core";
+import { MIN_JUDGED, type SourceStatsFile } from "@singularityfm/core";
 import { tasteMultiplier } from "../profile/tasteFit.js";
 import { type VotePreferences, voteMultiplier } from "../profile/votes.js";
 import { passRate } from "../state/sourceStats.js";

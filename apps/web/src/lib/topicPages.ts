@@ -1,4 +1,4 @@
-import { GENERAL_TOPICS, groupHomeId, TOPIC_GROUPS, topicGroupOf } from "@singularity/core";
+import { GENERAL_TOPICS, groupHomeId, TOPIC_GROUPS, topicGroupOf } from "@singularityfm/core";
 import type { ManageSource, ManageTopic } from "./manage";
 import { sourcesSummary } from "./settingsSummary";
 import type { TopicWords } from "./sourceCatalog";

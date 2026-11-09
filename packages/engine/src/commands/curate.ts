@@ -1,6 +1,6 @@
 import { basename, join } from "node:path";
 import { parseArgs } from "node:util";
-import { DigestKind, JudgmentsFile, offCategories } from "@singularity/core";
+import { DigestKind, JudgmentsFile, offCategories } from "@singularityfm/core";
 import { loadCommunity } from "../community/community.js";
 import { type CommandContext, type CommandRun, secretsFromEnv } from "../context.js";
 import { validateAgentSelection } from "../curate/agentMode.js";

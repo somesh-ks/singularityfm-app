@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { buildCss, loadTokens } from "@singularity/design-system/scripts/buildTokens";
+import { buildCss, loadTokens } from "@singularityfm/design-system/scripts/buildTokens";
 import { describe, expect, it } from "vitest";
 import { packageFile } from "./prototype/buildShared.js";
 

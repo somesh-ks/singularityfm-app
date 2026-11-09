@@ -1,4 +1,4 @@
-import { serializeDigestFile } from "@singularity/core";
+import { serializeDigestFile } from "@singularityfm/core";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   ALLOWLISTS,

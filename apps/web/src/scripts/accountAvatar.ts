@@ -23,8 +23,8 @@ import {
   avatarMarkup,
   moodShapes,
   tokenWords,
-} from "@singularity/design-system/avatar";
-import { warmWhenIdle } from "@singularity/design-system/idle";
+} from "@singularityfm/design-system/avatar";
+import { warmWhenIdle } from "@singularityfm/design-system/idle";
 import { getPreferences } from "../player/core/preferences";
 import { morphPath, pickReaction } from "./avatarReactions";
 import { rootStyle, tokenMs } from "./rootTokens";

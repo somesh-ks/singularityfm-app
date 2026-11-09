@@ -5,10 +5,10 @@ import {
   parseDigestFile,
   ScheduleFile,
   SourceHealthFile,
-} from "@singularity/core";
-import { type ClientFaultGroup, readClientFaults } from "@singularity/engine/faults-store";
-import { readHealthReport, type StoredHealth } from "@singularity/engine/health-store";
-import { readVitals, type VitalSummary } from "@singularity/engine/vitals-store";
+} from "@singularityfm/core";
+import { type ClientFaultGroup, readClientFaults } from "@singularityfm/engine/faults-store";
+import { readHealthReport, type StoredHealth } from "@singularityfm/engine/health-store";
+import { readVitals, type VitalSummary } from "@singularityfm/engine/vitals-store";
 import type { HealthBody } from "../lib/healthRows";
 import { HEALTH_JOBS } from "../lib/healthRows";
 import { readServerConfig } from "./config";

@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import type { ListingFingerprintsFile, Source } from "@singularity/core";
+import type { ListingFingerprintsFile, Source } from "@singularityfm/core";
 import type { HttpClient } from "../http.js";
 
 /** Fewer links than this and the page is built in the browser: its fingerprint says nothing. */

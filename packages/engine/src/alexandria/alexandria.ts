@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import type { Item } from "@singularity/core";
+import type { Item } from "@singularityfm/core";
 import { z } from "zod";
 import { EXPERIMENT_IDS, experimentOverride } from "../experiments/overrides.js";
 import { FEED_TEXT_ENOUGH_CHARS } from "../extract/extractText.js";

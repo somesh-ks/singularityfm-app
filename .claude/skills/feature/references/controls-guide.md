@@ -6,7 +6,7 @@ Standardized control reference for Singularity. When adding or modifying interac
 
 ## 1. Decision Matrix
 
-Which part for which need is generated, so it cannot drift from the code: `npm run ds -- find "<need>"` answers one need, `npm run ds -- list` lists every part, and `node_modules/@singularity/design-system/tokens/llms.txt` is the whole index with each part's use-when and what to use instead. The source is `scripts/system/parts.ts` in the design system repo; a test there holds it against the stylesheets. Section 2 has the markup of the common parts.
+Which part for which need is generated, so it cannot drift from the code: `npm run ds -- find "<need>"` answers one need, `npm run ds -- list` lists every part, and `node_modules/@singularityfm/design-system/tokens/llms.txt` is the whole index with each part's use-when and what to use instead. The source is `scripts/system/parts.ts` in the design system repo; a test there holds it against the stylesheets. Section 2 has the markup of the common parts.
 
 ---
 

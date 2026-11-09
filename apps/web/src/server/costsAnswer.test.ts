@@ -1,4 +1,4 @@
-import type { CostRecord, PriceTable } from "@singularity/core";
+import type { CostRecord, PriceTable } from "@singularityfm/core";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   type CostSources,

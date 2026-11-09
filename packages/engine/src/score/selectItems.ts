@@ -9,7 +9,7 @@ import {
   TECH_SECTION,
   TOP_PICKS_SECTION,
   VOICE_LIMITS,
-} from "@singularity/core";
+} from "@singularityfm/core";
 import {
   isPatchRelease,
   isReleaseNote,

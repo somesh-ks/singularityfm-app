@@ -13,7 +13,7 @@ import {
   handleExperiments,
 } from "../src/lib/experimentsApi.js";
 
-// Workspace code is imported by relative path: a bare `@singularity/engine/...` import resolves to
+// Workspace code is imported by relative path: a bare `@singularityfm/engine/...` import resolves to
 // source the function bundle omits, and every request then crashes at load (2026-10-30).
 // The Experiments page's switches (D249): a Vercel Function beside the static admin app, behind the
 // same gate as its pages (middleware.ts). It needs DATABASE_URL and SINGULARITY_CONFIG_STORE=postgres

@@ -1,6 +1,6 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import type { Preferences, Source, SourcesUserFile, TopicsFile } from "@singularity/core";
+import type { Preferences, Source, SourcesUserFile, TopicsFile } from "@singularityfm/core";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { makeConfigCommand } from "../src/commands/config.js";
 import { prefilter } from "../src/prefilter/prefilter.js";

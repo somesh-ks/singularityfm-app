@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
-import { DigestId, digestRelPath, parseDigestFile, requireKey } from "@singularity/core";
+import { DigestId, digestRelPath, parseDigestFile, requireKey } from "@singularityfm/core";
 import {
   checkBudget,
   describeRefusal,

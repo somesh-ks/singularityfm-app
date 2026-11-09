@@ -2,7 +2,7 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { deflateRawSync } from "node:zlib";
-import { digestRelPath, serializeDigestFile, VITAL_THRESHOLDS } from "@singularity/core";
+import { digestRelPath, serializeDigestFile, VITAL_THRESHOLDS } from "@singularityfm/core";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { freeKeyChecks } from "../src/ops/doctorOnline.js";
 import { collectHealth, type HealthFetch } from "../src/ops/health.js";

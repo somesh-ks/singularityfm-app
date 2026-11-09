@@ -7,7 +7,7 @@ import {
   digestRelPath,
   MAX_REGENERATIONS,
   parseDigestFile,
-} from "@singularity/core";
+} from "@singularityfm/core";
 import { commitAndPush } from "../git/commit.js";
 import { readSeen, writeSeen } from "../state/store.js";
 import { forgetPool } from "./carriedPool.js";

@@ -5,7 +5,7 @@ import {
   PODCAST_MAX_CHARS,
   type PodcastFormat,
   type PodcastRequest,
-} from "@singularity/core";
+} from "@singularityfm/core";
 import { CUSTOM_BLOCK_CHARS, type ScriptShape } from "./structure.js";
 
 type PodcastLength = PodcastRequest["length_minutes"];

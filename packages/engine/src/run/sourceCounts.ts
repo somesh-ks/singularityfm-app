@@ -1,4 +1,4 @@
-import type { JudgmentEntry } from "@singularity/core";
+import type { JudgmentEntry } from "@singularityfm/core";
 import { z } from "zod";
 import { readJsonIfExists } from "../curate/inputs.js";
 import type { SourceCounts } from "../state/sourceStats.js";

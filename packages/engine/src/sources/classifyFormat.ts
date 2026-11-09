@@ -1,4 +1,4 @@
-import { SOURCE_FORMATS, type SourceFormat } from "@singularity/core";
+import { SOURCE_FORMATS, type SourceFormat } from "@singularityfm/core";
 import { choice, TypeSafeClient } from "@typesafe-ai/sdk";
 import { z } from "zod";
 import { DEFAULT_JEV_MODEL, type JevClientLike } from "../judge/jev.js";

@@ -1,7 +1,7 @@
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { serializeDigestFile } from "@singularity/core";
+import { serializeDigestFile } from "@singularityfm/core";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { makeDigest } from "../testing/digestFactory";
 import { FIXTURE_AUDIO_PATH, loadSite, rewriteFixtureAudioUrl, usesFixtures } from "./site";

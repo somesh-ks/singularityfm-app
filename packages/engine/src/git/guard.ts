@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { isDeepStrictEqual } from "node:util";
-import { parseDigestFile } from "@singularity/core";
+import { parseDigestFile } from "@singularityfm/core";
 import type { GitRunner } from "./runGit.js";
 import { gitOutput } from "./runGit.js";
 

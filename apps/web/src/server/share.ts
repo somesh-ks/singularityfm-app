@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
-import { mapConcurrent } from "@singularity/engine/concurrency";
-import type { SqlClient } from "@singularity/engine/config-paths";
+import { mapConcurrent } from "@singularityfm/engine/concurrency";
+import type { SqlClient } from "@singularityfm/engine/config-paths";
 import {
   activeShareLink,
   createShareLink,
@@ -11,7 +11,7 @@ import {
   type SharedSegment,
   type ShareLink,
   startSharedPlay,
-} from "@singularity/engine/share-store";
+} from "@singularityfm/engine/share-store";
 import {
   NOT_STORED_COPY,
   SHARE_EXPIRY_DAYS,

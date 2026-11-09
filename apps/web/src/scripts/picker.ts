@@ -14,9 +14,9 @@
  * `picker:sync` to the select to bring the button's words up to date.
  */
 
-import { flagNode } from "@singularity/design-system/flag";
-import { iconClass } from "@singularity/design-system/icon";
-import { ICON_PATHS, ICON_VIEW_BOX } from "@singularity/design-system/icons";
+import { flagNode } from "@singularityfm/design-system/flag";
+import { iconClass } from "@singularityfm/design-system/icon";
+import { ICON_PATHS, ICON_VIEW_BOX } from "@singularityfm/design-system/icons";
 import { matchesQuery, pickerCount, pickerNoMatch } from "../lib/pickerFilter";
 import { FLOATING, roomFloor } from "../lib/roomFloor";
 import { type Break, beginBreakOnTab } from "../player/core/sampleBreak";

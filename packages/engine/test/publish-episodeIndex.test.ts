@@ -6,7 +6,7 @@ import {
   EpisodeIndex,
   episodeRelPath,
   serializeEpisodeFile,
-} from "@singularity/core";
+} from "@singularityfm/core";
 import { afterEach, beforeEach, expect, it } from "vitest";
 import { publishEpisodeIndex } from "../src/publish/episodeIndex.js";
 import {

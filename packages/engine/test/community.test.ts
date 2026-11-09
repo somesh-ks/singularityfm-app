@@ -1,4 +1,4 @@
-import type { Item } from "@singularity/core";
+import type { Item } from "@singularityfm/core";
 import { describe, expect, it } from "vitest";
 import {
   type CommunityFile,

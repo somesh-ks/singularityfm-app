@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { isFieldRecord as isRecord } from "@singularity/core";
+import { isFieldRecord as isRecord } from "@singularityfm/core";
 import { loadAllCosts } from "../cost/ledger.js";
 import type { JobResult } from "../run/runLog.js";
 import type { RunOutcome, RunRecord, StageRecord } from "../store/runsStore.js";

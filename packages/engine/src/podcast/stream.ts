@@ -1,5 +1,5 @@
-import type { Episode, PodcastRequest } from "@singularity/core";
-import { paletteAccent } from "@singularity/cover";
+import type { Episode, PodcastRequest } from "@singularityfm/core";
+import { paletteAccent } from "@singularityfm/cover";
 import type { Logger } from "../context.js";
 import type { BlobClient } from "../publish/blob.js";
 import { episodeTitle } from "./episode.js";

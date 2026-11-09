@@ -1,4 +1,4 @@
-import type { Env } from "@singularity/core";
+import type { Env } from "@singularityfm/core";
 import { noul } from "@typesafe-ai/sdk";
 import { z } from "zod";
 import { redact } from "../context.js";

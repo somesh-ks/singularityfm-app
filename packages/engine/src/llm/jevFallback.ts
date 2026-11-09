@@ -1,4 +1,4 @@
-import type { ModelStep } from "@singularity/core";
+import type { ModelStep } from "@singularityfm/core";
 import { z } from "zod";
 import type { Logger } from "../context.js";
 import type { JevClientLike } from "../judge/jev.js";

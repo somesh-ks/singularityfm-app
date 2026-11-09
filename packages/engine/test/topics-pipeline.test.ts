@@ -9,7 +9,7 @@ import {
   type Topic,
   type TopicJudgmentsFile,
   TopicsFile,
-} from "@singularity/core";
+} from "@singularityfm/core";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { TopicJudge } from "../src/judge/topicJudge.js";
 import type { JudgedFile } from "../src/run/artifacts.js";

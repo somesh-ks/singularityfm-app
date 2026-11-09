@@ -1,4 +1,4 @@
-import { AudioTimeline, type Digest, parseDigestFile } from "@singularity/core";
+import { AudioTimeline, type Digest, parseDigestFile } from "@singularityfm/core";
 import { type ContentFiles, diskFiles, mapLimit, READ_CONCURRENCY } from "./contentFiles";
 
 export interface DigestSource {

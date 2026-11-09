@@ -1,5 +1,5 @@
-import { CATEGORIES } from "@singularity/core";
-import type { SqlClient } from "@singularity/engine/config-store";
+import { CATEGORIES } from "@singularityfm/core";
+import type { SqlClient } from "@singularityfm/engine/config-store";
 import { describe, expect, it, vi } from "vitest";
 import { createFakeGitHub, REPO, runJson } from "../testing/fakeGitHub";
 import type { ConfigOp } from "../types/contracts";

@@ -1,4 +1,4 @@
-import { MAX_REGENERATIONS } from "@singularity/core";
+import { MAX_REGENERATIONS } from "@singularityfm/core";
 
 /**
  * What a Regenerate item says about its podcast's regenerations (D212): the tooltip counter, and

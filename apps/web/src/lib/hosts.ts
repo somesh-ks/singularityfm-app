@@ -1,4 +1,4 @@
-import { hostNamesFor } from "@singularity/core/hosts";
+import { hostNamesFor } from "@singularityfm/core/hosts";
 
 /**
  * Who is speaking in an episode, as the transcript names them.

@@ -1,4 +1,4 @@
-import { DEFAULT_SCHEDULE } from "@singularity/core";
+import { DEFAULT_SCHEDULE } from "@singularityfm/core";
 import { describe, expect, it, vi } from "vitest";
 import { createFakeGitHub, REPO } from "../testing/fakeGitHub";
 import {

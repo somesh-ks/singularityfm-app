@@ -1,5 +1,5 @@
 import { rm } from "node:fs/promises";
-import { type SourceStatsFile, stockholmDate, storiesFor } from "@singularity/core";
+import { type SourceStatsFile, stockholmDate, storiesFor } from "@singularityfm/core";
 import { loadJudgments } from "../curate/inputs.js";
 import { writeJson } from "../curate/output.js";
 import { ListingMemory } from "../fetch/listingCheck.js";

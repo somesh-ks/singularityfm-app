@@ -15,7 +15,7 @@ import {
   structureSectionOrder,
   TOP_PICKS_SECTION,
   TRENDING_BLOCK_SECTION,
-} from "@singularity/core";
+} from "@singularityfm/core";
 import { loadSchedule } from "../schedule/store.js";
 import { loadStructureFile } from "../structure/store.js";
 

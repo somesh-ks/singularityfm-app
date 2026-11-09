@@ -1,4 +1,4 @@
-import type { Item } from "@singularity/core";
+import type { Item } from "@singularityfm/core";
 import { productTokens } from "../dedupe/storyCluster.js";
 import { isReleaseNote } from "./releaseNotes.js";
 

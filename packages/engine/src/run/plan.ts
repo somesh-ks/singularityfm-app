@@ -1,5 +1,5 @@
 import { join } from "node:path";
-import { DigestId, DigestKind, StoryCount } from "@singularity/core";
+import { DigestId, DigestKind, StoryCount } from "@singularityfm/core";
 import { z } from "zod";
 import { readJsonIfExists } from "../curate/inputs.js";
 import { writeJson } from "../curate/output.js";

@@ -20,7 +20,7 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const OUT = join(HERE, "..", "apps", "web", "public");
 // The tokens the reader ships with: the design system version apps/web pins (D382 step 7).
 export const TOKENS = createRequire(join(HERE, "..", "apps", "web", "package.json")).resolve(
-  "@singularity/design-system/styles/tokens.css",
+  "@singularityfm/design-system/styles/tokens.css",
 );
 
 /** The mark's own box, in the units of the brand SVG. */

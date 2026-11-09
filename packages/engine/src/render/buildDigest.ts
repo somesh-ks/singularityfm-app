@@ -8,7 +8,7 @@ import {
   SECTION_TITLES,
   VOICE_LIMITS,
   zonedDate,
-} from "@singularity/core";
+} from "@singularityfm/core";
 import { departsFromBuiltinOrder, type SectionPlan } from "../score/sectionPlan.js";
 import { assignSections } from "../score/selectItems.js";
 import type { SelectedItem } from "../score/types.js";

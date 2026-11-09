@@ -16,7 +16,7 @@ import {
   avatarParts,
   shapeFace,
   shapeOutline,
-} from "@singularity/design-system/avatar";
+} from "@singularityfm/design-system/avatar";
 import {
   alignRing,
   type Beat,

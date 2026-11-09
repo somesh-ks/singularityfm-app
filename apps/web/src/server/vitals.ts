@@ -5,8 +5,8 @@ import {
   VITAL_METRICS,
   type VitalMetric,
   vitalPage,
-} from "@singularity/core/vitals";
-import { recordVitals, type VitalsReport } from "@singularity/engine/vitals-store";
+} from "@singularityfm/core/vitals";
+import { recordVitals, type VitalsReport } from "@singularityfm/engine/vitals-store";
 import { type DatabaseDeps, deploymentDatabaseUrl, guardedDatabase } from "./database";
 
 /**

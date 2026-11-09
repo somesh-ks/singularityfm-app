@@ -1,4 +1,4 @@
-import { glowFavorite } from "@singularity/design-system/glow";
+import { glowFavorite } from "@singularityfm/design-system/glow";
 import {
   MENU_TILES_MAX,
   menuBodyClass,
@@ -6,13 +6,13 @@ import {
   menuItemClass,
   menuListClass,
   menuTilesClass,
-} from "@singularity/design-system/menu";
+} from "@singularityfm/design-system/menu";
 import {
   sheetHeadClass,
   sheetHeadingClass,
   sheetSubtitleClass,
   sheetTitleClass,
-} from "@singularity/design-system/sheet";
+} from "@singularityfm/design-system/sheet";
 import {
   type CSSProperties,
   type KeyboardEvent,

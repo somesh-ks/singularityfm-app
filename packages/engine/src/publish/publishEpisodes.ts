@@ -1,6 +1,6 @@
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { EpisodeId, episodeRelPath, STATE_FILES } from "@singularity/core";
+import { EpisodeId, episodeRelPath, STATE_FILES } from "@singularityfm/core";
 import { checkBudget, describeRefusal, fileUsageStore, recordUsage } from "../audio/budget.js";
 import {
   deriveSegmentMarks,

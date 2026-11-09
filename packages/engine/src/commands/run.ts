@@ -1,5 +1,5 @@
 import { parseArgs } from "node:util";
-import { DigestId, PodcastFeedback, ScheduleLengthMinutes, StoryCount } from "@singularity/core";
+import { DigestId, PodcastFeedback, ScheduleLengthMinutes, StoryCount } from "@singularityfm/core";
 import type { CommandContext, CommandRun } from "../context.js";
 import { RUN_MODES, type RunMode } from "../gate/decideRun.js";
 import { buildDeps } from "../run/buildDeps.js";

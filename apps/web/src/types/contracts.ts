@@ -1,4 +1,4 @@
-import type { ConfigOp as CoreConfigOp, DigestKind, SourceFormat } from "@singularity/core";
+import type { ConfigOp as CoreConfigOp, DigestKind, SourceFormat } from "@singularityfm/core";
 
 /**
  * Contracts shared by the reader pages, the player island and the Generate sheet. Both the page

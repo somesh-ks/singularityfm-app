@@ -8,7 +8,7 @@ import {
   itemId,
   JudgmentEntry,
   Preferences,
-} from "@singularity/core";
+} from "@singularityfm/core";
 
 const here = dirname(fileURLToPath(import.meta.url));
 

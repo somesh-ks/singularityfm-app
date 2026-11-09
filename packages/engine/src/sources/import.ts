@@ -1,4 +1,4 @@
-import type { Source, SourcesFile } from "@singularity/core";
+import type { Source, SourcesFile } from "@singularityfm/core";
 import type { QueriesFile } from "../fetch/queries.js";
 import { slugify } from "../normalize/slugify.js";
 import { type MdRow, parseSourcesMd } from "./parseSourcesMd.js";

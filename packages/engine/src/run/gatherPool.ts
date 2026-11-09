@@ -5,7 +5,7 @@ import {
   resolveTopics,
   type Source,
   type SourcesFile,
-} from "@singularity/core";
+} from "@singularityfm/core";
 import { loadPreferences } from "../curate/inputs.js";
 import { dedupe } from "../dedupe/dedupe.js";
 import { fetchAll, selectSources } from "../fetch/fetchAll.js";

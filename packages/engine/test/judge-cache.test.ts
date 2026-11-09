@@ -3,7 +3,7 @@ import {
   type Item,
   type JudgmentEntry,
   type JudgmentsFile,
-} from "@singularity/core";
+} from "@singularityfm/core";
 import { describe, expect, it } from "vitest";
 import {
   judgeWithCache,

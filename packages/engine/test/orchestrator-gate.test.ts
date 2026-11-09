@@ -1,7 +1,7 @@
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
-import type { LastRunFile } from "@singularity/core";
+import type { LastRunFile } from "@singularityfm/core";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { UsageError } from "../src/run/errors.js";
 import { gateStage, parseSince } from "../src/run/gate.js";

@@ -1,4 +1,4 @@
-import { glyphSheet } from "@singularity/cover";
+import { glyphSheet } from "@singularityfm/cover";
 import type { APIRoute } from "astro";
 import { loadCoverFonts } from "../../lib/coverFonts";
 

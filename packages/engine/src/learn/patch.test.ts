@@ -1,4 +1,4 @@
-import type { Preferences } from "@singularity/core";
+import type { Preferences } from "@singularityfm/core";
 import { describe, expect, it } from "vitest";
 import { applyPatch, PreferencesPatch } from "./patch.js";
 

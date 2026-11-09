@@ -1,4 +1,4 @@
-import { restyleHex } from "@singularity/cover/style";
+import { restyleHex } from "@singularityfm/cover/style";
 
 /**
  * The ambient light follows the style and a reader's hue (D314). The page carries the month's own

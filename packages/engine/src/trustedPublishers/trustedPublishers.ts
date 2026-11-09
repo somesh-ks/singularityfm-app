@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { Category, type Item, type Topic } from "@singularity/core";
+import { Category, type Item, type Topic } from "@singularityfm/core";
 import { z } from "zod";
 import { EXPERIMENT_IDS, experimentOverride } from "../experiments/overrides.js";
 import type { ExaQuery } from "../fetch/queries.js";

@@ -1,4 +1,4 @@
-import { VOICE_LIMITS } from "@singularity/core";
+import { VOICE_LIMITS } from "@singularityfm/core";
 import type { Linter, VoiceField } from "../voice/lint.js";
 import { countWords, splitSentences } from "../voice/sentences.js";
 

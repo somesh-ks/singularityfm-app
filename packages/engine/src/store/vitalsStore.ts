@@ -1,4 +1,4 @@
-import { VITAL_METRICS, type VitalDevice, type VitalMetric } from "@singularity/core/vitals";
+import { VITAL_METRICS, type VitalDevice, type VitalMetric } from "@singularityfm/core/vitals";
 import type { SqlClient } from "./configPaths.js";
 import { missingTable, withTable } from "./pgErrors.js";
 

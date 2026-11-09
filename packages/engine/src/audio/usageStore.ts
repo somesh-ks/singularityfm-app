@@ -1,4 +1,4 @@
-import type { UsageFile } from "@singularity/core";
+import type { UsageFile } from "@singularityfm/core";
 
 /**
  * Where the month's Speechify character count lives. The engine's narration jobs and the site's

@@ -6,7 +6,7 @@ import {
   type Topic,
   type TopicJudgmentEntry,
   topicTaste,
-} from "@singularity/core";
+} from "@singularityfm/core";
 import { z } from "zod";
 import type { Logger } from "../context.js";
 import { parseFeed } from "../fetch/feedParser.js";

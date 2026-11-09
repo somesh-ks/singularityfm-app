@@ -1,4 +1,4 @@
-import { autoStories } from "@singularity/core/storyCount";
+import { autoStories } from "@singularityfm/core/storyCount";
 import { describe, expect, it } from "vitest";
 import {
   desiredChip,

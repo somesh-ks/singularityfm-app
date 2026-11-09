@@ -11,7 +11,7 @@ import {
   stockholmDate,
   VOICE_LIMITS,
   withGeneralTopics,
-} from "@singularity/core";
+} from "@singularityfm/core";
 import {
   linkSourceIds,
   loadJudgments,

@@ -6,7 +6,7 @@
  */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
-import { buildTokensCss } from "@singularity/design-system/scripts/buildTokens";
+import { buildTokensCss } from "@singularityfm/design-system/scripts/buildTokens";
 import {
   bundleScript,
   fillTemplate,

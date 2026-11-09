@@ -7,7 +7,7 @@ import {
   Preferences,
   resolveTopics,
   zonedDate,
-} from "@singularity/core";
+} from "@singularityfm/core";
 import { type CommandContext, type CommandRun, redact, secretsFromEnv } from "../context.js";
 import { dedupe } from "../dedupe/dedupe.js";
 import { fetchAll } from "../fetch/fetchAll.js";

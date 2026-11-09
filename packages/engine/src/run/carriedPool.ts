@@ -1,6 +1,6 @@
 import { readdir, readFile, rm } from "node:fs/promises";
 import { join } from "node:path";
-import { Item, type SourceType } from "@singularity/core";
+import { Item, type SourceType } from "@singularityfm/core";
 import { z } from "zod";
 import { readJsonIfExists } from "../curate/inputs.js";
 import { writeJson } from "../curate/output.js";

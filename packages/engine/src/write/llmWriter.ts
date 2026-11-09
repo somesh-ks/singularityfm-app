@@ -1,4 +1,4 @@
-import { VOICE_LIMITS } from "@singularity/core";
+import { VOICE_LIMITS } from "@singularityfm/core";
 import { z } from "zod";
 import type { Logger } from "../context.js";
 import { mapConcurrent } from "../llm/concurrency.js";

@@ -8,7 +8,7 @@ import type {
   RunRecord,
   SeenFile,
   SourcesFile,
-} from "@singularity/core";
+} from "@singularityfm/core";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { SourceResult } from "../src/fetch/types.js";
 import { listDigestIds } from "../src/state/digestIds.js";

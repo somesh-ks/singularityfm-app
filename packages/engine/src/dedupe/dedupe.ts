@@ -1,4 +1,4 @@
-import type { Item, SeenFile, Source } from "@singularity/core";
+import type { Item, SeenFile, Source } from "@singularityfm/core";
 import { categoryHint, isTechHinted, isTrendingHinted } from "../sources/hint.js";
 import { clusterStories } from "./storyCluster.js";
 import { jaccard, MIN_TOKENS, titleTokens } from "./titleTokens.js";

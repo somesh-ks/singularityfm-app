@@ -1,8 +1,8 @@
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
-import type { Digest, DigestItem, Section } from "@singularity/core";
-import { digestRelPath, loadEnv, serializeDigestFile } from "@singularity/core";
+import type { Digest, DigestItem, Section } from "@singularityfm/core";
+import { digestRelPath, loadEnv, serializeDigestFile } from "@singularityfm/core";
 import type {
   MarksSynthesis,
   SpeechMark,

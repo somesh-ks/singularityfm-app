@@ -1,4 +1,9 @@
-import { type Category, type GeneralTopicId, type Source, TECH_CATEGORY } from "@singularity/core";
+import {
+  type Category,
+  type GeneralTopicId,
+  type Source,
+  TECH_CATEGORY,
+} from "@singularityfm/core";
 
 /** What the importer decides about a source beyond its name and URL. Keyed by source id. */
 export interface Curation {

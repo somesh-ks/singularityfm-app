@@ -1,4 +1,4 @@
-import { JudgmentsFile } from "@singularity/core";
+import { JudgmentsFile } from "@singularityfm/core";
 import { describe, expect, it } from "vitest";
 import { judgmentKey } from "../src/judge/cache.js";
 import { prefilter } from "../src/prefilter/prefilter.js";

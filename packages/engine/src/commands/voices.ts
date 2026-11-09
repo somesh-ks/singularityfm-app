@@ -1,5 +1,5 @@
 import { parseArgs } from "node:util";
-import { requireKey } from "@singularity/core";
+import { requireKey } from "@singularityfm/core";
 import { z } from "zod";
 import { DEFAULT_MODEL, SPEECHIFY_BASE_URL } from "../audio/speechify.js";
 import { type CommandRun, redact, secretsFromEnv } from "../context.js";

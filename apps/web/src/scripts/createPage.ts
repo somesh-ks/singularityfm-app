@@ -39,7 +39,7 @@ export function installCreate(root: HTMLElement, onStart?: () => void): void {
   const known = new Map<string, Voice>();
   // The hosts' names are worked out as the engine works them out, from the voices (hosts.ts in core),
   // so the line under the format says the names the episode will use. Loaded with the voice list.
-  let hostNames: typeof import("@singularity/core/hosts").hostNamesFor | null = null;
+  let hostNames: typeof import("@singularityfm/core/hosts").hostNamesFor | null = null;
 
   /** Why a voice list is short, said in its open list. */
   const noteVoices = (text: string): void => {
@@ -53,7 +53,7 @@ export function installCreate(root: HTMLElement, onStart?: () => void): void {
   async function loadVoices(): Promise<void> {
     try {
       // The hosts' names are a nicety: a voice list is still filled when their code cannot load.
-      const hosts = await import("@singularity/core/hosts").catch(() => null);
+      const hosts = await import("@singularityfm/core/hosts").catch(() => null);
       hostNames = hosts?.hostNamesFor ?? null;
       const lib = await import("../lib/voices");
       const result = await lib.fetchVoiceList({

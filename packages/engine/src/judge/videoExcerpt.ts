@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import type { Item, JudgmentEntry, JudgmentsFile, TopicJudgmentsFile } from "@singularity/core";
+import type { Item, JudgmentEntry, JudgmentsFile, TopicJudgmentsFile } from "@singularityfm/core";
 import type { Logger } from "../context.js";
 import type { ExtractedText } from "../extract/extractText.js";
 import { STATE_LIMITS } from "./questions.js";

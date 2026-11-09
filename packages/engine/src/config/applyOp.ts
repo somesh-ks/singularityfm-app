@@ -27,7 +27,7 @@ import {
   withoutSection,
   withSection,
   withSectionBlock,
-} from "@singularity/core";
+} from "@singularityfm/core";
 import type { ExaQuery, QueriesFile } from "../fetch/queries.js";
 import { hostOf, normalizeDomain, type Profile } from "../profile/profile.js";
 import { mergeOpens, mergeVotes } from "../profile/votes.js";

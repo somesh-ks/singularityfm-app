@@ -9,7 +9,7 @@ import {
   readEpisodeVoice,
   StoryCount,
   stockholmDate,
-} from "@singularity/core";
+} from "@singularityfm/core";
 import type { PodcastRequest } from "../types/contracts";
 
 /**
@@ -31,7 +31,7 @@ export interface EpisodeSource {
   source: string;
 }
 
-/** Read by @singularity/core, which the engine shares, so both narrate a turn from the same words. */
+/** Read by @singularityfm/core, which the engine shares, so both narrate a turn from the same words. */
 export type EpisodeTurn = EpisodeScriptTurn;
 
 export interface EpisodeCover {

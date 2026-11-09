@@ -1,4 +1,4 @@
-import { buttonClass } from "@singularity/design-system/button";
+import { buttonClass } from "@singularityfm/design-system/button";
 import { type PointerEvent, useDeferredValue, useEffect, useSyncExternalStore } from "react";
 import { longDateFromDigestId } from "./core/formatTime";
 import { recordingCaption } from "./core/playerCopy";

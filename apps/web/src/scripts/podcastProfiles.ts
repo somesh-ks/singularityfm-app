@@ -83,7 +83,7 @@ export function mountProfiles(root: HTMLElement, changed: () => void): void {
   /** The voices Default stands for, from /api/voices; null until the list is in. */
   let defaults: VoiceDefaults | null = null;
 
-  void import("@singularity/core/time").then(({ zoneLabel }) => {
+  void import("@singularityfm/core/time").then(({ zoneLabel }) => {
     const now = new Date();
     for (const select of root.querySelectorAll<HTMLSelectElement>(
       'select[data-picker="time zone"]',

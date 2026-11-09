@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { Preferences, ScheduleFile, TopicsFile } from "@singularity/core";
+import { Preferences, ScheduleFile, TopicsFile } from "@singularityfm/core";
 import type { Logger } from "../context.js";
 import { writeFileAtomic } from "../state/atomicWrite.js";
 import {

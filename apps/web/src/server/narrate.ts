@@ -6,7 +6,7 @@ import {
   parseDigestFile,
   podcastVoices,
   ScheduleFile,
-} from "@singularity/core";
+} from "@singularityfm/core";
 import {
   buildSpokenText,
   createSpeechifyClient,
@@ -24,8 +24,8 @@ import {
   type SynthesisRequest,
   segmentSpokenText,
   usageMonth,
-} from "@singularity/engine/audio";
-import { SEGMENT_CACHE_SECONDS, turnKey } from "@singularity/engine/segments";
+} from "@singularityfm/engine/audio";
+import { SEGMENT_CACHE_SECONDS, turnKey } from "@singularityfm/engine/segments";
 import { EPISODE_ID, parseEpisodeFile } from "../lib/episodeFile";
 import type { StreamDoc } from "../lib/liveStream";
 import type { SegmentMarks } from "../lib/segmentMarks";

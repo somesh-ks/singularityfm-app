@@ -8,8 +8,8 @@
  * engine skips or ducks per recipe; this layer only chooses names).
  */
 
-import type { HapticIntent } from "@singularity/design-system/hapticTokens";
-import type { PlayOptions, SoundName } from "@singularity/sound";
+import type { HapticIntent } from "@singularityfm/design-system/hapticTokens";
+import type { PlayOptions, SoundName } from "@singularityfm/sound";
 import type { PlayerEvent } from "../core/playerTypes";
 
 export interface Cue {

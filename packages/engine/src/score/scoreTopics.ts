@@ -11,7 +11,7 @@ import {
   sourceFormat,
   type Topic,
   topicTaste,
-} from "@singularity/core";
+} from "@singularityfm/core";
 import type { TopicFits } from "../judge/topicJudge.js";
 import { clamp01, round4 } from "./numbers.js";
 import { craftFactor, launchFactor, penaltyFactor, scoreItem } from "./scoreItem.js";

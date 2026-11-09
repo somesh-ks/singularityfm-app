@@ -1,4 +1,4 @@
-import type { Effort } from "@singularity/core";
+import type { Effort } from "@singularityfm/core";
 import { z } from "zod";
 import type { Logger } from "../context.js";
 import {

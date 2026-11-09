@@ -1,11 +1,11 @@
-import type { SqlClient } from "@singularity/engine/config-paths";
+import type { SqlClient } from "@singularityfm/engine/config-paths";
 import {
   addPushWatch,
   ensurePushKeys,
   isPushEndpoint,
   removePushWatch,
   type WatchKind,
-} from "@singularity/engine/push-store";
+} from "@singularityfm/engine/push-store";
 import { cancelTokenMatches } from "./cancelToken";
 import { readServerConfig, type ServerEnv } from "./config";
 import type { DatabaseCall } from "./database";

@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { loadEnv, Preferences, type SourcesFile, SourcesUserFile } from "@singularity/core";
+import { loadEnv, Preferences, type SourcesFile, SourcesUserFile } from "@singularityfm/core";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { run } from "../src/commands/sources.js";
 import { createLogger } from "../src/context.js";

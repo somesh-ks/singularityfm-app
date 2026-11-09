@@ -111,8 +111,8 @@ Environment: Linux container, Node 24.22, Chromium headless 1194 standing in for
 - `npm run gate -- --build`: typecheck 16 s, lint 4 s, unit 75 s, site types 27 s, build 6 s, all pass.
 - `npx vitest run`: 251 files, 4,716 tests pass.
 - `npm run build` (Vercel adapter): passes. "Largest first load: 106.1 KB of 109.0 KB. Bundle budget met."
-- `npm run e2e -w @singularity/web`: 356 passed, 2 failed (the two pre-existing copy specs). After fixing them, those two plus `storyVotes` and `topics` give 41 of 41.
-- `npm run e2e:player -w @singularity/web`: 70 passed.
+- `npm run e2e -w @singularityfm/web`: 356 passed, 2 failed (the two pre-existing copy specs). After fixing them, those two plus `storyVotes` and `topics` give 41 of 41.
+- `npm run e2e:player -w @singularityfm/web`: 70 passed.
 - `storyVotes.spec.ts` against `main`'s sender: 2 failed (the new journeys, 429 in the console), twice. With the fix: 4 passed, three times.
 - `lib/storyVotes.test.ts` without the size cap: "expected null not to be null". With it: pass.
 

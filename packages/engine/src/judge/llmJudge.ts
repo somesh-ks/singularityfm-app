@@ -1,4 +1,4 @@
-import { type CategoryOrNone, type Item, JudgmentEntry } from "@singularity/core";
+import { type CategoryOrNone, type Item, JudgmentEntry } from "@singularityfm/core";
 import { z } from "zod";
 import type { Logger } from "../context.js";
 import { mapConcurrent } from "../llm/concurrency.js";

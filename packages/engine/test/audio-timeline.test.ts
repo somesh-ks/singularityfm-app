@@ -1,4 +1,4 @@
-import { AudioTimeline } from "@singularity/core";
+import { AudioTimeline } from "@singularityfm/core";
 import { describe, expect, it } from "vitest";
 import type { SpeechMark } from "../src/audio/speechify.js";
 import { buildSpokenText } from "../src/audio/spokenText.js";

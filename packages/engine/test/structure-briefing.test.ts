@@ -11,7 +11,7 @@ import {
   type StructureBlockInput,
   StructureBlocks,
   serializeDigestFile,
-} from "@singularity/core";
+} from "@singularityfm/core";
 import { describe, expect, it } from "vitest";
 import { buildSpokenText } from "../src/audio/spokenText.js";
 import { fitToBudget } from "../src/podcast/fit.js";

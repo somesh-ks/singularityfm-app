@@ -9,9 +9,9 @@ import {
   weekday,
   zonedDate,
   zonedHour,
-} from "@singularity/core";
-import { configStoreUrl, type SqlClient } from "@singularity/engine/config-paths";
-import { decideRun, GENERATE_AHEAD_HOURS } from "@singularity/engine/gate";
+} from "@singularityfm/core";
+import { configStoreUrl, type SqlClient } from "@singularityfm/engine/config-paths";
+import { decideRun, GENERATE_AHEAD_HOURS } from "@singularityfm/engine/gate";
 import { readServerConfig, type ServerEnv, secretsOf } from "./config";
 import {
   createGitHubClient,

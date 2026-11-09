@@ -10,7 +10,7 @@ import {
   scheduleZone,
   stockholmDate,
   zonedDate,
-} from "@singularity/core";
+} from "@singularityfm/core";
 import { BUDGET_RATIO, loadUsage } from "../audio/budget.js";
 import { decideRun } from "../gate/decideRun.js";
 import { listDigestTargets } from "../publish/publishAudio.js";

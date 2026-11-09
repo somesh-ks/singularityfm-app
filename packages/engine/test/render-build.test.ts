@@ -1,8 +1,8 @@
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { COVER_TEMPLATES, Digest, parseDigestFile, serializeDigestFile } from "@singularity/core";
-import { PALETTE_IDS } from "@singularity/cover";
+import { COVER_TEMPLATES, Digest, parseDigestFile, serializeDigestFile } from "@singularityfm/core";
+import { PALETTE_IDS } from "@singularityfm/cover";
 import { afterEach, describe, expect, it } from "vitest";
 import { buildDigest } from "../src/render/buildDigest.js";
 import { createFallbackCoverPicker, loadCoverPalettes } from "../src/render/coverPicker.js";

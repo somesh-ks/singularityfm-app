@@ -5,7 +5,7 @@ import {
   type Topic,
   type TopicsFile,
   topicTaste,
-} from "@singularity/core";
+} from "@singularityfm/core";
 import { z } from "zod";
 import { clusterStories } from "../dedupe/storyCluster.js";
 import { round4 } from "../score/numbers.js";

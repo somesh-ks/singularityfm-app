@@ -1,4 +1,4 @@
-import type { Digest } from "@singularity/core";
+import type { Digest } from "@singularityfm/core";
 import { describe, expect, it } from "vitest";
 import type { WorkflowRun } from "./github";
 import { type HealthInput, healthBody } from "./health";

@@ -5,7 +5,7 @@
 // per turn as MP3 segments and are not transcoded (see the PR).
 import { readFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
-import { parseDigestFile, serializeDigestFile } from "@singularity/core";
+import { parseDigestFile, serializeDigestFile } from "@singularityfm/core";
 import { writeTextAtomic } from "../packages/engine/src/audio/atomicFile.js";
 import { transcodeToOpus } from "../packages/engine/src/audio/transcode.js";
 import { createVercelBlobClient, uploadOpusAudio } from "../packages/engine/src/publish/blob.js";

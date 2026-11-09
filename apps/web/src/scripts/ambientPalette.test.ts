@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
-import { oklchStringToRgb, toHex } from "@singularity/design-system/scripts/colorMath";
-import tokens from "@singularity/design-system/tokens/tokens.json" with { type: "json" };
+import { oklchStringToRgb, toHex } from "@singularityfm/design-system/scripts/colorMath";
+import tokens from "@singularityfm/design-system/tokens/tokens.json" with { type: "json" };
 import { describe, expect, it } from "vitest";
 import { clampToGamut, contrastRatio, oklchToHex } from "../../../../packages/cover/src/color";
 import { backingSize, blendTint, MAX_SIDE, paletteUniforms, shouldAnimate } from "./ambientPalette";
@@ -67,7 +67,7 @@ describe("ambient light contrast", () => {
 
   it("gives the play chip an opaque container fill, where its accent words keep their contrast", () => {
     const chip = readFileSync(
-      createRequire(import.meta.url).resolve("@singularity/design-system/styles/buttons.css"),
+      createRequire(import.meta.url).resolve("@singularityfm/design-system/styles/buttons.css"),
       "utf8",
     );
     expect(chip.replace(/\s+/g, " ")).toMatch(/\.chip \{[^}]*background: var\(--chip-bg\);/);

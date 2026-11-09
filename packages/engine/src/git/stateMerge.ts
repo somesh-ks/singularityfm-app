@@ -1,4 +1,4 @@
-import { CostFile, mergeRecords, UsageFile } from "@singularity/core";
+import { CostFile, mergeRecords, UsageFile } from "@singularityfm/core";
 import { parseRunMetrics, RUN_METRICS_KEEP, RUN_METRICS_PATH } from "../metrics/runMetrics.js";
 
 /**

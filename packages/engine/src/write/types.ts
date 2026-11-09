@@ -1,4 +1,4 @@
-import type { Category } from "@singularity/core";
+import type { Category } from "@singularityfm/core";
 import type { Taste } from "../profile/tasteNote.js";
 import type { VoiceField } from "../voice/lint.js";
 

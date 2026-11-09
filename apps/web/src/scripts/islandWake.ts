@@ -1,4 +1,4 @@
-import { whenIdle } from "@singularity/design-system/idle";
+import { whenIdle } from "@singularityfm/design-system/idle";
 import { GENERATION_STARTED_EVENT, isRunGoing, readRunRecord } from "../lib/runRecord";
 import { isSheetName, type SheetName } from "../sheets/sheetEvents";
 import { TOAST_EVENT } from "./toastEvent";

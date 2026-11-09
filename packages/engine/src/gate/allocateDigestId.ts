@@ -1,4 +1,4 @@
-import { type DigestId, DigestId as DigestIdSchema, type DigestKind } from "@singularity/core";
+import { type DigestId, DigestId as DigestIdSchema, type DigestKind } from "@singularityfm/core";
 
 /**
  * Next free id for a digest on `date`. The weekly pass prefers `<date>-weekly`; every other

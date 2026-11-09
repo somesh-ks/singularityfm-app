@@ -1,4 +1,4 @@
-import type { Source } from "@singularity/core";
+import type { Source } from "@singularityfm/core";
 
 /**
  * Firecrawl requests all runs together may make in any 7 days before the runs stop listing: a

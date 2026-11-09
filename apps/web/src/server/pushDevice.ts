@@ -1,4 +1,4 @@
-import { isPushEndpoint, removePushDevice, setPushDevice } from "@singularity/engine/push-store";
+import { isPushEndpoint, removePushDevice, setPushDevice } from "@singularityfm/engine/push-store";
 import type { DatabaseCall } from "./database";
 import { isSameOrigin } from "./generate";
 import type { ApiResult } from "./http";

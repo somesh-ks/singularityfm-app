@@ -9,7 +9,7 @@ import {
   SourcesFile as SourcesSchema,
   type SourcesUserFile,
   SourcesUserFile as SourcesUserSchema,
-} from "@singularity/core";
+} from "@singularityfm/core";
 import { writeFileAtomic } from "../state/atomicWrite.js";
 
 export class SourcesError extends Error {

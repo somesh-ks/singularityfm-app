@@ -10,7 +10,7 @@ import {
   type Source,
   type SourceStatsFile,
   type SourceType,
-} from "@singularity/core";
+} from "@singularityfm/core";
 import { z } from "zod";
 import { type CommunityFile, withCommunity } from "../community/community.js";
 import { readJsonIfExists } from "../curate/inputs.js";

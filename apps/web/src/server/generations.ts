@@ -84,7 +84,12 @@ export async function handleGenerations(
       .slice(0, MAX_ROWS);
     const generations = await Promise.all(
       active.map(async (run): Promise<GenerationRow> => {
-        const { state, stage, stages, label, stage_estimates_ms } = await progressOf(run, github);
+        const { state, stage, stages, label, stage_estimates_ms } = await progressOf(
+          run,
+          github,
+          undefined,
+          deps.env,
+        );
         return {
           run_id: run.id,
           what: isPodcastRun(run) ? "episode" : "briefing",

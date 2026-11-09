@@ -22,6 +22,7 @@ import {
 } from "./github";
 import type { ApiResult } from "./http";
 import { describeError } from "./redact";
+import { readStateFile } from "./stateRead";
 
 /**
  * GET /api/cron/run: what starts the scheduled briefing on time (D61). Since late August 2026
@@ -283,7 +284,7 @@ export async function handleCron(
     // and stops with the reason.
     const lastRun =
       parseJson(
-        await github.readFile("state/last-run.json", "main"),
+        await readStateFile("state/last-run.json", github, { env: deps.env }),
         (value) => LastRunFile.safeParse(value).data ?? null,
       ) ?? EMPTY_LAST_RUN;
     const decision = decideRun({

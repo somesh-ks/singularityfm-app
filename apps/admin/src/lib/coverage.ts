@@ -98,8 +98,6 @@ export function bespokeControls(root: string = repoRoot()): BespokeControl[] {
 export const APP_PART_FILES: Record<string, string[]> = {
   drawer: ["apps/web/src/sheets/SheetFrame.tsx"],
   "btn-action-tonal": ["apps/web/src/components/AppNav.astro"],
-  "play-chip": ["apps/web/src/components/PlayChip.astro"],
-  "segmented-nav": ["apps/web/src/scripts/segmentedNav.ts"],
   toast: [
     "apps/web/src/sheets/Toaster.tsx",
     "apps/web/src/sheets/toastStore.ts",

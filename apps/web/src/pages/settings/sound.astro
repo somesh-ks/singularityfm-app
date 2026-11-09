@@ -1,7 +1,7 @@
 ---
-import Select from "@singularityfm/design-system/Select.astro";
-import Slider from "@singularityfm/design-system/Slider.astro";
-import Switch from "@singularityfm/design-system/Switch.astro";
+import Select from "@singularityfm/design-system/Select";
+import Slider from "@singularityfm/design-system/Slider";
+import Switch from "@singularityfm/design-system/Switch";
 import ManageChrome from "../../components/ManageChrome.astro";
 import SettingsHead from "../../components/SettingsHead.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
@@ -66,12 +66,12 @@ const VOICES = [
                       <div class="settings-row" data-voice-row={voice.key}>
                         <label class="settings-label" for={`podcast-${voice.key}`}>{voice.name}</label>
                         <div class="podcast-voice" data-store-held>
-                          <Select class="value-select"
+                          <Select className="value-select"
                               id={`podcast-${voice.key}`}
                               data-f={`daily.${voice.key}`}
                               data-saved={voice.saved ?? ""}
                               data-picker="voice"
-                              autocomplete="off">
+                              autoComplete="off">
                             <option value="">Default</option>
                             {voice.saved && <option value={voice.saved} selected>Saved voice</option>}
                           </Select>

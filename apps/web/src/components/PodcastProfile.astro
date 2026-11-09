@@ -1,9 +1,11 @@
 ---
-import Select from "@singularityfm/design-system/Select.astro";
+import Select from "@singularityfm/design-system/Select";
 import "@singularityfm/design-system/styles/field.css";
 import { SUPPORTED_TIMEZONES, zoneLabel } from "@singularityfm/core";
+import Chip from "@singularityfm/design-system/Chip";
+import ChipGroup from "@singularityfm/design-system/ChipGroup";
 import Icon from "@singularityfm/design-system/Icon";
-import Switch from "@singularityfm/design-system/Switch.astro";
+import Switch from "@singularityfm/design-system/Switch";
 import { LENGTHS } from "../lib/createForm";
 import { CADENCES, hourLabel, WEEKDAYS } from "../lib/schedule";
 import { heldStory, storyOptions } from "../lib/storyOptions";
@@ -67,8 +69,8 @@ const shownStories = heldStory(stories, String(values.stories ?? ""));
         <Switch
           id={`${id}-enabled`}
           data-f={`${id}.enabled`}
-          checked={values.enabled}
-          autocomplete="off"
+          defaultChecked={values.enabled}
+          autoComplete="off"
         />
       </div>
     </div>
@@ -80,7 +82,7 @@ const shownStories = heldStory(stories, String(values.stories ?? ""));
     <div class="rows card-group">
       <div class="settings-row">
         <label class="settings-label" for={`${id}-length`}>Max length</label>
-        <Select class="value-select" id={`${id}-length`} data-f={`${id}.length`} autocomplete="off">
+        <Select className="value-select" id={`${id}-length`} data-f={`${id}.length`} autoComplete="off">
           {LENGTHS.map((entry) => (
             <option value={String(entry.value)} selected={entry.value === values.lengthMinutes}>
               {entry.label}
@@ -92,7 +94,7 @@ const shownStories = heldStory(stories, String(values.stories ?? ""));
            keeps the list to what the length holds. */}
       <div class="settings-row">
         <label class="settings-label" for={`${id}-stories`}>Stories</label>
-        <Select class="value-select" id={`${id}-stories`} data-f={`${id}.stories`} data-wheel autocomplete="off">
+        <Select className="value-select" id={`${id}-stories`} data-f={`${id}.stories`} data-wheel autoComplete="off">
           {stories.map((entry) => (
             <option
               value={entry.value}
@@ -115,11 +117,11 @@ const shownStories = heldStory(stories, String(values.stories ?? ""));
       {/* One setting for both podcasts: the cron route, the gate and the next line count on its clock. */}
       <div class="settings-row">
         <label class="settings-label" for={`${id}-timezone`}>Time zone</label>
-        <Select class="value-select"
+        <Select className="value-select"
             id={`${id}-timezone`}
             data-f={`${id}.timezone`}
             data-picker="time zone"
-            autocomplete="off">
+            autoComplete="off">
           {zones.map((zone, index) => (
             <option
               value={zone.value}
@@ -136,7 +138,7 @@ const shownStories = heldStory(stories, String(values.stories ?? ""));
         id === "weekly" && (
           <div class="settings-row">
             <label class="settings-label" for="weekly-day">Day</label>
-            <Select class="value-select" id="weekly-day" data-f="weekly.day" autocomplete="off">
+            <Select className="value-select" id="weekly-day" data-f="weekly.day" autoComplete="off">
               {WEEKDAYS.map((name, value) => (
                 <option value={value} selected={value === values.day}>{name}</option>
               ))}
@@ -146,7 +148,7 @@ const shownStories = heldStory(stories, String(values.stories ?? ""));
       }
       <div class="settings-row">
         <label class="settings-label" for={`${id}-hour`}>Time</label>
-        <Select class="value-select" id={`${id}-hour`} data-f={`${id}.hour`} data-wheel autocomplete="off">
+        <Select className="value-select" id={`${id}-hour`} data-f={`${id}.hour`} data-wheel autoComplete="off">
           {hours.map((value) => (
             <option value={value} selected={value === values.hour}>{hourLabel(value)}</option>
           ))}
@@ -158,10 +160,10 @@ const shownStories = heldStory(stories, String(values.stories ?? ""));
             <div class="settings-text">
               <label class="settings-label" for="daily-cadence">Repeat</label>
             </div>
-            <Select class="value-select"
+            <Select className="value-select"
                 id="daily-cadence"
                 data-f="daily.cadence"
-                autocomplete="off">
+                autoComplete="off">
               {CADENCES.map((cadence) => (
                 <option value={cadence.days} selected={cadence.days === values.cadenceDays}>
                   {cadence.label}
@@ -178,21 +180,13 @@ const shownStories = heldStory(stories, String(values.stories ?? ""));
     <h2 class="section-head text-heading" id={`${id}-topics-head`}>Categories</h2>
     {
       topics.length > 0 ? (
-        <fieldset class="filter-chips podcast-topics card-group" aria-labelledby={`${id}-topics-head`} data-scope-chips data-built-topics={builtTopics.join(" ")}>
+        <ChipGroup className="podcast-topics card-group" aria-labelledby={`${id}-topics-head`} data-scope-chips data-built-topics={builtTopics.join(" ")}>
           {topics.map((topic) => (
-            <label class="filter-chip">
-              <input
-                type="checkbox"
-                data-scope={id}
-                data-scope-ids={topic.ids.join(" ")}
-                checked={inScope(topic.ids)}
-                autocomplete="off"
-              />
-              <Icon name="check" className="filter-chip-check" />
-              <span>{topic.name}</span>
-            </label>
+            <Chip data-scope={id} data-scope-ids={topic.ids.join(" ")} defaultChecked={inScope(topic.ids)} autoComplete="off">
+              {topic.name}
+            </Chip>
           ))}
-        </fieldset>
+        </ChipGroup>
       ) : (
         <p class="manage-quiet">No categories yet.</p>
       )

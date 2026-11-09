@@ -1,12 +1,15 @@
 ---
 import Button from "@singularityfm/design-system/Button";
-import Dialog from "@singularityfm/design-system/Dialog.astro";
-import DialogActions from "@singularityfm/design-system/DialogActions.astro";
-import DialogTitle from "@singularityfm/design-system/DialogTitle.astro";
-import Field from "@singularityfm/design-system/Field.astro";
+import Chip from "@singularityfm/design-system/Chip";
+import ChipGroup from "@singularityfm/design-system/ChipGroup";
+import Dialog from "@singularityfm/design-system/Dialog";
+import DialogActions from "@singularityfm/design-system/DialogActions";
+import DialogTitle from "@singularityfm/design-system/DialogTitle";
+import Field from "@singularityfm/design-system/Field";
 import Icon from "@singularityfm/design-system/Icon";
-import Select from "@singularityfm/design-system/Select.astro";
-import Sheet from "@singularityfm/design-system/Sheet.astro";
+import SegmentedChoice from "@singularityfm/design-system/SegmentedChoice";
+import Select from "@singularityfm/design-system/Select";
+import Sheet from "@singularityfm/design-system/Sheet";
 import { briefingChips } from "../lib/briefingChips";
 import { topicOptions } from "../lib/createForm";
 import { loadManage } from "../lib/manage";
@@ -71,11 +74,11 @@ const COPY = {
                 </h2>
                 <Field
                   multiline
-                  class="regen-feedback"
+                  className="regen-feedback"
                   id="regen-feedback"
                   name="feedback"
-                  rows="6"
-                  maxlength={MAX_FEEDBACK_CHARS}
+                  rows={6}
+                  maxLength={MAX_FEEDBACK_CHARS}
                   data-max={MAX_FEEDBACK_CHARS}
                   placeholder="Too short, missed business news, too much hype"
                   required
@@ -86,33 +89,24 @@ const COPY = {
               {/* Opens on the comment alone; shown as the typed words reach for a category (D337, scripts/episodeActions.ts). */}
               <section class="create-group" aria-labelledby="regen-topics-label" data-hint-topics hidden>
                 <h2 class="section-head text-heading" id="regen-topics-label">Categories</h2>
-                <fieldset class="filter-chips" aria-labelledby="regen-topics-label" data-built-topics={manageTopics.map((topic) => topic.id).join(" ")}>
+                <ChipGroup aria-labelledby="regen-topics-label" data-built-topics={manageTopics.map((topic) => topic.id).join(" ")}>
                   {chips.map((chip) => (
-                    <label class="filter-chip">
-                      <input
-                        type="checkbox"
-                        name="topic"
-                        value={chip.value}
-                        data-ids={chip.ids.join(" ")}
-                        checked={isChipOn(chip, selected)}
-                      />
-                      <Icon name="check" className="filter-chip-check" />
-                      <span>{chip.label}</span>
-                    </label>
+                    <Chip name="topic" value={chip.value} data-ids={chip.ids.join(" ")} defaultChecked={isChipOn(chip, selected)}>
+                      {chip.label}
+                    </Chip>
                   ))}
-                </fieldset>
+                </ChipGroup>
               </section>
               {/* Shown as the typed words reach for the length (D337); it starts on the episode's own. */}
               <section class="create-group" aria-labelledby="regen-length-label" data-hint-length hidden>
                 <h2 class="section-head text-heading" id="regen-length-label">Length</h2>
-                <div class="segmented-choice create-choice" role="radiogroup" aria-labelledby="regen-length-label">
-                  {REGEN_LENGTHS.map((minutes) => (
-                    <label class="segmented-choice-item">
-                      <input type="radio" name="length" value={minutes} checked={minutes === DEFAULT_REGEN_LENGTH} />
-                      <span>{minutes} min</span>
-                    </label>
-                  ))}
-                </div>
+                <SegmentedChoice
+                  className="create-choice"
+                  aria-labelledby="regen-length-label"
+                  name="length"
+                  options={REGEN_LENGTHS.map((minutes) => ({ value: String(minutes), label: `${minutes} min` }))}
+                  defaultValue={String(DEFAULT_REGEN_LENGTH)}
+                />
               </section>
               {/* Beside Length (D377): shown as the words ask for more or fewer stories, a step from
                    what the episode aired; Auto sends nothing. scripts/episodeActions.ts keeps it to
@@ -121,7 +115,7 @@ const COPY = {
                 <h2 class="section-head text-heading">
                   <label for="regen-stories">Stories</label>
                 </h2>
-                <Select id="regen-stories" name="stories" data-wheel autocomplete="off">
+                <Select id="regen-stories" name="stories" data-wheel autoComplete="off">
                   {storyOptions(DEFAULT_REGEN_LENGTH).map((entry) => (
                     <option value={entry.value} data-wheel-text={entry.wheel} hidden={entry.hidden} disabled={entry.hidden} selected={entry.value === ""}>
                       {entry.label}

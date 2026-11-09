@@ -12,7 +12,7 @@ Which part for which need is generated, so it cannot drift from the code: `npm r
 
 ## 2. Markup & Usage Contracts
 
-### Button (`design-system/Button.astro`, D237)
+### Button (`@singularityfm/design-system/Button`, D237)
 One component, three variants; a page never types the `button-*` classes (`scripts/systemUse.test.ts` fails it).
 ```astro
 <Button variant="filled" type="submit">Save</Button>
@@ -68,12 +68,12 @@ Settings row or menu option acting as a tactile tile.
 ```
 * **Rules**: Presses as an elevated tile off dividing hairlines. Label is regular weight, never bold.
 
-### Bottom Sheet (`SheetFrame.tsx`, `design-system/Menu.astro`)
+### Bottom Sheet (`SheetFrame.tsx`, `@singularityfm/design-system/Menu`)
 
 A phone shows a dialog or a menu as a bottom sheet; from 40rem it is a centered dialog or a small menu under its button (D167, Ledger section 11). There are two builds, and neither is hand-written markup:
 
 * **A dialog** (Create, Settings, Generate): mount `apps/web/src/sheets/SheetFrame.tsx`. It wraps Base UI's `Drawer`, which provides the dialog semantics, focus trap, inert background, Escape, scrim tap, swipe to dismiss and Back-closes-the-sheet. It renders `.sheet-scrim`, `.sheet-viewport`, `.sheet-popup`, `.sheet-panel` and the `.sheet-head` with the title and Close; the title is a `Drawer.Title`, so its id is generated per instance.
-* **A menu** (a row's dots, the More menu): put its items in `design-system/Menu.astro`. It is a `popover` element with `SheetHeader.astro` (title at the start, Close at the end) and `<MenuItem>` rows; `scripts/heroMenu.ts` runs its keys, focus and pull-to-close. A script that redraws rows at runtime builds them with the helpers in `lib/sheetHead.ts` (`menuItemClass()`, `menuListClass()`).
+* **A menu** (a row's dots, the More menu): put its items in `@singularityfm/design-system/Menu`. It is a `popover` element with `SheetHeader` (title at the start, Close at the end) and `<MenuItem>` rows; `scripts/heroMenu.ts` runs its keys, focus and pull-to-close. A script that redraws rows at runtime builds them with the helpers in `lib/sheetHead.ts` (`menuItemClass()`, `menuListClass()`).
 
 ```astro
 <Menu id="row-menu-3" title="Daily">

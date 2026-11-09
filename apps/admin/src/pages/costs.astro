@@ -1,6 +1,6 @@
 ---
-import Icon from "@singularityfm/design-system/Icon";
-import Select from "@singularityfm/design-system/Select.astro";
+import SegmentedNav from "@singularityfm/design-system/SegmentedNav";
+import Select from "@singularityfm/design-system/Select";
 import AdminHead from "../components/AdminHead.astro";
 import Shell from "../layouts/Shell.astro";
 
@@ -31,10 +31,10 @@ const SPLITS = [
     <section class="card-group costs-card" aria-label="Spend">
       <div class="costs-head">
         <div class="costs-filters">
-          <Select variant="tonal" label="Range" id="costs-range" autocomplete="off">
+          <Select variant="tonal" label="Range" id="costs-range" autoComplete="off">
             {RANGES.map((range) => <option value={range.value} data-days={range.days}>{range.label}</option>)}
           </Select>
-          <Select variant="tonal" label="Breakdown" id="costs-by" autocomplete="off">
+          <Select variant="tonal" label="Breakdown" id="costs-by" autoComplete="off">
             {SPLITS.map((split) => <option value={split.value}>{split.label}</option>)}
           </Select>
         </div>
@@ -47,33 +47,16 @@ const SPLITS = [
              (costs.css). The card's data-view shows one panel and hides the other (costsPage.ts).
              After the answer in the reading order, just before the panels it switches; placed at
              the filter row's end from 40rem and beside the answer on a phone (D177). */}
-        <div class="segmented-nav segmented-nav-compact costs-view" role="tablist" aria-label="Show as" data-costs-view>
-          <button
-            class="segmented-nav-tab"
-            type="button"
-            role="tab"
-            id="costs-view-chart"
-            aria-selected="true"
-            aria-controls="costs-chart"
-            aria-label="Chart"
-            data-value="chart"
-          >
-            <Icon name="chartBar" />
-          </button>
-          <button
-            class="segmented-nav-tab"
-            type="button"
-            role="tab"
-            id="costs-view-table"
-            aria-selected="false"
-            aria-controls="costs-grid"
-            aria-label="Table"
-            tabindex="-1"
-            data-value="table"
-          >
-            <Icon name="table" />
-          </button>
-        </div>
+        <SegmentedNav
+          compact
+          className="costs-view"
+          aria-label="Show as"
+          data-costs-view
+          tabs={[
+            { value: "chart", label: "Chart", icon: "chartBar", id: "costs-view-chart", controls: "costs-chart" },
+            { value: "table", label: "Table", icon: "table", id: "costs-view-table", controls: "costs-grid" },
+          ]}
+        />
       </div>
 
       <div class="costs-chart" id="costs-chart" role="tabpanel" aria-labelledby="costs-view-chart">

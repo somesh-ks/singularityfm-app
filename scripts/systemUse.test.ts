@@ -207,7 +207,6 @@ describe("a tab strip", () => {
 const NOT_YET_COMPONENTS = [
   "btn-action-tonal",
   "chip",
-  "filter-chip",
   "play-fab",
   "add-fab",
   "dock-btn",

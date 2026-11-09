@@ -6,8 +6,9 @@
  * library: the numbers are one fetch, and this page loads nothing else.
  */
 import { buttonClass } from "@singularityfm/design-system/button";
+import { mountSegmentedNav } from "@singularityfm/design-system/segmentedNav";
+import { installSelectSheet } from "@singularityfm/design-system/selectSheet";
 import { BRAND_MARKS } from "../../../web/src/lib/brandMarks";
-import { mountSegmentedNav } from "../../../web/src/scripts/segmentedNav";
 import {
   answerProblem,
   clearProblem,
@@ -716,6 +717,8 @@ for (const select of document.querySelectorAll("#costs-range, #costs-by")) {
   select.addEventListener("change", () => void load());
 }
 wireChart();
+// The period and grouping Selects: on a phone their lists are the bottom sheet.
+installSelectSheet();
 // The table's box changes when its view first shows and when the window resizes.
 const tableScroll = pick<HTMLElement>("[data-costs-table-scroll]");
 if (tableScroll) new ResizeObserver(() => syncTableScroll()).observe(tableScroll);

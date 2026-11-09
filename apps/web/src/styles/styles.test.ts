@@ -165,6 +165,7 @@ const RAW_SVG_ALLOWED: [file: string, reason: string][] = [
   ["player/ui/Icon.tsx", "the island Icon component"],
   ["player/ui/LazyIcon.tsx", "the lazy island Icon component"],
   ["@singularityfm/design-system/src/BrandMark.tsx", "the wordmark's own mark, not a glyph"],
+  ["@singularityfm/design-system/src/Avatar.tsx", "the avatar's drawn shape, not a glyph"],
   ["components/EmptyArt.astro", "empty-state illustrations, coloured by classes (own rule above)"],
   [
     "components/EmptyArtHalloween.astro",
@@ -282,10 +283,12 @@ const OUTLINED_CONTROLS: [rule: string, reason: string][] = [
  * it (`class={...}`, `class:list`, a template string's `${name}` alone).
  */
 function buttonsIn(text: string): { tag: string; classes: string | undefined }[] {
-  const tags = [...text.matchAll(/<button\b[^>]*>/g)].map(([tag]) => {
+  const tags = [...text.matchAll(/<button\b[^>]*>/g)].map(({ 0: tag, index = 0 }) => {
     const value = /class(?:Name)?="([^"]*)"/.exec(tag)?.[1] ?? "";
+    // A Base UI part's render={<button />} wears the class the part is given (the Avatar's).
+    const rendered = /render=\{[^{}<>]*$/.test(text.slice(0, index));
     const computed =
-      /class(?:Name)?=\{|class:list/.test(tag) || /^\s*\$\{\s*\w+\s*\}\s*$/.test(value);
+      rendered || /class(?:Name)?=\{|class:list/.test(tag) || /^\s*\$\{\s*\w+\s*\}\s*$/.test(value);
     return { tag, classes: computed ? undefined : value };
   });
   const helpers = [
@@ -699,7 +702,18 @@ const RULES: Rule[] = [
           else
             for (let depth = 1; depth > 0 && end < markup.length; end += 1)
               depth += markup[end] === "{" ? 1 : markup[end] === "}" ? -1 : 0;
-          let expression = markup.slice(start, end);
+          let expression = markup
+            .slice(start, end)
+            // A component that passes its caller's style on sets none itself: styleObject() only
+            // turns a .astro page's string into the object React takes (the library's attributes.ts).
+            .replace(/\(?\s*typeof style === "string" \? styleObject\(style\) : style\s*\)?/g, "")
+            // A spread of an object the file builds: read what it sets.
+            .replace(
+              /\.\.\.(\w+)/g,
+              (spread, name) =>
+                new RegExp(`const ${name}\\s*=([^;]+);`).exec(markup)?.[1] ?? spread,
+            );
+          if (/^[\s{}.,]*$/.test(expression)) return [];
           // style={name}: the object or string the file builds for it.
           const named = /^\s*(\w+)\s*\}?$/.exec(expression);
           if (named)
@@ -1085,7 +1099,11 @@ describe("the ⋮ of a podcast card and a queue row", () => {
  * forks, page by page.
  */
 const PAGE_OVERRIDES: string[] = [
+  "blocked.css: .blocked-add .search-field",
   "blocked.css: .blocked-row .icon-btn",
+  "briefing.css: .story-actions > .chip",
+  "briefing.css: .story-actions:not(:has(> .chip:not([hidden])))",
+  "briefing.css: html[data-offline] .story-actions > .chip",
   "cover.css: .cover-play .icon-glyph",
   "create-sheet.css: .app-nav-create .icon-glyph",
   "create-sheet.css: .play-fab .create-fab-label",
@@ -1098,6 +1116,7 @@ const PAGE_OVERRIDES: string[] = [
   'create.css: .create-submit .button-filled[data-busy="true"]',
   "create.css: .create-view .button-filled > .spinner",
   'create.css: .create-view .button-filled[data-busy="true"] > .spinner',
+  "create.css: .create-view .create-choice .segmented-choice-item",
   "create.css: .create-view .create-submit > .button-filled",
   "create.css: .create-view .field-input.create-title",
   "create.css: .create-view .field-input.create-title",
@@ -1105,15 +1124,25 @@ const PAGE_OVERRIDES: string[] = [
   "create.css: .create-view .field-input.create-title:focus-visible",
   "create.css: .create-view .field-input.create-title:where(:enabled):hover",
   "empty.css: .empty-actions > .button-filled, .empty-actions > .button-tonal",
+  "hero.css: .hero-actions > .chip",
+  'hero.css: .hero-actions > .chip:not( [data-state="played"], [data-state="current"], [data-state="unavailable"], [aria-disabled="true"] ):active',
+  'hero.css: .hero-actions > .chip:not( [data-state="played"], [data-state="current"], [data-state="unavailable"], [aria-disabled="true"] ):hover',
+  'hero.css: .hero-actions > .chip[data-state="current"][data-playing="true"] .chip-bars',
+  'hero.css: .hero-actions > .chip[data-state="current"][data-playing="true"] .chip-glyph > .swap',
   "library.css: .card-more .icon-glyph",
+  "library.css: .library-filters > .filter-chip",
+  "library.css: .library-filters > .filter-chip",
+  "library.css: .library-filters > .filter-chip > .icon-glyph",
   "library.css: .library-filters > .filter-chip > .icon-glyph",
   "library.css: .menu-list.card-menu-list",
   "library.css: .menu-list.card-menu-list",
+  "library.css: .search-wrap:has(.search-clear:not([hidden])) .search-field",
   "library.css: .shelf-head > .button-text",
   "library.css: .status-mark .icon-glyph",
   'library.css: html[data-library-page="empty"] .create-fab',
   "library.css: html[data-search-empty] .create-fab",
   "manage.css: .manage-error .icon-glyph",
+  "manage.css: .manage-fields:disabled :is(.switch-input, .field-input, .search-field)",
   "manage.css: .manage-fields:disabled :is(.switch-input, .field-input, .search-field)",
   "manage.css: .manage-fields:disabled :is(.switch-input, .field-input, .search-field)",
   "multiselect.css: .multiselect-trigger > .icon-glyph",
@@ -1133,6 +1162,7 @@ const PAGE_OVERRIDES: string[] = [
   "podcast.css: .daily-panel input.field-input",
   "podcast.css: .daily-panel input.field-input:focus-visible",
   "podcast.css: .daily-panel input.field-input[aria-invalid]",
+  "podcast.css: .podcast-body:disabled .filter-chip",
   "queue.css: .icon-btn.queue-play",
   "queue.css: .icon-btn.queue-play:active",
   "queue.css: .icon-btn.queue-play:hover",
@@ -1144,6 +1174,7 @@ const PAGE_OVERRIDES: string[] = [
   "queue.css: .queue-stage-icon > .icon-glyph",
   "queue.css: .queue-stage-icon > .icon-glyph, .queue-stage-icon > .icon-glyph[data-leaving]",
   "queue.css: .queue-stage-icon > .icon-glyph[data-leaving]",
+  'reader.css: .chip[data-playing="true"] .chip-label',
   "settings.css: .settings-row .value-select > .icon-glyph",
   "settings.css: .settings-row .value-select > .icon-glyph",
   "settings.css: .settings-row .value-select > .icon-glyph",
@@ -1185,6 +1216,7 @@ const PAGE_OVERRIDES: string[] = [
   "topics.css: .menu-list.emoji-picker:popover-open",
   "topics.css: .menu-list.menu-sheet.emoji-picker, .menu-list.menu-sheet.emoji-picker:popover-open",
   "topics.css: .source-sheet-foot > .button-filled",
+  "topics.css: .topic-panel > .topic-view, .topic-panel .search-field, .topic-panel .topic-add-source",
   "topics.css: .topic-weight > .slider-input",
   "topics.css: .topic-weight > .slider-input",
   "topics.css: .topics .row-action .icon-glyph",

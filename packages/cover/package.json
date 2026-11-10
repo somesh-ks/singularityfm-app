@@ -10,7 +10,7 @@
   "dependencies": {
     "@resvg/resvg-js": "^2.6.2",
     "@singularityfm/core": "workspace:*",
-    "@singularityfm/design-system": "0.8.1",
+    "@singularityfm/design-system": "0.9.0",
     "fontkitten": "^1.0.3"
   }
 }

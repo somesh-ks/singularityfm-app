@@ -306,7 +306,7 @@ export function createPlayerStore(options: PlayerStoreOptions): PlayerStore {
     bufferTimer = null;
   }
 
-  /** The spinner and the "Preparing audio" label wait, so a buffered source never flashes them. */
+  /** The spinner and the "Processing" label wait, so a buffered source never flashes them. */
   function armBufferingTimer(): void {
     if (bufferTimer !== null || state.buffering) return;
     bufferTimer = setTimeout(() => {

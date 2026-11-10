@@ -7,8 +7,8 @@
  * lands where the band already was, and every shimmer on the page crosses together.
  */
 
-/** The shimmering animations: the podcast queue's words (queue.css) and the sources list's loading rows (topics.css). */
-const SHIMMERS: ReadonlySet<string> = new Set(["queue-sheen", "source-shimmer"]);
+/** The shimmering animations: the podcast queue's words (queue.css), the sources list's loading rows (topics.css) and the design system's waiting words (sheen: the Play chip and button). */
+const SHIMMERS: ReadonlySet<string> = new Set(["queue-sheen", "source-shimmer", "sheen"]);
 
 /**
  * Puts every running shimmer on the clock now. A word that goes live is drawn for the first time in the

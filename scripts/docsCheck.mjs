@@ -144,15 +144,42 @@ export function checkDocs(root) {
     }
   }
 
-  // An open item says what closes it, so a stale note can be told from a real question.
+  // An open item says what closes it, so a stale note can be told from a real question. Next too: its
+  // owner items had none, so he asked for his todo list again and again.
   if (existsSync(at("docs/state.md"))) {
     const state = read(at("docs/state.md"));
-    const section = state.match(/^## [^\n]*unverified[^\n]*\n([\s\S]*?)(?=^## |(?![\s\S]))/im);
-    for (const line of (section?.[1] ?? "").split("\n")) {
-      if (line.startsWith("- ") && !/closed when:/i.test(line)) {
-        fails.push(`docs/state.md: unverified item without "closed when:": ${line.slice(2, 70)}`);
+    for (const name of ["unverified", "next"]) {
+      const section = state.match(
+        new RegExp(`^## [^\\n]*\\b${name}\\b[^\\n]*\\n([\\s\\S]*?)(?=^## |(?![\\s\\S]))`, "im"),
+      );
+      for (const line of (section?.[1] ?? "").split("\n")) {
+        const item = line.match(/^\s*(?:-|\d+\.) (.*)/)?.[1];
+        if (item && !/closed when:/i.test(item))
+          fails.push(`docs/state.md: ${name} item without "closed when:": ${item.slice(0, 68)}`);
       }
     }
+  }
+
+  // A doc that names a command the repo no longer has sends the reader to "command not found": the
+  // repo runs pnpm, and each `pnpm run <x>` must be a script of the package it runs in.
+  const scripts = (rel) =>
+    existsSync(at(rel)) ? Object.keys(JSON.parse(read(at(rel))).scripts ?? {}) : [];
+  const rootScripts = new Set(scripts("package.json"));
+  const webScripts = new Set(scripts("apps/web/package.json"));
+  for (const rel of [
+    "AGENTS.md",
+    "code.md",
+    "design.md",
+    "docs/runbook.md",
+    "docs/engineering/code-review.md",
+  ]) {
+    if (!existsSync(at(rel))) continue;
+    const text = read(at(rel));
+    for (const m of text.matchAll(/\b(?:npm run|npx) [^\s`]*/g))
+      fails.push(`${rel}: "${m[0]}": the repo runs pnpm`);
+    for (const m of text.matchAll(/\bpnpm (--filter @singularityfm\/web )?run ([\w:.-]+)/g))
+      if (!(m[1] ? webScripts : rootScripts).has(m[2]))
+        fails.push(`${rel}: "${m[0]}" names no script in ${m[1] ? "apps/web/" : ""}package.json`);
   }
 
   const docs = markdownFiles(at("docs"));

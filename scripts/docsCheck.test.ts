@@ -61,6 +61,41 @@ describe("docs check", () => {
     );
   });
 
+  // Bug: owner items without a done condition, so he had to ask for his todo list three times. Next is
+  // held to "closed when:" like the unverified section, numbered and nested items included.
+  it("fails a Next item, numbered or nested, without a closed when", () => {
+    const state = (next: string) =>
+      `# State\n\n## Not working or unverified\n\n- The flick. closed when: it passes.\n\n## Next\n\n${next}\n`;
+    const owner = "2. Owner, only he (closed when: each line closes):\n   - Import the ruleset.";
+    expect(
+      checkDocs(repo({ "docs/state.md": state(`1. Ship it. closed when: it ships.\n${owner}`) }))
+        .fails,
+    ).toEqual(['docs/state.md: next item without "closed when:": Import the ruleset.']);
+    expect(checkDocs(repo({ "docs/state.md": state("1. Lighthouse, parked.") })).fails).toEqual([
+      'docs/state.md: next item without "closed when:": Lighthouse, parked.',
+    ]);
+  });
+
+  // Bug: a doc named a command that no longer exists (`npm run` in a pnpm repo, a renamed script), and
+  // the reader met "command not found" mid-runbook.
+  it("fails a rule doc that names npm, npx or a script its package.json lacks", () => {
+    const { fails } = checkDocs(
+      repo({
+        "package.json": JSON.stringify({ scripts: { gate: "x" } }),
+        "apps/web/package.json": JSON.stringify({ scripts: { e2e: "x" } }),
+        "AGENTS.md":
+          "`pnpm run gate`, `pnpm run gone`, `pnpm --filter @singularityfm/web run e2e`, `pnpm --filter @singularityfm/web run gate`.\n",
+        "code.md": "Run `npm run gate`, then `npx vitest`.\n",
+      }),
+    );
+    expect(fails).toEqual([
+      'AGENTS.md: "pnpm run gone" names no script in package.json',
+      'AGENTS.md: "pnpm --filter @singularityfm/web run gate" names no script in apps/web/package.json',
+      'code.md: "npm run gate": the repo runs pnpm',
+      'code.md: "npx vitest": the repo runs pnpm',
+    ]);
+  });
+
   // Bug: the whole Index counted as read-first, so every decision pushed every session's first read
   // toward the budget (D283). Now the Index is grep-only with a cap of its own.
   it("counts AGENTS.md and state.md as read-first, and caps the Index apart", () => {

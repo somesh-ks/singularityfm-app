@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 // PostToolUse hook (Edit|Write|MultiEdit): after an agent edits UI source or the tokens, run the
-// static design rules (`npm run design-check`, about 2 s) and hand failures back as blocking
+// static design rules (`pnpm run design-check`, about 2 s) and hand failures back as blocking
 // feedback (exit 2, stderr). Silent when green or when the file is not UI. The rules and why each
-// exists are in apps/web/src/styles/styles.test.ts; the owner's ask is in AGENTS.md ("Tests" and
-// the UI rule). A hook that errors itself never blocks the agent.
+// exists are in apps/web/src/styles/styles.test.ts; the owner's ask is in design.md
+// (Rules). A hook that errors itself never blocks the agent.
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { relative, resolve } from "node:path";
@@ -37,7 +37,7 @@ try {
     .filter((line) => /^\s*(?:FAIL|[-+]\s{1,3}"|AssertionError|×)/.test(line))
     .slice(0, 40);
   process.stderr.write(
-    `Design check failed after editing ${rel}. Fix it or, when the existing look is load-bearing, add a commented allowlist entry in apps/web/src/styles/styles.test.ts (see AGENTS.md).\n${lines.join("\n")}\nRun \`npm run design-check\` for the full report.\n`,
+    `Design check failed after editing ${rel}. Fix it or, when the existing look is load-bearing, add a commented allowlist entry in apps/web/src/styles/styles.test.ts (see design.md).\n${lines.join("\n")}\nRun \`pnpm run design-check\` for the full report.\n`,
   );
   process.exit(2);
 } catch {

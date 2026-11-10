@@ -30,10 +30,10 @@
     "covers:sheet": "tsx packages/cover/scripts/contactSheet.ts",
     "secrets:push": "tsx scripts/pushSecrets.ts",
     "backfill:opus": "tsx scripts/backfillOpus.ts",
-    "vercel:list": "vercel list",
-    "vercel:inspect": "vercel inspect",
-    "vercel:logs": "vercel logs",
-    "vercel:env-list": "vercel env list"
+    "vercel:list": "pnpm --filter @singularityfm/web exec vercel --cwd ../.. list",
+    "vercel:inspect": "pnpm --filter @singularityfm/web exec vercel --cwd ../.. inspect",
+    "vercel:logs": "pnpm --filter @singularityfm/web exec vercel --cwd ../.. logs",
+    "vercel:env-list": "pnpm --filter @singularityfm/web exec vercel --cwd ../.. env list"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",

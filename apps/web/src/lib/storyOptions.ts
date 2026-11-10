@@ -32,7 +32,7 @@ export function storyOptions(minutes: number, extra?: number): StoryOption[] {
     Number.isInteger(extra) &&
     extra > 0 &&
     extra !== auto &&
-    !(STORY_COUNTS as readonly number[]).includes(extra)
+    !STORY_COUNTS.includes(extra)
   ) {
     counts.push({ value: String(extra), label: String(extra), hidden: extra > most });
   }

@@ -44,7 +44,11 @@ export function wantedControls(
     wordLength(text) !== null ||
     answer.hints.length ||
     answer.values.length !== null;
-  const stories = storiesAsked(text, labels, answer);
+  const stories =
+    words.stories ||
+    wordStories(text) !== null ||
+    wordCount(text) !== null ||
+    answer.values.stories !== null;
   // Length and Stories show together, as on Catch up and Settings: each moves the other (owner,
   // 2026-11-10), so one shown alone would change out of sight.
   const size = length || stories;
@@ -53,20 +57,6 @@ export function wantedControls(
     topics: words.topics || answer.hints.topics || answer.values.add.length > 0,
     stories: size,
   };
-}
-
-/**
- * Whether the comment asks about the story count: its words, Jev, or Haiku's value. Stories shown
- * only beside Length sends its value when this holds or the listener touched it, so an untouched
- * Auto keeps the count the podcast had.
- */
-export function storiesAsked(text: string, labels: readonly string[], answer: Answer): boolean {
-  return (
-    hintsFor(text, labels).stories ||
-    wordStories(text) !== null ||
-    wordCount(text) !== null ||
-    answer.values.stories !== null
-  );
 }
 
 /** One step along the lengths on offer, from the one asked; the end of the list stays put. */

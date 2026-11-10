@@ -70,9 +70,9 @@ function pacedStories(minutes: number): number {
 }
 
 /**
- * The stories a length airs at Auto: the usual telling's count to the nearest `STORY_STEP` (15
- * minutes holds 43.9, Auto airs 45), so Auto is one of the counts on offer. One rounded up is told a
- * little shorter (`tellingWords`), so the length holds.
+ * The stories a length sizes at Auto: the usual telling's count to the nearest `STORY_STEP` (15
+ * minutes holds 43.9, Auto is 45), so Auto is one of the counts on offer. What airs is still held to
+ * the length (validation fills it by measured narration, D119), so the rounding moves no length.
  */
 export function autoStories(minutes: number): number {
   const stepped = Math.round(pacedStories(minutes) / STORY_STEP) * STORY_STEP;
@@ -105,11 +105,11 @@ export function storiesFor(minutes: number, picked: number | null | undefined): 
 
 /**
  * The words each spoken telling aims at so `count` stories fit `minutes`: null when the usual
- * telling fits (no more stories than its pace holds), otherwise the share of the length a story
- * has, never under `MIN_TELLING_WORDS`.
+ * telling fits (no more stories than Auto), otherwise the share of the length a story has, never
+ * under `MIN_TELLING_WORDS`.
  */
 export function tellingWords(minutes: number, count: number): number | null {
-  if (count <= pacedStories(minutes)) return null;
+  if (count <= autoStories(minutes)) return null;
   const room = minutes * BRIEFING_CHARS_PER_MINUTE - EPISODE_FRAME_CHARS;
   const share = room / count - STORY_FRAME_CHARS;
   return Math.max(MIN_TELLING_WORDS, Math.floor(share / CHARS_PER_WORD));

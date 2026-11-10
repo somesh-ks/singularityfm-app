@@ -12,7 +12,6 @@ import {
   desiredLength,
   desiredStories,
   NO_ANSWER,
-  storiesAsked,
   wantedControls,
 } from "../lib/regenFollow";
 import { DEFAULT_REGEN_LENGTH, nearestRegenLength, REGEN_LENGTHS } from "../lib/regenLength";
@@ -157,17 +156,6 @@ export default function GenerateSheet({ open, handoff, onOpenChange }: GenerateS
     wantedStories === "" ? undefined : Number(wantedStories),
   );
   const stories = heldStory(storyChoices, wantedStories);
-  // Stories shown only beside Length, untouched on Auto and not asked about, sends nothing, so the
-  // run keeps the schedule's count.
-  const sendStories =
-    shownStories &&
-    (storiesPick !== null ||
-      stories !== "" ||
-      storiesAsked(
-        comment,
-        chips.map((chip) => chip.label),
-        answer,
-      ));
   const isOn = (chip: RegenChip): boolean =>
     picked.get(chip.value) ??
     desiredChip(chip.label, page ? isChipOn(chip, page.selected) : false, answer.values);
@@ -225,8 +213,9 @@ export default function GenerateSheet({ open, handoff, onOpenChange }: GenerateS
         feedbackRef.current?.value ?? "",
         topics,
         Number(length),
-        // A Stories that speaks for the comment sends what it shows, Auto as null (sendStories).
-        sendStories ? storiesValue(stories) : undefined,
+        // A shown Stories sends what it shows, Auto as null (beside a new Length, Auto is that
+        // length's count); a hidden one sends nothing, so the run keeps the schedule's count.
+        shownStories ? storiesValue(stories) : undefined,
       );
     } catch {
       // The indicator's chunk failed to load (offline, a stale deploy): say so, never stay busy.

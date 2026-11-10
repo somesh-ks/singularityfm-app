@@ -4,14 +4,7 @@ import { PANEL_SHEET_SELECTOR } from "@singularityfm/design-system/sheet";
 import { rememberCancelToken } from "../lib/cancelTokens";
 import { isSiteAnswer, withErrorRef } from "../lib/errorRef";
 import { createCommentAsker } from "../lib/regenAsk";
-import {
-  desiredChip,
-  desiredLength,
-  desiredStories,
-  NO_ANSWER,
-  storiesAsked,
-  wantedControls,
-} from "../lib/regenFollow";
+import { desiredChip, desiredLength, desiredStories, wantedControls } from "../lib/regenFollow";
 import { nearestRegenLength } from "../lib/regenLength";
 import { isChipOn } from "../lib/regenTopics";
 import { hasSaved, storeOn } from "../lib/savedKey";
@@ -227,15 +220,10 @@ function bind(kind: Kind, dialog: HTMLDialogElement, root: HTMLElement): void {
       const length = dialog.querySelector<HTMLInputElement>('input[name="length"]:checked');
       const minutes = length && !length.defaultChecked ? Number(length.value) : null;
       // A shown Stories sends what it shows, Auto as null (the words' step may land on Auto's
-      // count). Hidden, or shown only beside Length, untouched on Auto and not asked about, it sends
-      // nothing, so the episode keeps its count.
+      // count, and beside a new Length, Auto is that length's count); a hidden one sends nothing, so
+      // the episode keeps its count.
       const stories = storiesValue(storiesSelect?.value ?? "");
-      const sendStories =
-        !briefing &&
-        storiesGroup?.hidden === false &&
-        (storiesTouched ||
-          stories !== null ||
-          storiesAsked(text, chips.map(labelOf), asker?.answer() ?? NO_ANSWER));
+      const sendStories = !briefing && storiesGroup?.hidden === false;
       body = {
         action: "regenerate",
         id,

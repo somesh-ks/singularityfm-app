@@ -78,7 +78,7 @@ The design guide is a third project, `singularity-design-system`, built from the
 `@singularityfm/contracts` carries the store readers and the admin session cookie to the admin repository as compiled JavaScript. `contracts.yml` publishes it, with no token, once npm trusts that workflow:
 
 1. On https://www.npmjs.com/package/@singularityfm/contracts/access (or the org's package settings before the first version), add a Trusted Publisher: GitHub Actions, owner `somesh-ks`, repository `singularityfm-app`, workflow `contracts.yml`, no environment.
-2. npm marks it pending until a publish validates it, within two days. Run the `contracts` workflow (Actions, then Run workflow on `main`) to publish the current version.
+2. npm marks it pending until a publish from that workflow validates it, within two days. A publish from your own machine does not count. Run the `contracts` workflow (Actions, then Run workflow on `main`) when the current version is not on npm yet, or merge a version bump.
 
 After that, a version bump in `packages/contracts/package.json` publishes on merge.
 
@@ -423,12 +423,12 @@ The files are not in git, so a fresh checkout has none. `npm run singularity -- 
 
 If the database is down while the store is on, pages show the build's copy and an edit answers "unavailable" and stays pending on the page. A run, a podcast, an ingest or a build stops when it holds no config files; the cron answers 503. Nothing is made from defaults.
 
-## 12. Branch rules on `main` (D175, D385)
+## 12. Branch rules on `main` (D175, D385, D387)
 
 `main` is protected by a GitHub ruleset, kept as `.github/rulesets/main.json` so it is reviewed like code and can be re-imported. It takes effect only once the owner imports it (step 1); `docs/state.md` says whether that has happened.
 
 1. Settings → Rules → Rulesets → New ruleset → Import a ruleset → choose `.github/rulesets/main.json` → Create. If an older copy is listed, edit that one instead (step 4).
-2. What it holds: no deletion, no force push, linear history, a pull request with its review threads resolved and squash as the only merge method, and the required checks `check` and `browser gate`. No approval count (one owner cannot approve their own PR; code review is CodeRabbit, D143, D192), no bypass actor (GitHub rejects the Actions app as one on a personal repository), and no "up to date" requirement (it costs a CI wait before each merge, about 4 minutes, 15 with the browser suites).
+2. What it holds: no deletion, no force push, linear history, a pull request with its review threads resolved and squash as the only merge method, and the required checks `check` and `browser gate`. No approval count (one owner cannot approve their own PR; code review is CodeRabbit, D143, D192), no bypass actor (GitHub rejects the Actions app as one on a personal repository), and the branch must be up to date with `main` at merge (a PR behind `main` is updated and its checks rerun first, about 4 minutes, 15 with the browser suites; `automerge.yml` leaves a behind PR for a hand merge).
 3. Settings → General → Pull Requests: allow squash merging only (the `[deploy]` title rule needs it), and automatically delete head branches.
 4. To change a rule, edit the existing ruleset in Settings → Rules → Rulesets and Save changes, then open a PR with the same change to the JSON so the file matches. Do not import a second copy: two active rulesets both apply.
 5. Rollback: set the ruleset's enforcement to Disabled. A direct push to `main` is refused while it is active, so a deploy goes through a PR whose title ends `[deploy]`.

@@ -8,7 +8,7 @@ Closed: the `docs/state.md` items this settles. Opened: what is now unverified, 
 
 ## Fixed at the component
 
-For a UI fix: the component, class or token that changed. If a page was patched instead, why the component could not hold it. Or "no UI change".
+For a UI fix: the component, class or token that changed, and the design-audit verdict (`.claude/agents/design-audit.md`): PASS, the findings fixed, or why it did not run. If a page was patched instead, why the component could not hold it. Or "no UI change".
 
 ## Batching
 

@@ -6,12 +6,11 @@ Long-term project memory, future explorations, parked tasks, and shipped milesto
 
 Immediate priority tasks synchronized with `docs/state.md` ## Next:
 
-1. **Owner calls**: Choose the Vercel plan (11-06 to 11-08; the Blob trial ends 11-13; verdict and costs under Operations: keep Pro); decide on regenerating 3-story 2026-10-27 briefing; revoke old Vercel token pasted in chat; delete empty store `store_JmrDq8MB5Kwn3ejW`; resolve PWA open calls.
-2. **Firecrawl change check**: the yield report is delivered; the owner prunes. The free change check before a scrape is built (D342) and saved fingerprints on 11-02 and 11-05; a Firecrawl monitor costs the same as a scrape per check.
-3. **Lighthouse CSS**: parked. Critical CSS paints a cold phone in 1.0 s, not 3.2 s, but needs per-page CSP hashes and a flash check.
-4. **Topic to Category migration**: End-to-end migration (plan 14, about 6,500 occurrences) across readers, store sync, code, and workflow outputs. The UI says Category since #312; the code and data still say topic. Only with no other PR open.
-5. **Design system sweep**: Controls still outside the system (D237: icon buttons, chips, FABs, dock and transport buttons; `NOT_YET_COMPONENTS`). Review `/settings/*`, category pages, player, create; audit light and dark modes at 390px and 1280px; one PR per component family.
-6. **Pipeline performance**: `first_turn_chars` read 353 and 394 on the first two episodes, which looks short; the owner decides whether to drop the split. Free the lane in the hold (D209): steps 2, 4 and 5 are not built. A shared read of each source per run and a per-field rewrite are built.
+1. **Firecrawl change check**: the yield report is delivered; the owner prunes. The free change check before a scrape is built (D342) and saved fingerprints on 11-02 and 11-05; a Firecrawl monitor costs the same as a scrape per check.
+2. **Lighthouse CSS**: parked. Critical CSS paints a cold phone in 1.0 s, not 3.2 s, but needs per-page CSP hashes and a flash check.
+3. **Topic to Category migration**: End-to-end migration (plan 14, about 6,500 occurrences) across readers, store sync, code, and workflow outputs. The UI says Category since #312; the code and data still say topic. Steps: an inventory, dual-name readers, a store-synced migration, the rename, then the old names go. Only with no other PR open.
+4. **Design system sweep**: Controls still outside the system (D237: icon buttons, chips, FABs, dock and transport buttons; `NOT_YET_COMPONENTS`). Review `/settings/*`, category pages, player, create; audit light and dark modes at 390px and 1280px; one PR per component family.
+5. **Pipeline performance**: `first_turn_chars` read 353 and 394 on the first two episodes, which looks short; the owner decides whether to drop the split. Free the lane in the hold (D209): steps 2, 4 and 5 are not built. A shared read of each source per run and a per-field rewrite are built.
 
 ## Parked & Unfinished Tasks
 
@@ -32,6 +31,8 @@ Cold items offloaded from active state. Each item maintains an explicit testable
   - Closed when: the wait is replaced by a signal and the full site run passes 20 times in a row.
 - **Aggregator / redirect filtering**: Links to blocked outlets via aggregators or redirects are not caught.
   - Closed when: domain matching resolves final destination URLs, or owner accepts current matching.
+- **Parked by the owner on 1 Nov (D302)**, no code: pipeline plan Steps 3 to 7 (versions table, regenerate from a stage, git as export, feedback classifier) and the Firecrawl monitor pilot.
+  - Closed when: the owner restarts or drops them.
 
 ### Player & Audio Experience
 - **Cold audio device latency**: First press on cold audio device blocks about 200 ms (`new AudioContext()` in `packages/sound`).

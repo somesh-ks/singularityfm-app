@@ -2,7 +2,15 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, extname, join, relative } from "node:path";
 import { COMPONENTS } from "@singularityfm/design-system/registry";
-import { offGrid, rawPixels } from "@singularityfm/design-system/rules";
+import {
+  classOnComponent,
+  declaredProperties,
+  offGrid,
+  rawColour,
+  rawPixels,
+  retiredPath,
+  unknownProperty,
+} from "@singularityfm/design-system/rules";
 import { describe, expect, it } from "vitest";
 
 /**
@@ -88,29 +96,19 @@ const LABEL_CONTROLS = [
 /**
  * The only rules that may space with --space-1 (4px), each with why. Everything else spaces on the
  * 8pt grid: a 4px gap between two rows, or under a heading, reads as the two touching. A selector
- * matches when it contains the entry as a whole name.
+ * matches when it contains the entry as a whole name. These are the reader's own; the library's
+ * selectors are in its GRID_EXCEPTIONS, which offGrid reads too.
  */
 const ALLOWED_4PX: [selector: string, reason: string][] = [
-  [".banner-notice > .button-text", "the action's hit area reaching into the banner's padding"],
-  [".banner-body", "a banner's title onto its body, inside one banner"],
-  [".menu-tile", "a glyph onto its word inside one tile: the icon-to-label gap is 4px, items 8px"],
   [".manage-field", "a label onto its field (owner, 2026-11-05)"],
   [".sheet-field", "a label onto its field (owner, 2026-11-05)"],
-  [".segmented-nav-tab::after", "the segmented control's inset: the tab's fill sits 4px inside it"],
   [".topic-add-source::after", "the button's hit area reaching 4px past it"],
-  [
-    ".menu-tiles[data-fold] > .menu-item",
-    "the Library card's quick actions are the same tiles on a phone: glyph to word 4px",
-  ],
   [".queue-going", "a ring onto its time or percent inside one lead: the icon-to-label gap is 4px"],
   [".create-fab-label", "the button's own inner gap at the label's end"],
-  [".sheet-head", "the header's 44px buttons, offset to the edge as a hit area"],
   [".create-more-text", "title onto its subtitle inside one row"],
   [".episode-highlight-actions", "the chips' hit-area overhang under the highlight"],
   [".hero-text", "title onto its subtitle inside one block"],
   [".library-filters", "room for the chips' focus ring inside the scroller"],
-  [".filter-chips-scroll", "room for the chips' focus ring inside the scroller"],
-  ['[data-view="list"] .card-link::after', "the row's press layer, inset as a hit area"],
   [".card-match", "title onto its subtitle inside one row"],
   [".card-sub", "title onto its subtitle inside one row"],
   [".multiselect-text", "title onto its subtitle inside one option"],
@@ -122,26 +120,13 @@ const ALLOWED_4PX: [selector: string, reason: string][] = [
   [".dock-seek-time", "a chip's inner padding"],
   [".scrubber-bubble", "a chip's inner padding and its optical nudge onto the track"],
   [".script-turn", "the speaker onto their words inside one turn"],
-  [".row-action::after", "the row's press layer, inset as a hit area"],
-  [".source-link", "an icon beside its own label"],
-  [".filter-chip", "a chip's inner gap"],
-  [".select-tonal > select::picker(select)", "the list's edge onto the label's outline"],
-  [".meta-wrap", "the meta link's hit area reaching past its words"],
-  [".segmented-choice-item", "the check glyph beside its own segment label"],
-  [".segmented-nav", "a segmented track: the pill inset by its 4px track padding"],
   [".settings-text", "title onto its subtitle inside one row"],
   [
     ".costs-answer",
     "a figure's label onto the figure, and the figure onto its line, inside one block",
   ],
-  [".toast", "the action's hit area reaching the toast's edge"],
-  [".app-bar-back", "the back button's hit area, offset to the edge"],
-  [".app-nav-item", "an icon beside its own label"],
   [".source-icon > img", "the favicon's inset inside its own tile"],
-  [".source-host", "the separator dot beside its own text"],
-  [".score", "the meter beside its own label"],
   [".source-card-score", "the meter beside its own label"],
-  [".source-plus-btn", "the button's hit area and its press layer's inset"],
   ["html[data-manage-toast-open]", "a bar's inset sum: the 4px inset doubled, landing on the grid"],
 ];
 
@@ -426,20 +411,13 @@ const RULES: Rule[] = [
     },
   },
   {
+    // The design system's rule (raw-colour): a colour function that reads a token (color-mix, a
+    // relative oklch) is a token's colour; a literal is one dark mode and the moods never see.
     name: "uses tokens for color, never a raw value",
     offenders: () =>
-      ownCss().flatMap(([file, css]) => {
-        // `color-mix(in oklch, var(--x) 8%, ...)` mixes tokens; the ban is on literal color functions.
-        // `oklch(from var(--x) ...)` derives a color from a token, which is not a raw value either.
-        const stripped = css
-          .replace(/color-mix\(in [a-z]+/g, "color-mix(")
-          .replace(/oklch\(from (?:var\(|red )/g, "derive(");
-        const match =
-          /#[0-9a-fA-F]{3,8}\b|\b(?:rgb|rgba|hsl|hsla|hwb|lab|lch|oklab|oklch|color)\(/.exec(
-            stripped,
-          );
-        return match ? [`${file}: ${match[0]}`] : [];
-      }),
+      OWN_FILES.flatMap((file) =>
+        rawColour(read(file), file).map(({ line, message }) => `${file}:${line} ${message}`),
+      ),
   },
   {
     name: "the empty-state art holds no raw colour: every fill and stroke comes from a class",
@@ -496,40 +474,14 @@ const RULES: Rule[] = [
   },
   {
     // A 12px gap beside a 16px one, or a 4px one between two rows, reads as rows touching and
-    // headings crowding their controls. Space is 8, 16, 24 and up; 4px only where ALLOWED_4PX says.
-    name: "spacing is on the 8pt grid",
-    offenders: () => {
-      const spacing =
-        /^(?:margin|padding|gap|row-gap|column-gap|inset|top|right|bottom|left|scroll-margin|scroll-padding)(?:-[a-z-]+)?$/;
-      return [
-        ...ownCss(),
-        ["foundations.css", withoutComments(read("foundations.css"))] as const,
-      ].flatMap(([file, css]) =>
-        rulesOf(css).flatMap(([selector, body]) =>
-          declarationsOf(body)
-            .filter(([property]) => spacing.test(property))
-            .flatMap(([property, value]) =>
-              [...value.matchAll(/--space-([\w]+)/g)]
-                .filter(([, step]) => {
-                  if (["2", "4", "6", "8", "12", "16", "24"].includes(step ?? "")) return false;
-                  const fine = ALLOWED_4PX.some(([allowed]) => wholeName(allowed).test(selector));
-                  return !(step === "1" && fine);
-                })
-                .map(([token]) => `${file}: ${selector} { ${property}: ${token} }`),
-            ),
-        ),
-      );
-    },
-  },
-  {
-    // The rule above reads the space tokens a stylesheet names. A component token (a field's label
-    // gap of 12px) or a calc() of space tokens (16px less 4px) reached the page off the grid unseen
-    // (owner, 2026-11-05: "every spacing value is to be on the grid"). This one resolves each spacing
-    // value made of space and component tokens to pixels and holds the result to 8, 16, 24 and up,
-    // 4px where ALLOWED_4PX says. A value built from a dimension (an icon, a touch target, a stroke)
-    // is that part's geometry, centring or a hit area, and stays out, as widths do above. The
-    // resolver is the design system's (offGrid in its rules), so the app and `ds validate` read one
-    // copy; the app passes its own 4px cases.
+    // headings crowding their controls; a component token (a field's label gap of 12px) or a calc()
+    // of space tokens (16px less 4px) reached the page off the grid unseen (owner, 2026-11-05: "every
+    // spacing value is to be on the grid"). This resolves each spacing value made of space and
+    // component tokens to pixels and holds the result to 8, 16, 24 and up, 4px where the library's
+    // GRID_EXCEPTIONS or ALLOWED_4PX say. A value built from a dimension (an icon, a touch target, a
+    // stroke) is that part's geometry, centring or a hit area, and stays out, as widths do above; a
+    // space token nothing defines (--space-3) is the unknown-property rule's. The resolver is the
+    // design system's (offGrid in its rules), so the app and `ds validate` read one copy.
     name: "spacing tokens and calc() resolve to the 8pt grid",
     offenders: () =>
       [...OWN_FILES, "foundations.css"].flatMap((file) =>
@@ -852,16 +804,33 @@ const RULES: Rule[] = [
   {
     // Prevents colour drifting out of the token files through markup or script: a hex or rgb()
     // literal in a component or island ships a colour that dark mode, forced-colors and the
-    // contrast checks never see. Colour comes from a token, through a class.
+    // contrast checks never see. Colour comes from a token, through a class. The design system's
+    // rule (raw-colour) reads past comments, links and selectors (`href="#top"`).
     name: "source files hold no colour literal: colour comes from the tokens",
     offenders: () =>
-      sourceFiles().flatMap((file) => {
-        if (RAW_COLOR_ALLOWED.some(([allowed]) => allowed === posix(file))) return [];
-        const match = /#[0-9a-fA-F]{3,8}\b|\b(?:rgba?|hsla?|hwb|oklab|oklch)\(/.exec(
-          readFileSync(file, "utf8"),
-        );
-        return match ? [`${posix(file)}: ${match[0]}`] : [];
-      }),
+      sourceFiles()
+        .filter((file) => !RAW_COLOR_ALLOWED.some(([allowed]) => allowed === posix(file)))
+        .flatMap((file) =>
+          rawColour(readFileSync(file, "utf8"), file).map(
+            ({ line, message }) => `${posix(file)}:${line} ${message}`,
+          ),
+        ),
+  },
+  {
+    // Prevents a page drawing a component by typing its class (D237), and an import of a path the
+    // package retired: the design system's rules (class-on-component, retired-path) over the
+    // reader's own source. A deprecated path still works but is a warning in `ds validate`; the
+    // reader holds itself to none, so a later removal never finds a caller.
+    name: "draws a component, never its class, and imports no retired path",
+    offenders: () =>
+      sourceFiles()
+        .filter((file) => !file.startsWith(SYSTEM))
+        .flatMap((file) => {
+          const text = readFileSync(file, "utf8");
+          return [...classOnComponent(text, file), ...retiredPath(text, file)].map(
+            ({ line, message }) => `${posix(file)}:${line} ${message}`,
+          );
+        }),
   },
   {
     // Prevents a one-off weight, family or shorthand: type is set by the --font-* tokens (and the
@@ -1347,9 +1316,10 @@ describe("component stylesheets", () => {
 
   it("reads no custom property that nothing defines", () => {
     // `var(--space-5)` with no --space-5 is not an error to the browser: the whole declaration is
-    // dropped, silently. A property with a fallback is one that script or a library may set.
+    // dropped, silently. The design system's rule (unknown-property): a property with a fallback is
+    // one that script or a library may set, and what the reader's markup and script declare counts.
     // The admin loads the system and its own files only, so its sheets may not lean on the reader's.
-    const definedIn = (roots: string[]) =>
+    const declaredIn = (roots: string[]) =>
       new Set(
         roots
           .flatMap((src) =>
@@ -1357,26 +1327,20 @@ describe("component stylesheets", () => {
               .filter(
                 (file) => /\.(css|astro|tsx|ts)$/.test(file) && !/\.(test|spec)\.tsx?$/.test(file),
               )
-              .map((file) => readFileSync(join(src, file), "utf8")),
+              .map((file) => join(src, file)),
           )
-          .flatMap((text) =>
-            [
-              ...text.matchAll(/(--[a-z0-9-]+)\s*:/gi),
-              ...text.matchAll(/@property\s+(--[a-z0-9-]+)/gi),
-              ...text.matchAll(/["'`](--[a-z0-9-]+)["'`]/gi),
-            ].map((match) => match[1]),
-          ),
+          .flatMap((file) => [...declaredProperties(readFileSync(file, "utf8"), file)]),
       );
-    const readerDefined = definedIn([SRC, SYSTEM_STYLES, SYSTEM_SRC]);
-    const adminDefined = definedIn([join(ADMIN_STYLES, ".."), SYSTEM_STYLES, SYSTEM_SRC]);
-    for (const file of [...OWN_FILES, "foundations.css"]) {
-      for (const [, name] of withoutComments(read(file)).matchAll(
-        /var\(\s*(--[a-z0-9-]+)\s*\)/gi,
-      )) {
-        const defined = ADMIN_FILES.includes(file) ? adminDefined : readerDefined;
-        expect(defined.has(name), `${file} reads ${name}, which nothing defines`).toBe(true);
-      }
-    }
+    const readerDeclared = declaredIn([SRC, SYSTEM_STYLES, SYSTEM_SRC]);
+    const adminDeclared = declaredIn([join(ADMIN_STYLES, ".."), SYSTEM_STYLES, SYSTEM_SRC]);
+    const offenders = [...OWN_FILES, "foundations.css"].flatMap((file) =>
+      unknownProperty(
+        read(file),
+        file,
+        ADMIN_FILES.includes(file) ? adminDeclared : readerDeclared,
+      ).map(({ line, message }) => `${file}:${line} ${message}`),
+    );
+    expect(offenders).toEqual([]);
   });
 
   it("takes every hover and press fill from a state token, never an alpha layer (D317)", () => {

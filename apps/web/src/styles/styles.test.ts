@@ -33,8 +33,15 @@ const OWN_FILES = [STYLES, SYSTEM_STYLES]
   .concat(ADMIN_FILES)
   .filter((file) => file.endsWith(".css") && !["tokens.css", "foundations.css"].includes(file))
   .sort();
+// The system's copy wins over a same-named reader file, as before the admin's two sheets joined.
 const read = (file: string) =>
-  readFileSync(join(STYLE_DIRS.find((dir) => existsSync(join(dir, file))) ?? STYLES, file), "utf8");
+  readFileSync(
+    join(
+      [SYSTEM_STYLES, STYLES, ADMIN_STYLES].find((dir) => existsSync(join(dir, file))) ?? STYLES,
+      file,
+    ),
+    "utf8",
+  );
 
 /** Comments and the generated-font header carry prose and commands, not styles. */
 const withoutComments = (css: string) => css.replace(/\/\*[\s\S]*?\*\//g, "");
@@ -1325,8 +1332,8 @@ describe("design-system components in page stylesheets", () => {
 
 describe("component stylesheets", () => {
   it("covers every stylesheet the layout or an island imports", () => {
-    // The command center (D224) imports the Costs and Health sheets from here. A sheet may import
-    // another (settings.css takes the page frame from the system).
+    // The admin's Costs and Health sheets live in apps/admin (D382 step 2b). A sheet may import
+    // another (settings.css takes the page frame and the settings rows from the system).
     const sources = [SRC, SYSTEM_SRC, join(SRC, "..", "..", "admin", "src")].flatMap((src) =>
       readdirSync(src, { recursive: true, encoding: "utf8" })
         .filter((file) => /\.(astro|tsx|css)$/.test(file))
@@ -1341,24 +1348,32 @@ describe("component stylesheets", () => {
   it("reads no custom property that nothing defines", () => {
     // `var(--space-5)` with no --space-5 is not an error to the browser: the whole declaration is
     // dropped, silently. A property with a fallback is one that script or a library may set.
-    const sources = [SRC, SYSTEM_STYLES, SYSTEM_SRC].flatMap((src) =>
-      readdirSync(src, { recursive: true, encoding: "utf8" })
-        .filter((file) => /\.(css|astro|tsx|ts)$/.test(file) && !/\.(test|spec)\.tsx?$/.test(file))
-        .map((file) => readFileSync(join(src, file), "utf8")),
-    );
-    const defined = new Set(
-      sources.flatMap((text) =>
-        [
-          ...text.matchAll(/(--[a-z0-9-]+)\s*:/gi),
-          ...text.matchAll(/@property\s+(--[a-z0-9-]+)/gi),
-          ...text.matchAll(/["'`](--[a-z0-9-]+)["'`]/gi),
-        ].map((match) => match[1]),
-      ),
-    );
+    // The admin loads the system and its own files only, so its sheets may not lean on the reader's.
+    const definedIn = (roots: string[]) =>
+      new Set(
+        roots
+          .flatMap((src) =>
+            readdirSync(src, { recursive: true, encoding: "utf8" })
+              .filter(
+                (file) => /\.(css|astro|tsx|ts)$/.test(file) && !/\.(test|spec)\.tsx?$/.test(file),
+              )
+              .map((file) => readFileSync(join(src, file), "utf8")),
+          )
+          .flatMap((text) =>
+            [
+              ...text.matchAll(/(--[a-z0-9-]+)\s*:/gi),
+              ...text.matchAll(/@property\s+(--[a-z0-9-]+)/gi),
+              ...text.matchAll(/["'`](--[a-z0-9-]+)["'`]/gi),
+            ].map((match) => match[1]),
+          ),
+      );
+    const readerDefined = definedIn([SRC, SYSTEM_STYLES, SYSTEM_SRC]);
+    const adminDefined = definedIn([join(ADMIN_STYLES, ".."), SYSTEM_STYLES, SYSTEM_SRC]);
     for (const file of [...OWN_FILES, "foundations.css"]) {
       for (const [, name] of withoutComments(read(file)).matchAll(
         /var\(\s*(--[a-z0-9-]+)\s*\)/gi,
       )) {
+        const defined = ADMIN_FILES.includes(file) ? adminDefined : readerDefined;
         expect(defined.has(name), `${file} reads ${name}, which nothing defines`).toBe(true);
       }
     }

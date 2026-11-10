@@ -1,5 +1,4 @@
-import type { HealthBody } from "@singularityfm/contracts/health";
-import { HEALTH_JOBS } from "@singularityfm/contracts/health";
+import { HEALTH_JOBS, type HealthBody } from "@singularityfm/contracts/health";
 import {
   type Digest,
   digestRelPath,

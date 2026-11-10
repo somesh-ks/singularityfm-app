@@ -18,10 +18,16 @@ export interface Release {
 
 export const CHANGELOG: readonly Release[] = [
   {
-    version: "0.23.1",
+    version: "0.23.2",
     date: "2026-11-10",
     description:
       "Stories now runs in fives all the way to 50, and Auto lands on a five too, so the wheel no longer stops at an odd number like 44. On Regenerate, Length and Stories appear together, since changing one moves the other.",
+  },
+  {
+    version: "0.23.1",
+    date: "2026-11-10",
+    description:
+      "The first tap after you open the app now makes the sound that tap should, and no other. A sound asked for before the phone's audio had woken is no longer swapped for a later one, and a sound from before your tap no longer plays on it.",
   },
   {
     version: "0.23",

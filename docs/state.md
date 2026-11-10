@@ -22,8 +22,7 @@ Unit (CI): 367 files, 5,572 tests, 2 min. Site e2e: 468, 14 min. Player: 80, 7 m
 
 ## Not working or unverified
 
-- DS: pinned npm 0.2.0, no copy, scope `@singularityfm` (D382 7-9). closed when: a bump PR lands.
-- Hold still (D388): no control changes size on a state swap; no pixel length in a stylesheet. closed when: Firefox and his Android show the hero Play chip, the Play button and the sort chip at one width through Play, Processing and playing, and the Processing shimmer reads clearly.
+- DS 0.7.0 (D388): controls hold size. closed when: on his Android the Play chip keeps one width in every state.
 - D318 edge cache. closed when: a week of his loads is mostly HIT or STALE.
 - Guardrails (D360): #673 awaits his merge, `secrets:push`. closed when: Health's Budgets are fresh.
 - Rewrite (D376), Stories (D377). closed when: his next rewrite fetches in 1 min, plays at 0:00; 20 stories at 5 min air 20 in 5.5 min.

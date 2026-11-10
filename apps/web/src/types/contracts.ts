@@ -512,7 +512,7 @@ export type ConfigResponse =
 
 /**
  * Podcast episodes. These mirror packages/core/src/podcast.ts, its lists taken by `import type`, so
- * the page scripts never pull the engine's schemas into the browser. Keep the two in step.
+ * the page scripts never pull the engine's schemas into the browser; a change there reaches here.
  */
 export interface PodcastRequest {
   /** Section ids the episode draws on. One to six. Never "top": the engine always adds the top picks. */

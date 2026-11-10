@@ -7,7 +7,8 @@ name: deploy-due
 # apps/web/vercel.json as Vercel would for main's head, and only when that says build does it start
 # the reader's Deploy Hook. Any doubt does nothing here, the opposite of the script: an hourly
 # schedule that built on doubt would build every hour. A hook build that fails leaves the live commit
-# where it was, so the next hour asks again; smoke and health report the failed deploy.
+# where it was; a cache entry keyed on the commit lets the hook fire once per commit, so a failing
+# build is not retried every hour. Smoke and health report the failed deploy; the next merge retries.
 # shortcut: reader only; admin waits for a push, add its hook if admin lag matters.
 
 on:
@@ -36,7 +37,8 @@ jobs:
           ref: main
           # The batch counts commits since the live one; further back than this, nothing is done.
           fetch-depth: 50
-      - name: Ship the reader if the batch rule says it is due
+      - name: Ask the batch rule whether the reader is due
+        id: due
         shell: bash
         run: |
           set -uo pipefail
@@ -66,5 +68,26 @@ jobs:
             echo "The batch is due, but VERCEL_DEPLOY_HOOK_WEB is not set (D389)."
             exit 0
           fi
-          curl -fsS -X POST -o /dev/null --max-time 30 "$HOOK" || exit 1
-          echo "Live $build; started a build of ${head:0:12}."
+          echo "Live $build; main's head ${head:0:12} is due."
+          echo "head=$head" >> "$GITHUB_OUTPUT"
+      - name: Fired for this commit already?
+        id: fired
+        if: steps.due.outputs.head
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .deploy-due
+          key: deploy-due-${{ steps.due.outputs.head }}
+          lookup-only: true
+      - name: Start the reader's Deploy Hook
+        if: steps.due.outputs.head && steps.fired.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          curl -fsS -X POST -o /dev/null --max-time 30 "$HOOK"
+          echo "Started a build of ${{ steps.due.outputs.head }}."
+          echo "${{ steps.due.outputs.head }}" > .deploy-due
+      - name: Remember the commit
+        if: steps.due.outputs.head && steps.fired.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .deploy-due
+          key: deploy-due-${{ steps.due.outputs.head }}

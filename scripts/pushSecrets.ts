@@ -40,7 +40,7 @@ const GITHUB_VARIABLES = [
   // The Neon project the daily health check reads compute hours from (D360); branches.yml too.
   "NEON_PROJECT_ID",
   // The run switches (runbook 11.1 and 14.1), the second narrator's voice and the health check's
-  // daily spend limit; each was set by hand and forgotten once (24 Oct).
+  // daily spend limit: set by hand until now, so a new machine or a rotated key could miss them.
   "SINGULARITY_CONFIG_STORE",
   "SINGULARITY_STATE_STORE",
   "SPEECHIFY_VOICE_ID_B",

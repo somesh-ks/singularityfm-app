@@ -27,6 +27,8 @@ const GITHUB_SECRETS = [
   // The daily health check (D360): Neon's compute hours, and the site's GitHub token's end date.
   "NEON_API_KEY",
   "SINGULARITY_GH_TOKEN",
+  // The reader's Deploy Hook, which deploy-due.yml starts once a lone merge is due (D389).
+  "VERCEL_DEPLOY_HOOK_WEB",
 ];
 
 /** Plain configuration, stored as GitHub Actions variables so it stays visible in workflow runs. */

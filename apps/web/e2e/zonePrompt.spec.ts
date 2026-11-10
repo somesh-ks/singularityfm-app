@@ -26,7 +26,7 @@ test.describe("time zone prompt", () => {
     // Never silent: nothing is sent until Switch is pressed.
     expect(server.statuses).toHaveLength(0);
 
-    await toast.getByRole("button", { name: "Switch timezone" }).click();
+    await toast.getByRole("button", { name: "Switch", exact: true }).click();
     await expect
       .poll(() => server.applied)
       .toEqual([{ op: "schedule.set", timezone: "Asia/Tokyo" }]);

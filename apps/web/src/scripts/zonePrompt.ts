@@ -170,7 +170,7 @@ export function checkZone(): void {
   sendToast(
     {
       message,
-      actionLabel: "Switch timezone",
+      actionLabel: "Switch",
       oneLine: true,
       onAction: () => {
         if (deviceZone() === device) void switchTo(suggestion, device);

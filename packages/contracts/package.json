@@ -1,6 +1,6 @@
 {
   "name": "@singularityfm/contracts",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Singularity's store readers and admin session cookie, compiled for apps outside the main repository.",
   "license": "UNLICENSED",
   "repository": {

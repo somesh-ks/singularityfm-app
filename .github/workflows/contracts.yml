@@ -6,9 +6,9 @@ name: contracts
 # a no-op.
 #
 # No NPM_TOKEN: npm trusted publishing exchanges the job's OIDC token (id-token: write), and npm adds
-# provenance on its own from this public repository. npm can only trust a workflow for a package that
-# exists, so the owner publishes 0.1.0 once by hand and then names this repository and `contracts.yml`
-# as its trusted publisher (docs/runbook.md). Until then the job finds no package and stops green.
+# provenance on its own from this public repository. The owner named this repository and
+# `contracts.yml` as the package's trusted publisher before its first version (npm holds such a
+# setting as pending until a publish validates it), so this job publishes 0.1.0 too (runbook 1.4b).
 on:
   push:
     branches: [main]
@@ -36,16 +36,12 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .nvmrc
-          cache: pnpm
           registry-url: https://registry.npmjs.org
       - id: version
         run: |
           version=$(jq -r .version packages/contracts/package.json)
           echo "version=$version" >> "$GITHUB_OUTPUT"
-          if ! npm view @singularityfm/contracts version >/dev/null 2>&1; then
-            echo "::notice::@singularityfm/contracts is not on npm yet; the first publish is the owner's (docs/runbook.md)."
-            echo "publish=false" >> "$GITHUB_OUTPUT"
-          elif npm view "@singularityfm/contracts@$version" version >/dev/null 2>&1; then
+          if npm view "@singularityfm/contracts@$version" version >/dev/null 2>&1; then
             echo "publish=false" >> "$GITHUB_OUTPUT"
           else
             echo "publish=true" >> "$GITHUB_OUTPUT"

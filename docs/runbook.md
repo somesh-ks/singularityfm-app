@@ -73,13 +73,12 @@ The command center is a second Vercel project, `singularity-admin`, from the sam
 
 The design guide is a third project, `singularity-design-system`, built from the design system repo (Root Directory `apps/design`, D382). The reader's `apps/web/vercel.json` rewrites `/design` to its `singularity-design.vercel.app` address.
 
-### 1.4b Publish the contracts package once (D382)
+### 1.4b The contracts package's trusted publisher (D382)
 
-`@singularityfm/contracts` carries the store readers and the admin session cookie to the admin repository as compiled JavaScript. npm can only trust a workflow for a package that already exists, so the first version goes up by hand, once:
+`@singularityfm/contracts` carries the store readers and the admin session cookie to the admin repository as compiled JavaScript. `contracts.yml` publishes it, with no token, once npm trusts that workflow:
 
-1. On your machine, on an up-to-date `main`: `npm login` (the `singularityfm` org, with 2FA).
-2. `pnpm install --frozen-lockfile`, then `pnpm --filter @singularityfm/contracts publish --access public`. It builds `dist` itself.
-3. On https://www.npmjs.com/package/@singularityfm/contracts/access, under Trusted Publisher, pick GitHub Actions: owner `somesh-ks`, repository `singularityfm-app`, workflow `contracts.yml`, no environment. Then set Publishing access to "Require two-factor authentication and disallow tokens".
+1. On https://www.npmjs.com/package/@singularityfm/contracts/access (or the org's package settings before the first version), add a Trusted Publisher: GitHub Actions, owner `somesh-ks`, repository `singularityfm-app`, workflow `contracts.yml`, no environment.
+2. npm marks it pending until a publish from that workflow validates it, within two days. A publish from your own machine does not count. Run the `contracts` workflow (Actions, then Run workflow on `main`) when the current version is not on npm yet, or merge a version bump.
 
 After that, a version bump in `packages/contracts/package.json` publishes on merge.
 
@@ -424,12 +423,12 @@ The files are not in git, so a fresh checkout has none. `npm run singularity -- 
 
 If the database is down while the store is on, pages show the build's copy and an edit answers "unavailable" and stays pending on the page. A run, a podcast, an ingest or a build stops when it holds no config files; the cron answers 503. Nothing is made from defaults.
 
-## 12. Branch rules on `main` (D175, D385)
+## 12. Branch rules on `main` (D175, D385, D387)
 
 `main` is protected by a GitHub ruleset, kept as `.github/rulesets/main.json` so it is reviewed like code and can be re-imported. It takes effect only once the owner imports it (step 1); `docs/state.md` says whether that has happened.
 
 1. Settings → Rules → Rulesets → New ruleset → Import a ruleset → choose `.github/rulesets/main.json` → Create. If an older copy is listed, edit that one instead (step 4).
-2. What it holds: no deletion, no force push, linear history, a pull request with its review threads resolved and squash as the only merge method, and the required checks `check` and `browser gate`. No approval count (one owner cannot approve their own PR; code review is CodeRabbit, D143, D192), no bypass actor (GitHub rejects the Actions app as one on a personal repository), and no "up to date" requirement (it costs a CI wait before each merge, about 4 minutes, 15 with the browser suites).
+2. What it holds: no deletion, no force push, linear history, a pull request with its review threads resolved and squash as the only merge method, and the required checks `check` and `browser gate`. No approval count (one owner cannot approve their own PR; code review is CodeRabbit, D143, D192), no bypass actor (GitHub rejects the Actions app as one on a personal repository), and the branch must be up to date with `main` at merge (a PR behind `main` is updated and its checks rerun first, about 4 minutes, 15 with the browser suites; `automerge.yml` leaves a behind PR for a hand merge).
 3. Settings → General → Pull Requests: allow squash merging only (the `[deploy]` title rule needs it), and automatically delete head branches.
 4. To change a rule, edit the existing ruleset in Settings → Rules → Rulesets and Save changes, then open a PR with the same change to the JSON so the file matches. Do not import a second copy: two active rulesets both apply.
 5. Rollback: set the ruleset's enforcement to Disabled. A direct push to `main` is refused while it is active, so a deploy goes through a PR whose title ends `[deploy]`.

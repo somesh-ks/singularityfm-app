@@ -78,7 +78,7 @@ The design guide is a third project, `singularity-design-system`, built from the
 `@singularityfm/contracts` carries the store readers and the admin session cookie to the admin repository as compiled JavaScript. `contracts.yml` publishes it, with no token, once npm trusts that workflow:
 
 1. On https://www.npmjs.com/package/@singularityfm/contracts/access (or the org's package settings before the first version), add a Trusted Publisher: GitHub Actions, owner `somesh-ks`, repository `singularityfm-app`, workflow `contracts.yml`, no environment.
-2. npm marks it pending until a publish validates it, within two days. Run the `contracts` workflow (Actions, then Run workflow on `main`) to publish the current version.
+2. npm marks it pending until a publish from that workflow validates it, within two days. A publish from your own machine does not count. Run the `contracts` workflow (Actions, then Run workflow on `main`) when the current version is not on npm yet, or merge a version bump.
 
 After that, a version bump in `packages/contracts/package.json` publishes on merge.
 

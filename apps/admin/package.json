@@ -22,7 +22,7 @@
     "@astrojs/check": "^0.9.12",
     "@axe-core/playwright": "^4.14.0",
     "@playwright/test": "^1.65.0",
-    "@singularityfm/design-system": "0.6.0",
+    "@singularityfm/design-system": "0.8.0",
     "@singularityfm/web": "workspace:*",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",

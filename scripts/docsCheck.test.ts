@@ -84,7 +84,7 @@ describe("docs check", () => {
         "package.json": JSON.stringify({ scripts: { gate: "x" } }),
         "apps/web/package.json": JSON.stringify({ scripts: { e2e: "x" } }),
         "AGENTS.md":
-          "`pnpm run gate`, `pnpm run gone`, `pnpm --filter @singularityfm/web run e2e`, `pnpm --filter @singularityfm/web run gate`.\n",
+          "`pnpm run gate`, `pnpm run gone`, `pnpm --filter @singularityfm/web run e2e`, `pnpm --filter @singularityfm/web run gate`. Then pnpm run gate.\n",
         "code.md": "Run `npm run gate`, then `npx vitest`.\n",
       }),
     );

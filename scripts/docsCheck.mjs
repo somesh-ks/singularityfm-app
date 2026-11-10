@@ -177,7 +177,9 @@ export function checkDocs(root) {
     const text = read(at(rel));
     for (const m of text.matchAll(/\b(?:npm run|npx) [^\s`]*/g))
       fails.push(`${rel}: "${m[0]}": the repo runs pnpm`);
-    for (const m of text.matchAll(/\bpnpm (--filter @singularityfm\/web )?run ([\w:.-]+)/g))
+    for (const m of text.matchAll(
+      /\bpnpm (--filter @singularityfm\/web )?run ([\w:-]+(?:\.[\w:-]+)*)/g,
+    ))
       if (!(m[1] ? webScripts : rootScripts).has(m[2]))
         fails.push(`${rel}: "${m[0]}" names no script in ${m[1] ? "apps/web/" : ""}package.json`);
   }

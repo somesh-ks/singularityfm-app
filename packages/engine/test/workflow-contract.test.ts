@@ -151,4 +151,41 @@ describe("the secrets the workflows read", () => {
       );
     expect(reserved).toEqual([]);
   });
+
+  // The bug: SINGULARITY_CONFIG_STORE was read by run.yml but secrets:push never sent it, so runs
+  // ignored app edits for days (24 Oct). A name a workflow reads must be in a push list, and every
+  // pushed name must be in .env.example, or the owner has nowhere to put its value.
+  it("are all sent by secrets:push, from a line in .env.example", () => {
+    const push = readFileSync(join(REPO_ROOT, "scripts", "pushSecrets.ts"), "utf8");
+    const listed = (list: string) =>
+      [
+        ...(push.match(new RegExp(`const ${list} = \\[([\\s\\S]*?)\\]`))?.[1] ?? "").matchAll(
+          /"([A-Z][A-Z0-9_]*)"/g,
+        ),
+      ].map(([, name = ""]) => name);
+    const sent: Record<string, string[]> = {
+      secrets: listed("GITHUB_SECRETS"),
+      vars: listed("GITHUB_VARIABLES"),
+    };
+    const exempt: Record<string, string> = {
+      GITHUB_TOKEN: "GitHub gives it to every run",
+      RUN_CRON: "the site writes it (apps/web/src/server/github.ts)",
+      RUN_CRON_WEEKLY: "the site writes it (apps/web/src/server/github.ts)",
+    };
+    const unsent = readdirSync(dir)
+      .filter((file) => /\.ya?ml$/.test(file))
+      .flatMap((file) =>
+        [...readFileSync(join(dir, file), "utf8").matchAll(/\b(secrets|vars)\.([A-Z]\w*)/g)]
+          .filter(([, kind = "", name = ""]) => !(name in exempt) && !sent[kind]?.includes(name))
+          .map(([read]) => `${file}: ${read}`),
+      );
+    expect([...new Set(unsent)]).toEqual([]);
+
+    const example = readFileSync(join(REPO_ROOT, ".env.example"), "utf8");
+    const lists = ["GITHUB_SECRETS", "GITHUB_VARIABLES", "VERCEL_ENV", "VERCEL_ADMIN_ENV"];
+    // A renamed list would read as empty and pass everything above.
+    expect(lists.filter((list) => listed(list).length === 0)).toEqual([]);
+    const pushed = lists.flatMap(listed);
+    expect(pushed.filter((name) => !new RegExp(`^${name}=`, "m").test(example))).toEqual([]);
+  });
 });

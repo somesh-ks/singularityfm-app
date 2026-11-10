@@ -86,20 +86,8 @@
   translate: 0.0625rem 0;
 }
 
-.play-fab-glyph > .spinner {
-  display: none;
-}
-
 .play-fab[data-state="preparing"] {
   cursor: progress;
-}
-
-.play-fab[data-state="preparing"] .play-fab-glyph > .icon-glyph {
-  visibility: hidden;
-}
-
-.play-fab[data-state="preparing"] .play-fab-glyph > .spinner {
-  display: block;
 }
 
 /* Offline, with nothing loaded, the player disables it as it does the chip (readerSync.ts). */

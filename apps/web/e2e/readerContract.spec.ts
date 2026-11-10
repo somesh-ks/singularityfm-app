@@ -190,14 +190,19 @@ test.describe("how the page reacts to those attributes", () => {
     expect(await display(chip.locator(".swap"))).toBe("none");
   });
 
-  test("a played chip shows a check, and a preparing one a spinner", async ({ page }) => {
+  test("a played chip shows a check, a preparing one no spinner until it plays", async ({
+    page,
+  }) => {
     const chip = page.locator("[data-play-item]").nth(1);
     await chip.evaluate((node) => node.setAttribute("data-state", "played"));
     expect(await display(chip.locator(".chip-check"))).toBe("block");
     expect(await display(chip.locator(".swap"))).toBe("none");
+    // Processing is words and a shimmer; only buffering during playback draws the spinner.
     await chip.evaluate((node) => node.setAttribute("data-state", "preparing"));
-    expect(await display(chip.locator(".spinner"))).toBe("block");
+    expect(await display(chip.locator(".spinner"))).toBe("none");
     expect(await display(chip.locator(".chip-check"))).toBe("none");
+    await chip.evaluate((node) => node.setAttribute("data-playing", "true"));
+    expect(await display(chip.locator(".spinner"))).toBe("block");
   });
 
   test("room is reserved for the docked player once it shows", async ({ page }) => {

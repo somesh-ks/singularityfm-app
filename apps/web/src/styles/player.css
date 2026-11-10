@@ -576,7 +576,7 @@
   --duration-glow: 600ms;
   --duration-breath: 4.2s;
   --ease-in-out-sine: cubic-bezier(0.37, 0, 0.63, 1);
-  --blur-glow: 28px;
+  --blur-glow: 1.75rem;
   --glow-strength: 0.85;
 }
 
@@ -2173,7 +2173,7 @@
 /*
  * From 64rem the list is a column of its own beside the cover, and what is in it scrolls inside the
  * column, under the tabs. It ends in a fade instead of a cut, and begins with one once it has moved:
- * each edge fades over 40px, and only while there is more beyond it. The fade is driven by the
+ * each edge fades over 2.5rem, and only while there is more beyond it. The fade is driven by the
  * scroll position, so it is exact at any length; where that is not supported the bottom edge fades
  * always, which the room kept under the last turn makes harmless.
  */
@@ -2194,13 +2194,13 @@
     --list-fade-start: 0px;
   }
   to {
-    --list-fade-start: 40px;
+    --list-fade-start: 2.5rem;
   }
 }
 
 @keyframes list-fade-end {
   from {
-    --list-fade-end: 40px;
+    --list-fade-end: 2.5rem;
   }
   to {
     --list-fade-end: 0px;
@@ -2214,7 +2214,7 @@
     /* Room under the last row, so it can scroll clear of the fade. The space above the list is the
        tabs' own margin. */
     padding-block: 0 var(--space-12);
-    /* Focus and a scroll into view stop clear of both 40px fades, ring and last line included. */
+    /* Focus and a scroll into view stop clear of both 2.5rem fades, ring and last line included. */
     scroll-padding-block: var(--space-12);
     overflow-y: auto;
     /* A wheel past either end stays in the list: the page around it holds still. */
@@ -2245,14 +2245,14 @@
       animation-fill-mode: both;
       animation-timeline: scroll(self block), scroll(self block);
       animation-range:
-        0 40px,
-        calc(100% - 40px) 100%;
+        0 2.5rem,
+        calc(100% - 2.5rem) 100%;
     }
   }
 
   @supports not (animation-timeline: scroll()) {
     .list-scroll {
-      --list-fade-end: 40px;
+      --list-fade-end: 2.5rem;
     }
   }
 

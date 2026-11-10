@@ -1,4 +1,11 @@
-import { GENERAL_TOPICS, topicGroupOf } from "@singularityfm/core";
+import {
+  GENERAL_TOPICS,
+  NEW_PODCAST_FORMATS,
+  PODCAST_LENGTHS,
+  PODCAST_TONES,
+  PODCAST_WINDOWS,
+  topicGroupOf,
+} from "@singularityfm/core";
 import type { PodcastRequest } from "../types/contracts";
 
 /**
@@ -9,28 +16,19 @@ import type { PodcastRequest } from "../types/contracts";
 // The limits the server enforces, so the form can never offer more than it accepts.
 export { MAX_TITLE_CHARS } from "../server/podcast";
 
-export const LENGTHS: ReadonlyArray<{ value: PodcastRequest["length_minutes"]; label: string }> = [
-  { value: 3, label: "3 min" },
-  { value: 5, label: "5 min" },
-  { value: 10, label: "10 min" },
-  { value: 15, label: "15 min" },
-];
+const named = (value: string): string => value.charAt(0).toUpperCase() + value.slice(1);
 
-export const FORMATS: ReadonlyArray<{ value: PodcastRequest["format"]; label: string }> = [
-  { value: "readout", label: "Readout" },
-  { value: "discussion", label: "Discussion" },
-];
+export const LENGTHS: ReadonlyArray<{ value: PodcastRequest["length_minutes"]; label: string }> =
+  PODCAST_LENGTHS.map((value) => ({ value, label: `${value} min` }));
 
-export const WINDOWS: ReadonlyArray<{ value: PodcastRequest["window_days"]; label: string }> = [
-  { value: 2, label: "2 days" },
-  { value: 7, label: "7 days" },
-  { value: 30, label: "30 days" },
-];
+export const FORMATS: ReadonlyArray<{ value: PodcastRequest["format"]; label: string }> =
+  NEW_PODCAST_FORMATS.map((value) => ({ value, label: named(value) }));
 
-export const TONES: ReadonlyArray<{ value: PodcastRequest["tone"]; label: string }> = [
-  { value: "neutral", label: "Neutral" },
-  { value: "energetic", label: "Energetic" },
-];
+export const WINDOWS: ReadonlyArray<{ value: PodcastRequest["window_days"]; label: string }> =
+  PODCAST_WINDOWS.map((value) => ({ value, label: `${value} days` }));
+
+export const TONES: ReadonlyArray<{ value: PodcastRequest["tone"]; label: string }> =
+  PODCAST_TONES.map((value) => ({ value, label: named(value) }));
 
 export const DEFAULTS = {
   /** Every episode is written for the owner: the General audience is retired (2026-10-14). */

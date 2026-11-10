@@ -32,6 +32,7 @@ One line each: symptom, cause, fix. Search before debugging; older gotchas are i
 
 ## Engine and workflows
 
+- 2026-11-10: `shell: bash` steps run with `-e`; keep an exit code by `x || code=$?`.
 - 2026-11-08: GitHub refuses `GITHUB_*` secret names (422).
 - 2026-11-04: the CLI calls `process.exit` once a command returns, so a write nobody awaited is lost (a Catch up's last stream part). Await every write (D366).
 - 2026-11-04: Dependabot alerts need `vulnerability-alerts: read`, not `security-events`.

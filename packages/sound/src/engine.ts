@@ -7,9 +7,12 @@
  * - The engine never touches the narration audio element. It only asks the app whether narration
  *   is playing, then skips or ducks per recipe. The one page-wide thing it sets is the audio session
  *   type, "playback" only while Sounds is on (syncSession).
- * - A suspended or interrupted context is resumed and the call is dropped, but the latest one is
- *   kept for 300 ms and played once the resume lands. Scheduling into a suspended context would
- *   replay every sound late, as a burst, when it resumes.
+ * - A suspended or interrupted context is resumed, and the cues asked for meanwhile are held (at
+ *   most four, each for 300 ms) and played in order, as far apart as they were asked, once the
+ *   resume lands. Each keeps the level it was asked at, so narration that starts in the wait does
+ *   not silence the cue that came before it. A new press discards what was held before it began:
+ *   a cue asked for earlier would sound at the tap as a sound that tap did not make. Scheduling
+ *   into a suspended context would replay every sound late, as a burst.
  * - At most four voices at once. The oldest voice is faded out in 12 ms to make room.
  * - On iOS, Web Audio follows the silent switch and is treated as ambient audio, so a silenced
  *   phone plays no UI sound. That is the intended behavior.
@@ -48,7 +51,7 @@ export interface SoundEngineOptions {
 }
 
 export interface SoundEngine {
-  /** Plays a sound. Returns true when a voice was scheduled. */
+  /** Plays a sound. Returns true when a voice was scheduled, or the cue is held for the resume under way. */
   play: (name: SoundName, options?: PlayOptions) => boolean;
   /** Creates and resumes the AudioContext. Call from inside a user gesture. Safe to call often. */
   unlock: () => void;
@@ -72,8 +75,19 @@ interface Graph {
   noise: AudioBuffer;
 }
 
-/** How long a cue dropped by a suspended context waits for the resume before it is stale. */
+/** How long a cue held by a suspended context waits for the resume before it is stale. */
 const QUEUED_CUE_MS = 300;
+
+/** The events of one press (down, up, touchend, click) come closer together than this; a later one is a new press. */
+const PRESS_GAP_MS = 1_000;
+
+/** A cue waiting for the resume. Its level is settled when it is asked for, not when it plays. */
+interface HeldCue {
+  name: SoundName;
+  options: PlayOptions;
+  gain: number;
+  at: number;
+}
 
 /** Layer start offsets into the shared noise buffer, so two noise layers never share samples. */
 const noiseOffsetSeconds = (layerIndex: number): number => (layerIndex * 0.137) % 0.5;
@@ -109,7 +123,9 @@ export function createSoundEngine(options: SoundEngineOptions): SoundEngine {
   let graph: Graph | null = null;
   let disposed = false;
   let voices: Voice[] = [];
-  let queued: { name: SoundName; options: PlayOptions; at: number } | null = null;
+  let held: HeldCue[] = [];
+  /** When unlock() last ran: the most recent gesture event the engine saw. */
+  let lastGestureAt = Number.NEGATIVE_INFINITY;
   const lastPlayedAt = new Map<SoundName, number>();
   /** True once this engine has put the page's audio session on "playback". */
   let tookSession = false;
@@ -305,11 +321,14 @@ export function createSoundEngine(options: SoundEngineOptions): SoundEngine {
     };
   }
 
-  function replay(): void {
-    const cue = queued;
-    queued = null;
-    if (!cue || disposed || context?.state !== "running") return;
-    if (now() - cue.at < QUEUED_CUE_MS) play(cue.name, cue.options);
+  /** Plays what the resume was waited for, oldest first, as far apart as the cues were asked. */
+  function flushHeld(): void {
+    const cues = held.filter((cue) => now() - cue.at < QUEUED_CUE_MS);
+    held = [];
+    const ctx = context;
+    const first = cues[0];
+    if (!first || disposed || !ctx || !graph || ctx.state !== "running") return;
+    for (const cue of cues) start(ctx, graph, cue, cue.at - first.at);
   }
 
   function play(name: SoundName, playOptions: PlayOptions = {}): boolean {
@@ -328,29 +347,33 @@ export function createSoundEngine(options: SoundEngineOptions): SoundEngine {
 
     const ctx = context;
     if (!ctx || !graph) return false;
-    if (ctx.state !== "running") {
-      // The latest dropped cue is kept for a moment and played once the resume lands, so the first
-      // cue after a suspend is heard; one that waits longer than that is stale and is let go.
-      queued = { name, options: playOptions, at: now() };
-      void ctx
-        .resume()
-        .then(replay)
-        .catch(() => undefined);
-      return false;
-    }
+    const cue: HeldCue = { name, options: playOptions, gain, at: now() };
+    if (ctx.state === "running") return start(ctx, graph, cue, 0);
+    // The first cue after a suspend is heard once the resume lands, with the ones that follow it;
+    // one that waits longer than that is stale and is let go.
+    held = [...held, cue].slice(-MAX_POLYPHONY);
+    void ctx
+      .resume()
+      .then(flushHeld)
+      .catch(() => undefined);
+    return true;
+  }
 
+  /** Schedules one cue now, `delayMs` later at most a few hundred ms. Returns false when rate limited. */
+  function start(ctx: AudioContext, current: Graph, cue: HeldCue, delayMs: number): boolean {
+    const recipe = RECIPES[cue.name];
     const stamp = now();
-    const previous = lastPlayedAt.get(name);
+    const previous = lastPlayedAt.get(cue.name);
     if (previous !== undefined && stamp - previous < recipe.minIntervalMs) return false;
-    lastPlayedAt.set(name, stamp);
+    lastPlayedAt.set(cue.name, stamp);
 
-    const t0 = ctx.currentTime + 0.005;
+    const t0 = ctx.currentTime + 0.005 + delayMs / 1000;
     voices = voices.filter((voice) => voice.endsAt > ctx.currentTime);
     while (voices.length >= MAX_POLYPHONY) stealOldest(ctx);
 
     const output = ctx.createGain();
-    output.gain.value = gain;
-    output.connect(graph.input);
+    output.gain.value = cue.gain;
+    output.connect(current.input);
     const voice: Voice = {
       endsAt: t0 + recipeDurationMs(recipe) / 1000 + 0.05,
       gain: output,
@@ -360,14 +383,18 @@ export function createSoundEngine(options: SoundEngineOptions): SoundEngine {
     voices.push(voice);
 
     recipe.layers.forEach((layer, index) => {
-      if (layer.kind === "tone") scheduleTone(ctx, layer, playOptions, t0, output, voice);
-      else if (graph) scheduleNoise(ctx, layer, index, t0, output, voice, graph.noise);
+      if (layer.kind === "tone") scheduleTone(ctx, layer, cue.options, t0, output, voice);
+      else scheduleNoise(ctx, layer, index, t0, output, voice, current.noise);
     });
     return true;
   }
 
   function unlock(): void {
     if (disposed) return;
+    // A new press: what was asked for before it began is not its to sound.
+    const stamp = now();
+    if (stamp - lastGestureAt > PRESS_GAP_MS) held = [];
+    lastGestureAt = stamp;
     syncSession();
     if (!context) {
       try {
@@ -417,6 +444,7 @@ export function createSoundEngine(options: SoundEngineOptions): SoundEngine {
       retire(voice);
     }
     if (context) void context.close().catch(() => undefined);
+    held = [];
     context = null;
     graph = null;
   }

@@ -27,10 +27,18 @@ let removeUnlock: (() => void) | null = null;
 let generation = 0;
 /** The wiring of the running sound, so a cue asked for before the engine exists can start the load. */
 let wired: SoundWiring | null = null;
-/** The latest interface cue asked for while the engine was still loading, played once it is ready. */
-let pending: { cue: Cue; at: number } | null = null;
+/** Every interface cue asked for while the engine was still loading, in order, played once it is ready. */
+let pending: { cue: Cue; at: number }[] = [];
 /** A cue that waited longer than this for the engine is stale: it would sound unrelated to its tap. */
 const PENDING_CUE_MS = 1_500;
+/** At most this many wait: a tap and the few cues it brings with it. */
+const PENDING_CUES_MAX = 4;
+/** When the person last pressed, touched or typed: a cue with none behind it is nobody's to be heard. */
+let lastGestureAt = Number.NEGATIVE_INFINITY;
+const GESTURES = ["pointerdown", "touchend", "click", "keydown"] as const;
+const noteGesture = (event: Event): void => {
+  if (event.isTrusted) lastGestureAt = performance.now();
+};
 
 let haptics: Haptics | null = null;
 
@@ -67,12 +75,17 @@ function loadEngine({ store, preferences }: SoundWiring): Promise<void> {
       });
       removeUnlock = installGestureUnlock(engine);
       // The tap that started this load came before the listeners above existed: unlock for it now
-      // (its gesture is still fresh) and play the cue it asked for, instead of dropping the first tap.
-      const waiting = pending;
-      pending = null;
-      if (waiting && performance.now() - waiting.at < PENDING_CUE_MS) {
-        engine.unlock();
-        playCue(engine, waiting.cue);
+      // (its gesture is still fresh) and play the cues it asked for, in order and as far apart as they
+      // were asked, instead of dropping the first tap or letting its last cue stand for all of them.
+      const waiting = pending.filter((entry) => performance.now() - entry.at < PENDING_CUE_MS);
+      pending = [];
+      const first = waiting[0];
+      if (!first) return;
+      engine.unlock();
+      for (const { cue, at } of waiting) {
+        const delay = at - first.at;
+        if (delay <= 0) playCue(engine, cue);
+        else setTimeout(() => playCue(wanted === generation ? engine : null, cue), delay);
       }
     })
     .catch(() => {
@@ -99,6 +112,8 @@ export function startSound(wiring: SoundWiring): () => void {
     }
   });
   wired = wiring;
+  for (const type of GESTURES)
+    document.addEventListener(type, noteGesture, { capture: true, passive: true });
 
   let idleHandle: number | null = null;
   const onFirstGesture = (): void => {
@@ -132,7 +147,8 @@ export function startSound(wiring: SoundWiring): () => void {
     generation += 1;
     wired = null;
     haptics?.cancel();
-    pending = null;
+    pending = [];
+    for (const type of GESTURES) document.removeEventListener(type, noteGesture, { capture: true });
     removeUnlock?.();
     removeUnlock = null;
     engine?.dispose();
@@ -155,11 +171,15 @@ export function playUiCue(cue: Cue | null): boolean {
   }
   if (pulled) return false;
   if (!engine && wired) {
-    // Not loaded yet (the first tap of a page): kept, and the load started if it has not been.
-    pending = { cue, at: performance.now() };
-    lastCueAt = pending.at;
-    lastCueName = cue.name;
+    // Not loaded yet (the first tap of a page): kept, and the load started if it has not been. A cue
+    // with no press behind it is let go: the engine cannot sound before a gesture, and one kept from
+    // before would sound at the person's first tap as a cue that tap did not make.
     void loadEngine(wired);
+    const at = performance.now();
+    if (at - lastGestureAt > PENDING_CUE_MS) return false;
+    pending = [...pending, { cue, at }].slice(-PENDING_CUES_MAX);
+    lastCueAt = at;
+    lastCueName = cue.name;
     return false;
   }
   const played = playCue(engine, cue);

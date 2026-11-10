@@ -63,11 +63,19 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     console.log(`test-edit gate passed (${files.length} files, no existing test edited)`);
     process.exit(0);
   }
-  const labels = JSON.parse(
-    execFileSync("gh", ["pr", "view", pr, "--json", "labels", "--jq", "[.labels[].name]"], {
-      encoding: "utf8",
-    }),
-  );
+  let labels;
+  try {
+    labels = JSON.parse(
+      execFileSync("gh", ["pr", "view", pr, "--json", "labels", "--jq", "[.labels[].name]"], {
+        encoding: "utf8",
+      }),
+    );
+  } catch (error) {
+    console.log(
+      `::error::test-edit gate: could not read the pull request's labels (${error.message.split("\n")[0]}); re-run this job`,
+    );
+    process.exit(1);
+  }
   if (labels.includes(LABEL)) {
     console.log(`test-edit gate passed: "${LABEL}" covers ${edited.length} edited test file(s)`);
     process.exit(0);

@@ -57,11 +57,15 @@ for (let attempt = 0; ; attempt += 1) {
     }
     let holder = 0;
     let age = 0;
+    // Only a lock that vanished meanwhile (ENOENT) may be taken; any other read error refuses.
+    let unreadable = false;
     try {
       holder = Number(readFileSync(lock, "utf8"));
       age = Date.now() - statSync(lock).mtimeMs;
-    } catch {}
-    if (attempt > 0 || (holder > 0 && alive(holder) && age < STALE_MS)) {
+    } catch (readError) {
+      unreadable = readError.code !== "ENOENT";
+    }
+    if (attempt > 0 || unreadable || (holder > 0 && alive(holder) && age < STALE_MS)) {
       rmSync(mine, { force: true });
       console.error(
         `another browser suite is building or serving apps/web/dist (pid ${holder || "unknown"}): run one suite at a time; if none is running, delete apps/web/dist.lock`,

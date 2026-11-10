@@ -36,6 +36,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: main
+          persist-credentials: false
           # The batch counts commits since the live one; further back than this, nothing is done.
           fetch-depth: 50
       - name: Ask the batch rule whether the reader is due
@@ -62,8 +63,9 @@ jobs:
             exit 0
           fi
           ignore=$(jq -er .ignoreCommand apps/web/vercel.json) || exit 1
-          (cd apps/web && DOUBT_EXIT=2 VERCEL_GIT_PREVIOUS_SHA="$live" VERCEL_GIT_COMMIT_SHA="$head" VERCEL_GIT_COMMIT_REF=main sh -c "$ignore")
-          due=$?
+          # The runner starts bash with -e, so a non-zero exit is caught here instead of ending the step.
+          due=0
+          (cd apps/web && DOUBT_EXIT=2 VERCEL_GIT_PREVIOUS_SHA="$live" VERCEL_GIT_COMMIT_SHA="$head" VERCEL_GIT_COMMIT_REF=main sh -c "$ignore") || due=$?
           if [ "$due" -eq 0 ]; then
             echo "Live $build; main is at ${head:0:12} and the batch is not due."
             exit 0

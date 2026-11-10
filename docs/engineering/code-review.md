@@ -20,12 +20,11 @@ He alone merges a change to: branch rulesets (`.github/rulesets`), secret or env
 
 ## The CLI before the push, where a miss is expensive
 
-The CodeRabbit CLI reviews the branch where it is, with the repository's `.coderabbit.yaml` and the organization's learnings, and draws on its own allowance, separate from the PR reviews. Cloud sessions have no CLI. The PR review happens anyway, so a CLI pass is worth its run only where a second PR round is likely or costly: Tier 2 (the error-prone code), and a Tier 1 diff the thread expects to come back. A docs or style PR goes straight to the PR review.
+The CodeRabbit CLI reviews the branch where it is, with the repository's `.coderabbit.yaml` and the organization's learnings, and draws on its own allowance, separate from the PR reviews. Cloud sessions have no CLI. The PR review happens anyway, so a CLI pass is worth its run only on a Tier 1 diff the thread expects to come back; Tier 2 takes `/code-review` instead (the table). A docs or style PR goes straight to the PR review.
 
 ```
 cr review --base main --committed            # Tier 1: the branch's commits against main
-cr review --base main --committed --deep     # Tier 2: the PR review's full capability policy
-cr review --base main --committed --deep --agent --gate major   # exit 2 when a major or worse finding remains (Tier 1 drops --deep)
+cr review --base main --committed --agent --gate major   # exit 2 when a major or worse finding remains
 ```
 
 - Once per batch, after the checks are green and before the push. Fix or answer each finding; a finding answered with a rule goes in the PR body's Review section, so the PR review does not relitigate it. Push when `--gate major` exits 0 or every remaining major finding is answered there.
@@ -48,7 +47,7 @@ cr review --base main --committed --deep --agent --gate major   # exit 2 when a 
 ## What each reviewer is for
 
 - CodeRabbit on the PR: logic, security, regressions, and the record's rules (decision format, snake_case, no em dashes), with the PR's description and threads as context, and a record on the PR the owner reads before the merge. It reads `AGENTS.md` as code guidelines, so a house rule written there reaches it; `.coderabbit.yaml` carries the rules a reviewer needs spelled out (tests, motion, tokens, decisions).
-- The CodeRabbit CLI on the branch: the same reviewer before the push, from its own allowance, on Tier 2 and risky Tier 1 diffs only. Also the fallback for a Tier 1 PR whenever the PR review is paused or out of reviews (learning 2026-10-22: review locally when the bot is silent); Tier 2 needs a CodeRabbit or Greptile review of its head.
+- The CodeRabbit CLI on the branch: the same reviewer before the push, from its own allowance, on risky Tier 1 diffs only. Also the fallback for a Tier 1 PR whenever the PR review is paused or out of reviews (learning 2026-10-22: review locally when the bot is silent); Tier 2 needs a CodeRabbit or Greptile review of its head.
 - `/code-review`: before every Tier 2 PR; for Tier 1, on demand only.
 - `design-audit` agent: taste and design-system compliance before any UI PR. CodeRabbit does not judge taste.
 - The owner: stills at 390 and 1280, light and dark, and the merge. Never asked to review code lines.

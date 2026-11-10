@@ -149,8 +149,8 @@ export const SHORT_STORY_WORDS = Math.floor(VOICE_LIMITS.summaryMinWords / 3);
 export const DEPLOY_LAG_MS = 45 * 60_000;
 /**
  * How long a merge may wait for the batch before `site_behind` says so: the three hours
- * scripts/deploy-batch.sh holds a merge, plus the wait for the next push to main that runs the
- * check (D375).
+ * scripts/deploy-batch.sh holds a merge, plus the hourly deploy-due.yml check that starts the
+ * Deploy Hook, or the next push to main when its secret is unset (D375, D389).
  */
 export const DEPLOY_BATCH_LAG_MS = 6 * 3_600_000;
 /**
@@ -631,7 +631,7 @@ async function checkSite(
         sink.fault(
           "site_behind",
           "reliability",
-          `${text} Its Vercel log says whether the build failed or was skipped; a merge waiting for the batch ships with a docs commit titled [deploy] (D375).`,
+          `${text} Its Vercel log says whether the build failed or was skipped; a merge waiting for the batch ships by the hourly deploy-due check once VERCEL_DEPLOY_HOOK_WEB is set (D389), or with a docs commit titled [deploy] (D375).`,
         );
       } else {
         sink.warn("site_behind", "reliability", text);

@@ -63,6 +63,9 @@ importers:
       '@astrojs/react':
         specifier: ^7.1.2
         version: 7.1.2(@types/node@26.6.6)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(esbuild@0.28.2)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(tsx@4.23.15)(yaml@2.9.1)
+      '@singularityfm/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       '@singularityfm/engine':
         specifier: workspace:*
         version: link:../../packages/engine

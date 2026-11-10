@@ -1,4 +1,14 @@
 import {
+  HEALTH_DEVICES,
+  HEALTH_JOBS,
+  HEALTH_SPEED,
+  type HealthBody,
+  type HealthJobRun,
+  type HealthRow,
+  type HealthSeries,
+  type HealthTone,
+} from "@singularityfm/contracts/health";
+import {
   compareNewestFirst,
   type Digest,
   dateInZone,
@@ -26,16 +36,6 @@ import {
 } from "@singularityfm/engine/health-limits";
 import type { StoredHealth } from "@singularityfm/engine/health-store";
 import type { VitalSummary } from "@singularityfm/engine/vitals-store";
-import {
-  HEALTH_DEVICES,
-  HEALTH_JOBS,
-  HEALTH_SPEED,
-  type HealthBody,
-  type HealthJobRun,
-  type HealthRow,
-  type HealthSeries,
-  type HealthTone,
-} from "../lib/healthRows";
 import type { WorkflowRun } from "./github";
 
 /**

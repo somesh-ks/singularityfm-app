@@ -1,5 +1,10 @@
+import {
+  AXIS_PX,
+  SIDEWAYS_RATIO,
+  SWIPE_SHARE,
+  swipeLeaves,
+} from "@singularityfm/design-system/swipe";
 import { type PointerEvent, useRef } from "react";
-import { AXIS_PX, SIDEWAYS_RATIO, SWIPE_SHARE, swipeLeaves } from "../lib/swipeAway";
 import { createVelocityTracker, TAP_SLOP_PX } from "./core/gestureMath";
 import { getPlayQueue } from "./core/playerRuntime";
 import { getHaptics } from "./sound/soundController";
@@ -32,7 +37,7 @@ interface Press {
 /**
  * A queue row's sideways swipe, shared by the rows to come and the ones that played or play now: past
  * the tap slop the row follows the finger over a red strip with a bin (player.css, data-swipe-dir),
- * ticking as it passes the point it leaves from (a flick ticks on release), and on release the shared rule (lib/swipeAway.ts) says whether it takes the row off the list or the
+ * ticking as it passes the point it leaves from (a flick ticks on release), and on release the shared rule (the design system's swipe.ts) says whether it takes the row off the list or the
  * row springs back. Either side takes it away.
  */
 export function useRowSwipe() {

@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@astrojs/react": "^7.1.2",
+    "@singularityfm/contracts": "workspace:*",
     "@singularityfm/engine": "workspace:*",
     "@vercel/functions": "^3.10.5",
     "astro": "^7.4.4",

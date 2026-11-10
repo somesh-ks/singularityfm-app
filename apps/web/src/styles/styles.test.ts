@@ -21,12 +21,20 @@ const SYSTEM = join(
 );
 const SYSTEM_STYLES = join(SYSTEM, "styles");
 const SYSTEM_SRC = join(SYSTEM, "src");
-const STYLE_DIRS = [STYLES, SYSTEM_STYLES];
-const OWN_FILES = STYLE_DIRS.flatMap((dir) => readdirSync(dir))
+/**
+ * The two admin stylesheets that moved out of this folder (D382 step 2b) keep the checks they had
+ * here until the admin repository has its own. admin.css never had them.
+ */
+const ADMIN_STYLES = join(SRC, "..", "..", "admin", "src", "styles");
+const ADMIN_FILES = ["costs.css", "health.css"];
+const STYLE_DIRS = [STYLES, SYSTEM_STYLES, ADMIN_STYLES];
+const OWN_FILES = [STYLES, SYSTEM_STYLES]
+  .flatMap((dir) => readdirSync(dir))
+  .concat(ADMIN_FILES)
   .filter((file) => file.endsWith(".css") && !["tokens.css", "foundations.css"].includes(file))
   .sort();
 const read = (file: string) =>
-  readFileSync(join(existsSync(join(SYSTEM_STYLES, file)) ? SYSTEM_STYLES : STYLES, file), "utf8");
+  readFileSync(join(STYLE_DIRS.find((dir) => existsSync(join(dir, file))) ?? STYLES, file), "utf8");
 
 /** Comments and the generated-font header carry prose and commands, not styles. */
 const withoutComments = (css: string) => css.replace(/\/\*[\s\S]*?\*\//g, "");

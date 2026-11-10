@@ -1,4 +1,5 @@
 import IconButton from "@singularityfm/design-system/IconButton";
+import { swipeLeaves } from "@singularityfm/design-system/swipe";
 import {
   type PointerEvent as ReactPointerEvent,
   useCallback,
@@ -8,7 +9,6 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import { swipeLeaves } from "../lib/swipeAway";
 import { chapterMask } from "./core/chapterMask";
 import { formatClock, longDateFromDigestId } from "./core/formatTime";
 import { createVelocityTracker, TAP_SLOP_PX } from "./core/gestureMath";
@@ -232,7 +232,7 @@ interface DockPeek {
  * A sideways swipe on the bar switches the podcast: left for the next one in the queue, right for
  * the one before (owner, 2026-11-01 and 2026-11-02). The one it would switch to comes in from the
  * side the finger is pulling from, so the target shows before the finger lifts (owner, 2026-11-03:
- * "see the next or previous podcast depending on the swipe"). Past the swipe rule (lib/swipeAway.ts)
+ * "see the next or previous podcast depending on the swipe"). Past the swipe rule (the design system's swipe.ts)
  * the bar slides on to it, the podcast is asked for, and the bar lets go of the slide when the
  * podcast it asked for is the one it shows; short of the rule, or with nowhere to go, the words
  * spring back. A finger and a pen only: a mouse has the buttons on a wide bar. Once the finger has

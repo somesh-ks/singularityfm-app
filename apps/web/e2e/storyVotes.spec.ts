@@ -85,7 +85,7 @@ test.describe("story controls", () => {
       await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
     };
     // Past the tap slop but short of the least a swipe takes, it comes back to the same box
-    // however fast the finger moved (lib/swipeAway.ts).
+    // however fast the finger moved (the design system's swipe.ts).
     await swipe(16);
     await expect.poll(() => toast.boundingBox()).toEqual(rest);
     // A swipe dismisses the toast only: the stop it offered to undo still goes when its wait ends.

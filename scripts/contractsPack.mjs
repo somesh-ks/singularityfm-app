@@ -33,13 +33,16 @@ try {
   // Every export the admin imports today, by name, so a dropped re-export fails too.
   writeFileSync(
     join(work, "check.mjs"),
-    `import * as session from "@singularityfm/contracts/session";
+    `import * as health from "@singularityfm/contracts/health";
+import * as session from "@singularityfm/contracts/session";
 import * as store from "@singularityfm/contracts/store";
 const want = {
+  health: ["HEALTH_DEVICES", "HEALTH_GROUPS", "HEALTH_JOBS", "HEALTH_SPEED"],
   session: ["COOKIE", "cookieOf", "createSession", "hmac", "same", "SESSION_SECONDS", "sessionValid"],
   store: ["configStoreUrl", "connectNeon", "readExperimentFlags", "readExperimentHits", "readStageTimings"],
 };
 const missing = [
+  ...want.health.filter((name) => !(name in health)),
   ...want.session.filter((name) => !(name in session)),
   ...want.store.filter((name) => !(name in store)),
 ];

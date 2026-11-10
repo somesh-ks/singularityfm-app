@@ -10,7 +10,13 @@ The highest tier of any changed file is the PR's tier. `git diff --stat origin/m
 | :--- | :--- | :--- |
 | 0, none | Every file under `docs/` but not `decisions/`, `engineering/`, `design/` or the design ledger; test data or fixtures; a typo or copy fix of a few lines in code outside the Tier 2 set | `[skip-review]` in the title; merge on green CI (D254) |
 | 1, one review | Everything not in Tier 0 or 2: pages, scripts, styles, tests, `scripts/`, docs that hold rules (`docs/decisions/`, `docs/engineering/`, `docs/design/`, the ledger) | When the PR is ready, ask for one CodeRabbit review with `@coderabbitai review` (a draft marked ready starts none). Fix or answer each finding. Fix commits merge on green; new logic after the review is asked for again. No CLI pass, unless the thread expects a second round (logic across files, a diff over about 400 lines) |
-| 2, full review | The pipeline (`packages/engine`), the store (Blob, Neon, the config store), auth, billing, `.github/workflows`, the design system (`@singularityfm/design-system/`: tokens, components, `primitives.css`, `buttons.css`) and `player.css`, `AGENTS.md`, `.coderabbit.yaml`, the gates under `scripts/` | `/code-review` before the push of each batch (the `cr` CLI is not run for Tier 2); CodeRabbit on the PR when ready; `@coderabbitai review` after the fixes; merge only when CodeRabbit's "Last reviewed commit" is the head |
+| 2, full review | The pipeline (`packages/engine`), the store (Blob, Neon, the config store), auth, billing, `.github/workflows`, the design system (`@singularityfm/design-system/`: tokens, components, `primitives.css`, `buttons.css`) and `player.css`, `AGENTS.md`, `.coderabbit.yaml`, the gates under `scripts/` | `/code-review` before the push of each batch (the `cr` CLI is not run for Tier 2); CodeRabbit on the PR when ready; `@coderabbitai review` after the fixes; merge only when CodeRabbit's "Last reviewed commit" or a `@greptileai` review is the head |
+
+## Who merges
+
+A PR merges itself, by the thread that owns it, once all three hold: its review is clean (every finding fixed or answered, every thread resolved, and for Tier 2 a CodeRabbit or Greptile review on the head), it is up to date with `main`, and every required check is green. That covers `.github/workflows`, `AGENTS.md`, design-system bumps and version PRs. A visual change also needs his OK on stills before the PR opens. If the session's token cannot merge a PR (a workflow edit can be refused), the thread says so and he merges it.
+
+He alone merges a change to: branch rulesets (`.github/rulesets`), secret or env handling, npm publish or trusted-publisher permissions, and `CODEOWNERS` or the review config that gates merging (`.coderabbit.yaml`, `.greptile`). A change there is checked by the very gate it edits, so the author cannot be its only judge. Everything else has a reviewer who is not the author and a required check, which is what makes a self-merge safe (owner, 2026-11-09: "do the best engineering practice").
 
 ## The CLI before the push, where a miss is expensive
 
@@ -35,14 +41,14 @@ cr review --base main --committed --deep --agent --gate major   # exit 2 when a 
 
 - Open as a draft while work continues; mark it ready when the checks are green, the diff lists only the task's files, the stills are OK'd for a taste change, and the PR body's Review section is filled. Then post `@coderabbitai review`: that is the first review.
 - Before asking, read CodeRabbit's last summary comment: "N remain after this review". The allowance is shared by every thread in the project. At 2 or fewer, wait for the hour and say so in the PR body.
-- Paused or skipped: when the summary says "Reviews paused" or rate-limited and the head is unreviewed, ask with `@coderabbitai review`. While the PR pool is out, a Tier 1 PR may merge on a `cr review` pass of the range, with the PR body saying so; a Tier 2 PR waits for the hour, since its merge rule below needs the PR review on the head. Never `@coderabbitai resume`: it brings back a review per push.
+- Paused or skipped: when the summary says "Reviews paused" or rate-limited and the head is unreviewed, ask with `@coderabbitai review`. While the PR pool is out (the Free plan allows about one review an hour per developer), a Tier 1 PR may merge on a `cr review` pass of the range or on a `@greptileai` review of the head, and a Tier 2 PR on a `@greptileai` review of the head, with the PR body saying so. Never `@coderabbitai resume`: it brings back a review per push.
 - `@coderabbitai full review` only after a rebase or a squash rewrote the branch.
-- Before a merge, compare `git rev-parse HEAD` with the "Last reviewed commit" in the summary. Tier 2 must match. Tier 1 may differ by fix commits for the findings only.
+- Before a merge, compare `git rev-parse HEAD` with the "Last reviewed commit" in the summary. Tier 2 must match (CodeRabbit's summary, or the head Greptile reviewed). Tier 1 may differ by fix commits for the findings only.
 
 ## What each reviewer is for
 
 - CodeRabbit on the PR: logic, security, regressions, and the record's rules (decision format, snake_case, no em dashes), with the PR's description and threads as context, and a record on the PR the owner reads before the merge. It reads `AGENTS.md` as code guidelines, so a house rule written there reaches it; `.coderabbit.yaml` carries the rules a reviewer needs spelled out (tests, motion, tokens, decisions).
-- The CodeRabbit CLI on the branch: the same reviewer before the push, from its own allowance, on Tier 2 and risky Tier 1 diffs only. Also the fallback for a Tier 1 PR whenever the PR review is paused or out of reviews (learning 2026-10-22: review locally when the bot is silent); Tier 2 waits for the PR review on its head.
+- The CodeRabbit CLI on the branch: the same reviewer before the push, from its own allowance, on Tier 2 and risky Tier 1 diffs only. Also the fallback for a Tier 1 PR whenever the PR review is paused or out of reviews (learning 2026-10-22: review locally when the bot is silent); Tier 2 needs a CodeRabbit or Greptile review of its head.
 - `/code-review`: on demand, last.
 - `design-audit` agent: taste and design-system compliance before any UI PR. CodeRabbit does not judge taste.
 - The owner: stills at 390 and 1280, light and dark, and the merge. Never asked to review code lines.
@@ -52,9 +58,9 @@ cr review --base main --committed --deep --agent --gate major   # exit 2 when a 
 
 A second reviewer pays only where the two fail differently. CodeRabbit is strongest on the diff and the rules it is given; Greptile indexes the whole repository, so its edge is the change that breaks a consumer elsewhere. Greptile stays off automatically (`autoReview` empty in its config, so the `[skip-review]` keyword never matters to it) and is asked by comment:
 
-- When: a Tier 2 PR, after CodeRabbit's pass and the fixes; or any PR whose CodeRabbit summary rates merge risk moderate or higher, or whose `npm run blast-radius` lists three or more consumer surfaces. Never a design-system bump PR (taste is `design-audit`'s), never Tier 0 or a plain Tier 1.
+- When: a Tier 2 PR, after CodeRabbit's pass and the fixes, or at once when CodeRabbit is rate-limited; a Tier 1 PR CodeRabbit has rate-limited (ask Greptile instead of waiting; owner, 2026-11-09); or any PR whose CodeRabbit summary rates merge risk moderate or higher, or whose `npm run blast-radius` lists three or more consumer surfaces. Never a design-system bump PR (taste is `design-audit`'s), never Tier 0, and a plain Tier 1 only when CodeRabbit is rate-limited.
 - How: the thread that owns the PR posts `@greptileai` once (`@greptileai review this at plus` for a Tier 2 diff over about 400 lines). Its findings get the same fix-or-reply as CodeRabbit's; where the two disagree, the thread decides and says so in the Review section. A 👎 on a finding that fights a house rule trains it.
-- Budget: the Starter plan is free for one developer with 50 credits a month (Base 1, Plus 3, Apex 10). Every thread spends the owner's credits; at 10 or fewer left, Tier 2 only.
+- Budget: the Starter plan is free for one developer with 50 credits a month (Base 1, Plus 3, Apex 10). Every thread spends the owner's credits; at 10 or fewer left, Tier 2 only; a rate-limited Tier 1 PR then waits for CodeRabbit's hour.
 - Reassess after five uses: keep it only if at least one found a real defect CodeRabbit missed.
 
 ## Findings

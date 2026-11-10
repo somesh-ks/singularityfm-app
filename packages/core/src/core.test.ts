@@ -281,7 +281,6 @@ describe("digest file", () => {
     const items = (count: number) => Array.from({ length: count }, (_, n) => sampleItem(n));
     expect(VOICE_LIMITS.items.weeklyCap + VOICE_LIMITS.items.techCap).toBe(23);
     const most = VOICE_LIMITS.items.hardMax;
-    expect(most).toBe(48);
     expect(DigestSchema.safeParse({ ...sampleDigest, items: items(most) }).success).toBe(true);
     expect(DigestSchema.safeParse({ ...sampleDigest, items: items(most + 1) }).success).toBe(false);
   });

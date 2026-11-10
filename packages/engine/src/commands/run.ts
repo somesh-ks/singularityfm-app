@@ -1,5 +1,11 @@
 import { parseArgs } from "node:util";
-import { DigestId, PodcastFeedback, ScheduleLengthMinutes, StoryCount } from "@singularityfm/core";
+import {
+  DigestId,
+  PodcastFeedback,
+  ScheduleLengthMinutes,
+  StoryCount,
+  VOICE_LIMITS,
+} from "@singularityfm/core";
 import type { CommandContext, CommandRun } from "../context.js";
 import { RUN_MODES, type RunMode } from "../gate/decideRun.js";
 import { buildDeps } from "../run/buildDeps.js";
@@ -81,7 +87,9 @@ function parseOptions(argv: string[]): { options: RunOptions; help: boolean } {
   const storiesText = values.stories?.trim().toLowerCase();
   const stories = !storiesText ? undefined : storiesText === "auto" ? null : Number(storiesText);
   if (stories != null && !StoryCount.safeParse(stories).success) {
-    throw new Error("--stories takes auto or a whole number from 3 to 48");
+    throw new Error(
+      `--stories takes auto or a whole number from ${VOICE_LIMITS.items.floor} to ${VOICE_LIMITS.items.hardMax}`,
+    );
   }
   for (const id of [values.replace, values.delete]) {
     if (id !== undefined && !DigestId.safeParse(id).success) {

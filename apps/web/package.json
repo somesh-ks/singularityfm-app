@@ -20,7 +20,7 @@
     "@singularityfm/contracts": "workspace:*",
     "@singularityfm/core": "workspace:*",
     "@singularityfm/cover": "workspace:*",
-    "@singularityfm/design-system": "0.7.0",
+    "@singularityfm/design-system": "0.8.0",
     "@singularityfm/engine": "workspace:*",
     "@singularityfm/sound": "workspace:*",
     "@vercel/blob": "^2.8.2",

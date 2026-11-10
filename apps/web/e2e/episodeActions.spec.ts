@@ -149,6 +149,8 @@ test.describe("regenerate and delete an episode", () => {
       id: ID,
       feedback: "Shorter intro, more on design",
       length_minutes: 10,
+      // Stories shows beside Length (owner, 2026-11-10) and sends what it shows: Auto for 10 min.
+      stories: null,
     });
     await expect(panel(page)).toBeHidden();
     await expect(queueStatus(page)).toHaveText(/Waiting to start|Rewriting your episode/);

@@ -36,8 +36,21 @@ const PENDING_CUES_MAX = 4;
 /** When the person last pressed, touched or typed: a cue with none behind it is nobody's to be heard. */
 let lastGestureAt = Number.NEGATIVE_INFINITY;
 const GESTURES = ["pointerdown", "touchend", "click", "keydown"] as const;
+/** Events of one press come closer together than this; a later one is a new press (as in the engine). */
+const PRESS_GAP_MS = 1_000;
+/** The timers that play a waiting cue later, so a new press can call them off. */
+let pendingTimers: ReturnType<typeof setTimeout>[] = [];
+const dropPending = (): void => {
+  pending = [];
+  for (const timer of pendingTimers) clearTimeout(timer);
+  pendingTimers = [];
+};
 const noteGesture = (event: Event): void => {
-  if (event.isTrusted) lastGestureAt = performance.now();
+  if (!event.isTrusted) return;
+  const at = performance.now();
+  // A new press: cues kept for an earlier one are not its to sound, however long the load took.
+  if (at - lastGestureAt > PRESS_GAP_MS) dropPending();
+  lastGestureAt = at;
 };
 
 let haptics: Haptics | null = null;
@@ -85,7 +98,11 @@ function loadEngine({ store, preferences }: SoundWiring): Promise<void> {
       for (const { cue, at } of waiting) {
         const delay = at - first.at;
         if (delay <= 0) playCue(engine, cue);
-        else setTimeout(() => playCue(wanted === generation ? engine : null, cue), delay);
+        else {
+          pendingTimers.push(
+            setTimeout(() => playCue(wanted === generation ? engine : null, cue), delay),
+          );
+        }
       }
     })
     .catch(() => {
@@ -147,7 +164,7 @@ export function startSound(wiring: SoundWiring): () => void {
     generation += 1;
     wired = null;
     haptics?.cancel();
-    pending = [];
+    dropPending();
     for (const type of GESTURES) document.removeEventListener(type, noteGesture, { capture: true });
     removeUnlock?.();
     removeUnlock = null;

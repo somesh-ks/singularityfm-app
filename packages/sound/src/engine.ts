@@ -328,6 +328,9 @@ export function createSoundEngine(options: SoundEngineOptions): SoundEngine {
     const ctx = context;
     const first = cues[0];
     if (!first || disposed || !ctx || !graph || ctx.state !== "running") return;
+    // Silence is rechecked: Sounds, the volume or the page may have changed in the wake. A cue's level
+    // (narration) stays as it was settled when it was asked.
+    if (!isEnabled() || isHidden() || !(getVolume() > 0.001)) return;
     for (const cue of cues) start(ctx, graph, cue, cue.at - first.at);
   }
 
@@ -362,10 +365,10 @@ export function createSoundEngine(options: SoundEngineOptions): SoundEngine {
   /** Schedules one cue now, `delayMs` later at most a few hundred ms. Returns false when rate limited. */
   function start(ctx: AudioContext, current: Graph, cue: HeldCue, delayMs: number): boolean {
     const recipe = RECIPES[cue.name];
-    const stamp = now();
+    // Spaced by when it was asked, so two cues held through one wake keep the gap they were asked at.
     const previous = lastPlayedAt.get(cue.name);
-    if (previous !== undefined && stamp - previous < recipe.minIntervalMs) return false;
-    lastPlayedAt.set(cue.name, stamp);
+    if (previous !== undefined && cue.at - previous < recipe.minIntervalMs) return false;
+    lastPlayedAt.set(cue.name, cue.at);
 
     const t0 = ctx.currentTime + 0.005 + delayMs / 1000;
     voices = voices.filter((voice) => voice.endsAt > ctx.currentTime);

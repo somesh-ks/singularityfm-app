@@ -315,6 +315,35 @@ describe("gates", () => {
     expect(Math.max(...starts) - Math.min(...starts)).toBeGreaterThanOrEqual(0.059);
   });
 
+  it("keeps the gap between two held cues of one sound, and holds none to a silenced engine", async () => {
+    const { engine, context, state } = harness();
+    engine.unlock();
+    context.state = "suspended";
+    const wakes: Array<() => void> = [];
+    context.resume = () => new Promise<void>((done) => wakes.push(done));
+    expect(engine.play("itemNext")).toBe(true);
+    state.clock += 120;
+    expect(engine.play("itemNext")).toBe(true);
+    context.state = "running";
+    for (const wake of wakes) wake();
+    await Promise.resolve();
+    await Promise.resolve();
+    // Asked 120 ms apart, over the 90 ms repeat limit: both sound.
+    expect(engine.activeVoices()).toBe(2);
+
+    context.state = "suspended";
+    state.clock += 1_000;
+    engine.unlock();
+    wakes.length = 0;
+    expect(engine.play("pause")).toBe(true);
+    state.hidden = true;
+    context.state = "running";
+    for (const wake of wakes) wake();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(engine.activeVoices()).toBe(2);
+  });
+
   it("settles a held cue's level when it is asked for, so narration that starts in the wake does not silence it", async () => {
     const { engine, context, state } = harness();
     engine.unlock();

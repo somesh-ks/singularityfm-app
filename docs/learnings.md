@@ -4,7 +4,7 @@ One line each: symptom, cause, fix. Search before debugging; older gotchas are i
 
 ## Browser tests
 
-- 2026-11-10: `topics.spec.ts` "Add source" compares a committed Linux baseline, off CI only (`CI` skips it). A red on it after a topics.css or design-system change belongs to that PR: read the diff, then `--update-snapshots`.
+- 2026-11-10: `topics.spec.ts` "Add source" compares a committed Linux baseline, off CI only (`CI` skips it). A red on it after a topics.css or design-system change belongs to that PR: read the diff, then `--update-snapshots` with his OK and `tests-ok` (CI gate).
 - 2026-10-22: in the cloud container Chromium goes through the agent proxy, so `--host-resolver-rules` (to serve a build under the production host) did nothing until launched with `--no-proxy-server`.
 - 2026-10-23: a changed card token reached a page outside the grid spec (Costs), and a hold-still test missed 10px at 320. Screenshot every page using the primitive; measure at 320 and 360.
 - 2026-10-23: reduced motion in the tokens alone missed every raw travel on those durations (chip labels, nav pill, floating button). Sweep the CSS with the tokens; check with `document.getAnimations()` under emulated reduced motion.

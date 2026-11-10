@@ -123,4 +123,12 @@ describe("deploy-batch.sh", () => {
     expect(push({ VERCEL_GIT_COMMIT_REF: "preview/tryout" })).toBe(1);
     expect(push()).toBe(0);
   });
+
+  // deploy-due.yml starts a build when this says build; doubt read as due would ship on any doubt.
+  it("tells doubt from due for the hourly check, which sets DOUBT_EXIT", () => {
+    const { commit, push } = repo();
+    commit("apps/web/a.ts", "fix: one", NOW - 4 * HOUR);
+    expect(push({ DOUBT_EXIT: "2", VERCEL_GIT_PREVIOUS_SHA: "0".repeat(40) })).toBe(2);
+    expect(push({ DOUBT_EXIT: "2" })).toBe(1);
+  });
 });

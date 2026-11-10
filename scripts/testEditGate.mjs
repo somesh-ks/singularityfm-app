@@ -5,6 +5,8 @@
 // `tests-ok` label. Lines added to an existing test file and new test files pass, so extending a
 // test stays cheap. After his OK in chat, add the label, link his message in the pull request body,
 // then re-run the check: ci.yml does not run on `labeled`, so the label is read live with `gh`.
+// shortcut: shared helpers, fixtures and the Playwright configs are not gated, though a change there
+// can weaken many tests; add their paths if a PR loosens one without his OK.
 // Usage in CI: PR=<number> BASE=<sha> GH_TOKEN=<token> node scripts/testEditGate.mjs
 import { execFileSync } from "node:child_process";
 import { resolve } from "node:path";

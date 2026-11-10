@@ -1,6 +1,6 @@
 # State
 
-Updated 2026-11-09. Rewrite, never append.
+Updated 2026-11-10. Rewrite, never append.
 
 ## Working
 
@@ -24,7 +24,7 @@ Unit (CI): 367 files, 5,573 tests, 2 min. Site e2e: 468, 14 min. Player: 81, 7 m
 
 - DS 0.7.0 (D388): controls hold size. closed when: on his Android the Play chip keeps one width in every state.
 - D318 edge cache. closed when: a week of his loads is mostly HIT or STALE.
-- Guardrails (D360): #673 awaits his merge, `secrets:push`. closed when: Health's Budgets are fresh.
+- Guardrails (D360): #673 merged; `secrets:push` waits. closed when: Health's Budgets are fresh.
 - Rewrite (D376), Stories (D377). closed when: his next rewrite fetches in 1 min, plays at 0:00; 20 stories at 5 min air in 5.5.
 - Listen now streams (D366), for Catch up and Regenerate. closed when: his first live Catch up plays without a pause.
 - First-tap sound (2026-11-10). closed when: a cold start's first tap on his Android makes only its own sound.
@@ -73,8 +73,7 @@ Unit (CI): 367 files, 5,573 tests, 2 min. Site e2e: 468, 14 min. Player: 81, 7 m
 
 ## Known risks
 
-- Storage measured 2026-11-01: the Blob store is 133 MB (about 5.6 MB a day since it was created 10-06, so Hobby's 1 GB at about 5 months) and Neon is 11 MB (`ingest_items` 1.5 MB, 2,946 rows). The "near 10 GB" Vercel figure is neither. closed when: the Usage tab names it and the sizes are read again at the plan call (11-06 to 11-08).
-- `main` is unprotected: ruleset (runbook 12) not imported. closed when: the rulesets API lists it and Settings allow squash only.
+- Storage measured 2026-11-01: the Blob store is 133 MB (about 5.6 MB a day since it was created 10-06, so Hobby's 1 GB at about 5 months) and Neon is 11 MB (`ingest_items` 1.5 MB, 2,946 rows). The "near 10 GB" Vercel figure is neither. closed when: the Usage tab names it and the sizes are read again at the plan call.
 - No passphrase (D160): anyone with the URL can run, narrate, delete and edit config, within the caps.
 - Budget counters can read below real spend: workflow and site count apart against one Speechify allowance.
 - A Catch up that fails after its episode is committed (the audio job, or a late Cancel) frees its slot in the two-a-day cap (D213); the 12-a-day policy still bounds it.
@@ -83,10 +82,12 @@ Unit (CI): 367 files, 5,573 tests, 2 min. Site e2e: 468, 14 min. Player: 81, 7 m
 ## Next
 
 1. Free the lane in the hold ([D209](decisions/engine.md)): step 1 is built (#399); steps 2, 4 and 5 are not. Step 3 shipped as D294. A batch left open is settled by run.yml's "Settle batches" step. closed when: a scheduled run's write stage logs "Writer first pass by batch" with `back` above 0, and a run that gave up on a batch logs "Settled a batch the run had left open".
-2. Owner: regenerate the 3-story 10-27 briefing? Revoke the Vercel token; delete empty store `store_JmrDq8MB5Kwn3ejW`; open calls: [PWA note](history/2026-10-16-pwa-launch-and-one-model-select.md).
+2. Owner, only he can do these (closed when: each line closes):
+   - `secrets:push` (Guardrails), Blob plan by 11-13. closed when: those Unverified lines close.
+   - Import the ruleset (runbook 12): `main` is unprotected. closed when: the rulesets API lists it and Settings allow squash only.
+   - Deploy Hook secret `VERCEL_DEPLOY_HOOK_WEB`, hourly deploy check (D375 amendment). closed when: it exists and `deploy-due.yml` ran green once.
+   - Unknown if done: revoke the old Vercel token; delete store `store_JmrDq8MB5Kwn3ejW`; [PWA calls](history/2026-10-16-pwa-launch-and-one-model-select.md); spend cap; clear Claude project instructions; CodeRabbit leftovers; "go" on the lock system. closed when: he confirms each done or dropped.
+   - Design system: [its Next](https://github.com/somesh-ks/singularityfm-design-system/blob/main/docs/state.md#next). closed when: done there.
 3. Firecrawl: owner prunes from the yield report. The free change check (D342) skips unchanged listings. closed when: a run skips one, then scrapes a changed one.
-4. Lighthouse CSS defer parked: inlined critical CSS paints a cold phone in 1.0 s, not 3.2 s, but the CSP blocks it.
-5. `topic` to `category` end to end (plan 14): an inventory, dual-name readers, a store-synced migration, the rename, then the old names go; only with no other PR open ([start](history/2026-10-25-owner-feedback-pass.md#left-out-for-a-later-session)).
-6. Controls (D237): Icon button, FAB, Chip, Link next. closed when: `NOT_YET_COMPONENTS` is empty. Icon size scale (D266).
-7. First turn: `first_turn_chars` is recorded in `podcast-timings.json`; split it only if two runs show it long.
-8. Parked by the owner on 1 Nov ([D302](decisions/engine.md)), no code: pipeline plan Steps 3 to 7 (this list named 3, 5, 6, 7: versions table, regenerate from a stage, git as export, feedback classifier) and the Firecrawl monitor pilot. The owner restarts or drops them.
+4. `topic` to `category` (plan 14, [start](history/2026-10-25-owner-feedback-pass.md#left-out-for-a-later-session)), only with no other PR open. closed when: no code or data says `topic`.
+5. Controls (D237): Icon button, FAB, Chip, Link next. closed when: `NOT_YET_COMPONENTS` is empty. Icon size scale (D266).

@@ -10,7 +10,7 @@ The smallest complete change. First list every caller, test, fixture and config 
 - Bug fix: grep every caller, then fix the root cause once in the shared code, with tokens and shared components, never a one-off or hardcoded value, and a check that flags drift. Moved code keeps its validation and error handling.
 - A shortcut with a known limit gets `// shortcut: <the limit>, <when to upgrade>`.
 - Never cut validation at trust boundaries, data-loss guards, security or accessibility.
-- Say "done" only for what you ran; list the rest as unverified with `closed when:`. End the reply with what you skipped or did not check.
+- Say "done" only for what you ran on the reported case (his data, the live URL); a fixture, mock or emulator run is unverified: list it and the rest with `closed when:`. End the reply with what you skipped or did not check.
 
 ## Tests
 

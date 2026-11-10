@@ -37,6 +37,12 @@ const GITHUB_VARIABLES = [
   "SINGULARITY_GIT_EMAIL",
   // The Neon project the daily health check reads compute hours from (D360); branches.yml too.
   "NEON_PROJECT_ID",
+  // The run switches (runbook 11.1 and 14.1), the second narrator's voice and the health check's
+  // daily spend limit; each was set by hand and forgotten once (24 Oct).
+  "SINGULARITY_CONFIG_STORE",
+  "SINGULARITY_STATE_STORE",
+  "SPEECHIFY_VOICE_ID_B",
+  "SINGULARITY_DAILY_USD_CEILING",
 ];
 
 /**
@@ -61,14 +67,24 @@ const VERCEL_ENV = [
   "DATABASE_URL",
   // The report routes (/api/costs, /api/health) verify the command center's session cookie (D257).
   "ADMIN_SESSION_SECRET",
+  // The reader's saved settings and run state (runbook 11.1 and 14.1), and /api/narrate's second voice.
+  "SINGULARITY_CONFIG_STORE",
+  "SINGULARITY_STATE_STORE",
+  "SPEECHIFY_VOICE_ID_B",
 ];
 
 /**
- * The command center's sign-in (D224). They go to the separate singularity-admin Vercel project, not
- * the reader's, so they need `apps/admin` linked to it; without that link nothing is sent, because
- * the reader's own link would take them.
+ * The command center's sign-in (D224), then the config store its Experiments switches read (D249,
+ * runbook 1.4a). They go to the separate singularity-admin Vercel project, not the reader's, so they
+ * need `apps/admin` linked to it; without that link nothing is sent, because the reader's own link
+ * would take them.
  */
-const VERCEL_ADMIN_ENV = ["ADMIN_PASSWORD", "ADMIN_SESSION_SECRET"];
+const VERCEL_ADMIN_ENV = [
+  "ADMIN_PASSWORD",
+  "ADMIN_SESSION_SECRET",
+  "DATABASE_URL",
+  "SINGULARITY_CONFIG_STORE",
+];
 
 /** The admin gate's shortest session secret (MIN_SECRET in apps/admin/src/gate/gate.ts); shorter ones keep sign-in shut. */
 const ADMIN_SECRET_MIN = 32;

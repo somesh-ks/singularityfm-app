@@ -171,11 +171,6 @@ describe("the secrets the workflows read", () => {
       GITHUB_TOKEN: "GitHub gives it to every run",
       RUN_CRON: "the site writes it (apps/web/src/server/github.ts)",
       RUN_CRON_WEEKLY: "the site writes it (apps/web/src/server/github.ts)",
-      // shortcut: set by hand per the runbook until secrets:push sends them, then drop these four.
-      SINGULARITY_CONFIG_STORE: "set by hand (runbook 11.1)",
-      SINGULARITY_STATE_STORE: "set by hand (runbook 14.1)",
-      SPEECHIFY_VOICE_ID_B: "set by hand",
-      SINGULARITY_DAILY_USD_CEILING: "set by hand; health.yml defaults it",
     };
     const unsent = readdirSync(dir)
       .filter((file) => /\.ya?ml$/.test(file))

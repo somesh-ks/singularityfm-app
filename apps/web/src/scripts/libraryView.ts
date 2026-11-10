@@ -32,7 +32,7 @@ export function libraryRoot(): HTMLElement | null {
 
 /**
  * Going back to a Library the gallery had scrolled, the browser puts the saved offset on a page whose
- * off-screen cards still count as their 240px estimate (library.css), so it is shorter than the page
+ * off-screen cards still count as their size estimate (library.css), so it is shorter than the page
  * that was left and the offset is cut. The cards are drawn for two frames so each remembers its real
  * height, and the offset is put back; the card is then where the page keeps it.
  */

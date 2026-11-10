@@ -38,6 +38,7 @@ export const LIBRARY_SORTS: ReadonlyArray<{ id: LibrarySort; label: string }> = 
 ];
 
 /** The longest sort label, which the Sort select reserves so it keeps one width whichever is chosen. */
+// shortcut: longest by characters, not by drawn width; the three labels are alike, upgrade if one is added that is not.
 export const LIBRARY_SORT_RESERVE = LIBRARY_SORTS.map((sort) => sort.label).reduce((a, b) =>
   b.length > a.length ? b : a,
 );

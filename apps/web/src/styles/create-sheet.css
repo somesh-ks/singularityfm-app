@@ -70,8 +70,8 @@
 /* ------------------------------------------------------------------ the floating button as Play */
 
 /* On an episode or an older briefing the floating button is Play (PlayFab.astro), with the shape,
-   place, motion and fold of the FAB (fab.css). Its glyph slot holds the play mark and the spinner
-   the hero chip shows while narration makes the first file. */
+   place, motion and fold of the FAB (fab.css). Its glyph slot holds the play mark; while narration
+   makes the first file the words say Processing with a shimmer (fab.css), and no spinner. */
 .play-fab-glyph {
   display: grid;
   place-items: center;

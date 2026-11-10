@@ -7,6 +7,7 @@ import Shell from "../layouts/Shell.astro";
 const title = "Costs";
 
 // The longest label, which a select reserves so it keeps one width whichever option is chosen.
+// shortcut: longest by characters, not by drawn width; fine for similar labels, upgrade if one is mostly narrow letters.
 const widest = (options: { label: string }[]) =>
   options.map((option) => option.label).reduce((a, b) => (b.length > a.length ? b : a));
 

@@ -65,6 +65,16 @@ jobs:
           else
             echo "code=false" >> "$GITHUB_OUTPUT"
           fi
+      # An existing test changes only with the owner's OK (code.md): removed lines in a test, or a
+      # changed screenshot, need the tests-ok label. The label is read live, so after adding it re-run
+      # this job (ci.yml does not run on `labeled`). Plain node, no install.
+      - name: Test-edit gate
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          PR: ${{ github.event.pull_request.number }}
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: node scripts/testEditGate.mjs
       - uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

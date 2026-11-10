@@ -19,7 +19,7 @@ export {
 
 /**
  * The stories that fit one narration request, best first until the next would not fit. A 15-minute
- * weekly sizes about 44 stories, and 40 tellings near the 700-character ceiling run past the
+ * weekly sizes about 45 stories, and 40 tellings near the 700-character ceiling run past the
  * 19,000 characters one request takes, which fails the episode's whole audio. Returns the ids to
  * drop, lowest score first.
  */
@@ -53,7 +53,8 @@ export const SPARE_SHARE = 0.6;
 
 /**
  * Stories a length-sized briefing may select and write, spares included. Above the digest's hard
- * maximum (48), which holds what airs: a 15-minute weekly wants 44 stories and writes 71.
+ * maximum (VOICE_LIMITS.items.hardMax), which holds what airs: a 15-minute weekly wants 45 stories and
+ * writes 72.
  */
 export const WRITE_MAX = 80;
 

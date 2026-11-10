@@ -451,15 +451,13 @@ async function writePass(
   // the weekly podcast's own length. Such a briefing also writes spares, so a story dropped after
   // selection does not come off the length; validation airs as many as fill it.
   // The same rule sizes the judge's pool in the fetch stage (fetchStage.ts).
-  // A picked story count (D377) replaces the count the length holds; more stories than that are
-  // told shorter (tellingWords), fewer are told as usual and the briefing may end under its length.
+  // A picked story count (D377) replaces the count the length holds; more stories than its pace
+  // holds are told shorter (tellingWords), as is Auto when its count rounds up to a five, and fewer
+  // are told as usual and the briefing may end under its length.
   const lengthOf = lengthMinutesFor(context.schedule, pass.kind, context.mode, context.asked);
   const picked = storiesPickedFor(context.schedule, pass.kind, context.mode, context.askedStories);
   const wanted = lengthOf === null ? (picked ?? undefined) : storiesFor(lengthOf, picked);
-  const telling =
-    lengthOf === null || picked === null || wanted === undefined
-      ? null
-      : tellingWords(lengthOf, wanted);
+  const telling = lengthOf === null || wanted === undefined ? null : tellingWords(lengthOf, wanted);
   const storyLinter = telling === null ? linter : createLinter(context.voice, telling);
   const selectArgs = {
     scored: [...scored, ...generalScored],

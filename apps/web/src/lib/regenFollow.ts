@@ -37,21 +37,36 @@ export function wantedControls(
   aired = Number.NaN,
 ): Hints {
   const words = hintsFor(text, labels);
+  // The words that move the length show its control, so a value it sends is never hidden.
+  const length =
+    words.length ||
+    (Number.isFinite(asked) && desiredLength(asked, answer.values, text, aired) !== asked) ||
+    wordLength(text) !== null ||
+    answer.hints.length ||
+    answer.values.length !== null;
+  const stories = storiesAsked(text, labels, answer);
+  // Length and Stories show together, as on Catch up and Settings: each moves the other (owner,
+  // 2026-11-10), so one shown alone would change out of sight.
+  const size = length || stories;
   return {
-    // The words that move the length show its control, so a value it sends is never hidden.
-    length:
-      words.length ||
-      (Number.isFinite(asked) && desiredLength(asked, answer.values, text, aired) !== asked) ||
-      wordLength(text) !== null ||
-      answer.hints.length ||
-      answer.values.length !== null,
+    length: size,
     topics: words.topics || answer.hints.topics || answer.values.add.length > 0,
-    stories:
-      words.stories ||
-      wordStories(text) !== null ||
-      wordCount(text) !== null ||
-      answer.values.stories !== null,
+    stories: size,
   };
+}
+
+/**
+ * Whether the comment asks about the story count: its words, Jev, or Haiku's value. Stories shown
+ * only beside Length sends its value when this holds or the listener touched it, so an untouched
+ * Auto keeps the count the podcast had.
+ */
+export function storiesAsked(text: string, labels: readonly string[], answer: Answer): boolean {
+  return (
+    hintsFor(text, labels).stories ||
+    wordStories(text) !== null ||
+    wordCount(text) !== null ||
+    answer.values.stories !== null
+  );
 }
 
 /** One step along the lengths on offer, from the one asked; the end of the list stays put. */

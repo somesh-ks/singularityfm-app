@@ -1,4 +1,4 @@
-import { autoStories } from "@singularityfm/core/storyCount";
+import { autoStories, mostStories } from "@singularityfm/core/storyCount";
 import { describe, expect, it } from "vitest";
 import {
   desiredChip,
@@ -82,13 +82,13 @@ describe("regenFollow (D371)", () => {
     };
     expect(at("make it 20 stories", 5)).toEqual([5, "20"]);
     expect(at("twenty-five stories please", 3)).toEqual([5, "25"]);
-    expect(at("30 stories", 5)).toEqual([10, "30"]);
+    expect(at("35 stories", 5)).toEqual([10, "35"]);
     expect(at("a dozen items", 5)).toEqual([5, "12"]);
     expect(at("5 more stories", 5)).toEqual([5, "17"]);
     expect(at("drop 2 stories", 5)).toEqual([5, "10"]);
     // Held to what can air: never under the floor, never over what the longest length holds.
     expect(at("2 stories", 5)).toEqual([5, "3"]);
-    expect(at("100 stories", 5)).toEqual([10, "48"]);
+    expect(at("100 stories", 5)).toEqual([10, String(mostStories(10))]);
     // A count equal to Auto's is Auto.
     expect(at("15 stories", 5)).toEqual([5, ""]);
     expect(wantedControls("make it 20 stories", [], NO_ANSWER).stories).toBe(true);

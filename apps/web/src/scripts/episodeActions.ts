@@ -4,7 +4,14 @@ import { PANEL_SHEET_SELECTOR } from "@singularityfm/design-system/sheet";
 import { rememberCancelToken } from "../lib/cancelTokens";
 import { isSiteAnswer, withErrorRef } from "../lib/errorRef";
 import { createCommentAsker } from "../lib/regenAsk";
-import { desiredChip, desiredLength, desiredStories, wantedControls } from "../lib/regenFollow";
+import {
+  desiredChip,
+  desiredLength,
+  desiredStories,
+  NO_ANSWER,
+  storiesAsked,
+  wantedControls,
+} from "../lib/regenFollow";
 import { nearestRegenLength } from "../lib/regenLength";
 import { isChipOn } from "../lib/regenTopics";
 import { hasSaved, storeOn } from "../lib/savedKey";
@@ -129,13 +136,15 @@ function bind(kind: Kind, dialog: HTMLDialogElement, root: HTMLElement): void {
     const aired = Number((rootOf.get(dialog) ?? root).dataset.stories);
     const wanted = wantedControls(feedback.value, labels, answer, asked, aired);
     if (topicsGroup) topicsGroup.hidden = !(wanted.topics || keep.topics || touchedChips.size > 0);
-    if (lengthGroup) lengthGroup.hidden = !(wanted.length || keep.length || lengthTouched);
+    // Length and Stories show together (wantedControls), touched or not.
+    const sized = storiesTouched || lengthTouched || keep.length;
+    if (lengthGroup) lengthGroup.hidden = !(wanted.length || sized);
     if (!lengthTouched && Number.isFinite(asked)) {
       const target = desiredLength(asked, answer.values, feedback.value, aired);
       for (const radio of lengths) radio.checked = Number(radio.value) === target;
     }
     // Stories follows the length's room and the words about the count (D377).
-    if (storiesGroup) storiesGroup.hidden = !(wanted.stories || storiesTouched);
+    if (storiesGroup) storiesGroup.hidden = !(wanted.stories || sized);
     if (storiesSelect) {
       const minutes = Number(lengths.find((radio) => radio.checked)?.value ?? asked);
       // A count the words name is offered even when it is not one of the fives.
@@ -218,9 +227,15 @@ function bind(kind: Kind, dialog: HTMLDialogElement, root: HTMLElement): void {
       const length = dialog.querySelector<HTMLInputElement>('input[name="length"]:checked');
       const minutes = length && !length.defaultChecked ? Number(length.value) : null;
       // A shown Stories sends what it shows, Auto as null (the words' step may land on Auto's
-      // count); a hidden one sends nothing, so the episode keeps its count.
+      // count). Hidden, or shown only beside Length, untouched on Auto and not asked about, it sends
+      // nothing, so the episode keeps its count.
       const stories = storiesValue(storiesSelect?.value ?? "");
-      const sendStories = !briefing && storiesGroup?.hidden === false;
+      const sendStories =
+        !briefing &&
+        storiesGroup?.hidden === false &&
+        (storiesTouched ||
+          stories !== null ||
+          storiesAsked(text, chips.map(labelOf), asker?.answer() ?? NO_ANSWER));
       body = {
         action: "regenerate",
         id,

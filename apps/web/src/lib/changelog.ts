@@ -18,6 +18,12 @@ export interface Release {
 
 export const CHANGELOG: readonly Release[] = [
   {
+    version: "0.23.2",
+    date: "2026-11-10",
+    description:
+      "Stories now runs in fives all the way to 50, and Auto lands on a five too, so the wheel no longer stops at an odd number like 44. On Regenerate, Length and Stories appear together, since changing one moves the other.",
+  },
+  {
     version: "0.23.1",
     date: "2026-11-10",
     description:

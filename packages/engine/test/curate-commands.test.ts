@@ -1,6 +1,6 @@
 import { mkdir, readdir, readFile, stat, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { JudgmentsFile, parseDigestFile, seedTopicsFile } from "@singularityfm/core";
+import { JudgmentsFile, parseDigestFile, seedTopicsFile, VOICE_LIMITS } from "@singularityfm/core";
 import { PALETTE_IDS } from "@singularityfm/cover";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { makeCurateCommand } from "../src/commands/curate.js";
@@ -325,7 +325,7 @@ describe("singularity curate: agent mode", () => {
     expect(schema.required).toContain("items");
     expect(schema.properties.items.minItems).toBe(3);
     // The weekly cap of 18 plus the tech allowance of 5; the command checks each pool for the kind.
-    expect(schema.properties.items.maxItems).toBe(48);
+    expect(schema.properties.items.maxItems).toBe(VOICE_LIMITS.items.hardMax);
     // The four beats live in the summary, so a session may leave the why line out.
     expect(schema.properties.items.items.required).toEqual([
       "id",

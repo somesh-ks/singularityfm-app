@@ -50,6 +50,8 @@ test("Regenerate while a podcast plays: the queue's dock stands clear above the 
     feedback: "shorter",
     length_minutes: expect.any(Number),
     replace: SITE.path.replace("/d/", ""),
+    // Stories shows beside Length (owner, 2026-11-10) and sends what it shows: Auto.
+    stories: null,
   });
   const card = page.locator("[data-queue-dock]");
   await expect(card).toBeVisible();

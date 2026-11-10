@@ -1,3 +1,4 @@
+import { VOICE_LIMITS } from "@singularityfm/core";
 import { STAGES } from "./types.js";
 
 export const RUN_USAGE = `Usage: singularity run [--mode scheduled|on-demand|weekly] [--force] [--since <iso>]
@@ -23,7 +24,7 @@ stage runs in order and stops cleanly when the gate says nothing is due.
               remove the old one in the same commit (Regenerate on a briefing).
   --length    gate: size this run to 3, 5, 10 or 15 minutes in place of the schedule's (Regenerate's
               Length); the plan keeps it for the stages after.
-  --stories   gate: tell this many stories (3 to 48) or "auto", in place of the schedule's count
+  --stories   gate: tell this many stories (${VOICE_LIMITS.items.floor} to ${VOICE_LIMITS.items.hardMax}) or "auto", in place of the schedule's count
               (Regenerate's Stories, D377); the plan keeps it for the stages after.
   --delete    remove digest <id> and its narration timeline in one commit; no stage runs.
   --record-failed

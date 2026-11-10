@@ -6,6 +6,7 @@ import {
   type JudgmentsFile,
   type LastRunFile,
   type SeenFile,
+  VOICE_LIMITS,
 } from "@singularityfm/core";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { run as renderCommand } from "../src/commands/render.js";
@@ -822,7 +823,7 @@ describe("grounding and validation", () => {
     });
   });
 
-  // A 15-minute briefing writes spares past the digest's 48 stories; with nothing dropped, the
+  // A 15-minute briefing writes spares past the digest's hard maximum; with nothing dropped, the
   // validate stage built a digest of every survivor and failed the schema (2026-10-18 review).
   it("airs at most the digest's cap when more spares survive than it holds", LONG, async () => {
     await seed(repo.root, {
@@ -844,7 +845,7 @@ describe("grounding and validation", () => {
     const result = await runStage(world);
     expect(result.report).toMatchObject({ outcome: "published" });
     const digest = await readDigest(repo.root, DIGEST_PATH);
-    expect(digest.items.length).toBeLessThanOrEqual(48);
+    expect(digest.items.length).toBeLessThanOrEqual(VOICE_LIMITS.items.hardMax);
   });
 
   it("re-checks the floor after grounding and records a quiet day", LONG, async () => {

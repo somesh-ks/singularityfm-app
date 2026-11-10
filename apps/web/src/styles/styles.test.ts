@@ -2,7 +2,7 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, extname, join, relative } from "node:path";
 import { COMPONENTS } from "@singularityfm/design-system/registry";
-import { offGrid } from "@singularityfm/design-system/rules";
+import { offGrid, rawPixels } from "@singularityfm/design-system/rules";
 import { describe, expect, it } from "vitest";
 
 /**
@@ -69,6 +69,14 @@ const LABEL_CONTROLS = [
   "player-upnext-row",
   "script-back",
 ];
+
+/** Pixel lengths each stylesheet still holds from before the rule (raw-px), to be turned into tokens, rem or em. */
+const PX_RECORDED: Record<string, number> = {
+  "cover.css": 1,
+  "empty.css": 7,
+  "library.css": 3,
+  "player.css": 6,
+};
 
 /**
  * The only rules that may space with --space-1 (4px), each with why. Everything else spaces on the
@@ -522,6 +530,29 @@ const RULES: Rule[] = [
           ({ line, message }) => `${file}:${line} ${message}`,
         ),
       ),
+  },
+  {
+    // A pixel length written into a page's stylesheet is right for one set of words, one text size
+    // and one mood (owner, 2026-11-10: "avoid pixel values as hardcoded thing, as a rule"). A length is
+    // a token, rem, em, ch or a calc() of them; a width that must hold is reserved from the content
+    // (DS-9). The design system's rule (raw-px) finds them; zero and the 1px hairline pass. These
+    // stylesheets still hold some from before the rule, recorded here per file: a file may have fewer,
+    // never more, and the record is lowered with it. A new file starts at none.
+    name: "stylesheets hold no pixel length beyond the ones recorded",
+    offenders: () =>
+      OWN_FILES.flatMap((file) => {
+        const found = rawPixels(read(file), file);
+        const recorded = PX_RECORDED[file] ?? 0;
+        if (found.length === recorded) return [];
+        const first = found[0];
+        return [
+          `${file}: ${found.length} pixel lengths, ${recorded} recorded${
+            found.length > recorded && first
+              ? `; ${first.line} ${first.message}`
+              : " (lower PX_RECORDED)"
+          }`,
+        ];
+      }),
   },
   {
     // Headings are regular weight: the type's size and the space around it carry the hierarchy.

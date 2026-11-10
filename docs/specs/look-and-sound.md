@@ -33,7 +33,7 @@ Visual language, covers and the header light, empty states, interface sounds, st
 - Controls cue: buttons tap, dialogs and popovers open and close (Escape too), toasts outcome, none after a save. A swipe is felt, not heard (D359).
 
 ### Style rules
-- Spacing is 8pt: 8, 16, 24, 32, 48, 64, 96px, with 4px only where `ALLOWED_4PX` names it (D131). `npm run design-check` enforces grid, regular headings, and token-only styles; `e2e/designSystem.spec.ts` verifies rendered grid across pages. Tests forbid raw lengths, undefined custom properties, and non-range media queries.
+- Spacing is 8pt: 8, 16, 24, 32, 48, 64, 96px, with 4px only where the library's `GRID_EXCEPTIONS` or the reader's own `ALLOWED_4PX` names it (D131); the design-check runs the library's rules (`@singularityfm/design-system/rules`). `npm run design-check` enforces grid, regular headings, and token-only styles; `e2e/designSystem.spec.ts` verifies rendered grid across pages. Tests forbid raw lengths, undefined custom properties, and non-range media queries.
 
 ### Design system enforcement
 Three layers catch regressions (owner, 2026-10-21):

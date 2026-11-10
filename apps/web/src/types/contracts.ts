@@ -1,4 +1,13 @@
-import type { ConfigOp as CoreConfigOp, DigestKind, SourceFormat } from "@singularityfm/core";
+import type {
+  ConfigOp as CoreConfigOp,
+  DigestKind,
+  PODCAST_AUDIENCES,
+  PODCAST_FORMATS,
+  PODCAST_LENGTHS,
+  PODCAST_TONES,
+  PODCAST_WINDOWS,
+  SourceFormat,
+} from "@singularityfm/core";
 
 /**
  * Contracts shared by the reader pages, the player island and the Generate sheet. Both the page
@@ -502,8 +511,8 @@ export type ConfigResponse =
   | { status: 503; error: "unavailable" };
 
 /**
- * Podcast episodes. These mirror packages/core/src/podcast.ts; they are declared here so the page
- * scripts never pull the engine's schemas into the browser. Keep the two in step.
+ * Podcast episodes. These mirror packages/core/src/podcast.ts, its lists taken by `import type`, so
+ * the page scripts never pull the engine's schemas into the browser. Keep the two in step.
  */
 export interface PodcastRequest {
   /** Section ids the episode draws on. One to six. Never "top": the engine always adds the top picks. */
@@ -512,12 +521,12 @@ export interface PodcastRequest {
    * Who the script is written for. "general" explains terms and leaves out insider shorthand;
    * "custom" is written for the owner, a design engineer. Absent means "custom".
    */
-  audience?: "general" | "custom";
-  length_minutes: 3 | 5 | 10 | 15;
+  audience?: (typeof PODCAST_AUDIENCES)[number];
+  length_minutes: (typeof PODCAST_LENGTHS)[number];
   /** How many stories (D377): a whole number from the floor to the digest's hard maximum (VOICE_LIMITS.items), or null or absent for Auto, as many as the length holds. */
   stories?: number | null;
   /** New requests take "readout" or "discussion"; a stored episode may still say "headlines". */
-  format: "readout" | "discussion" | "headlines";
+  format: (typeof PODCAST_FORMATS)[number];
   /** Speechify voice id of the lead host, speaker "a"; absent means the engine's default. */
   voice_id?: string | null;
   /** Voice id of the second host, speaker "b" (discussion only); absent means the default. */
@@ -530,8 +539,8 @@ export interface PodcastRequest {
    */
   host_names?: { a: string; b: string };
   /** How many days of stories to draw on. */
-  window_days: 2 | 7 | 30;
-  tone: "neutral" | "energetic";
+  window_days: (typeof PODCAST_WINDOWS)[number];
+  tone: (typeof PODCAST_TONES)[number];
   title?: string;
 }
 

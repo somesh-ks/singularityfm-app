@@ -12,6 +12,9 @@ import { VOICE_LIMITS } from "./voiceLimits.js";
  */
 export const STORY_CHARS = 364;
 
+/** The lengths, in minutes, a podcast or a scheduled briefing may ask for: one list for every check and control. */
+export const PODCAST_LENGTHS = [3, 5, 10, 15] as const;
+
 /**
  * Narration characters in a minute of a briefing: the four briefings narrated 2026-10-18 to
  * 10-24 ran 1,057 to 1,073 (`text_chars` over `duration_ms` in their `.audio.json`). Sized at

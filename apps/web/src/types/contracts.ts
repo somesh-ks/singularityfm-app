@@ -514,7 +514,7 @@ export interface PodcastRequest {
    */
   audience?: "general" | "custom";
   length_minutes: 3 | 5 | 10 | 15;
-  /** How many stories (D377): a whole number from 3 to 48, or null or absent for Auto, as many as the length holds. */
+  /** How many stories (D377): a whole number from the floor to the digest's hard maximum (VOICE_LIMITS.items), or null or absent for Auto, as many as the length holds. */
   stories?: number | null;
   /** New requests take "readout" or "discussion"; a stored episode may still say "headlines". */
   format: "readout" | "discussion" | "headlines";

@@ -145,11 +145,13 @@ export default function GenerateSheet({ open, handoff, onOpenChange }: GenerateS
     aired,
   );
   const shownTopics = Boolean(page) && (wanted.topics || keepTopics || picked.size > 0);
-  const shownLength = wanted.length || lengthPick !== null;
+  // Length and Stories show together (wantedControls), touched or not.
+  const sized = lengthPick !== null || storiesPick !== null;
+  const shownLength = wanted.length || sized;
   const length = lengthPick ?? String(desiredLength(Number(asked), answer.values, comment, aired));
   // Stories (D377): Auto unless the comment asks for more or fewer than aired, or the listener picks.
   // A pick the length no longer holds shows the most it holds.
-  const shownStories = wanted.stories || storiesPick !== null;
+  const shownStories = wanted.stories || sized;
   const wantedStories =
     storiesPick ?? desiredStories(aired, Number(length), answer.values, comment);
   const storyChoices = storyOptions(
@@ -214,8 +216,8 @@ export default function GenerateSheet({ open, handoff, onOpenChange }: GenerateS
         feedbackRef.current?.value ?? "",
         topics,
         Number(length),
-        // A shown Stories sends what it shows, Auto as null; a hidden one sends nothing, so the run
-        // keeps the schedule's count.
+        // A shown Stories sends what it shows, Auto as null (beside a new Length, Auto is that
+        // length's count); a hidden one sends nothing, so the run keeps the schedule's count.
         shownStories ? storiesValue(stories) : undefined,
       );
     } catch {

@@ -19,7 +19,7 @@ Fetch, judge, write, validate, sizing and spares, sources and scores, cost limit
 - `episode-eval.yml` (`eval` label, D180) scores main's writer against the branch's on frozen replays.
 
 ### Sizing and spares
-- A briefing is sized by the owner's length alone at 1,066 spoken characters a minute (measured; podcasts 968) and airs the best survivors until their measured narration fills it (D119), at most 48 stories.
+- A briefing is sized by the owner's length alone at 1,066 spoken characters a minute (measured; podcasts 968) and airs the best survivors until their measured narration fills it (D119), at most 50 stories.
 - A sized pass sends the judge 2.4 candidates per story it writes (192 for a 15-minute weekly, 68 for a 5-minute daily), writes 85% spares up to 80 and cuts to the narration limit after trimming spares.
 - A pass left short (or under the floor) refills once, best effort, from `reserve.json` (what a doubled selection adds): `refill_written`, `refill_kept`. Guards: [resilience](../engineering/generation-resilience.md); numbers: [metrics](../engineering/metrics.md).
 - General topics: Science takes a clearly on-topic story from one outlet (D120); the other general topics need two. General feeds are judged by Jev each run for the feeds' scores and never reach a briefing as such (D66); a general section gets two stories outside the briefing's cap; the weekly ceiling is 600 judged items.

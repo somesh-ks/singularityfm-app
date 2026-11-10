@@ -37,20 +37,25 @@ export function wantedControls(
   aired = Number.NaN,
 ): Hints {
   const words = hintsFor(text, labels);
+  // The words that move the length show its control, so a value it sends is never hidden.
+  const length =
+    words.length ||
+    (Number.isFinite(asked) && desiredLength(asked, answer.values, text, aired) !== asked) ||
+    wordLength(text) !== null ||
+    answer.hints.length ||
+    answer.values.length !== null;
+  const stories =
+    words.stories ||
+    wordStories(text) !== null ||
+    wordCount(text) !== null ||
+    answer.values.stories !== null;
+  // Length and Stories show together, as on Catch up and Settings: each moves the other (owner,
+  // 2026-11-10), so one shown alone would change out of sight.
+  const size = length || stories;
   return {
-    // The words that move the length show its control, so a value it sends is never hidden.
-    length:
-      words.length ||
-      (Number.isFinite(asked) && desiredLength(asked, answer.values, text, aired) !== asked) ||
-      wordLength(text) !== null ||
-      answer.hints.length ||
-      answer.values.length !== null,
+    length: size,
     topics: words.topics || answer.hints.topics || answer.values.add.length > 0,
-    stories:
-      words.stories ||
-      wordStories(text) !== null ||
-      wordCount(text) !== null ||
-      answer.values.stories !== null,
+    stories: size,
   };
 }
 

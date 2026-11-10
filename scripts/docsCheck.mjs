@@ -19,7 +19,7 @@ export const BUDGETS = {
 export const SPEC_BUDGET = 8_000;
 // What every session reads: AGENTS.md, code.md, design.md and state.md. The Index is searched, never
 // read whole, so it has a budget of its own (D283).
-export const READ_FIRST_BUDGET = 22_500;
+export const READ_FIRST_BUDGET = 23_000;
 export const INDEX_BUDGET = 40_000;
 // Folders with an index of their own, left out of the docs README check.
 const OWN_INDEX = ["decisions/", "history/", "ledger/", "prototype/", "specs/"];

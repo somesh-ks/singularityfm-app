@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { CategoryId, isBuiltinSection, SECTION_TITLES, SECTIONS, SectionId } from "./categories.js";
 import { SourceType } from "./item.js";
+import { VOICE_LIMITS } from "./voiceLimits.js";
 
 const isoDateTime = z.string().datetime({ offset: true });
 
@@ -109,8 +110,8 @@ export const Digest = z.object({
    * the old count plus one; absent means never. A podcast takes `MAX_REGENERATIONS`.
    */
   regenerations: z.number().int().min(1).max(MAX_REGENERATIONS).optional(),
-  /** Weekly cap (18) plus the tech allowance and the allowances of custom sections. */
-  items: z.array(DigestItem).min(3).max(48),
+  /** Weekly cap plus the tech allowance and the allowances of custom sections, to the hard maximum. */
+  items: z.array(DigestItem).min(VOICE_LIMITS.items.floor).max(VOICE_LIMITS.items.hardMax),
 });
 export type Digest = z.infer<typeof Digest>;
 

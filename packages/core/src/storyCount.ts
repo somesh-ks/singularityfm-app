@@ -38,10 +38,19 @@ export function storiesForMinutes(minutes: number, floor: number, hardMax: numbe
 }
 
 /**
- * The numbers the Stories control offers beside Auto, in fives so a pick is easy (owner, 2026-11-06),
- * before those a length cannot hold are left out. Auto and a Regenerate's step may land between them.
+ * The step between the counts the Stories control offers, and the count Auto rounds to: fives, so a
+ * pick is easy (owner, 2026-11-06) and the wheel reads as one run (owner, 2026-11-10: it stopped at 44).
  */
-export const STORY_COUNTS = [5, 10, 15, 20, 25, 30, 35, 40] as const;
+export const STORY_STEP = 5;
+
+/**
+ * The numbers the Stories control offers, every step up to the digest's hard maximum, before those a
+ * length cannot hold are left out. A count named in a Regenerate's words may land between them.
+ */
+export const STORY_COUNTS: readonly number[] = Array.from(
+  { length: Math.floor(VOICE_LIMITS.items.hardMax / STORY_STEP) },
+  (_, at) => (at + 1) * STORY_STEP,
+);
 
 /**
  * English speech runs about six characters a word, spaces included: 364 characters a story is about
@@ -55,9 +64,19 @@ export const CHARS_PER_WORD = 6;
  */
 export const MIN_TELLING_WORDS = 20;
 
-/** The stories a length holds at Auto: the usual telling, as `storiesForMinutes` sizes it. */
-export function autoStories(minutes: number): number {
+/** The stories a length holds at the usual telling, as `storiesForMinutes` sizes it. */
+function pacedStories(minutes: number): number {
   return storiesForMinutes(minutes, VOICE_LIMITS.items.floor, VOICE_LIMITS.items.hardMax);
+}
+
+/**
+ * The stories a length sizes at Auto: the usual telling's count to the nearest `STORY_STEP` (15
+ * minutes holds 43.9, Auto is 45), so Auto is one of the counts on offer. What airs is still held to
+ * the length (validation fills it by measured narration, D119), so the rounding moves no length.
+ */
+export function autoStories(minutes: number): number {
+  const stepped = Math.round(pacedStories(minutes) / STORY_STEP) * STORY_STEP;
+  return Math.max(VOICE_LIMITS.items.floor, Math.min(VOICE_LIMITS.items.hardMax, stepped));
 }
 
 /** The fewest stories a podcast airs: under this nothing publishes. */

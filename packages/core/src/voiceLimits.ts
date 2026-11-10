@@ -26,5 +26,5 @@ export const VOICE_LIMITS = {
   spokenChars: 700,
   spokenSentences: 5,
   spokenMinSentences: 3,
-  items: { floor: 3, target: [8, 12], cap: 12, weeklyCap: 18, techCap: 5, hardMax: 48 },
+  items: { floor: 3, target: [8, 12], cap: 12, weeklyCap: 18, techCap: 5, hardMax: 50 },
 } as const;

@@ -130,7 +130,7 @@ Decision rule: a sound that brackets narration is silent while narration plays, 
 
 1. **Lazy context.** No `AudioContext` exists until `unlock()` runs inside a user gesture. `installGestureUnlock(engine)` hooks `pointerdown`, `touchend` and `keydown` on the document and stays installed, because iOS can interrupt a context (a call, an alarm) and a later gesture must resume it.
 2. **One context.** The engine reuses a single context and a single master chain: input gain, a 3.6 kHz Butterworth low-pass, and a safety compressor whose threshold sits above every recipe's peak.
-3. **No late bursts.** If the context is suspended or interrupted, the call is dropped and `resume()` is requested. Scheduling into a suspended context would replay as a burst on resume.
+3. **No late bursts.** If the context is suspended or interrupted, `resume()` is requested and the cues asked for meanwhile are held (four at most, 300 ms each, each at the level it was asked at). They play in order, as far apart as they were asked, when the resume lands; a new press discards what was held before it began. Scheduling into a suspended context would replay as a burst on resume.
 4. **Hidden means silent.** Nothing plays while `document.hidden`.
 5. **Narration.** The engine only calls `isNarrationPlaying()`. It never touches the narration element. The one thing it does to the page's audio is set `navigator.audioSession.type = "playback"` where the browser has it, and only while Sounds is on (D105, D295), so iOS does not mute interface sounds with the silent switch.
 6. **Four voices.** The oldest voice fades out in 12 ms to make room for a fifth.
@@ -210,6 +210,6 @@ Verified by tests in `packages/sound/src`:
 - Rendered output never exceeds -12 dBFS at full volume across the parameter extremes, starts and ends at silence, has no DC offset, keeps under 0.1 percent of its energy above 4 kHz, and has a spectral centroid between 150 and 1800 Hz.
 - The felt layer stays between 10 and 100 percent of the tone's peak.
 - The signature is the loudest sound; the scrub tick is the quietest; the error is in the low register and quieter than the signature; every sound has a distinct fingerprint.
-- The engine, run against a fake audio context, creates no context before `unlock`, drops calls when disabled, hidden, silent, suspended or inside a retrigger window, applies the per-sound narration policy, caps voices at four, and schedules envelopes that start and end at the floor.
+- The engine, run against a fake audio context, creates no context before `unlock`, drops calls when disabled, hidden, silent or inside a retrigger window, holds them while the context wakes, applies the per-sound narration policy, caps voices at four, and schedules envelopes that start and end at the floor.
 
 Not verified, because it needs ears and devices: how pleasant and distinct the sounds are, the balance between them on a phone speaker, iOS audio-session behavior, and Bluetooth latency. The test plan above covers them.

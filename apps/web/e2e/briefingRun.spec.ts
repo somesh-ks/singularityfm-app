@@ -191,6 +191,8 @@ test.describe("a Regenerate, followed in the podcast queue", () => {
       feedback: "the length felt off",
       length_minutes: 10,
       replace: ID,
+      // Stories shows beside Length (owner, 2026-11-10) and sends what it shows: Auto for 10 min.
+      stories: null,
     });
 
     await expect(text(page)).toHaveText("The podcast couldn't be written. Nothing was changed.", {

@@ -1,3 +1,4 @@
+import { VOICE_LIMITS } from "@singularityfm/core";
 import { HOST_NAME_POOLS, hostNamesFor } from "@singularityfm/core/hosts";
 import { beforeEach, describe, expect, it } from "vitest";
 import { createFakeGitHub, REPO, runJson } from "../testing/fakeGitHub";
@@ -112,7 +113,7 @@ describe("parsePodcastRequest", () => {
       { ...REQUEST, length_minutes: 4 },
       { ...REQUEST, length_minutes: "5" },
       { ...REQUEST, stories: 2 },
-      { ...REQUEST, stories: 49 },
+      { ...REQUEST, stories: VOICE_LIMITS.items.hardMax + 1 },
       { ...REQUEST, stories: "12" },
       { ...REQUEST, format: "essay" },
       { ...REQUEST, format: "headlines" },

@@ -277,32 +277,129 @@ describe("gates", () => {
     expect(engine.play("itemNext")).toBe(false);
   });
 
-  it("drops the call and asks to resume when the context is suspended or interrupted", () => {
+  it("holds the call and asks to resume when the context is suspended or interrupted", () => {
     const { engine, context } = harness();
     engine.unlock();
     context.resumeCalls = 0;
     for (const state of ["suspended", "interrupted"]) {
       context.state = state;
-      expect(engine.play("play")).toBe(false);
+      expect(engine.play("play")).toBe(true);
     }
     expect(context.resumeCalls).toBe(2);
     expect(engine.activeVoices()).toBe(0);
   });
 
-  it("plays the cue that woke a suspended context once the resume lands, unless it went stale", async () => {
+  // Owner, 2026-11-10: the first tap on a phone sounded the wrong cue. The audio device wakes slowly
+  // on the first press, so the tap's cue and the one its result adds (a sheet it opens, a toast it
+  // raises) both arrive before the context runs; only the last was kept, so the tap was never heard.
+  it("plays every cue asked for during the wake, in order and as far apart as they were asked", async () => {
     const { engine, context, state } = harness();
     engine.unlock();
     context.state = "suspended";
-    expect(engine.play("itemNext")).toBe(false);
+    context.resume = () => new Promise(() => undefined);
+    expect(engine.play("play")).toBe(true);
+    state.clock += 40;
+    expect(engine.play("sheetOpen")).toBe(true);
+    expect(engine.activeVoices()).toBe(0);
+
+    const wake = FakeContext.prototype.resume.bind(context);
+    context.resume = wake;
+    state.clock += 20;
+    context.state = "suspended";
+    expect(engine.play("toggleOn")).toBe(true);
+    await Promise.resolve();
+    await Promise.resolve();
+    // Three voices; the last was asked for 60 ms after the first and starts that much later.
+    const starts = context.sources.map((source) => source.started[0] ?? 0);
+    expect(engine.activeVoices()).toBe(3);
+    expect(Math.max(...starts) - Math.min(...starts)).toBeGreaterThanOrEqual(0.059);
+  });
+
+  it("keeps the gap between two held cues of one sound, and holds none to a silenced engine", async () => {
+    const { engine, context, state } = harness();
+    engine.unlock();
+    context.state = "suspended";
+    const wakes: Array<() => void> = [];
+    context.resume = () => new Promise<void>((done) => wakes.push(done));
+    expect(engine.play("itemNext")).toBe(true);
+    state.clock += 120;
+    expect(engine.play("itemNext")).toBe(true);
+    context.state = "running";
+    for (const wake of wakes) wake();
+    await Promise.resolve();
+    await Promise.resolve();
+    // Asked 120 ms apart, over the 90 ms repeat limit: both sound.
+    expect(engine.activeVoices()).toBe(2);
+
+    context.state = "suspended";
+    state.clock += 1_000;
+    engine.unlock();
+    wakes.length = 0;
+    expect(engine.play("pause")).toBe(true);
+    state.hidden = true;
+    context.state = "running";
+    for (const wake of wakes) wake();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(engine.activeVoices()).toBe(2);
+  });
+
+  it("settles a held cue's level when it is asked for, so narration that starts in the wake does not silence it", async () => {
+    const { engine, context, state } = harness();
+    engine.unlock();
+    context.state = "suspended";
+    expect(engine.play("sheetOpen")).toBe(true);
+    state.narrating = true;
     await Promise.resolve();
     expect(engine.activeVoices()).toBe(1);
+  });
 
-    state.clock += 1_000;
+  it("lets go of a cue asked for before a press, so a late chime never lands on that tap", async () => {
+    const { engine, context, state } = harness();
+    engine.unlock();
+    state.clock += 5_000;
     context.state = "suspended";
-    expect(engine.play("itemPrev")).toBe(false);
+    const wakes: Array<() => void> = [];
+    context.resume = () => new Promise<void>((done) => wakes.push(done));
+    // A run finishing with nobody pressing anything: held, in case the context wakes by itself.
+    expect(engine.play("generateDone")).toBe(true);
+    state.clock += 100;
+    // The first press of a person: the chime is not theirs. The wake it causes plays nothing.
+    engine.unlock();
+    context.state = "running";
+    for (const wake of wakes) wake();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(engine.activeVoices()).toBe(0);
+  });
+
+  it("keeps a cue asked for between the events of one press", async () => {
+    const { engine, context, state } = harness();
+    engine.unlock();
+    state.clock += 5_000;
+    context.state = "suspended";
+    const wakes: Array<() => void> = [];
+    context.resume = () => new Promise<void>((done) => wakes.push(done));
+    engine.unlock();
+    state.clock += 20;
+    expect(engine.play("toggleOn")).toBe(true);
+    state.clock += 60;
+    engine.unlock();
+    context.state = "running";
+    for (const wake of wakes) wake();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(engine.activeVoices()).toBe(1);
+  });
+
+  it("lets a held cue go once the wake takes longer than it is worth", async () => {
+    const { engine, context, state } = harness();
+    engine.unlock();
+    context.state = "suspended";
+    expect(engine.play("itemNext")).toBe(true);
     state.clock += 400;
     await Promise.resolve();
-    expect(engine.activeVoices()).toBe(1);
+    expect(engine.activeVoices()).toBe(0);
   });
 
   it("rate limits a repeat of the same sound but not a different one", () => {

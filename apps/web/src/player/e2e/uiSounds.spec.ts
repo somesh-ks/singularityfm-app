@@ -95,6 +95,39 @@ test.describe("interface cues by kind of action", () => {
     });
   }
 
+  // Owner, 2026-11-10: the first tap on a phone sounded the wrong cue. A phone's audio device wakes
+  // slowly on the first press, so the press's cues arrive before the context runs; they are held,
+  // announced and played, not dropped or replaced by the last one, and the unprimed page is the case.
+  test("the first press of a page, with the audio device slow to wake, is heard", async ({
+    player,
+    page,
+  }) => {
+    await page.addInitScript(() => {
+      const Wrapped = window.AudioContext;
+      window.AudioContext = class extends Wrapped {
+        constructor(options?: AudioContextOptions) {
+          super(options);
+          let state: AudioContextState = "suspended";
+          Object.defineProperty(this, "state", { get: () => state });
+          const wake = this.resume.bind(this);
+          this.resume = () =>
+            new Promise<void>((done) =>
+              setTimeout(() => {
+                void wake();
+                state = "running";
+                this.dispatchEvent(new Event("statechange"));
+                done();
+              }, 150),
+            );
+        }
+      } as typeof AudioContext;
+    });
+    await player.open("/d/2026-10-07");
+    await library(page).tap();
+    await expect.poll(() => heard(page)).toEqual(["scrubDetent"]);
+    await expect.poll(() => oscillators(page)).toBeGreaterThan(0);
+  });
+
   // Escape and a press outside close a menu with no control to press; the cue must still sound.
   test("a menu opens with a cue, and Escape closes it with one", async ({ player, page }) => {
     await player.open("/");

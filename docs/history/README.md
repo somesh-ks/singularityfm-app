@@ -4,6 +4,7 @@ One note per session, newest first. Read a note only to learn why something was 
 
 | Date | Note | Summary |
 | :--- | :--- | :--- |
+| 2026-11-10 | [First tap sound](2026-11-10-first-tap-sound.md) | A slow audio wake on the first press kept only the last cue and judged narration late; the engine now holds every cue in order and drops what came before a press |
 | 2026-11-09 | [Weekly switch off](2026-11-09-weekly-switch-off.md) | The 8 Nov weekly did not air because the Weekly switch was off since 4 Nov; health now faults a weekly that will not air, and Settings says Off (D386) |
 | 2026-11-06 | [Stories control](2026-11-06-stories-control.md) | Stories sits beside Length everywhere a podcast is sized; a pick above Auto shortens each telling, and "more stories" in a Regenerate steps the count (D377) |
 | 2026-11-05 | [Queue dock](2026-11-05-queue-dock.md) | The queue opens over the page with 3.5 rows, eases on the spring tokens, says Taking longer than usual only when a timed step is slow, and its shimmer no longer restarts |

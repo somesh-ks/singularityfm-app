@@ -18,6 +18,12 @@ export interface Release {
 
 export const CHANGELOG: readonly Release[] = [
   {
+    version: "0.23.1",
+    date: "2026-11-10",
+    description:
+      "The first tap after you open the app now makes the sound that tap should, and no other. A sound asked for before the phone's audio had woken is no longer swapped for a later one, and a sound from before your tap no longer plays on it.",
+  },
+  {
     version: "0.23",
     date: "2026-11-09",
     description:

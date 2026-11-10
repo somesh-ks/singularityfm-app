@@ -22,8 +22,6 @@ async function mockConfig(page: Page, answers: number[]): Promise<unknown[]> {
   return sent;
 }
 
-const toastText = (page: Page) => page.locator("[data-bar] [data-bar-text]");
-
 test.describe("a refused settings change", () => {
   // The refusals are on purpose, which the browser logs.
   test.use({ allowNetworkErrors: true });

@@ -1,6 +1,7 @@
 ---
 import Button from "@singularityfm/design-system/Button";
 import Icon from "@singularityfm/design-system/Icon";
+import SearchField from "@singularityfm/design-system/SearchField";
 import type { ManageSource } from "../lib/manage";
 import { FORMAT_LABEL } from "../lib/sourceFilter";
 
@@ -35,20 +36,16 @@ const shownChips = chips && formats.length > 1;
 >
   <div class="filter-row">
     <div class="search-wrap filter-field">
-      <label class="search-field">
-        <Icon name="search" />
-        <span class="sr-only">Search sources</span>
-        <input
-          type="search"
-          name="q"
-          placeholder="Search sources"
-          autocomplete="off"
-          autocapitalize="off"
-          spellcheck="false"
-          enterkeyhint="search"
-          data-filter-q
-        />
-      </label>
+      <SearchField
+        label="Search sources"
+        name="q"
+        placeholder="Search sources"
+        autoComplete="off"
+        autoCapitalize="off"
+        spellCheck="false"
+        enterKeyHint="search"
+        data-filter-q
+      />
       <button class="search-clear press press-subtle" type="button" aria-label="Clear text" data-filter-clear-text hidden>
         <Icon name="close" />
       </button>

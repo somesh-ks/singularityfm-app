@@ -55,8 +55,8 @@ async function openSettings(page: Page): Promise<void> {
   await expect(page.locator("[data-manage]")).toHaveAttribute("data-loaded", "");
 }
 
-const toast = (page: Page) => page.locator("[data-bar]");
-const toastText = (page: Page) => toast(page).locator("[data-bar-text]");
+/** The app's Toast: one at a time, so the one on the page. */
+const toast = (page: Page) => page.locator(".toast");
 /** A save that went through shows no toast; a screen reader hears it. */
 const spoken = (page: Page) => page.locator("[data-live]");
 const SAVED = "Settings saved";
@@ -626,7 +626,7 @@ test.describe("saving on its own", () => {
     ]);
     await open(page, "daily");
     await page.locator("#daily-hour").selectOption("9");
-    await expect(toastText(page)).toHaveText(TIME_REFUSED);
+    await expect(toast(page)).toContainText(TIME_REFUSED);
   });
 });
 
@@ -777,16 +777,14 @@ test.describe("a refused save", () => {
     ]);
     await open(page, "daily");
     await page.locator("#daily-hour").selectOption("9");
-    await expect(toastText(page)).toHaveText(REASONS[503]);
-    // One region speaks each message, an error through the alert region; the toast has no role.
-    await expect(page.locator("[data-alert]")).toHaveText(REASONS[503]);
+    await expect(toast(page)).toContainText(REASONS[503]);
+    // The toast speaks it, as an alert; the page's own region stays quiet, so it is said once.
+    await expect(toast(page)).toHaveAttribute("role", "alert");
     await expect(page.locator("[data-live]")).toHaveText("");
-    await expect(toast(page)).not.toHaveAttribute("role", /.+/);
     await toast(page).getByRole("button", { name: "Retry" }).click();
     // A save that goes through takes the toast away and is only spoken: the control shows it.
     await expect(spoken(page)).toHaveText(SAVED);
     await expect(toast(page)).toBeHidden();
-    await expect(page.locator("[data-alert]")).toHaveText("");
     expect(sent).toHaveLength(2);
     expect(sent[1]?.op).toEqual({ op: "schedule.set", hour: 9 });
   });
@@ -826,7 +824,7 @@ test.describe("a change made offline", () => {
     await context.setOffline(true);
     online = false;
     await page.locator("#daily-hour").selectOption("9");
-    await expect(toastText(page)).toHaveText(KEPT);
+    await expect(toast(page)).toContainText(KEPT);
     await expect(toast(page).getByRole("button", { name: "Retry" })).toHaveCount(0);
     expect(sent).toHaveLength(0);
     // The site is still down when the page is opened again: the change is shown all the same.

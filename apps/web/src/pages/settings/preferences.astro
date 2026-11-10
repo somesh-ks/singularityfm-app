@@ -1,7 +1,7 @@
 ---
-import Menu from "@singularityfm/design-system/Menu.astro";
-import Select from "@singularityfm/design-system/Select.astro";
-import Switch from "@singularityfm/design-system/Switch.astro";
+import Menu from "@singularityfm/design-system/Menu";
+import Select from "@singularityfm/design-system/Select";
+import Switch from "@singularityfm/design-system/Switch";
 import SettingsHead from "../../components/SettingsHead.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { PLAYBACK_RATES } from "../../player/core/playerTypes";
@@ -35,9 +35,9 @@ const title = "Preferences";
           <div class="settings-row">
             <label class="settings-label" for="default-speed">Default playback speed</label>
             <Select
-              class="value-select speed-default"
+              className="value-select speed-default"
               id="default-speed"
-              autocomplete="off"
+              autoComplete="off"
               data-needs-js
               data-default-speed
               data-opens="default-speed-sheet"
@@ -47,7 +47,7 @@ const title = "Preferences";
           </div>
         </div>
         {/* Outside the row, so the row's cap on a slider (settings.css) does not reach the sheet. */}
-        <Menu id="default-speed-sheet" title="Default playback speed" class="speed-default-sheet">
+        <Menu id="default-speed-sheet" title="Default playback speed" className="speed-default-sheet">
           <div data-speed-root></div>
         </Menu>
       </section>

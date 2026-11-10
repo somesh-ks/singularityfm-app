@@ -5,11 +5,11 @@
  */
 import { glowFavorite } from "@singularityfm/design-system/glow";
 import { warmWhenIdle } from "@singularityfm/design-system/idle";
+import { sendToast } from "@singularityfm/design-system/toastEvent";
 import { deviceStorage, isSaved, setSaved } from "../player/core/saved";
 import { installHeroMenu } from "./heroMenu";
 import { prepareEarly, shareItem, shareLink } from "./shareLink";
 import { stickyTop } from "./stickyTop";
-import { sendToast } from "./toastEvent";
 
 installHeroMenu();
 

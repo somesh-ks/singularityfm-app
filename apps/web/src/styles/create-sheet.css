@@ -69,20 +69,9 @@
 
 /* ------------------------------------------------------------------ the floating button as Play */
 
-/* Play says the hero chip's words, and "Resume · 12 min left" is wider than "New episode". */
-.play-fab .create-fab-label {
-  max-width: 10rem;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .play-fab[data-folded] .create-fab-label {
-    max-width: 10rem;
-  }
-}
-
 /* On an episode or an older briefing the floating button is Play (PlayFab.astro), with the shape,
-   place, motion and fold of the FAB (fab.css). Its glyph slot holds the play mark and the spinner
-   the hero chip shows while narration makes the first file. */
+   place, motion and fold of the FAB (fab.css). Its glyph slot holds the play mark; while narration
+   makes the first file the words say Processing with a shimmer (fab.css), and no spinner. */
 .play-fab-glyph {
   display: grid;
   place-items: center;
@@ -97,20 +86,8 @@
   translate: 0.0625rem 0;
 }
 
-.play-fab-glyph > .spinner {
-  display: none;
-}
-
 .play-fab[data-state="preparing"] {
   cursor: progress;
-}
-
-.play-fab[data-state="preparing"] .play-fab-glyph > .icon-glyph {
-  visibility: hidden;
-}
-
-.play-fab[data-state="preparing"] .play-fab-glyph > .spinner {
-  display: block;
 }
 
 /* Offline, with nothing loaded, the player disables it as it does the chip (readerSync.ts). */

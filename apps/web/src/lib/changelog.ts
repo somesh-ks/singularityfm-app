@@ -18,6 +18,12 @@ export interface Release {
 
 export const CHANGELOG: readonly Release[] = [
   {
+    version: "0.23.3",
+    date: "2026-11-10",
+    description:
+      "Play buttons and chips no longer change size or nudge their neighbours when an icon or a word swaps. While a podcast is being made, the button says Processing with a shimmer instead of a spinner.",
+  },
+  {
     version: "0.23.2",
     date: "2026-11-10",
     description:

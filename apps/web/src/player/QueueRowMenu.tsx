@@ -14,6 +14,7 @@ import {
   sheetSubtitleClass,
   sheetTitleClass,
 } from "@singularityfm/design-system/sheet";
+import { sendToast } from "@singularityfm/design-system/toastEvent";
 import {
   type CSSProperties,
   type KeyboardEvent,
@@ -23,7 +24,6 @@ import {
 } from "react";
 import { downloadFailure } from "../lib/downloadCopy";
 import { inPodcastOrder, type PodcastAction } from "../lib/podcastActions";
-import { sendToast } from "../scripts/toastEvent";
 import { getPlayQueue } from "./core/playerRuntime";
 import { queueItemUrl } from "./core/playQueue";
 import { loadQueueDigest } from "./core/queueMeta";

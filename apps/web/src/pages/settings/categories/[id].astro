@@ -2,14 +2,14 @@
 import { topicEmoji } from "@singularityfm/core";
 import { topicArt } from "@singularityfm/cover";
 import Button from "@singularityfm/design-system/Button";
-import Dialog from "@singularityfm/design-system/Dialog.astro";
-import DialogActions from "@singularityfm/design-system/DialogActions.astro";
-import DialogTitle from "@singularityfm/design-system/DialogTitle.astro";
+import Dialog from "@singularityfm/design-system/Dialog";
+import DialogActions from "@singularityfm/design-system/DialogActions";
+import DialogTitle from "@singularityfm/design-system/DialogTitle";
 import Flag from "@singularityfm/design-system/Flag";
 import Icon from "@singularityfm/design-system/Icon";
 import IconButton from "@singularityfm/design-system/IconButton";
-import Menu from "@singularityfm/design-system/Menu.astro";
-import MenuItem from "@singularityfm/design-system/MenuItem.astro";
+import Menu from "@singularityfm/design-system/Menu";
+import MenuItem from "@singularityfm/design-system/MenuItem";
 import AddFab from "../../../components/AddFab.astro";
 import EmojiPicker from "../../../components/EmojiPicker.astro";
 import EmptyArt from "../../../components/EmptyArt.astro";
@@ -254,7 +254,7 @@ const facts = topic && {
                       <Icon name="pencilSimple" />Edit
                     </MenuItem>
                     {topic.origin === "custom" && (
-                      <MenuItem tone="danger" class="topic-delete"
+                      <MenuItem tone="danger" className="topic-delete"
                         data-pressed="false"
                         aria-label={`Delete category ${name}`}
                         data-name={name}

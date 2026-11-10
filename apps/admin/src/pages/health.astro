@@ -1,7 +1,8 @@
 ---
 import ChapterAside from "@singularityfm/design-system/ChapterAside";
 import SectionTabs from "@singularityfm/design-system/SectionTabs";
-import Sheet from "@singularityfm/design-system/Sheet.astro";
+import SegmentedNav from "@singularityfm/design-system/SegmentedNav";
+import Sheet from "@singularityfm/design-system/Sheet";
 import "@singularityfm/design-system/styles/code.css";
 import { HEALTH_DEVICES, HEALTH_GROUPS, HEALTH_SPEED } from "../../../web/src/lib/healthRows";
 import AdminHead from "../components/AdminHead.astro";
@@ -110,22 +111,12 @@ const kinds = [
         <h2 class="section-head text-heading">Pipeline</h2>
         <div class="hl-stack" data-stage-groups>
           <div class="card-group hl-card hl-data">
-            <div class="segmented-nav hl-switch" role="tablist" aria-label="Kind of run" data-kinds>
-              {
-                kinds.map((kind, index) => (
-                  <button
-                    class="segmented-nav-tab"
-                    type="button"
-                    role="tab"
-                    aria-selected={index === 0 ? "true" : "false"}
-                    tabindex={index === 0 ? 0 : -1}
-                    data-value={kind.id}
-                  >
-                    {kind.label}
-                  </button>
-                ))
-              }
-            </div>
+            <SegmentedNav
+              className="hl-switch"
+              aria-label="Kind of run"
+              data-kinds
+              tabs={kinds.map((kind) => ({ value: kind.id, label: kind.label }))}
+            />
             {
               kinds.map((kind, index) => (
                 <div class="hl-kind" data-kind-card={kind.id} hidden={index !== 0}>
@@ -210,22 +201,12 @@ const kinds = [
       <section class="hl-section" id="c-site">
         <h2 class="section-head text-heading">Site</h2>
         <div class="card-group hl-card hl-data">
-          <div class="segmented-nav hl-switch" role="tablist" aria-label="Device" data-device>
-            {
-              HEALTH_DEVICES.map((device, index) => (
-                <button
-                  class="segmented-nav-tab"
-                  type="button"
-                  role="tab"
-                  aria-selected={index === 0 ? "true" : "false"}
-                  tabindex={index === 0 ? 0 : -1}
-                  data-value={device.id}
-                >
-                  {device.label}
-                </button>
-              ))
-            }
-          </div>
+          <SegmentedNav
+            className="hl-switch"
+            aria-label="Device"
+            data-device
+            tabs={HEALTH_DEVICES.map((device) => ({ value: device.id, label: device.label }))}
+          />
           <ul class="hl-meters" role="list">
             {
               HEALTH_SPEED.map((metric) => (

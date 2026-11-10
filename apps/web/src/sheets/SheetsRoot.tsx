@@ -11,6 +11,7 @@ import {
 import "../styles/player.css";
 import "@singularityfm/design-system/styles/drawer.css";
 import "../styles/sheets.css";
+import Toast from "@singularityfm/design-system/Toast";
 import { claimEnd, endedRecently, RUN_EVENT, readRunRecord } from "../lib/runRecord";
 import { startThemeSync } from "../player/core/themeRuntime";
 import { playUiCue } from "../player/sound/soundController";
@@ -18,7 +19,6 @@ import { cueForGenerate, cueForSheet } from "../player/sound/soundMap";
 import { takeEarlySheet } from "../scripts/islandWake";
 import { toastForEndedRun } from "./runEndToast";
 import { isSheetName, OPEN_SHEET_EVENT, type SheetName } from "./sheetEvents";
-import Toaster from "./Toaster";
 
 /**
  * The sheet's chunk, kept once it has loaded: a sheet opened by a menu pick must be on screen in
@@ -127,7 +127,7 @@ export default function SheetsRoot() {
           />
         ) : null}
       </Suspense>
-      <Toaster />
+      <Toast />
     </>
   );
 }

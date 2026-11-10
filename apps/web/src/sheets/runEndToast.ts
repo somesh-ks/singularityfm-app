@@ -1,6 +1,6 @@
+import { showToast } from "@singularityfm/design-system/toastStore";
 import type { RunRecord } from "../lib/runRecord";
 import { briefingFailureLine } from "../lib/runStages";
-import { showToast } from "./toastStore";
 
 /**
  * Says a run could not be made while the player's open page covers the podcast queue. Every other end

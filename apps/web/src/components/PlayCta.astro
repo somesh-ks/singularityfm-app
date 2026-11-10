@@ -1,13 +1,13 @@
 ---
 import Icon from "@singularityfm/design-system/Icon";
 import IconButton from "@singularityfm/design-system/IconButton";
-import Select from "@singularityfm/design-system/Select.astro";
+import PlayChip from "@singularityfm/design-system/PlayChip";
+import Select from "@singularityfm/design-system/Select";
 import type { AlbumOption } from "../lib/catchUps";
 import type { AudioMode } from "../lib/digests";
 import { AUDIO_UNAVAILABLE_COPY } from "../lib/digestView";
 import type { HeroShare } from "../lib/share";
 import { type ChipNoun, idleBriefingChip } from "../player/core/readerMath";
-import PlayChip from "./PlayChip.astro";
 
 interface Props {
   digestId: string;
@@ -34,7 +34,7 @@ const unavailable = mode === "expired" ? AUDIO_UNAVAILABLE_COPY.expired : null;
        longest name's whichever is shown, and Play beside it never moves. */}
   {
     album && album.length > 1 && (
-      <Select variant="tonal" label="Catch up" class="hero-album" data-album-pick data-current={digestId}>
+      <Select variant="tonal" label="Catch up" className="hero-album" data-album-pick data-current={digestId}>
         {album.map((option) => (
           <option value={option.id} selected={option.id === digestId}>
             {option.label}
@@ -48,10 +48,12 @@ const unavailable = mode === "expired" ? AUDIO_UNAVAILABLE_COPY.expired : null;
        pressing it makes the audio first (narration on Play). Only audio that has expired gets a
        line under it, which the floating Play button below 64rem (PlayFab.astro) points to as well.
        data-minutes is the length as a number, from which a page without audio counts the time left
-       where the device left it, as its card does. */}
+       where the device left it, as its card does. The reserve is the widest word the chip says ("Processing");
+       shortcut: "N min left" with three digits would be cut, upgrade if a briefing can pass 99 min. */}
   <PlayChip
     label={chip.label}
     state="idle"
+    reserve="Processing"
     aria-label={chip.name}
     aria-describedby={unavailable ? "play-hint" : undefined}
     data-play-digest={digestId}

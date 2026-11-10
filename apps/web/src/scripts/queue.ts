@@ -435,7 +435,7 @@ async function playInPlace(id: string, fallbackHref: string): Promise<void> {
 
 /**
  * Asks for a made podcast's first spoken segments as soon as its run ends, so the press on Start
- * listening finds them ready and nothing says "Preparing audio" first. Once per podcast and tab
+ * listening finds them ready and nothing says "Processing" first. Once per podcast and tab
  * (prewarmPage.ts claims it), and never when the page's own checks say a background request is
  * unwelcome: a refusal is tried again on the next redraw instead of being given up.
  */

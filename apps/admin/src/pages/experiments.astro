@@ -1,11 +1,11 @@
 ---
 import { resolve } from "node:path";
 import Button from "@singularityfm/design-system/Button";
-import Dialog from "@singularityfm/design-system/Dialog.astro";
-import DialogActions from "@singularityfm/design-system/DialogActions.astro";
-import DialogTitle from "@singularityfm/design-system/DialogTitle.astro";
-import Switch from "@singularityfm/design-system/Switch.astro";
-import Toaster from "../../../web/src/sheets/Toaster";
+import Dialog from "@singularityfm/design-system/Dialog";
+import DialogActions from "@singularityfm/design-system/DialogActions";
+import DialogTitle from "@singularityfm/design-system/DialogTitle";
+import Switch from "@singularityfm/design-system/Switch";
+import Toast from "@singularityfm/design-system/Toast";
 import AdminHead from "../components/AdminHead.astro";
 import Shell from "../layouts/Shell.astro";
 import { loadExperiments } from "../lib/experiments";
@@ -49,7 +49,7 @@ const WORDS = { on: "On", shadow: "Shadow", off: "Off" } as const;
                   <Button variant="text" data-promote disabled>Promote</Button>
                   <Switch
                     aria-labelledby={`experiment-${experiment.id}`}
-                    checked={experiment.state === "on"}
+                    defaultChecked={experiment.state === "on"}
                     disabled
                     data-switch
                   />
@@ -74,7 +74,7 @@ const WORDS = { on: "On", shadow: "Shadow", off: "Off" } as const;
       <Button variant="filled" data-confirm-go></Button>
     </DialogActions>
   </Dialog>
-  <Toaster client:load />
+  <Toast client:load />
 </Shell>
 
 <script>

@@ -1,6 +1,9 @@
 import { Field } from "@base-ui/react/field";
 import { buttonClass } from "@singularityfm/design-system/button";
+import Chip from "@singularityfm/design-system/Chip";
+import ChipGroup from "@singularityfm/design-system/ChipGroup";
 import { fieldClass } from "@singularityfm/design-system/field";
+import SegmentedChoice from "@singularityfm/design-system/SegmentedChoice";
 import { selectClass } from "@singularityfm/design-system/select";
 import { installSelectSheet } from "@singularityfm/design-system/selectSheet";
 import { type FormEvent, useEffect, useRef, useState } from "react";
@@ -298,21 +301,19 @@ export default function GenerateSheet({ open, handoff, onOpenChange }: GenerateS
             <h2 className="section-head text-heading" id="regen-topics-label">
               Categories
             </h2>
-            <fieldset className="filter-chips" disabled={busy} aria-labelledby="regen-topics-label">
+            <ChipGroup disabled={busy} aria-labelledby="regen-topics-label">
               {page.chips.map((chip) => (
-                <label className="filter-chip" key={chip.value}>
-                  <input
-                    type="checkbox"
-                    name="topic"
-                    value={chip.value}
-                    checked={isOn(chip)}
-                    onChange={() => toggle(chip)}
-                  />
-                  <Icon name="check" className="filter-chip-check" />
-                  <span>{chip.label}</span>
-                </label>
+                <Chip
+                  key={chip.value}
+                  name="topic"
+                  value={chip.value}
+                  checked={isOn(chip)}
+                  onChange={() => toggle(chip)}
+                >
+                  {chip.label}
+                </Chip>
               ))}
-            </fieldset>
+            </ChipGroup>
             {topicError ? (
               <p className="create-error" role="alert">
                 <Icon name="alert" />
@@ -326,25 +327,14 @@ export default function GenerateSheet({ open, handoff, onOpenChange }: GenerateS
             <h2 className="section-head text-heading" id="regen-length-label">
               Length
             </h2>
-            <div
-              className="segmented-choice create-choice"
-              role="radiogroup"
+            <SegmentedChoice
+              className="create-choice"
               aria-labelledby="regen-length-label"
-            >
-              {LENGTHS.map((choice) => (
-                <label className="segmented-choice-item" key={choice.value}>
-                  <input
-                    type="radio"
-                    name="length"
-                    value={choice.value}
-                    disabled={busy}
-                    checked={length === choice.value}
-                    onChange={() => setLengthPick(choice.value)}
-                  />
-                  <span>{choice.label}</span>
-                </label>
-              ))}
-            </div>
+              name="length"
+              options={LENGTHS.map((choice) => ({ ...choice, disabled: busy }))}
+              value={length}
+              onValueChange={setLengthPick}
+            />
           </section>
         ) : null}
         {shownStories ? (

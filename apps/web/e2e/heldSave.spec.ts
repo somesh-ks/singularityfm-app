@@ -33,7 +33,8 @@ async function mockConfig(page: Page, answers: Array<number | "abort">) {
 }
 
 const ops = (sent: Sent[]) => sent.flatMap((request) => [request.op].flat());
-const toastText = (page: Page) => page.locator("[data-bar] [data-bar-text]");
+/** The app's Toast: one at a time, so the one on the page. */
+const toast = (page: Page) => page.locator(".toast");
 /** A save that went through shows no toast; a screen reader hears it. */
 const spoken = (page: Page) => page.locator("[data-live]");
 const note = (page: Page) => page.locator("[data-saved-note]");
@@ -77,17 +78,18 @@ test.describe("a change held in the server's gap when its page is left", () => {
     await expect(note(page)).toBeVisible();
     await expect(note(page)).toHaveText(NOT_SAVED_NOTE);
     const failure = GENERIC;
-    await expect(toastText(page)).toHaveText(failure);
-    await expect(page.locator("[data-alert]")).toHaveText(failure);
+    // The toast says it as an alert, so it is heard at once.
+    await expect(toast(page)).toContainText(failure);
+    await expect(toast(page)).toHaveAttribute("role", "alert");
     expect(await pendingStored(page)).toBe(false);
     // Retry sends the held change, once, and the page says it is saved.
-    await page.locator("[data-bar] [data-act=retry]").click();
+    await toast(page).getByRole("button", { name: "Retry" }).click();
     await page.clock.runFor(GAP_MS);
     await expect.poll(() => sent.length).toBe(3);
     expect(ops(sent).at(-1)).toEqual({ op: "schedule.set", length_minutes: 3 });
     await expect(spoken(page)).toHaveText(SAVED);
     await expect(note(page)).toBeHidden();
-    await expect(toastText(page)).toBeHidden();
+    await expect(toast(page)).toBeHidden();
     await page.clock.runFor(GAP_MS);
     expect(sent).toHaveLength(3);
     // A reload agrees: both changes are saved.
@@ -110,9 +112,9 @@ test.describe("a change held in the server's gap when its page is left", () => {
     await expect.poll(() => sent.length).toBe(2);
     // Nothing is said to have failed, and nothing is left for Retry.
     await expect(note(page)).toBeHidden();
-    await expect(toastText(page)).toBeHidden();
-    await expect(page.locator("[data-alert]")).toHaveText("");
-    expect(await pendingStored(page)).toBe(false);
+    await expect(toast(page)).toBeHidden();
+    // The cut request settles after pageLeaving's grace, so the stored edit leaves pending a moment later.
+    await expect.poll(() => pendingStored(page)).toBe(false);
     // A reload still shows the change, and sends it: this time the site answers.
     await page.reload();
     await expect(page.locator("[data-manage]")).toHaveAttribute("data-voices", "");
@@ -146,7 +148,7 @@ test.describe("a change held in the server's gap when its page is left", () => {
     await page.clock.runFor(GAP_MS);
     await expect.poll(() => sent.length).toBe(2);
     await expect(note(page)).toBeHidden();
-    await expect(toastText(page)).toBeHidden();
+    await expect(toast(page)).toBeHidden();
     await expect(page.locator("#daily-length")).toHaveValue("3");
     expect(await pendingStored(page)).toBe(false);
   });
@@ -195,8 +197,8 @@ test.describe("a change held in the server's gap when its page is left", () => {
     await page.clock.runFor(GAP_MS);
     await expect.poll(() => sent.length).toBe(2);
     await expect(note(page)).toBeVisible();
-    await expect(toastText(page)).toHaveText(GENERIC);
-    await page.locator("[data-bar] [data-act=retry]").click();
+    await expect(toast(page)).toContainText(GENERIC);
+    await toast(page).getByRole("button", { name: "Retry" }).click();
     await page.clock.runFor(GAP_MS);
     await expect.poll(() => sent.length).toBe(3);
     expect(ops(sent).at(-1)).toEqual({ op: "source.set", id: "type-and-grid", enabled: false });

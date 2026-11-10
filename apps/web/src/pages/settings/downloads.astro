@@ -1,12 +1,13 @@
 ---
 import Button from "@singularityfm/design-system/Button";
-import Dialog from "@singularityfm/design-system/Dialog.astro";
-import DialogActions from "@singularityfm/design-system/DialogActions.astro";
-import DialogTitle from "@singularityfm/design-system/DialogTitle.astro";
+import Dialog from "@singularityfm/design-system/Dialog";
+import DialogActions from "@singularityfm/design-system/DialogActions";
+import DialogTitle from "@singularityfm/design-system/DialogTitle";
 import Icon from "@singularityfm/design-system/Icon";
 import IconButton from "@singularityfm/design-system/IconButton";
-import Menu from "@singularityfm/design-system/Menu.astro";
-import MenuItem from "@singularityfm/design-system/MenuItem.astro";
+import Menu from "@singularityfm/design-system/Menu";
+import MenuItem from "@singularityfm/design-system/MenuItem";
+import SearchField from "@singularityfm/design-system/SearchField";
 import BriefingCard from "../../components/BriefingCard.astro";
 import EmptyArt from "../../components/EmptyArt.astro";
 import EpisodeActions from "../../components/EpisodeActions.astro";
@@ -73,18 +74,14 @@ const items = libraryItems(entries, episodes);
              Library's search does, against the row's own text. */}
         <form class="downloads-search" role="search" novalidate hidden data-search-form>
           <div class="search-wrap">
-            <label class="search-field">
-              <Icon name="search" />
-              <span class="sr-only">Search downloads</span>
-              <input
-                type="search"
-                name="q"
-                placeholder="Search downloads"
-                autocomplete="off"
-                enterkeyhint="search"
-                data-search
-              />
-            </label>
+            <SearchField
+              label="Search downloads"
+              name="q"
+              placeholder="Search downloads"
+              autoComplete="off"
+              enterKeyHint="search"
+              data-search
+            />
             <button class="search-clear press press-subtle" type="button" aria-label="Clear text" hidden data-clear>
               <Icon name="close" />
             </button>

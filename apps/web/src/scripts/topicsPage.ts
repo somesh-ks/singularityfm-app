@@ -79,7 +79,7 @@ function mount(root: HTMLElement): void {
     // outside the first load's budget.
     for (const tab of tabs.children)
       tab.ariaSelected = String(tab.getAttribute("data-value") === view);
-    void import("./segmentedNav").then((module) => {
+    void import("@singularityfm/design-system/segmentedNav").then((module) => {
       module.selectTab(tabs, view);
       module.mountSegmentedNav(tabs, show);
     });

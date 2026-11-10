@@ -1,15 +1,16 @@
 ---
-import Dialog from "@singularityfm/design-system/Dialog.astro";
-import DialogActions from "@singularityfm/design-system/DialogActions.astro";
-import DialogTitle from "@singularityfm/design-system/DialogTitle.astro";
-import Field from "@singularityfm/design-system/Field.astro";
-import Select from "@singularityfm/design-system/Select.astro";
+import Dialog from "@singularityfm/design-system/Dialog";
+import DialogActions from "@singularityfm/design-system/DialogActions";
+import DialogTitle from "@singularityfm/design-system/DialogTitle";
+import Field from "@singularityfm/design-system/Field";
+import SegmentedNav from "@singularityfm/design-system/SegmentedNav";
+import Select from "@singularityfm/design-system/Select";
 import { FORMAT_LABEL } from "../lib/sourceFilter";
 // The unsaved-changes dialog (sheetGuard.ts) is a Dialog: its styles come with BaseLayout.
 import "../styles/episode-actions.css";
 import Button from "@singularityfm/design-system/Button";
 import Icon from "@singularityfm/design-system/Icon";
-import Sheet from "@singularityfm/design-system/Sheet.astro";
+import Sheet from "@singularityfm/design-system/Sheet";
 import MultiSelect from "./MultiSelect.astro";
 
 interface Props {
@@ -27,38 +28,22 @@ const { topics } = Astro.props;
      sheet on a phone and a side panel from 40rem. */}
 <template id="topics-panel-template">
   <Sheet
-    class="topics-panel"
+    className="topics-panel"
     data-mode="topic"
     title="Add a category"
     titleId="topics-panel-title"
     close="data-panel-close"
     titleData={{ "data-panel-title": "" }}
   >
-      <div class="segmented-nav topics-panel-kind" role="tablist" aria-label="What to add" data-panel-kind>
-        <button
-          class="segmented-nav-tab"
-          type="button"
-          role="tab"
-          id="topics-panel-tab-topic"
-          aria-selected="true"
-          aria-controls="topics-panel-pane-topic"
-          data-value="topic"
-        >
-          Category
-        </button>
-        <button
-          class="segmented-nav-tab"
-          type="button"
-          role="tab"
-          id="topics-panel-tab-source"
-          aria-selected="false"
-          aria-controls="topics-panel-pane-source"
-          tabindex="-1"
-          data-value="source"
-        >
-          Source
-        </button>
-      </div>
+      <SegmentedNav
+        className="topics-panel-kind"
+        aria-label="What to add"
+        data-panel-kind
+        tabs={[
+          { value: "topic", label: "Category", id: "topics-panel-tab-topic", controls: "topics-panel-pane-topic" },
+          { value: "source", label: "Source", id: "topics-panel-tab-source", controls: "topics-panel-pane-source" },
+        ]}
+      />
 
       {/* A topic: its name, what counts and where it plays (D71); its page then suggests sources.
            Adding starts it empty; editing starts it filled, and a built-in topic keeps what counts,
@@ -76,9 +61,9 @@ const { topics } = Astro.props;
               name="name"
               type="text"
               required
-              maxlength="60"
-              autocomplete="off"
-              enterkeyhint="next"
+              maxLength={60}
+              autoComplete="off"
+              enterKeyHint="next"
               aria-describedby="panel-topic-name-error"
             />
             <p class="manage-error" id="panel-topic-name-error" role="alert" data-error="name" hidden>
@@ -92,8 +77,8 @@ const { topics } = Astro.props;
               id="panel-topic-description"
               name="description"
               required
-              maxlength="400"
-              rows="3"
+              maxLength={400}
+              rows={3}
               aria-describedby="panel-topic-description-error"
             />
             <p class="manage-error" id="panel-topic-description-error" role="alert" data-error="description" hidden>
@@ -126,11 +111,11 @@ const { topics } = Astro.props;
             id="panel-source-url"
             name="url"
             type="url"
-            inputmode="url"
-            maxlength="2048"
-            autocomplete="off"
-            autocapitalize="none"
-            spellcheck="false"
+            inputMode="url"
+            maxLength={2048}
+            autoComplete="off"
+            autoCapitalize="none"
+            spellCheck="false"
             placeholder="example.com"
             aria-describedby="panel-source-url-error"
             data-source-url
@@ -168,9 +153,9 @@ const { topics } = Astro.props;
             id="panel-edit-name"
             name="name"
             type="text"
-            maxlength="80"
-            autocomplete="off"
-            enterkeyhint="done"
+            maxLength={80}
+            autoComplete="off"
+            enterKeyHint="done"
             aria-describedby="panel-edit-name-error"
             data-edit-name
           />

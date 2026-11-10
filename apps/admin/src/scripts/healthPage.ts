@@ -9,13 +9,13 @@
  */
 
 import { buttonClass } from "@singularityfm/design-system/button";
+import { mountSegmentedNav, selectTab } from "@singularityfm/design-system/segmentedNav";
 import type {
   HealthBody,
   HealthRow,
   HealthSeries,
   HealthTone,
 } from "../../../web/src/lib/healthRows";
-import { mountSegmentedNav, selectTab } from "../../../web/src/scripts/segmentedNav";
 import { askKept } from "../lib/kept";
 import { PILLARS } from "../lib/pillars";
 import { currentProblems, PROBLEMS_CHANGED } from "../lib/problem";

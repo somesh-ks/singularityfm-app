@@ -1,7 +1,7 @@
 import { FAB_SELECTOR } from "@singularityfm/design-system/fab";
 
-/** What can float over the bottom of the page: the bottom bar, the player, the queue dock, the buttons. */
-export const FLOATING = `.app-nav, .player-dock, .queue-dock, ${FAB_SELECTOR}, .manage-bar`;
+/** What can float over the bottom of the page: the bottom bar, the player, the queue dock, the buttons, the toast. */
+export const FLOATING = `.app-nav, .player-dock, .queue-dock, ${FAB_SELECTOR}, .toast`;
 
 /**
  * How far down the screen a list opening under `field` may reach: the top of the highest thing that

@@ -18,11 +18,23 @@ test.describe("the first press of Play on a page with no audio yet", () => {
   }) => {
     await player.open(`/d/${SITE.earlier}`);
     await serveNarration(page, 1_500);
+    // The header's Play, heart and Share hold still while it prepares and plays: its words change,
+    // its box and what stands beside it do not (DS-9; it was 112, 173 then 143 px wide).
+    const headerBoxes = () =>
+      page.locator(".hero-actions > *").evaluateAll((nodes) =>
+        nodes.map((node) => {
+          const box = node.getBoundingClientRect();
+          return [box.left, box.width, box.height];
+        }),
+      );
+    const rest = await headerBoxes();
     await finger.press(player.cta);
     await expect(player.cta).toHaveAttribute("data-state", "preparing");
+    expect(await headerBoxes()).toEqual(rest);
     await expect(page.locator("html")).toHaveAttribute("data-player-state", "playing", {
       timeout: 8_000,
     });
+    expect(await headerBoxes()).toEqual(rest);
     await expect.poll(async () => (await audio.read())?.paused, { timeout: 4_000 }).toBe(false);
     await expect
       .poll(async () => (await audio.read())?.currentTime ?? 0, { timeout: 6_000 })

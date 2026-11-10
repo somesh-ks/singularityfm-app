@@ -2,16 +2,18 @@
  * Narration on Play, assembled for the browser. Loaded on demand, the first time a listener presses
  * Play on a briefing that has no finished audio, so none of it weighs on an ordinary visit.
  */
+
+import { showToast } from "@singularityfm/design-system/toastStore";
 import { parseStreamDoc, type StreamDoc } from "../lib/liveStream";
 import { getPlayerAudio, getPlayerStore, narrationCancelSlot } from "../player/core/playerRuntime";
 import { tabShared } from "../player/core/tabSlot";
-import { showToast } from "../sheets/toastStore";
+import { syncShimmerClock } from "../scripts/shimmerClock";
 import type { PlayerDigestData } from "../types/contracts";
 import { liveDigestFrom } from "./liveEpisode";
 import { createNarrationController, type NarrationController } from "./narrationController";
 import { prewarmWelcome, startPrewarm } from "./prewarmPage";
 
-const PREPARING_LABEL = "Preparing audio";
+const PREPARING_LABEL = "Processing";
 
 /** Shows the briefing's Play control as busy while its first file is made, and settles it after. */
 function setPreparing(digestId: string | null): void {
@@ -22,6 +24,8 @@ function setPreparing(digestId: string | null): void {
       chip.dataset.state = "preparing";
       chip.setAttribute("aria-busy", "true");
       if (label) label.textContent = PREPARING_LABEL;
+      // The waiting words shimmer from their first frame, on the document's one clock (shimmerClock.ts).
+      syncShimmerClock();
     } else if (chip.dataset.restLabel !== undefined) {
       chip.removeAttribute("aria-busy");
       // Once the briefing plays, the player has written the chip itself; only an attempt that

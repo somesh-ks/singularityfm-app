@@ -99,7 +99,8 @@
   position: absolute;
   inset: 7cqi;
   display: none;
-  border: 1.5px solid color-mix(in oklch, var(--frame) 55%, transparent);
+  border: calc(var(--stroke-hairline) * 1.5) solid
+    color-mix(in oklch, var(--frame) 55%, transparent);
   border-radius: max(0%, calc(min(var(--cover-radius, var(--cover-radius-hero)), 25cqi) - 7cqi));
   pointer-events: none;
 }

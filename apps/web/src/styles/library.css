@@ -362,7 +362,7 @@
 
 .library-grid > .card {
   content-visibility: auto;
-  contain-intrinsic-size: auto 240px;
+  contain-intrinsic-size: auto 15rem;
 }
 
 /* Every card drawn for one frame, so each remembers its real height (libraryView.ts, a move back). */
@@ -964,8 +964,8 @@ html[data-library-page="empty"] {
 }
 
 .status-mark .icon-glyph {
-  width: round(0.7em, 2px);
-  height: round(0.7em, 2px);
+  width: round(0.7em, 0.125rem);
+  height: round(0.7em, 0.125rem);
 }
 
 .card-sub > .status-mark {

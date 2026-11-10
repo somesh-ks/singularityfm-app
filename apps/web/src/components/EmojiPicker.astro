@@ -1,7 +1,8 @@
 ---
 import Icon from "@singularityfm/design-system/Icon";
 import { menuListClass } from "@singularityfm/design-system/menu";
-import SheetHeader from "@singularityfm/design-system/SheetHeader.astro";
+import SearchField from "@singularityfm/design-system/SearchField";
+import SheetHeader from "@singularityfm/design-system/SheetHeader";
 
 interface Props {
   id: string;
@@ -17,20 +18,16 @@ const { id } = Astro.props;
 <div class:list={[menuListClass(), "emoji-picker"]} id={id} popover role="dialog" aria-labelledby={`${id}-title`} data-picker>
   <SheetHeader title="Choose an emoji" titleId={`${id}-title`} close="data-menu-close" />
   <div class="search-wrap emoji-search">
-    <label class="search-field">
-      <Icon name="search" />
-      <span class="sr-only">Search emoji</span>
-      <input
-        type="search"
-        name="q"
-        placeholder="Search emoji"
-        autocomplete="off"
-        autocapitalize="off"
-        spellcheck="false"
-        enterkeyhint="search"
-        data-emoji-q
-      />
-    </label>
+    <SearchField
+      label="Search emoji"
+      name="q"
+      placeholder="Search emoji"
+      autoComplete="off"
+      autoCapitalize="off"
+      spellCheck="false"
+      enterKeyHint="search"
+      data-emoji-q
+    />
     <button class="search-clear press press-subtle" type="button" aria-label="Clear text" data-emoji-clear hidden>
       <Icon name="close" />
     </button>

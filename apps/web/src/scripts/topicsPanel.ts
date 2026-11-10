@@ -10,6 +10,7 @@
  */
 import type { SourceFormat } from "@singularityfm/core";
 import { sheetGestures } from "@singularityfm/design-system/pullDismiss";
+import { mountSegmentedNav, selectTab } from "@singularityfm/design-system/segmentedNav";
 import type { HeldSource } from "../lib/sourceCatalogMatch";
 import {
   parseSuggestedAdd,
@@ -20,7 +21,6 @@ import {
   webAddress,
 } from "../lib/topicText";
 import { fitAboveKeyboard } from "./keyboardFit";
-import { mountSegmentedNav, selectTab } from "./segmentedNav";
 import { fieldsDirty, guardSheet } from "./sheetGuard";
 import { element, iconNode, type SourcePreview, scoreNode } from "./topicsView";
 

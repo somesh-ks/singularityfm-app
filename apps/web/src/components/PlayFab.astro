@@ -20,8 +20,8 @@ interface Props extends PageAudio {
 
 const { digestId, noun, length, expired = false } = Astro.props;
 const chip = idleBriefingChip(length, noun);
-// The FAB's own classes: the Fab draws one glyph and a word, and this face holds the spinner too, so
-// it draws its own button with them (fab.css), as an island takes iconButtonClass().
+// The FAB's own classes: the Fab draws one glyph and a word, and this face is written by the player's
+// script, so it draws its own button with them (fab.css), as an island takes iconButtonClass().
 const [fabClass, fabLabelClass] = FAB_CLASSES;
 ---
 
@@ -45,7 +45,11 @@ const [fabClass, fabLabelClass] = FAB_CLASSES;
 >
   <span class="play-fab-glyph" aria-hidden="true">
     <Icon name="play" size="lg" />
-    <span class="spinner"></span>
   </span>
-  <span class={fabLabelClass} aria-hidden="true" data-chip-label="fab">{fabLabel(chip)}</span>
+  {/* The words that change sit in one child; the label reserves the widest ones, so the button keeps
+       its width as it prepares, plays and fails (DS-9). shortcut: the reserve assumes up to two digits of minutes
+       (a briefing is minutes long); a three-digit time left would end in an ellipsis. Upgrade if an episode can pass 99 min. */}
+  <span class={fabLabelClass} aria-hidden="true" data-reserve="Resume · 88 min left"
+    ><span data-chip-label="fab">{fabLabel(chip)}</span></span
+  >
 </button>

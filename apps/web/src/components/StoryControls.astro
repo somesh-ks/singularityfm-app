@@ -1,8 +1,8 @@
 ---
 import Icon from "@singularityfm/design-system/Icon";
 import IconButton from "@singularityfm/design-system/IconButton";
-import Menu from "@singularityfm/design-system/Menu.astro";
-import MenuItem from "@singularityfm/design-system/MenuItem.astro";
+import Menu from "@singularityfm/design-system/Menu";
+import MenuItem from "@singularityfm/design-system/MenuItem";
 import { sourceIdOf } from "../lib/sourceIds";
 import { HEADLINE_MAX } from "../lib/storyVotes";
 import "../styles/story-controls.css";
@@ -71,7 +71,7 @@ const menuId = `story-menu-${id}`;
         >
           <Icon name="moreVert" />
         </IconButton>
-        <Menu id={menuId} title="Story options" class="story-menu-list">
+        <Menu id={menuId} title="Story options" className="story-menu-list">
           <MenuItem data-block>
             <Icon name="blocked" />Stop hearing from {outlet}
           </MenuItem>

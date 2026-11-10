@@ -1,8 +1,11 @@
 ---
 import Button from "@singularityfm/design-system/Button";
-import Field from "@singularityfm/design-system/Field.astro";
+import Chip from "@singularityfm/design-system/Chip";
+import ChipGroup from "@singularityfm/design-system/ChipGroup";
+import Field from "@singularityfm/design-system/Field";
 import Icon from "@singularityfm/design-system/Icon";
-import Select from "@singularityfm/design-system/Select.astro";
+import SegmentedChoice from "@singularityfm/design-system/SegmentedChoice";
+import Select from "@singularityfm/design-system/Select";
 import {
   DEFAULTS,
   FORMATS,
@@ -94,13 +97,13 @@ const COPY = {
         <label for="create-title">Title <span class="create-optional">(optional)</span></label>
       </h2>
       <Field
-        class="create-title"
+        className="create-title"
         id="create-title"
         name="title"
         type="text"
-        maxlength={MAX_TITLE_CHARS}
-        autocomplete="off"
-        enterkeyhint="done"
+        maxLength={MAX_TITLE_CHARS}
+        autoComplete="off"
+        enterKeyHint="done"
       />
     </section>
 
@@ -109,23 +112,15 @@ const COPY = {
          those defaults are. */}
     <section class="create-group create-group-primary" aria-labelledby="create-topics-label">
       <h2 class="section-head text-heading" id="create-topics-label">Categories</h2>
-      <fieldset class="filter-chips" aria-labelledby="create-topics-label" data-built-topics={allTopics.map((topic) => topic.id).join(" ")}>
+      <ChipGroup aria-labelledby="create-topics-label" data-built-topics={allTopics.map((topic) => topic.id).join(" ")}>
         {
           topics.map((topic) => (
-            <label class="filter-chip">
-              <input
-                type="checkbox"
-                name="topic"
-                value={topic.value}
-                data-ids={topic.ids.join(" ")}
-                checked={topic.ticked}
-              />
-              <Icon name="check" className="filter-chip-check" />
-              <span>{topic.label}</span>
-            </label>
+            <Chip name="topic" value={topic.value} data-ids={topic.ids.join(" ")} defaultChecked={topic.ticked}>
+              {topic.label}
+            </Chip>
           ))
         }
-      </fieldset>
+      </ChipGroup>
       <p class="create-error" role="alert" data-error="topics" hidden>
         <Icon name="alert" /><span></span>
       </p>
@@ -133,16 +128,13 @@ const COPY = {
 
     <section class="create-group" aria-labelledby="create-length-label">
       <h2 class="section-head text-heading" id="create-length-label">Max length</h2>
-      <fieldset class="segmented-choice create-choice" role="radiogroup" aria-labelledby="create-length-label">
-        {
-          LENGTHS.map((length) => (
-            <label class="segmented-choice-item">
-              <input type="radio" name="length" value={length.value} checked={length.value === startLength} />
-              <span>{length.label}</span>
-            </label>
-          ))
-        }
-      </fieldset>
+      <SegmentedChoice
+        className="create-choice"
+        aria-labelledby="create-length-label"
+        name="length"
+        options={LENGTHS.map((length) => ({ value: String(length.value), label: length.label }))}
+        defaultValue={String(startLength)}
+      />
     </section>
 
     {/* Beside Length (D377): a count above Auto shortens each story to fit. The script keeps the
@@ -151,7 +143,7 @@ const COPY = {
       <h2 class="section-head text-heading" id="create-stories-label">
         <label for="create-stories">Stories</label>
       </h2>
-      <Select id="create-stories" name="stories" data-saved={startStories} data-wheel autocomplete="off">
+      <Select id="create-stories" name="stories" data-saved={startStories} data-wheel autoComplete="off">
         {
           storyChoices.map((entry) => (
             <option value={entry.value} data-wheel-text={entry.wheel} hidden={entry.hidden} disabled={entry.hidden} selected={entry.value === startStories}>
@@ -164,16 +156,13 @@ const COPY = {
 
     <section class="create-group" aria-labelledby="create-window-label">
       <h2 class="section-head text-heading" id="create-window-label">Look back</h2>
-      <fieldset class="segmented-choice create-choice" role="radiogroup" aria-labelledby="create-window-label">
-        {
-          WINDOWS.map((window) => (
-            <label class="segmented-choice-item">
-              <input type="radio" name="window" value={window.value} data-label={window.label} checked={window.value === DEFAULTS.window} />
-              <span>{window.label}</span>
-            </label>
-          ))
-        }
-      </fieldset>
+      <SegmentedChoice
+        className="create-choice"
+        aria-labelledby="create-window-label"
+        name="window"
+        options={WINDOWS.map((window) => ({ value: String(window.value), label: window.label, "data-label": window.label }))}
+        defaultValue={String(DEFAULTS.window)}
+      />
     </section>
 
     {/* Everything with a sensible default, in place: one row that names the current choices and
@@ -189,16 +178,13 @@ const COPY = {
       <div class="create-more-body">
         <section class="create-group" aria-labelledby="create-format-label">
           <h2 class="section-head text-heading" id="create-format-label">Format</h2>
-          <fieldset class="segmented-choice create-choice" role="radiogroup" aria-labelledby="create-format-label">
-            {
-              FORMATS.map((format) => (
-                <label class="segmented-choice-item">
-                  <input type="radio" name="format" value={format.value} data-label={format.label} checked={format.value === startFormat} />
-                  <span>{format.label}</span>
-                </label>
-              ))
-            }
-          </fieldset>
+          <SegmentedChoice
+            className="create-choice"
+            aria-labelledby="create-format-label"
+            name="format"
+            options={FORMATS.map((format) => ({ value: format.value, label: format.label, "data-label": format.label }))}
+            defaultValue={startFormat}
+          />
         </section>
 
         {/* A readout has one voice; a discussion has two hosts, each with a voice. The options come from
@@ -213,7 +199,7 @@ const COPY = {
                   <label class="create-voice-name" for={`create-${voice.name}`} data-voice-caption data-host={voice.index} data-unnamed={voice.caption} data-named="{name}'s voice" hidden={startFormat !== "discussion"}>{voice.caption}</label>
                   <div class="create-voice-field">
                     <Select
-                      class="create-voice-select"
+                      className="create-voice-select"
                       id={`create-${voice.name}`}
                       name={voice.name}
                       data-saved={voice.saved ?? ""}
@@ -222,7 +208,7 @@ const COPY = {
                       data-two-named="{name}'s voice"
                       data-picker="voice"
                       aria-label={startFormat === "discussion" ? voice.hostLabel : voice.label}
-                      autocomplete="off"
+                      autoComplete="off"
                     >
                       <option value="">Default</option>
                       {voice.saved && <option value={voice.saved} selected>Saved voice</option>}
@@ -236,16 +222,13 @@ const COPY = {
 
         <section class="create-group" aria-labelledby="create-tone-label">
           <h2 class="section-head text-heading" id="create-tone-label">Tone</h2>
-          <fieldset class="segmented-choice create-choice" role="radiogroup" aria-labelledby="create-tone-label">
-            {
-              TONES.map((tone) => (
-                <label class="segmented-choice-item">
-                  <input type="radio" name="tone" value={tone.value} data-label={tone.label} checked={tone.value === DEFAULTS.tone} />
-                  <span>{tone.label}</span>
-                </label>
-              ))
-            }
-          </fieldset>
+          <SegmentedChoice
+            className="create-choice"
+            aria-labelledby="create-tone-label"
+            name="tone"
+            options={TONES.map((tone) => ({ value: tone.value, label: tone.label, "data-label": tone.label }))}
+            defaultValue={DEFAULTS.tone}
+          />
         </section>
 
       </div>

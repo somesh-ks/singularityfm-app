@@ -1,6 +1,6 @@
 ---
-import Select from "@singularityfm/design-system/Select.astro";
-import Slider from "@singularityfm/design-system/Slider.astro";
+import Select from "@singularityfm/design-system/Select";
+import Slider from "@singularityfm/design-system/Slider";
 import tokens from "@singularityfm/design-system/tokens/tokens.json";
 import SettingsHead from "../../components/SettingsHead.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
@@ -45,7 +45,7 @@ const MOODS = [
         <div class="rows card-group">
           <div class="settings-row">
             <label class="settings-label" for="settings-theme">Theme</label>
-            <Select class="value-select theme-select" id="settings-theme" name="theme" autocomplete="off" inert>
+            <Select className="value-select theme-select" id="settings-theme" name="theme" autoComplete="off" inert>
               {THEME_PREFERENCES.map((theme) => <option value={theme}>{THEME_LABELS[theme]}</option>)}
             </Select>
           </div>
@@ -53,7 +53,7 @@ const MOODS = [
           {MOODS.length > 1 && (
             <div class="settings-row">
               <label class="settings-label" for="settings-mood">Mood</label>
-              <Select class="value-select mood-select" id="settings-mood" name="mood" autocomplete="off" inert>
+              <Select className="value-select mood-select" id="settings-mood" name="mood" autoComplete="off" inert>
                 {MOODS.map((mood) => <option value={mood.value}>{mood.label}</option>)}
               </Select>
             </div>
@@ -63,7 +63,7 @@ const MOODS = [
           {MOODS.length > 1 && (
             <div class="settings-hue" data-hue-row>
               <label class="settings-label" for="settings-hue">Color</label>
-              <Slider hue id="settings-hue" name="hue" min="0" max="355" step="5" value="0" />
+              <Slider hue id="settings-hue" name="hue" min="0" max="355" step="5" defaultValue="0" />
             </div>
           )}
         </div>

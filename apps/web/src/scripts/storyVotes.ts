@@ -17,6 +17,8 @@
  * the server takes it, so a page left or closed before then sends it on the next visit.
  */
 import type { ConfigOp } from "@singularityfm/core";
+import { endedByLeaving } from "@singularityfm/design-system/pageLeaving";
+import { sendToast } from "@singularityfm/design-system/toastEvent";
 import { track } from "../lib/analytics";
 import { blockedDomainOf } from "../lib/blockedOutlets";
 import { withErrorRef } from "../lib/errorRef";
@@ -44,8 +46,6 @@ import {
   type VoteOp,
   type VoteState,
 } from "../lib/storyVotes";
-import { endedByLeaving } from "./pageLeaving";
-import { sendToast } from "./toastEvent";
 
 /** How long a block waits, with Undo in the toast, before it is sent (autosave.ts' UNDO_MS). */
 const UNDO_MS = 5000;
@@ -128,7 +128,7 @@ interface Answer {
   cause: string;
   /** The answer's body, for a server failure's reference (lib/errorRef.ts). */
   body?: unknown;
-  /** The page was leaving when the request ended: it may have gone through (pageLeaving.ts). */
+  /** The page was leaving when the request ended: it may have gone through (the library's pageLeaving). */
   unknown?: boolean;
 }
 

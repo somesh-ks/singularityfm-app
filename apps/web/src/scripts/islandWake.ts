@@ -1,7 +1,7 @@
 import { whenIdle } from "@singularityfm/design-system/idle";
+import { TOAST_EVENT } from "@singularityfm/design-system/toastEvent";
 import { GENERATION_STARTED_EVENT, isRunGoing, readRunRecord } from "../lib/runRecord";
 import { isSheetName, type SheetName } from "../sheets/sheetEvents";
-import { TOAST_EVENT } from "./toastEvent";
 
 /**
  * Wakes the player and sheets islands (`client:wake`, lib/wakeDirective.ts). They are React, about
@@ -66,7 +66,7 @@ export function installIslandWake(): void {
     },
     true,
   );
-  // A toast sent before the sheets loaded waits for their store (toastEvent.ts), which this brings.
+  // A toast sent before the sheets loaded waits for their store (the library's toastEvent), which this brings.
   document.addEventListener(TOAST_EVENT, wakeIslands);
   // A run started here ends with a toast the sheets island raises, so it is awake before the run ends.
   document.addEventListener(GENERATION_STARTED_EVENT, wakeIslands);

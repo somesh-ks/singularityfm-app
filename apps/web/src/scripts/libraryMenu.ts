@@ -9,6 +9,7 @@
  */
 
 import { glowFavorite } from "@singularityfm/design-system/glow";
+import { sendToast } from "@singularityfm/design-system/toastEvent";
 import { track } from "../lib/analytics";
 import { downloadFailure } from "../lib/downloadCopy";
 import { NotReadyError } from "../lib/downloads";
@@ -17,7 +18,6 @@ import { installCardHold } from "./cardHold";
 import { installEpisodeActions } from "./episodeActionsEntry";
 import { installHeroMenu } from "./heroMenu";
 import { shareItem } from "./shareLink";
-import { sendToast } from "./toastEvent";
 
 const ROOT = "[data-library-menu]";
 /** A Library row's menu, or the More menu of a page: the roots Download and Add to queue act from. */

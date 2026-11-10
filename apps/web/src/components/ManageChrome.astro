@@ -1,21 +1,6 @@
----
-import Icon from "@singularityfm/design-system/Icon";
----
-
-{/* What the settings pages share besides their rows: the live regions the script writes to (one
-     polite, one for errors) and the toast that comes up when saving needs the owner
-     (scripts/autosave.ts; it looks and sits like every toast, and leaves speaking to the regions).
-     All of it is inert until the page's script mounts. */}
-<p class="sr-only" role="status" data-live></p>
-<p class="sr-only" role="alert" data-alert></p>
-
-<div class="toast manage-bar" popover="manual" data-bar data-state="saved">
-  <Icon name="check" className="toast-icon manage-bar-done" />
-  <Icon name="alert" className="toast-icon manage-bar-error" />
-  <span class="toast-text" data-bar-text></span>
-  <button class="toast-action" type="button" data-act="undo">Undo</button>
-  <button class="toast-action" type="button" data-act="retry">Retry</button>
-  <button class="toast-dismiss press" type="button" data-act="dismiss" aria-label="Dismiss">
-    <Icon name="close" />
-  </button>
-</div>
+{/* What the settings pages share besides their rows: the live region the script says Saved in
+     (scripts/autosave.ts). What needs the owner, a failure with Retry or a removal with Undo, comes up
+     in the app's Toast, which speaks for itself. data-autosave marks a page that saves itself: the
+     root keeps room for a toast under its last control (rootState.ts), and a change lost on another
+     page is left to it (managePageSave.ts). Inert until the page's script mounts. */}
+<p class="sr-only" role="status" data-live data-autosave></p>

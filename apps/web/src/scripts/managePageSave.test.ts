@@ -1,3 +1,4 @@
+import { endedByLeaving } from "@singularityfm/design-system/pageLeaving";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { resetConnectivity } from "../lib/connectivity";
 import { outboxOps, readOutbox } from "../lib/outbox";
@@ -26,10 +27,11 @@ import {
   type SaveContext,
   TIME_REFUSED,
 } from "./managePageSave";
-import { endedByLeaving } from "./pageLeaving";
 
 // The page is not unloading in a test; one test says it is.
-vi.mock("./pageLeaving", () => ({ endedByLeaving: vi.fn(async () => false) }));
+vi.mock("@singularityfm/design-system/pageLeaving", () => ({
+  endedByLeaving: vi.fn(async () => false),
+}));
 
 /** A control as settle reads one: not a row, not a remove button. */
 const control = (): HTMLElement =>
@@ -670,7 +672,7 @@ describe("remember", () => {
 });
 
 describe("a held change lost while no settings page is open", () => {
-  /** What the app's toast was asked to show (TOAST_EVENT in sheets/toastStore.ts). */
+  /** What the app's toast was asked to show (TOAST_EVENT, the library's toastStore). */
   let toasts: unknown[] = [];
 
   afterEach(() => {
@@ -694,7 +696,7 @@ describe("a held change lost while no settings page is open", () => {
     const doc = Object.assign(new EventTarget(), {
       querySelector: (selector: string) =>
         (selector === "#page-title" && open === "daily") ||
-        (selector === "[data-bar]" && settingsPage)
+        (selector === "[data-autosave]" && settingsPage)
           ? { textContent: "Daily" }
           : null,
     });

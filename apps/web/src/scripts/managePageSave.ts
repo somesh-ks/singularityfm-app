@@ -5,6 +5,8 @@
  * Nothing here is needed to read or edit a page, so it stays out of the first-load budget.
  */
 
+import { endedByLeaving } from "@singularityfm/design-system/pageLeaving";
+import { sendToast } from "@singularityfm/design-system/toastEvent";
 import { browserOnline, connectivity } from "../lib/connectivity";
 import { isSiteAnswer, withErrorRef } from "../lib/errorRef";
 import { appendOutbox, dropOldest, readOutbox, removeOp, writeOutbox } from "../lib/outbox";
@@ -13,8 +15,6 @@ import { SAVED_KEY, storeOn } from "../lib/savedKey";
 import { addSaved, parseSaved, withPending } from "../lib/savedOverlay";
 import type { ConfigOp, ConfigResponse } from "../types/contracts";
 import { afterOwnSave, noteOwnWrite } from "./configStoreRead";
-import { endedByLeaving } from "./pageLeaving";
-import { sendToast } from "./toastEvent";
 
 export const SAVING = "Saving";
 
@@ -416,9 +416,9 @@ export function lostText(name = ""): string {
 function tellLost(held: Held, from: SaveContext["from"]): void {
   if (held.claimed || !unclaimed?.held.includes(held)) return;
   const page = globalThis.document;
-  if (!page || page.querySelector?.("[data-bar]")) return;
+  if (!page || page.querySelector?.("[data-autosave]")) return;
   const message = lostText(from?.name);
-  // By event (toastEvent.ts), so the toast's store stays in the sheets' chunk.
+  // By event (the library's toastEvent), so the toast's store stays in the sheets' chunk.
   const toast = (detail: object): void => sendToast(detail, page);
   toast({
     message,
@@ -741,7 +741,7 @@ export async function flush(context: SaveContext): Promise<void> {
    * "Adding" and then "Added" itself, so the toast saying it too would be the same news twice.
    */
   let rowSays = true;
-  /** The page went while a request was out: its change stays kept for the next page (pageLeaving.ts). */
+  /** The page went while a request was out: its change stays kept for the next page (the library's pageLeaving). */
   let cut = false;
   /** Some change could not be sent and was kept on this device instead (lib/outbox.ts). */
   let kept = false;

@@ -1,6 +1,7 @@
 import { FAB_SELECTOR } from "@singularityfm/design-system/fab";
 import { setOnlineProbe } from "@singularityfm/design-system/idle";
 import { installRipple } from "@singularityfm/design-system/ripple";
+import { installSelectSheet } from "@singularityfm/design-system/selectSheet";
 import { counted, installAnalytics } from "../lib/analytics";
 import { connectivity, isOnline } from "../lib/connectivity";
 import { watchPlatformFaults } from "../lib/platformFaults";
@@ -44,6 +45,8 @@ installShimmerClock();
 // The saved Library view (list or gallery), set at every swap into it.
 installLibraryViewSwap();
 installRipple();
+// Every page draws a Select (the Create sheet's at least): on a phone its list is the bottom sheet.
+installSelectSheet();
 installRootState();
 installCreateEntry();
 installQueueEntry();

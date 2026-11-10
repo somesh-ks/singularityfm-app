@@ -196,6 +196,9 @@ main > .empty {
     --art-wave: 2.4s;
     --art-pop-time: 3.2s;
     --art-travel: 1;
+    /* One unit of the drawing: the SVG scales it with its viewBox, so the figure moves by the same
+       share of itself at every size. It is not a length on the page. */
+    --art-unit: 1px;
     --ease-in-out-sine: cubic-bezier(0.37, 0, 0.63, 1);
   }
 
@@ -266,7 +269,7 @@ main > .empty {
     }
 
     to {
-      transform: translateX(calc(5px * var(--art-travel))) scale(1.06);
+      transform: translateX(calc(5 * var(--art-unit) * var(--art-travel))) scale(1.06);
     }
   }
 
@@ -282,12 +285,18 @@ main > .empty {
 
   @keyframes art-sweep {
     from {
-      transform: translate(calc(-7px * var(--art-travel)), calc(4px * var(--art-travel)))
+      transform: translate(
+          calc(-7 * var(--art-unit) * var(--art-travel)),
+          calc(4 * var(--art-unit) * var(--art-travel))
+        )
         rotate(-5deg);
     }
 
     to {
-      transform: translate(calc(7px * var(--art-travel)), calc(-5px * var(--art-travel)))
+      transform: translate(
+          calc(7 * var(--art-unit) * var(--art-travel)),
+          calc(-5 * var(--art-unit) * var(--art-travel))
+        )
         rotate(5deg);
     }
   }
@@ -308,7 +317,7 @@ main > .empty {
     }
 
     to {
-      transform: translateY(calc(-9px * var(--art-travel))) rotate(3deg);
+      transform: translateY(calc(-9 * var(--art-unit) * var(--art-travel))) rotate(3deg);
     }
   }
 
@@ -680,21 +689,21 @@ main > .empty {
      governs spacing, and a 4px step here would be a lurch of the whole figure. */
   @keyframes scene-bob {
     from {
-      transform: translateY(1.5px);
+      transform: translateY(calc(1.5 * var(--art-unit)));
     }
 
     to {
-      transform: translateY(-3px);
+      transform: translateY(calc(-3 * var(--art-unit)));
     }
   }
 
   @keyframes scene-float {
     from {
-      transform: translate(-2px, 2px) rotate(-1.2deg);
+      transform: translate(calc(-2 * var(--art-unit)), calc(2 * var(--art-unit))) rotate(-1.2deg);
     }
 
     to {
-      transform: translate(2px, -3px) rotate(1.2deg);
+      transform: translate(calc(2 * var(--art-unit)), calc(-3 * var(--art-unit))) rotate(1.2deg);
     }
   }
 
@@ -710,12 +719,12 @@ main > .empty {
 
   @keyframes scene-rise {
     from {
-      transform: translateY(2px);
+      transform: translateY(calc(2 * var(--art-unit)));
       opacity: 0.55;
     }
 
     to {
-      transform: translateY(-5px);
+      transform: translateY(calc(-5 * var(--art-unit)));
       opacity: 1;
     }
   }

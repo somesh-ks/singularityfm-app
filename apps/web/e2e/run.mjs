@@ -19,7 +19,9 @@ const port = Number(process.env.PORT ?? 4321);
 
 // One suite at a time: both browser suites start this script, and a build under a running suite
 // swaps the dist it serves (docs/learnings.md, 2026-11-10). The lock holds the PID for the life of the
-// build and the server; a lock whose PID is gone is stale and replaced.
+// build and the server. Playwright kills the server outright (no gracefulShutdown in either config,
+// and always on Windows), so the exit handler below rarely runs and the lock stays behind; the next
+// run replaces it once its PID is gone, and a recycled PID gets the delete hint in the refusal.
 // shortcut: `pnpm run build` and `pnpm run gate --build` also write dist without taking the lock, and
 // a suite that reuses a running server never reaches this script; move the lock into the build if
 // either clobbers a suite again.
@@ -46,7 +48,7 @@ for (let attempt = 0; ; attempt += 1) {
     } catch {}
     if (attempt > 0 || (holder > 0 && alive(holder))) {
       console.error(
-        `another browser suite is building or serving apps/web/dist (pid ${holder || "unknown"}): run one suite at a time`,
+        `another browser suite is building or serving apps/web/dist (pid ${holder || "unknown"}): run one suite at a time; if none is running, delete apps/web/dist.lock`,
       );
       process.exit(1);
     }

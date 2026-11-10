@@ -7,6 +7,7 @@ import { showToast } from "@singularityfm/design-system/toastStore";
 import { parseStreamDoc, type StreamDoc } from "../lib/liveStream";
 import { getPlayerAudio, getPlayerStore, narrationCancelSlot } from "../player/core/playerRuntime";
 import { tabShared } from "../player/core/tabSlot";
+import { syncShimmerClock } from "../scripts/shimmerClock";
 import type { PlayerDigestData } from "../types/contracts";
 import { liveDigestFrom } from "./liveEpisode";
 import { createNarrationController, type NarrationController } from "./narrationController";
@@ -23,6 +24,8 @@ function setPreparing(digestId: string | null): void {
       chip.dataset.state = "preparing";
       chip.setAttribute("aria-busy", "true");
       if (label) label.textContent = PREPARING_LABEL;
+      // The waiting words shimmer from their first frame, on the document's one clock (shimmerClock.ts).
+      syncShimmerClock();
     } else if (chip.dataset.restLabel !== undefined) {
       chip.removeAttribute("aria-busy");
       // Once the briefing plays, the player has written the chip itself; only an attempt that

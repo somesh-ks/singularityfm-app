@@ -1,6 +1,6 @@
+import { TAP_SLOP_PX } from "@singularityfm/design-system/swipe";
 import { useEffect, useLayoutEffect, useRef } from "react";
 import { announce } from "./core/announcerDom";
-import { TAP_SLOP_PX } from "./core/gestureMath";
 import { getPlayQueue } from "./core/playerRuntime";
 import { moveInQueue } from "./core/playQueue";
 import QueueRow, { type QueueGestures } from "./QueueRow";
@@ -48,7 +48,7 @@ function scrollParent(node: HTMLElement): HTMLElement | null {
  * under the finger (or the mouse), the rows it passes make room, the column scrolls when it is held
  * near an edge, and the lift's end puts the row where it is. The browser's drag and drop, which a
  * long press never reliably started on a phone, is gone. A sideways swipe is the row's own: past the
- * tap slop it follows the finger, and on release the shared rule (lib/swipeAway.ts) says whether a
+ * tap slop it follows the finger, and on release the shared rule (the design system's swipe.ts) says whether a
  * swipe to either side takes the row off or it springs back. The dots' menu and the grip's Up and
  * Down keys do the same with the keyboard and say where the row went.
  *

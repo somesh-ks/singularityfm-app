@@ -1,6 +1,6 @@
 /*
  * The Health page (/settings/health): a summary card, then the settings rows grouped as the index's
- * are, each reading at its row's end as a link row's value sits (settings.css). The summary card is
+ * are, each reading at its row's end as a link row's value sits (settings-rows.css). The summary card is
  * the Costs card's shape: its padding on all four sides, the shared stat tiles under it (costs.css).
  * Imported by the command center's Shell, which draws the state and the glyphs (admin.css).
  */

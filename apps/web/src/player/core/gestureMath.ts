@@ -1,49 +1,8 @@
+import { TAP_SLOP_PX } from "@singularityfm/design-system/swipe";
 import { clamp } from "./mathUtils";
 
-export interface Sample {
-  /** Position along the gesture axis, in CSS pixels. */
-  value: number;
-  /** Event timestamp in milliseconds. */
-  t: number;
-}
-
-/** Samples older than this stop describing what the finger is doing now. */
-const VELOCITY_WINDOW_MS = 100;
-const MAX_SAMPLES = 6;
-
-/**
- * A short ring of recent positions. Release velocity comes from the last 100 ms only: averaging a
- * whole drag would report the slow start of a flick, and the sheet would spring back instead of
- * closing.
- */
-export function createVelocityTracker(windowMs = VELOCITY_WINDOW_MS) {
-  const samples: Sample[] = [];
-  return {
-    reset(first?: Sample): void {
-      samples.length = 0;
-      if (first) samples.push(first);
-    },
-    push(value: number, t: number): void {
-      samples.push({ value, t });
-      if (samples.length > MAX_SAMPLES) samples.shift();
-    },
-    /** Pixels per millisecond along the axis; positive is toward larger values. */
-    velocity(): number {
-      return estimateVelocity(samples, windowMs);
-    },
-  };
-}
-
-export function estimateVelocity(
-  samples: readonly Sample[],
-  windowMs = VELOCITY_WINDOW_MS,
-): number {
-  const last = samples.at(-1);
-  if (!last) return 0;
-  const first = samples.find((sample) => last.t - sample.t < windowMs) ?? samples[0];
-  if (!first || last.t === first.t) return 0;
-  return (last.value - first.value) / (last.t - first.t);
-}
+// The sample ring, its velocity and the tap slop are the design system's swipe rule
+// (@singularityfm/design-system/swipe), so the sheet, the queue rows and the Toast read one copy.
 
 /** Converts a release velocity in px/ms to the spring's unit: progress per second. */
 export function velocityToProgressPerSecond(pxPerMs: number, travelPx: number): number {
@@ -58,11 +17,6 @@ export interface ReleaseThresholds {
   velocity: number;
 }
 
-/**
- * Travel inside this box is a tap, however fast it was. Fingers drift and thumbs drift more: an
- * 8 px slop swallowed real taps as cancelled swipes.
- */
-export const TAP_SLOP_PX = 12;
 /** A press held longer than this is not a tap. The browser's own click decides what it was. */
 export const TAP_MAX_MS = 500;
 

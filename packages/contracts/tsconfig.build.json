@@ -8,5 +8,5 @@
     "outDir": "dist",
     "types": []
   },
-  "files": ["src/session.ts", "src/store.ts"]
+  "files": ["src/health.ts", "src/session.ts", "src/store.ts"]
 }

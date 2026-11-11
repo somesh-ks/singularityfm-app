@@ -1,14 +1,16 @@
-import { describe, expect, it } from "vitest";
 import {
   createVelocityTracker,
-  decideRelease,
   estimateVelocity,
+  TAP_SLOP_PX,
+} from "@singularityfm/design-system/swipe";
+import { describe, expect, it } from "vitest";
+import {
+  decideRelease,
   isTap,
   OPEN_DISTANCE,
   progressFromDrag,
   type ReleaseInput,
   TAP_MAX_MS,
-  TAP_SLOP_PX,
   velocityToProgressPerSecond,
 } from "./gestureMath";
 

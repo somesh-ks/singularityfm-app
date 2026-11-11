@@ -25,14 +25,13 @@
  * Why not the View Transitions API for the page or the cover: a view transition cannot be driven by
  * a finger, cannot be interrupted, and freezes the page for its duration.
  */
+import { createVelocityTracker, TAP_SLOP_PX } from "@singularityfm/design-system/swipe";
 import type { CoverMorph } from "./coverMorph";
 import {
-  createVelocityTracker,
   decideRelease,
   isTap,
   progressFromDrag,
   type ReleaseThresholds,
-  TAP_SLOP_PX,
   velocityToProgressPerSecond,
 } from "./gestureMath";
 import { clamp } from "./mathUtils";

@@ -145,7 +145,6 @@ test.describe("the floating button", () => {
     }
   });
 
-
   test("Play plays the page's audio as the hero chip does, and steps aside while the bar holds it", async ({
     page,
   }) => {

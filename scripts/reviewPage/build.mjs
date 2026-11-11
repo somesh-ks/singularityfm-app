@@ -12,25 +12,53 @@
  * Button, Badge, Banner and Icon rules are read from the pinned design system package at build time, so the page follows the
  * design system as it changes. Plain Node, no dependencies.
  */
+import { execFileSync } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
+import { tmpdir } from "node:os";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, "..", "..");
-/** The pinned design system package (D382 step 8), as the reader installs it. */
-const SYSTEM = join(
-  dirname(
-    createRequire(join(ROOT, "apps", "web", "package.json")).resolve(
-      "@singularityfm/design-system/flags/LICENSE.txt",
-    ),
-  ),
-  "..",
-);
+/**
+ * The pinned design system package (D382 step 8): the installed copy, or, in a session that has not
+ * installed the repo, that same version fetched once from npm into the temp folder. Without this the
+ * build failed in fresh sessions and threads fell back to hand-made pages (audit, 2026-11-11).
+ */
+function systemDir() {
+  const web = join(ROOT, "apps", "web", "package.json");
+  try {
+    return join(
+      dirname(createRequire(web).resolve("@singularityfm/design-system/flags/LICENSE.txt")),
+      "..",
+    );
+  } catch {
+    const version = JSON.parse(readFileSync(web, "utf8")).dependencies[
+      "@singularityfm/design-system"
+    ];
+    if (!/^\d+\.\d+\.\d+$/.test(version ?? ""))
+      fail(`design system pin "${version}" is not an exact version`);
+    const cache = join(tmpdir(), `review-page-design-system-${version}`);
+    if (!existsSync(join(cache, "package", "styles"))) {
+      mkdirSync(cache, { recursive: true });
+      const tgz = execFileSync(
+        "npm",
+        ["pack", `@singularityfm/design-system@${version}`, "--silent"],
+        { cwd: cache, encoding: "utf8" },
+      )
+        .trim()
+        .split("\n")
+        .at(-1);
+      execFileSync("tar", ["xzf", tgz], { cwd: cache });
+    }
+    return join(cache, "package");
+  }
+}
+const SYSTEM = systemDir();
 const STYLES = join(SYSTEM, "styles");
 const DS_FILES = ["buttons.css", "badge.css", "banner.css", "icon.css"];
-const ICONS = ["close", "chevronLeft", "chevronRight", "pencilSimple", "search", "openInNew"];
+const ICONS = ["close", "chevronLeft", "chevronRight", "pencilSimple", "openInNew"];
 const TAG_KEYS = ["device", "browser", "theme", "mood", "hue", "state"];
 // Ids the template's own elements use; a change or still must not take one.
 const PAGE_IDS = [

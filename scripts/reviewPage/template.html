@@ -17,135 +17,119 @@ body {
   background: var(--color-surface);
   color: var(--color-on-surface);
   font-family: var(--font-ui);
-  font-size: var(--font-size-body);
-  line-height: var(--font-leading-body);
-  padding-left: max(16px, env(safe-area-inset-left, 0px));
-  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-leading);
+  --gutter: max(var(--space-4), env(safe-area-inset-left, 0rem));
+  padding-inline: var(--gutter);
   padding-block: 0 var(--space-16);
   -webkit-font-smoothing: antialiased;
 }
 * { box-sizing: border-box; }
+#notes-copy[hidden], section.change[hidden], details.history[hidden] { display: none; }
 button { font: inherit; border: 0; background: none; color: inherit; cursor: pointer; }
-:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
-main { max-width: 1120px; margin: 0 auto; display: grid; gap: var(--space-8); }
-.measure { max-width: 680px; }
+:focus-visible { outline: 0.125rem solid var(--color-accent); outline-offset: 0.125rem; }
+main { max-width: 70rem; margin: 0 auto; display: grid; gap: var(--space-8); }
+.measure { max-width: 42.5rem; }
 
-/* Top bar: the PR, the version, and Copy notes when the page keeps its own notes. */
-body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--color-surface); }
+/* Top bar: the PR link, and Copy notes once the page holds a note. */
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0rem); z-index: 10; background: var(--color-surface); }
 .topbar {
-  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  position: sticky; top: env(safe-area-inset-top, 0rem); z-index: 5;
   display: flex; align-items: center; gap: var(--space-2);
-  min-height: 56px; margin-inline: calc(-1 * max(16px, env(safe-area-inset-left, 0px))) calc(-1 * max(16px, env(safe-area-inset-right, 0px)));
-  padding-inline: max(16px, env(safe-area-inset-left, 0px)) max(16px, env(safe-area-inset-right, 0px));
+  min-height: var(--size-touch); margin-inline: calc(-1 * var(--gutter)); padding-inline: max(var(--gutter), (100% - 70rem) / 2);
   background: var(--color-surface);
-  border-bottom: 1px solid var(--color-surface-container);
 }
-.topbar .pr { font-weight: var(--font-weight-medium); font-size: var(--font-size-label); color: var(--color-on-surface); text-decoration: none; display: inline-flex; gap: var(--space-1); align-items: center; }
+.topbar .pr { font-weight: var(--font-weight-medium); font-size: var(--text-label-size); color: var(--color-on-surface-muted); text-decoration: none; display: inline-flex; gap: var(--space-1); align-items: center; }
 .topbar .pr:hover { color: var(--color-accent); }
 .topbar .spacer { flex: 1; }
 .topbar .button-text { white-space: nowrap; }
 
-/* Header */
-header.intro { display: grid; gap: var(--space-4); padding-top: var(--space-6); }
-.eyebrow { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
-h1 { margin: 0; font-size: var(--font-size-display); line-height: var(--font-leading-display); font-weight: var(--font-weight-medium); text-wrap: balance; }
-.meta { margin: 0; color: var(--color-on-surface-muted); font-size: var(--font-size-meta); }
-.badge-label.is-accent { background: var(--color-accent-container); color: var(--color-on-accent-container); }
+/* Header: title, one quiet line, then what to check. */
+header.intro { display: grid; gap: var(--space-2); padding-top: var(--space-4); }
+h1 { margin: 0; font-size: var(--text-display-size); line-height: var(--text-display-leading); font-weight: var(--font-weight-medium); text-wrap: balance; }
+.meta { margin: 0; color: var(--color-on-surface-muted); font-size: var(--text-meta-size); }
 .badge-label.is-new { background: var(--color-accent); color: var(--color-on-accent); }
 
-.panel { display: grid; gap: var(--space-2); }
-.panel h2 { margin: 0; font-size: var(--font-size-title); line-height: var(--font-leading-title); font-weight: var(--font-weight-medium); }
-.panel ul, .panel ol { margin: 0; padding-inline-start: 1.25em; display: grid; gap: var(--space-2); }
-.checks li::marker { color: var(--color-accent); font-weight: var(--font-weight-medium); }
-.checks .refs { display: inline-flex; flex-wrap: wrap; gap: var(--space-1); margin-inline-start: var(--space-1); vertical-align: baseline; }
-.ref {
-  display: inline-grid; place-items: center; min-width: 28px; height: 24px; padding-inline: var(--space-2);
-  border-radius: var(--radius-round); background: var(--color-surface-container); color: var(--color-on-surface);
-  font-size: var(--font-size-caption); font-weight: var(--font-weight-medium); font-variant-numeric: tabular-nums; text-decoration: none;
+/* Check lines: each line is the link to the still it names. */
+.checks { margin: 0; padding: 0; list-style: none; display: grid; gap: var(--space-1); }
+.checks a {
+  display: flex; gap: var(--space-2); align-items: baseline; min-height: var(--size-touch); padding-block: var(--space-2);
+  color: var(--color-on-surface); text-decoration: none;
 }
-.ref:hover { background: var(--color-accent-container); color: var(--color-on-accent-container); }
+.checks a::before { content: ""; flex: none; width: 0.5rem; height: 0.5rem; border-radius: var(--shape-round); background: var(--color-accent); transform: translateY(-0.125rem); }
+.checks a:hover { color: var(--color-accent); }
 
 /* Filters: the app's pill shape; the picked one takes the accent container. */
 .filters { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-4); align-items: center; }
-.filter { display: inline-flex; gap: var(--space-1); padding: 2px; border-radius: var(--radius-round); background: var(--color-surface-container); }
-.filter button { min-height: 36px; padding-inline: var(--space-4); border-radius: var(--radius-round); font-size: var(--font-size-label); font-weight: var(--font-weight-medium); color: var(--color-on-surface-muted); }
+.filter { display: inline-flex; gap: var(--space-1); padding: 0.125rem; border-radius: var(--shape-round); background: var(--color-surface-container); }
+.filter button { min-height: 2.25rem; padding-inline: var(--space-4); border-radius: var(--shape-round); font-size: var(--text-label-size); font-weight: var(--font-weight-medium); color: var(--color-on-surface-muted); }
 .filter button[aria-pressed="true"] { background: var(--color-accent-container); color: var(--color-on-accent-container); }
-.count { color: var(--color-on-surface-muted); font-size: var(--font-size-meta); }
 
-/* A change: its title, one line, then its stills. */
-section.change { display: grid; gap: var(--space-4); scroll-margin-top: 72px; }
+/* A change: its title, then its stills. Light and dark copies of one view share a card; the theme
+   filter picks which one shows, so the page is one card per view. */
+section.change { display: grid; gap: var(--space-4); scroll-margin-top: var(--space-16); }
 .change-head { display: grid; gap: var(--space-1); }
-.change-head h2 { margin: 0; font-size: var(--font-size-section); line-height: var(--font-leading-title); font-weight: var(--font-weight-medium); text-wrap: balance; display: flex; gap: var(--space-2); align-items: baseline; }
-.change-head .num { color: var(--color-on-surface-muted); font-variant-numeric: tabular-nums; }
+.change-head h2 { margin: 0; font-size: var(--text-title-size); line-height: var(--text-title-leading); font-weight: var(--font-weight-medium); text-wrap: balance; }
 .change-head p { margin: 0; color: var(--color-on-surface-reading); }
-.grid { display: grid; gap: var(--space-6) var(--space-4); grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); align-items: start; }
+.grid { display: grid; gap: var(--space-8) var(--space-4); grid-template-columns: repeat(auto-fill, minmax(min(100%, 17.5rem), 1fr)); align-items: start; }
 
-/* A still: number, picture, caption, labels. Its picture is the comment target. */
-figure.still { margin: 0; display: grid; gap: var(--space-2); min-width: 0; scroll-margin-top: 72px; }
+/* A still: the picture (tap to open it full length), then one line of labels. Nothing sits on the
+   picture, so nothing hides what is being judged. A tall still shows its top and fades; the viewer
+   shows all of it. */
+figure.still { margin: 0; display: grid; gap: var(--space-2); min-width: 0; scroll-margin-top: var(--space-16); }
 figure.still.is-wide { grid-column: 1 / -1; }
 figure.still[hidden] { display: none; }
 .media {
-  position: relative; border-radius: var(--radius-md); overflow: hidden;
-  background: var(--color-surface-sunken); box-shadow: 0 0 0 1px var(--color-surface-container);
+  position: relative; display: block; width: 100%; padding: 0; border-radius: var(--shape-md); overflow: hidden; cursor: zoom-in;
+  max-height: 75svh; background: var(--color-surface-sunken); box-shadow: 0 0 0 0.0625rem var(--color-surface-container);
 }
-.media img, .media video { display: block; width: 100%; height: auto; max-width: 100%; }
-.is-flash .media { box-shadow: 0 0 0 3px var(--color-accent); transition: box-shadow 200ms; }
-.still-no {
-  position: absolute; top: var(--space-2); left: var(--space-2);
-  display: grid; place-items: center; min-width: 32px; height: 32px; padding-inline: var(--space-2);
-  border-radius: var(--radius-round); background: var(--color-surface-inverse); color: var(--color-on-surface-inverse);
-  font-size: var(--font-size-label); font-weight: var(--font-weight-semibold); font-variant-numeric: tabular-nums; pointer-events: none;
-}
-.zoom-btn {
-  position: absolute; top: var(--space-2); right: var(--space-2);
-  display: grid; place-items: center; width: var(--size-touch); height: var(--size-touch);
-  border-radius: var(--radius-round); background: var(--color-surface-raised); color: var(--color-on-surface);
-  box-shadow: var(--shadow-raised);
-}
-html[data-comment-mode] .zoom-btn { display: none; }
+.media.is-cut::after { content: ""; position: absolute; inset: auto 0 0; height: var(--space-16); background: linear-gradient(transparent, var(--color-surface-sunken)); pointer-events: none; }
+/* Never wider than the picture's own pixels: a small crop stays sharp, centred on the card. */
+.media img, .media video { display: block; width: auto; height: auto; max-width: 100%; margin-inline: auto; }
+.media video { width: 100%; }
+.is-flash .media { box-shadow: 0 0 0 0.1875rem var(--color-accent); }
 html[data-comment-mode] .media { cursor: crosshair; }
+html[data-comment-mode] .media.is-cut::after { display: none; }
 figcaption { display: grid; gap: 0; }
-.cap { margin: 0; font-size: var(--font-size-meta); line-height: var(--font-leading-caption); color: var(--color-on-surface); }
-.tags { display: flex; flex-wrap: wrap; gap: var(--space-1); align-items: center; }
-.tags .spacer { flex: 1; }
+.tags { display: flex; gap: var(--space-2); align-items: center; min-width: 0; }
+.tags .no { color: var(--color-on-surface); font-weight: var(--font-weight-medium); font-variant-numeric: tabular-nums; }
+.tagline { flex: 1; min-width: 0; color: var(--color-on-surface-muted); font-size: var(--text-meta-size); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .comment-btn { margin-inline-end: calc((var(--size-touch) - var(--size-icon-lg)) / -2); }
-.tagline { color: var(--color-on-surface-muted); font-size: var(--font-size-meta); }
-figcaption .cap { color: var(--color-on-surface-reading); }
+.cap { margin: 0; font-size: var(--text-meta-size); line-height: var(--text-caption-leading); color: var(--color-on-surface-reading); }
 
 /* Page notes, used only where claude.ai comments are off: numbered pins on the picture. */
 .pin {
   position: absolute; transform: translate(-50%, -50%);
-  display: grid; place-items: center; width: 28px; height: 28px; border-radius: var(--radius-round);
-  background: var(--color-accent); color: var(--color-on-accent); font-size: var(--font-size-caption); font-weight: var(--font-weight-semibold);
-  box-shadow: 0 0 0 2px var(--color-surface-raised); pointer-events: none;
+  display: grid; place-items: center; width: 1.75rem; height: 1.75rem; border-radius: var(--shape-round);
+  background: var(--color-accent); color: var(--color-on-accent); font-size: var(--text-caption-size); font-weight: var(--font-weight-semibold);
+  box-shadow: 0 0 0 0.125rem var(--color-surface-raised); pointer-events: none;
 }
 .notes { display: grid; gap: var(--space-2); }
-.note { display: grid; grid-template-columns: 28px 1fr auto; gap: var(--space-2); align-items: start; }
+.notes:empty { display: none; }
+.note { display: grid; grid-template-columns: 1.75rem 1fr auto; gap: var(--space-2); align-items: start; }
 .note .pin { position: static; transform: none; }
-.note textarea { width: 100%; min-height: 44px; resize: vertical; padding: var(--space-2) var(--space-4); border-radius: var(--radius-sm); border: 1px solid var(--color-surface-container); background: var(--color-surface-raised); color: var(--color-on-surface); font: inherit; font-size: var(--font-size-meta); }
+.note textarea { width: 100%; min-height: var(--size-touch); resize: vertical; padding: var(--space-2) var(--space-4); border-radius: var(--shape-sm); border: 0.0625rem solid var(--color-surface-container); background: var(--color-surface-raised); color: var(--color-on-surface); font: inherit; font-size: var(--text-meta-size); }
 
 /* Earlier versions: one line each, closed. */
-details.history { border-top: 1px solid var(--color-surface-container); padding-top: var(--space-4); }
-details.history summary { cursor: pointer; font-weight: var(--font-weight-medium); min-height: var(--size-touch); display: flex; align-items: center; }
+details.history { padding-top: var(--space-4); color: var(--color-on-surface-muted); }
+details.history summary { cursor: pointer; font-size: var(--text-meta-size); min-height: var(--size-touch); display: flex; align-items: center; }
 details.history ul { margin: var(--space-2) 0 0; padding-inline-start: 1.25em; display: grid; gap: var(--space-2); color: var(--color-on-surface-reading); }
 
 /* The viewer: full screen, pinch or wheel to zoom, drag to move. */
 .viewer { position: fixed; inset: 0; z-index: 20; display: grid; grid-template-rows: auto minmax(0, 1fr); grid-template-columns: minmax(0, 1fr); background: var(--color-surface); }
 .viewer[hidden] { display: none; }
 .viewer-bar {
-  display: flex; align-items: center; gap: var(--space-2); min-height: 56px;
-  padding: env(safe-area-inset-top, 0px) max(8px, env(safe-area-inset-right, 0px)) 0 max(8px, env(safe-area-inset-left, 0px));
-  border-bottom: 1px solid var(--color-surface-container);
+  display: flex; align-items: center; gap: var(--space-2); min-height: var(--size-touch);
+  padding: env(safe-area-inset-top, 0rem) max(var(--space-2), env(safe-area-inset-right, 0rem)) 0 max(var(--space-2), env(safe-area-inset-left, 0rem));
 }
-.viewer-bar .title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--font-size-label); font-weight: var(--font-weight-medium); }
-.stage { position: relative; overflow: hidden; touch-action: none; background: var(--color-surface-sunken); padding-bottom: env(safe-area-inset-bottom, 0px); }
+.viewer-bar .title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--text-label-size); font-weight: var(--font-weight-medium); }
+.stage { position: relative; overflow: hidden; touch-action: none; background: var(--color-surface-sunken); padding-bottom: env(safe-area-inset-bottom, 0rem); }
 .stage img, .stage video { position: absolute; left: 0; top: 0; transform-origin: 0 0; max-width: none; user-select: none; -webkit-user-drag: none; }
 @media (prefers-reduced-motion: no-preference) { figure.still .media { transition: box-shadow 200ms; } }
 </style>
 
 <div class="topbar">
   <a class="pr" id="pr-link" href="@PR_URL@" target="_blank" rel="noopener" aria-label="Pull request @PR@ on GitHub">#@PR@ @ICON_openInNew@</a>
-  <span class="badge-label is-accent" id="ver-badge"></span>
   <span class="spacer"></span>
   <button class="button-text" id="notes-copy" type="button" hidden>Copy notes</button>
 </div>
@@ -156,7 +140,7 @@ details.history ul { margin: var(--space-2) 0 0; padding-inline-start: 1.25em; d
     <p class="meta" id="meta"></p>
   </header>
 
-  <div class="measure panel" id="check-panel"></div>
+  <ul class="measure checks" id="check-panel"></ul>
   <div class="filters" id="filters"></div>
   <div id="changes" style="display:grid;gap:var(--space-12)"></div>
   <details class="history measure" id="history" hidden><summary>Earlier versions</summary><ul></ul></details>
@@ -177,7 +161,7 @@ details.history ul { margin: var(--space-2) 0 0; padding-inline-start: 1.25em; d
 (() => {
   "use strict";
   const R = JSON.parse(document.getElementById("review-data").textContent);
-  const ICON = { comment: `@ICON_pencilSimple@`, zoom: `@ICON_search@` };
+  const ICON = { comment: `@ICON_pencilSimple@` };
   const $ = (s, el = document) => el.querySelector(s);
   const h = (tag, attrs = {}, ...kids) => {
     const el = document.createElement(tag);
@@ -194,22 +178,32 @@ details.history ul { margin: var(--space-2) 0 0; padding-inline-start: 1.25em; d
     set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
   };
 
-  /* ---- Number every still once, in page order. The number is what a comment names. */
+  /* ---- Light and dark copies of one view (same change, same labels but theme) share a card and its
+     number, in page order. Comments still name the still by its id. */
   const stills = [];
-  R.changes.forEach((c, ci) => { for (const s of c.stills) { s.n = stills.length + 1; s.change = c; s.changeNo = ci + 1; stills.push(s); } });
+  const viewKey = (s) => [s.change.id, s.tags?.device, s.tags?.browser, s.tags?.mood, s.tags?.hue, s.tags?.state].join("|");
+  const views = [];
+  for (const c of R.changes) for (const s of c.stills) {
+    s.change = c; stills.push(s);
+    // Join the first view with the same labels that has no copy in this theme yet; two crops with the
+    // same labels are two views.
+    const key = viewKey(s);
+    let view = views.find((v) => v.key === key && !v.some((o) => o.tags?.theme === s.tags?.theme));
+    if (!view) { view = Object.assign([], { key }); views.push(view); }
+    view.push(s); s.view = view; s.n = views.indexOf(view) + 1;
+  }
   const byId = new Map(stills.map((s) => [s.id, s]));
   const tagLine = (s) => [s.tags?.device, s.tags?.browser, s.tags?.theme, s.tags?.mood, s.tags?.hue, s.tags?.state].filter(Boolean).join(" · ");
-  const label = (s) => `Still ${s.n} · ${tagLine(s)} · ${s.change.title}`.slice(0, 120);
+  const label = (s) => `${s.n} · ${tagLine(s)} · ${s.change.title}`.slice(0, 120);
 
   /* ---- Header */
-  $("#ver-badge").textContent = `Version ${R.version}`;
   const when = new Date(R.updated);
   const whenText = Number.isNaN(when.getTime()) ? R.updated : when.toLocaleDateString(undefined, { day: "numeric", month: "short" });
-  $("#meta").textContent = [R.area, whenText].filter(Boolean).join(" · ");
+  $("#meta").textContent = [R.area, whenText, R.version > 1 ? `Version ${R.version}` : null].filter(Boolean).join(" · ");
 
-  const refs = (ids) => h("span", { class: "refs" }, (ids || []).map((id) => byId.get(id)).filter(Boolean).map((s) =>
-    h("a", { class: "ref", href: `#${s.id.replace(/\./g, "-")}`, "aria-label": `Still ${s.n}`, onclick: (e) => { e.preventDefault(); reveal(s); } }, String(s.n))));
-  if (R.check?.length) $("#check-panel").append(h("h2", {}, "Check these"), h("ol", { class: "checks" }, R.check.map((c) => h("li", {}, c.text, refs(c.stills)))));
+  const checks = (R.check || []).map((c) => [c, byId.get(c.stills?.[0])]).filter(([, s]) => s);
+  if (checks.length) $("#check-panel").append(...checks.map(([c, s]) =>
+    h("li", {}, h("a", { href: `#${s.id.replace(/\./g, "-")}`, onclick: (e) => { e.preventDefault(); reveal(s); } }, c.text))));
   else $("#check-panel").remove();
   if (R.history?.length) {
     const d = $("#history"); d.hidden = false;
@@ -221,17 +215,25 @@ details.history ul { margin: var(--space-2) 0 0; padding-inline-start: 1.25em; d
   const picked = {};
   const filterRow = $("#filters");
   for (const key of FILTERS) {
-    const values = [...new Set(stills.map((s) => s.tags?.[key]).filter(Boolean))];
+    const values = [...new Set(stills.map((s) => s.tags?.[key]).filter(Boolean))].sort((a, b) => (key === "theme" ? (a === "Light" ? -1 : b === "Light" ? 1 : 0) : 0));
     if (values.length < 2) continue;
-    picked[key] = "All";
+    // Theme has no "All": the card shows the copy for the picked theme, first the one the page is in.
+    const first = key === "theme" ? (values.find((v) => v.toLowerCase() === (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")) ?? values[0]) : "All";
+    picked[key] = first;
     const group = h("div", { class: "filter", role: "group", "aria-label": key });
-    for (const v of ["All", ...values]) group.append(h("button", { type: "button", "aria-pressed": v === "All" ? "true" : "false", onclick: (e) => {
-      picked[key] = v; for (const b of group.children) b.setAttribute("aria-pressed", b === e.currentTarget ? "true" : "false"); applyFilters();
-    } }, v));
+    for (const v of key === "theme" ? values : ["All", ...values]) group.append(h("button", { type: "button", "data-value": v, "aria-pressed": v === first ? "true" : "false", onclick: () => pick(key, v) }, v));
     filterRow.append(group);
   }
   if (!filterRow.children.length) filterRow.remove();
-  const visible = (s) => Object.entries(picked).every(([k, v]) => v === "All" || !s.tags?.[k] || s.tags[k] === v);
+  function pick(key, v) {
+    picked[key] = v;
+    for (const b of filterRow.querySelectorAll(`[aria-label="${key}"] button`)) b.setAttribute("aria-pressed", b.dataset.value === v ? "true" : "false");
+    applyFilters();
+  }
+  const matches = (s, k) => picked[k] === "All" || !s.tags?.[k] || s.tags[k] === picked[k];
+  // A view with no copy in the picked theme still shows its first copy, so no view drops out.
+  const visible = (s) => Object.keys(picked).every((k) => k === "theme" || matches(s, k)) &&
+    (!picked.theme || matches(s, "theme") || (!s.view.some((o) => matches(o, "theme")) && s.view[0] === s));
   function applyFilters() {
     for (const s of stills) s.fig.hidden = !visible(s);
     for (const c of R.changes) c.section.hidden = c.stills.every((s) => s.fig.hidden);
@@ -240,10 +242,10 @@ details.history ul { margin: var(--space-2) 0 0; padding-inline-start: 1.25em; d
 
   /* ---- Changes and stills */
   const changesEl = $("#changes");
-  R.changes.forEach((c, ci) => {
+  for (const c of R.changes) {
     const grid = h("div", { class: "grid" });
     c.section = h("section", { class: "change", id: c.id, "aria-labelledby": `${c.id}-h` },
-      h("div", { class: "change-head measure" }, h("h2", { id: `${c.id}-h` }, h("span", { class: "num" }, `${ci + 1}`), c.title), c.what ? h("p", {}, c.what) : null),
+      h("div", { class: "change-head measure" }, h("h2", { id: `${c.id}-h` }, c.title), c.what ? h("p", {}, c.what) : null),
       grid);
     for (const s of c.stills) {
       const isVideo = /\.(mp4|webm)$/i.test(s.file);
@@ -254,24 +256,27 @@ details.history ul { margin: var(--space-2) 0 0; padding-inline-start: 1.25em; d
       if (!isVideo) media.addEventListener("load", report);
       const isNew = s.new_in === R.version;
       const tags = h("div", { class: "tags" },
-        isNew && R.version > 1 ? h("span", { class: "badge-label is-new" }, "Changed") : null,
+        h("span", { class: "no" }, String(s.n)),
         h("span", { class: "tagline" }, tagLine(s)),
-        h("span", { class: "spacer" }),
-        h("button", { class: "icon-btn comment-btn", type: "button", "data-comment": s.id, "aria-label": `Comment on still ${s.n}`, onclick: () => commentOn(s) }, ic(ICON.comment)));
-      s.mediaBox = h("div", { class: "media" }, media,
-        h("span", { class: "still-no", "aria-hidden": "true" }, String(s.n)),
-        h("button", { class: "zoom-btn", type: "button", "aria-label": `Open still ${s.n} full screen`, html: ICON.zoom, onclick: () => openViewer(s) }));
+        isNew && R.version > 1 ? h("span", { class: "badge-label is-new" }, "Changed") : null,
+        h("button", { class: "icon-btn comment-btn", type: "button", "data-comment": s.id, "aria-label": `Comment on ${s.n}`, onclick: () => commentOn(s) }, ic(ICON.comment)));
+      // The picture opens the viewer; in comment mode the click goes to the composer first (capture below).
+      s.mediaBox = h("div", { class: "media", role: "button", tabindex: "0", "aria-label": `Open ${s.n} full length`,
+        onclick: (e) => { if (localPinMode !== s && e.target.tagName !== "VIDEO") openViewer(s); },
+        onkeydown: (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openViewer(s); } } }, media);
+      if (s.width && s.height) new ResizeObserver(() => s.mediaBox.classList.toggle("is-cut", s.mediaBox.scrollHeight > s.mediaBox.clientHeight + 1)).observe(s.mediaBox);
       s.media = media;
       s.notesEl = h("div", { class: "notes" });
-      s.fig = h("figure", { class: `still${s.width > s.height ? " is-wide" : ""}`, id: s.id.replace(/\./g, "-") },
+      const wide = s.width > s.height || s.tags?.device === "Desktop";
+      s.fig = h("figure", { class: `still${wide ? " is-wide" : ""}`, id: s.id.replace(/\./g, "-") },
         s.mediaBox, h("figcaption", {}, tags, s.caption ? h("p", { class: "cap" }, s.caption) : null), s.notesEl);
       grid.append(s.fig);
     }
     changesEl.append(c.section);
-  });
+  }
 
   function reveal(s) {
-    if (s.fig.hidden) { for (const k of Object.keys(picked)) picked[k] = "All"; for (const g of filterRow.querySelectorAll(".filter")) for (const [i, b] of [...g.children].entries()) b.setAttribute("aria-pressed", i === 0 ? "true" : "false"); applyFilters(); }
+    if (s.fig.hidden) for (const k of Object.keys(picked)) pick(k, k === "theme" ? s.tags?.theme ?? picked.theme : "All");
     const smooth = !matchMedia("(prefers-reduced-motion: reduce)").matches;
     s.fig.scrollIntoView({ block: "center", behavior: smooth ? "smooth" : "auto" });
     s.fig.classList.add("is-flash"); setTimeout(() => s.fig.classList.remove("is-flash"), 1200);
@@ -294,13 +299,13 @@ details.history ul { margin: var(--space-2) 0 0; padding-inline-start: 1.25em; d
       const w = s.width || vEl.naturalWidth || vEl.videoWidth || 1, hh = s.height || vEl.naturalHeight || vEl.videoHeight || 1;
       vEl.style.width = `${w}px`; vEl.style.height = `${hh}px`;
       const r = stage.getBoundingClientRect();
-      vz.fit = Math.min(r.width / w, r.height / hh);
+      vz.fit = Math.min(r.width / w, r.height / hh, 1); // never past the picture's own pixels: crops blur
       vz.k = vz.fit; vz.x = (r.width - w * vz.k) / 2; vz.y = Math.max(0, (r.height - hh * vz.k) / 2); apply();
     };
     if (vEl.complete || vEl.tagName === "VIDEO") requestAnimationFrame(fit); else vEl.addEventListener("load", fit, { once: true });
     $("#v-close").focus();
   }
-  function closeViewer() { const s = vs; viewer.hidden = true; vs = null; vEl = null; document.documentElement.style.overflow = ""; report(); s?.mediaBox.querySelector(".zoom-btn")?.focus(); }
+  function closeViewer() { const s = vs; viewer.hidden = true; vs = null; vEl = null; document.documentElement.style.overflow = ""; report(); s?.mediaBox.focus(); }
   function step(d) { const o = order(); const i = o.indexOf(vs); if (i < 0) return; openViewer(o[(i + d + o.length) % o.length]); }
   function apply() { if (vEl) vEl.style.transform = `translate(${vz.x}px, ${vz.y}px) scale(${vz.k})`; report(); }
   function zoomAt(cx, cy, k) {
@@ -343,6 +348,7 @@ details.history ul { margin: var(--space-2) 0 0; padding-inline-start: 1.25em; d
     const r = rectOf(s); if (!r?.width) return null;
     const x = m[2] == null ? r.right - 20 : r.left + (r.width * +m[2]) / 100;
     const y = m[3] == null ? r.top + 20 : r.top + (r.height * +m[3]) / 100;
+    if (!vs && y > s.mediaBox.getBoundingClientRect().bottom) return null; // on the faded-off part: shows in the viewer
     return { x: x + scrollX, y: y + scrollY };
   }
   let reportQueued = false;
@@ -401,7 +407,7 @@ details.history ul { margin: var(--space-2) 0 0; padding-inline-start: 1.25em; d
   let notes = [], localPinMode = null;
   function setupLocalNotes() {
     notes = store.get(NOTES_KEY, []);
-    const copy = $("#notes-copy"); copy.hidden = false;
+    const copy = $("#notes-copy");
     copy.onclick = async () => {
       const text = notesText();
       try { await navigator.clipboard.writeText(text); copy.textContent = "Copied"; setTimeout(() => (copy.textContent = "Copy notes"), 1500); }
@@ -417,12 +423,13 @@ details.history ul { margin: var(--space-2) 0 0; padding-inline-start: 1.25em; d
   }
   function save() { store.set(NOTES_KEY, notes); }
   function renderNotes() {
+    $("#notes-copy").hidden = !notes.some((n) => n.text.trim());
     for (const s of stills) {
       for (const n of s.notesEl.querySelectorAll(".note")) n.remove();
       notes.forEach((n, i) => {
         if (n.still !== s.id) return;
         const ta = h("textarea", { "aria-label": `Note ${i + 1}`, maxlength: "2000" }); ta.value = n.text;
-        ta.addEventListener("input", () => { n.text = ta.value; save(); });
+        ta.addEventListener("input", () => { n.text = ta.value; save(); $("#notes-copy").hidden = !notes.some((x) => x.text.trim()); });
         s.notesEl.append(h("div", { class: "note" }, h("span", { class: "pin" }, String(i + 1)), ta,
           h("button", { class: "icon-btn", type: "button", "aria-label": `Remove note ${i + 1}`, html: `@ICON_close@`, onclick: () => { notes.splice(i, 1); save(); renderNotes(); } })));
       });

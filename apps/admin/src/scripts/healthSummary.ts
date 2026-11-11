@@ -6,7 +6,7 @@
  * human can easily understand what is wrong", then "a big wall of text ... hide them inside a bottom
  * sheet on mobile and sidebar on desktop".
  */
-import type { HealthSeries } from "../../../web/src/lib/healthRows";
+import type { HealthSeries } from "@singularityfm/contracts/health";
 import type { Pillar } from "../lib/pillars";
 import {
   element,

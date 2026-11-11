@@ -368,7 +368,7 @@ async function recheck(): Promise<void> {
   }
 }
 
-/** The switches are neutral tracks until their values are known (settings.css, data-ready). */
+/** The switches are neutral tracks until their values are known (settings-rows.css, data-ready). */
 const ready = (): void => {
   if (root) root.dataset.ready = "";
 };

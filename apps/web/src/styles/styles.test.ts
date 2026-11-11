@@ -29,12 +29,32 @@ const SYSTEM = join(
 );
 const SYSTEM_STYLES = join(SYSTEM, "styles");
 const SYSTEM_SRC = join(SYSTEM, "src");
-const STYLE_DIRS = [STYLES, SYSTEM_STYLES];
-const OWN_FILES = STYLE_DIRS.flatMap((dir) => readdirSync(dir))
+/**
+ * The two admin stylesheets that moved out of this folder (D382 step 2b) keep the checks they had
+ * here until the admin repository has its own. admin.css never had them.
+ */
+const ADMIN_STYLES = join(SRC, "..", "..", "admin", "src", "styles");
+const ADMIN_FILES = ["costs.css", "health.css"];
+const STYLE_DIRS = [STYLES, SYSTEM_STYLES, ADMIN_STYLES];
+const OWN_FILES = [STYLES, SYSTEM_STYLES]
+  .flatMap((dir) => readdirSync(dir))
+  .concat(ADMIN_FILES)
   .filter((file) => file.endsWith(".css") && !["tokens.css", "foundations.css"].includes(file))
   .sort();
+// The admin's two sheets are read from its folder only; otherwise the system's copy wins over a
+// same-named reader file. A search over all three would let a later same-named file shadow the admin's.
 const read = (file: string) =>
-  readFileSync(join(existsSync(join(SYSTEM_STYLES, file)) ? SYSTEM_STYLES : STYLES, file), "utf8");
+  readFileSync(
+    join(
+      ADMIN_FILES.includes(file)
+        ? ADMIN_STYLES
+        : existsSync(join(SYSTEM_STYLES, file))
+          ? SYSTEM_STYLES
+          : STYLES,
+      file,
+    ),
+    "utf8",
+  );
 
 /** Comments and the generated-font header carry prose and commands, not styles. */
 const withoutComments = (css: string) => css.replace(/\/\*[\s\S]*?\*\//g, "");
@@ -1151,25 +1171,6 @@ const PAGE_OVERRIDES: string[] = [
   "queue.css: .queue-stage-icon > .icon-glyph, .queue-stage-icon > .icon-glyph[data-leaving]",
   "queue.css: .queue-stage-icon > .icon-glyph[data-leaving]",
   'reader.css: .chip[data-playing="true"] .chip-label',
-  "settings.css: .settings-row .value-select > .icon-glyph",
-  "settings.css: .settings-row .value-select > .icon-glyph",
-  "settings.css: .settings-row .value-select > .icon-glyph",
-  "settings.css: .settings-row .value-select > select.field-input",
-  "settings.css: .settings-row .value-select > select.field-input:focus-visible",
-  "settings.css: .settings-row .value-select > select.field-input:open",
-  "settings.css: .settings-row .value-select > select.field-input:where(:enabled):active",
-  "settings.css: .settings-row .value-select > select.field-input:where(:enabled):hover",
-  "settings.css: .settings-row .value-select:has(> select:open) > .icon-glyph",
-  "settings.css: .settings-row:is([data-quiet], :has(.slider-input:disabled)) .settings-label",
-  "settings.css: .settings-row[data-models] .value-select > select.field-input",
-  "settings.css: .settings-view .value-select > select.field-input",
-  "settings.css: .settings-view:not([data-ready]) .slider-input::-moz-range-progress",
-  "settings.css: .settings-view:not([data-ready]) .slider-input::-moz-range-thumb",
-  "settings.css: .settings-view:not([data-ready]) .slider-input::-webkit-slider-thumb",
-  "settings.css: .settings-view:not([data-ready]) .switch-input",
-  "settings.css: .settings-view:not([data-ready]) .switch-input::before",
-  "settings.css: :is(.settings-view, .manage) .row-action .icon-glyph",
-  "settings.css: :where(.settings-row) > .slider-input",
   'sheets.css: .sheet-actions .button-filled[aria-disabled="true"]:active',
   'sheets.css: .sheet-actions .button-filled[data-busy="true"]',
   "sheets.css: .sheet-field-error .icon-glyph",
@@ -1305,8 +1306,8 @@ describe("design-system components in page stylesheets", () => {
 
 describe("component stylesheets", () => {
   it("covers every stylesheet the layout or an island imports", () => {
-    // The command center (D224) imports the Costs and Health sheets from here. A sheet may import
-    // another (settings.css takes the page frame from the system).
+    // The admin's Costs and Health sheets live in apps/admin (D382 step 2b). A sheet may import
+    // another (settings.css takes the page frame and the settings rows from the system).
     const sources = [SRC, SYSTEM_SRC, join(SRC, "..", "..", "admin", "src")].flatMap((src) =>
       readdirSync(src, { recursive: true, encoding: "utf8" })
         .filter((file) => /\.(astro|tsx|css)$/.test(file))
@@ -1322,17 +1323,37 @@ describe("component stylesheets", () => {
     // `var(--space-5)` with no --space-5 is not an error to the browser: the whole declaration is
     // dropped, silently. The design system's rule (unknown-property): a property with a fallback is
     // one that script or a library may set, and what the reader's markup and script declare counts.
-    const sources = [SRC, SYSTEM_STYLES, SYSTEM_SRC].flatMap((src) =>
-      readdirSync(src, { recursive: true, encoding: "utf8" })
-        .filter((file) => /\.(css|astro|tsx|ts)$/.test(file) && !/\.(test|spec)\.tsx?$/.test(file))
-        .map((file) => join(src, file)),
-    );
-    const declared = new Set(
-      sources.flatMap((file) => [...declaredProperties(readFileSync(file, "utf8"), file)]),
+    // The admin loads the system and its own files only, so its sheets may not lean on the reader's.
+    const declaredIn = (roots: string[]) =>
+      new Set(
+        roots
+          .flatMap((src) =>
+            readdirSync(src, { recursive: true, encoding: "utf8" })
+              .filter(
+                (file) => /\.(css|astro|tsx|ts)$/.test(file) && !/\.(test|spec)\.tsx?$/.test(file),
+              )
+              .map((file) => join(src, file)),
+          )
+          .flatMap((file) => [...declaredProperties(readFileSync(file, "utf8"), file)]),
+      );
+    const readerDeclared = declaredIn([SRC, SYSTEM_STYLES, SYSTEM_SRC]);
+    const adminDeclared = declaredIn([join(ADMIN_STYLES, ".."), SYSTEM_STYLES, SYSTEM_SRC]);
+    // The system's sheets the admin's shell loads must hold with what the admin declares, too.
+    const adminLoads = new Set(
+      [
+        ...readFileSync(join(ADMIN_STYLES, "..", "layouts", "Shell.astro"), "utf8").matchAll(
+          /design-system\/styles\/([a-z-]+\.css)/g,
+        ),
+      ].map((match) => match[1]),
     );
     const offenders = [...OWN_FILES, "foundations.css"].flatMap((file) =>
-      unknownProperty(read(file), file, declared).map(
-        ({ line, message }) => `${file}:${line} ${message}`,
+      [
+        ...(ADMIN_FILES.includes(file) ? [] : [readerDeclared]),
+        ...(ADMIN_FILES.includes(file) || adminLoads.has(file) ? [adminDeclared] : []),
+      ].flatMap((declared) =>
+        unknownProperty(read(file), file, declared).map(
+          ({ line, message }) => `${file}:${line} ${message}`,
+        ),
       ),
     );
     expect(offenders).toEqual([]);

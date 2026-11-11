@@ -1,7 +1,7 @@
 {
   "name": "@singularityfm/contracts",
-  "version": "0.1.1",
-  "description": "Singularity's store readers and admin session cookie, compiled for apps outside the main repository.",
+  "version": "0.2.0",
+  "description": "Singularity's store readers, health rows and admin session cookie, compiled for apps outside the main repository.",
   "license": "UNLICENSED",
   "repository": {
     "type": "git",
@@ -11,12 +11,17 @@
   "type": "module",
   "sideEffects": false,
   "exports": {
+    "./health": "./src/health.ts",
     "./session": "./src/session.ts",
     "./store": "./src/store.ts"
   },
   "publishConfig": {
     "access": "public",
     "exports": {
+      "./health": {
+        "types": "./dist/contracts/src/health.d.ts",
+        "default": "./dist/contracts/src/health.js"
+      },
       "./session": {
         "types": "./dist/contracts/src/session.d.ts",
         "default": "./dist/contracts/src/session.js"

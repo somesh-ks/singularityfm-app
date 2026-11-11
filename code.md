@@ -10,7 +10,7 @@ The smallest complete change. First list every caller, test, fixture and config 
 - Bug fix: grep every caller, then fix the root cause once in the shared code, with tokens and shared components, never a one-off or hardcoded value, and a check that flags drift. Moved code keeps its validation and error handling.
 - A shortcut with a known limit gets `// shortcut: <the limit>, <when to upgrade>`.
 - Never cut validation at trust boundaries, data-loss guards, security or accessibility.
-- Say "done" only for what you ran; list the rest as unverified with `closed when:`. End the reply with what you skipped or did not check.
+- Say "done" only for what you ran on the reported case (his data, the live URL); a fixture, mock or emulator run is unverified: list it and the rest with `closed when:`. End the reply with what you skipped or did not check.
 
 ## Tests
 
@@ -20,5 +20,5 @@ Few, one layer each, aimed at what fails silently ([evidence](docs/engineering/p
 - A test names the bug it prevents: no sentence, no test. Search the unit, `apps/web/e2e` and `apps/web/src/player/e2e` suites for the behaviour first, and extend or replace a test instead of adding one.
 - Test journeys across pages, reload, offline and time, not states. Never pin copy, CSS, class names, markup, geometry or constants: screenshots and critics judge those.
 - Fake the clock, crypto and network; freeze fixtures; never sleep or read live config. Assert a menu is open with `expect.poll` on `:popover-open`, not `toBeVisible` (it holds through the exit animation); install an animation slowdown before the first action.
-- An existing test changes only with his OK, asked once per PR with the list; delete tests of removed behaviour in the same commit. Streamline tests in the PR: drop old assertions, fold overlaps. A test guards a real failure mode (owner, 11-03): show it red first, test where logic lives; never add one for coverage.
+- Edit an existing test only with his OK (one ask per PR with the list), then add `tests-ok` and link it in the PR body (CI gate). Delete tests of removed behaviour in its commit; fold or drop old assertions. A test guards a real failure (owner, 11-03): show it red first, test where logic lives; never for coverage.
 - A browser test runs once: on the phone unless it is tagged `@desktop` (desktop only) or `@both`. Counts and run times are in `docs/state.md`; a change that breaks the budget cuts first.

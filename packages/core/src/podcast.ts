@@ -1,6 +1,7 @@
 import { parse, stringify } from "yaml";
 import { z } from "zod";
 import { CoverSpec, MAX_REGENERATIONS } from "./digest.js";
+import { PODCAST_LENGTHS } from "./storyCount.js";
 import { VOICE_LIMITS } from "./voiceLimits.js";
 
 /**
@@ -26,7 +27,7 @@ export const PODCAST_CHARS_PER_MINUTE = 968;
 /** Hard ceiling on a script, whatever the request asks for. */
 export const PODCAST_MAX_CHARS = 15_000;
 
-export const PODCAST_LENGTHS = [3, 5, 10, 15] as const;
+export { PODCAST_LENGTHS };
 export const PODCAST_FORMATS = ["readout", "discussion", "headlines"] as const;
 /** The formats a new request may ask for; a stored episode may still say "headlines". */
 export const NEW_PODCAST_FORMATS = ["readout", "discussion"] as const;
@@ -54,7 +55,7 @@ export const HostName = z.string().trim().regex(HOST_NAME_PATTERN);
 export const StoredPodcastRequest = z.object({
   /** Section or category ids exactly as they appear in published digests. */
   topic_ids: z.array(z.string().min(1).max(64)).min(1).max(PODCAST_MAX_TOPICS),
-  length_minutes: z.union([z.literal(3), z.literal(5), z.literal(10), z.literal(15)]),
+  length_minutes: z.literal(PODCAST_LENGTHS),
   /**
    * How many stories the episode tells (D377): null or absent is Auto, as many as the length and the
    * format hold. A number is held to what they hold.

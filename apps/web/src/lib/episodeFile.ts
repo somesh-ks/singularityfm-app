@@ -4,6 +4,10 @@ import {
   HOST_NAME_PATTERN,
   isFieldRecord,
   MAX_REGENERATIONS,
+  PODCAST_FORMATS,
+  PODCAST_LENGTHS,
+  PODCAST_TONES,
+  PODCAST_WINDOWS,
   readEpisodeFrontmatter,
   readEpisodeTurns,
   readEpisodeVoice,
@@ -59,10 +63,10 @@ export interface Episode {
   regenerations?: number;
 }
 
-const LENGTHS = [3, 5, 10, 15] as const;
-const FORMATS = ["readout", "discussion", "headlines"] as const;
-const WINDOWS = [2, 7, 30] as const;
-const TONES = ["neutral", "energetic"] as const;
+const LENGTHS = PODCAST_LENGTHS;
+const FORMATS = PODCAST_FORMATS;
+const WINDOWS = PODCAST_WINDOWS;
+const TONES = PODCAST_TONES;
 /** Narration pace, in characters a minute. The estimate on the Create page uses the same figure. */
 export const CHARS_PER_MINUTE = 960;
 

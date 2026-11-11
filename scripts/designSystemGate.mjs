@@ -24,27 +24,11 @@ const APP_IMPORT = /(?:from|import)\s*\(?\s*["']([^"'\s]+)["']|url\(\s*["']?([^"
 
 /**
  * What one app still takes from another app's folder (D382 step 4e: the reader, the admin and the
- * guide each take a shared part from the package, never from another app). The guide takes nothing;
- * these are the admin's Health, Costs and Experiments pages, drawn with reader parts not yet in the
- * package (the sheets' styles, the settings rows),
- * and the health checks' data both read. The admin's session cookie lives in @singularityfm/contracts. The list
- * only shrinks: a new reach fails, and so does an entry that no longer reaches.
+ * guide each take a shared part from the package, never from another app). None reaches today; the
+ * admin's session cookie and health rows live in @singularityfm/contracts. The list only shrinks: a new
+ * reach fails, and so does an entry that no longer reaches.
  */
-export const CROSS_APP_IMPORTS = [
-  "apps/admin/src/layouts/Shell.astro: ../../../web/src/styles/settings.css",
-  "apps/admin/src/layouts/Shell.astro: ../../../web/src/styles/manage.css",
-  "apps/admin/src/layouts/Shell.astro: ../../../web/src/styles/health.css",
-  "apps/admin/src/layouts/Shell.astro: ../../../web/src/styles/costs.css",
-  "apps/admin/src/lib/pillars.ts: ../../../web/src/lib/healthRows",
-  "apps/admin/src/pages/experiments.astro: ../../../web/src/styles/create-sheet.css",
-  "apps/admin/src/pages/experiments.astro: ../../../web/src/styles/episode-actions.css",
-  "apps/admin/src/pages/experiments.astro: ../../../web/src/styles/sheets.css",
-  "apps/admin/src/pages/experiments.astro: ../../../web/src/styles/player.css",
-  "apps/admin/src/pages/health.astro: ../../../web/src/lib/healthRows",
-  "apps/admin/src/scripts/costsPage.ts: ../../../web/src/lib/brandMarks",
-  "apps/admin/src/scripts/healthPage.ts: ../../../web/src/lib/healthRows",
-  "apps/admin/src/scripts/healthSummary.ts: ../../../web/src/lib/healthRows",
-];
+export const CROSS_APP_IMPORTS = [];
 
 const APP_FILE = /\.(?:ts|tsx|astro|mjs|js|css)$/;
 const APP_SKIP = new Set(["node_modules", "dist", "test-results", "playwright-report"]);

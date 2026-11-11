@@ -1,8 +1,9 @@
 /**
- * What the Health page (/settings/health) lists, in its order. The page draws every row from this at
- * build time, so its labels and its height are there before /api/health answers; the route fills
- * each row's value, line and tone by id (server/health.ts). A row whose id the answer lacks keeps
- * "No data".
+ * What the admin's Health page lists, in its order, and the shape of the reader's /api/health answer.
+ * The page draws every row from this at build time, so its labels and its height are there before
+ * /api/health answers; the reader's route fills each row's value, line and tone by id
+ * (apps/web/src/server/health.ts). A row whose id the answer lacks keeps "No data". Both apps read
+ * this one copy (D382 step 2b).
  */
 
 /** A judged row: good, worth a look, wrong. `none` is a reading with no judgement, and draws no dot. */

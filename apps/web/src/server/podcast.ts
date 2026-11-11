@@ -1,4 +1,14 @@
-import { isFieldRecord as isRecord, StoryCount } from "@singularityfm/core";
+import {
+  isFieldRecord as isRecord,
+  NEW_PODCAST_FORMATS,
+  PODCAST_AUDIENCES,
+  PODCAST_LENGTHS,
+  PODCAST_MAX_TOPICS,
+  PODCAST_TONES,
+  PODCAST_WINDOWS,
+  StoryCount,
+  VOICE_ID_PATTERN,
+} from "@singularityfm/core";
 import type { PodcastCreateResponse, PodcastRequest } from "../types/contracts";
 import { cancelTokenFor } from "./cancelToken";
 import { missingSettings, readServerConfig, secretsOf } from "./config";
@@ -46,16 +56,13 @@ const isNewEpisodeRun = (run: WorkflowRun): boolean => run.title === "episode";
 const countsAsCatchUp = (run: WorkflowRun): boolean =>
   run.conclusion === null || run.conclusion === "success";
 
-/** A guard on the request's size (core's PODCAST_MAX_TOPICS), not a product limit. */
-const MAX_TOPICS = 50;
 export const MAX_TITLE_CHARS = 80;
-const LENGTHS: readonly number[] = [3, 5, 10, 15];
+const LENGTHS: readonly number[] = PODCAST_LENGTHS;
 /** New requests are a readout or a discussion; a stored episode may still say "headlines". */
-const FORMATS: readonly string[] = ["readout", "discussion"];
-const VOICE_ID = /^[A-Za-z0-9_-]{1,64}$/;
-const WINDOWS: readonly number[] = [2, 7, 30];
-const TONES: readonly string[] = ["neutral", "energetic"];
-const AUDIENCES: readonly string[] = ["general", "custom"];
+const FORMATS: readonly string[] = NEW_PODCAST_FORMATS;
+const WINDOWS: readonly number[] = PODCAST_WINDOWS;
+const TONES: readonly string[] = PODCAST_TONES;
+const AUDIENCES: readonly string[] = PODCAST_AUDIENCES;
 /** A section id: a built-in one or one that came with a topic the owner added. */
 const SECTION_ID = /^[a-z0-9][a-z0-9_-]{0,63}$/;
 /** How long to wait for GitHub to list a run it was just asked to start, when dispatch gave no id. */
@@ -78,9 +85,9 @@ const busyRefusal: PodcastResult = {
 const unavailable: PodcastResult = { status: 503, body: { status: 503, error: "unavailable" } };
 const invalid: PodcastResult = { status: 400, body: { status: 400, error: "invalid_request" } };
 
-/** One to MAX_TOPICS distinct section ids, or null. */
+/** One to PODCAST_MAX_TOPICS distinct section ids, or null. */
 function parseTopicIds(value: unknown): string[] | null {
-  if (!Array.isArray(value) || value.length < 1 || value.length > MAX_TOPICS) return null;
+  if (!Array.isArray(value) || value.length < 1 || value.length > PODCAST_MAX_TOPICS) return null;
   const chosen: string[] = [];
   for (const topic of value) {
     if (typeof topic !== "string" || !SECTION_ID.test(topic) || chosen.includes(topic)) return null;
@@ -97,7 +104,8 @@ function parseTopicIds(value: unknown): string[] | null {
 export function parsePodcastRequest(value: unknown): PodcastRequest | null {
   if (!isRecord(value)) return null;
   const { topic_ids: topics, length_minutes: length, format, window_days: window, tone } = value;
-  if (!Array.isArray(topics) || topics.length < 1 || topics.length > MAX_TOPICS) return null;
+  if (!Array.isArray(topics) || topics.length < 1 || topics.length > PODCAST_MAX_TOPICS)
+    return null;
   const chosen: string[] = [];
   for (const topic of topics) {
     if (typeof topic !== "string" || !SECTION_ID.test(topic) || chosen.includes(topic)) return null;
@@ -116,7 +124,7 @@ export function parsePodcastRequest(value: unknown): PodcastRequest | null {
   for (const key of ["voice_id", "voice_id_b"] as const) {
     const voice = value[key];
     if (voice === undefined) continue;
-    if (voice !== null && (typeof voice !== "string" || !VOICE_ID.test(voice))) return null;
+    if (voice !== null && (typeof voice !== "string" || !VOICE_ID_PATTERN.test(voice))) return null;
     voices[key] = voice;
   }
 

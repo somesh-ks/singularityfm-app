@@ -1,3 +1,4 @@
+import { HEALTH_JOBS, type HealthBody } from "@singularityfm/contracts/health";
 import {
   type Digest,
   digestRelPath,
@@ -9,8 +10,6 @@ import {
 import { type ClientFaultGroup, readClientFaults } from "@singularityfm/engine/faults-store";
 import { readHealthReport, type StoredHealth } from "@singularityfm/engine/health-store";
 import { readVitals, type VitalSummary } from "@singularityfm/engine/vitals-store";
-import type { HealthBody } from "../lib/healthRows";
-import { HEALTH_JOBS } from "../lib/healthRows";
 import { readServerConfig } from "./config";
 import { isShowingSavedContent } from "./contentRepo";
 import { contentDigestList, contentDigests, contentStateFile } from "./contentSources";

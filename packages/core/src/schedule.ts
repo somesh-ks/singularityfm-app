@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { IdString } from "./categories.js";
 import { GENERAL_TOPICS } from "./generalTopics.js";
-import { StoryCount, VoiceId } from "./podcast.js";
+import { PODCAST_LENGTHS, StoryCount, VoiceId } from "./podcast.js";
 import { isSupportedTimeZone } from "./time.js";
 
 /** Days between scheduled briefings the owner can pick: every day, second day, third day, weekly. */
@@ -9,14 +9,9 @@ export const SCHEDULE_CADENCES = [1, 2, 3, 7] as const;
 export type ScheduleCadence = (typeof SCHEDULE_CADENCES)[number];
 
 /** Minutes a scheduled podcast runs: the same choices as a podcast made by hand. */
-export const SCHEDULE_LENGTHS = [3, 5, 10, 15] as const;
+export const SCHEDULE_LENGTHS = PODCAST_LENGTHS;
 export type ScheduleLength = (typeof SCHEDULE_LENGTHS)[number];
-export const ScheduleLengthMinutes = z.union([
-  z.literal(3),
-  z.literal(5),
-  z.literal(10),
-  z.literal(15),
-]);
+export const ScheduleLengthMinutes = z.literal(SCHEDULE_LENGTHS);
 
 const CadenceDays = z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(7)]);
 

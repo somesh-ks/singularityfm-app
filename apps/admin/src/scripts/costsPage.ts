@@ -8,7 +8,7 @@
 import { buttonClass } from "@singularityfm/design-system/button";
 import { mountSegmentedNav } from "@singularityfm/design-system/segmentedNav";
 import { installSelectSheet } from "@singularityfm/design-system/selectSheet";
-import { BRAND_MARKS } from "../../../web/src/lib/brandMarks";
+import { BRAND_MARKS } from "../lib/brandMarks";
 import {
   answerProblem,
   clearProblem,

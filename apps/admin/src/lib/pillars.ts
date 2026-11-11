@@ -7,7 +7,7 @@
  * browser sees, Server is what answers it, Budgets is the daily check's card (D360). Each row keeps
  * the id the route answers by and a name that stands alone under its pillar.
  */
-import { HEALTH_DEVICES, HEALTH_GROUPS, HEALTH_SPEED } from "../../../web/src/lib/healthRows";
+import { HEALTH_DEVICES, HEALTH_GROUPS, HEALTH_SPEED } from "@singularityfm/contracts/health";
 
 export interface Pillar {
   id: string;

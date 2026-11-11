@@ -27,6 +27,8 @@ const GITHUB_SECRETS = [
   // The daily health check (D360): Neon's compute hours, and the site's GitHub token's end date.
   "NEON_API_KEY",
   "SINGULARITY_GH_TOKEN",
+  // The reader's Deploy Hook, which deploy-due.yml starts once a lone merge is due (D389).
+  "VERCEL_DEPLOY_HOOK_WEB",
 ];
 
 /** Plain configuration, stored as GitHub Actions variables so it stays visible in workflow runs. */
@@ -37,6 +39,12 @@ const GITHUB_VARIABLES = [
   "SINGULARITY_GIT_EMAIL",
   // The Neon project the daily health check reads compute hours from (D360); branches.yml too.
   "NEON_PROJECT_ID",
+  // The run switches (runbook 11.1 and 14.1), the second narrator's voice and the health check's
+  // daily spend limit: set by hand until now, so a new machine or a rotated key could miss them.
+  "SINGULARITY_CONFIG_STORE",
+  "SINGULARITY_STATE_STORE",
+  "SPEECHIFY_VOICE_ID_B",
+  "SINGULARITY_DAILY_USD_CEILING",
 ];
 
 /**
@@ -61,14 +69,24 @@ const VERCEL_ENV = [
   "DATABASE_URL",
   // The report routes (/api/costs, /api/health) verify the command center's session cookie (D257).
   "ADMIN_SESSION_SECRET",
+  // The reader's saved settings and run state (runbook 11.1 and 14.1), and /api/narrate's second voice.
+  "SINGULARITY_CONFIG_STORE",
+  "SINGULARITY_STATE_STORE",
+  "SPEECHIFY_VOICE_ID_B",
 ];
 
 /**
- * The command center's sign-in (D224). They go to the separate singularity-admin Vercel project, not
- * the reader's, so they need `apps/admin` linked to it; without that link nothing is sent, because
- * the reader's own link would take them.
+ * The command center's sign-in (D224), then the config store its Experiments switches read (D249,
+ * runbook 1.4a). They go to the separate singularity-admin Vercel project, not the reader's, so they
+ * need `apps/admin` linked to it; without that link nothing is sent, because the reader's own link
+ * would take them.
  */
-const VERCEL_ADMIN_ENV = ["ADMIN_PASSWORD", "ADMIN_SESSION_SECRET"];
+const VERCEL_ADMIN_ENV = [
+  "ADMIN_PASSWORD",
+  "ADMIN_SESSION_SECRET",
+  "DATABASE_URL",
+  "SINGULARITY_CONFIG_STORE",
+];
 
 /** The admin gate's shortest session secret (MIN_SECRET in apps/admin/src/gate/gate.ts); shorter ones keep sign-in shut. */
 const ADMIN_SECRET_MIN = 32;

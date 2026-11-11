@@ -1,13 +1,19 @@
 /**
  * Swipe a row away on Settings > Downloads (D369): a finger slides the row over a red strip with the
  * bin, as a queue row does (useRowSwipe.ts, player.css), ticking as it passes the point it leaves
- * from. Past the shared rule (lib/swipeAway.ts) the row stays out and the page asks before it
+ * from. Past the shared rule (the design system's swipe.ts) the row stays out and the page asks before it
  * removes the copy; Cancel slides it back. A mouse keeps the row's ⋮. A hold still opens the sheet
  * (cardHold.ts): it fires only while the finger is inside its slop, which a swipe has left.
  */
 
-import { AXIS_PX, SIDEWAYS_RATIO, SWIPE_SHARE, swipeLeaves } from "../lib/swipeAway";
-import { createVelocityTracker, TAP_SLOP_PX } from "../player/core/gestureMath";
+import {
+  AXIS_PX,
+  createVelocityTracker,
+  SIDEWAYS_RATIO,
+  SWIPE_SHARE,
+  swipeLeaves,
+  TAP_SLOP_PX,
+} from "@singularityfm/design-system/swipe";
 
 /** How long a row takes to slide home: --duration-press-out and a frame, as the queue's LEAVE_MS. */
 const HOME_MS = 180;

@@ -18,6 +18,12 @@ export interface Release {
 
 export const CHANGELOG: readonly Release[] = [
   {
+    version: "0.23.4",
+    date: "2026-11-11",
+    description:
+      "On a phone, the floating Play button is just the play icon again, a round button that never changes size. While a podcast is being made, the icon shimmers.",
+  },
+  {
     version: "0.23.3",
     date: "2026-11-10",
     description:

@@ -41,11 +41,16 @@ const OWN_FILES = [STYLES, SYSTEM_STYLES]
   .concat(ADMIN_FILES)
   .filter((file) => file.endsWith(".css") && !["tokens.css", "foundations.css"].includes(file))
   .sort();
-// The system's copy wins over a same-named reader file, as before the admin's two sheets joined.
+// The admin's two sheets are read from its folder only; otherwise the system's copy wins over a
+// same-named reader file. A search over all three would let a later same-named file shadow the admin's.
 const read = (file: string) =>
   readFileSync(
     join(
-      [SYSTEM_STYLES, STYLES, ADMIN_STYLES].find((dir) => existsSync(join(dir, file))) ?? STYLES,
+      ADMIN_FILES.includes(file)
+        ? ADMIN_STYLES
+        : existsSync(join(SYSTEM_STYLES, file))
+          ? SYSTEM_STYLES
+          : STYLES,
       file,
     ),
     "utf8",
@@ -1333,12 +1338,23 @@ describe("component stylesheets", () => {
       );
     const readerDeclared = declaredIn([SRC, SYSTEM_STYLES, SYSTEM_SRC]);
     const adminDeclared = declaredIn([join(ADMIN_STYLES, ".."), SYSTEM_STYLES, SYSTEM_SRC]);
+    // The system's sheets the admin's shell loads must hold with what the admin declares, too.
+    const adminLoads = new Set(
+      [
+        ...readFileSync(join(ADMIN_STYLES, "..", "layouts", "Shell.astro"), "utf8").matchAll(
+          /design-system\/styles\/([a-z-]+\.css)/g,
+        ),
+      ].map((match) => match[1]),
+    );
     const offenders = [...OWN_FILES, "foundations.css"].flatMap((file) =>
-      unknownProperty(
-        read(file),
-        file,
-        ADMIN_FILES.includes(file) ? adminDeclared : readerDeclared,
-      ).map(({ line, message }) => `${file}:${line} ${message}`),
+      [
+        ...(ADMIN_FILES.includes(file) ? [] : [readerDeclared]),
+        ...(ADMIN_FILES.includes(file) || adminLoads.has(file) ? [adminDeclared] : []),
+      ].flatMap((declared) =>
+        unknownProperty(read(file), file, declared).map(
+          ({ line, message }) => `${file}:${line} ${message}`,
+        ),
+      ),
     );
     expect(offenders).toEqual([]);
   });

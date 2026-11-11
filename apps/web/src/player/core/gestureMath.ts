@@ -1,14 +1,8 @@
 import { TAP_SLOP_PX } from "@singularityfm/design-system/swipe";
 import { clamp } from "./mathUtils";
 
-// The sample ring, its velocity and the tap slop come from the design system's swipe rule, so the
-// sheet, the queue rows and the Toast read one copy.
-export type { Sample } from "@singularityfm/design-system/swipe";
-export {
-  createVelocityTracker,
-  estimateVelocity,
-  TAP_SLOP_PX,
-} from "@singularityfm/design-system/swipe";
+// The sample ring, its velocity and the tap slop are the design system's swipe rule
+// (@singularityfm/design-system/swipe), so the sheet, the queue rows and the Toast read one copy.
 
 /** Converts a release velocity in px/ms to the spring's unit: progress per second. */
 export function velocityToProgressPerSecond(pxPerMs: number, travelPx: number): number {

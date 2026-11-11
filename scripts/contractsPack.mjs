@@ -30,16 +30,25 @@ try {
     }),
   );
   run("pnpm", ["install", "--prefer-offline", "--ignore-workspace"], work);
-  // Every export the admin imports today, by name, so a dropped re-export fails too.
+  // Every value the admin repository imports, and every health table, by name, so a dropped
+  // re-export fails too.
   writeFileSync(
     join(work, "check.mjs"),
     `import * as health from "@singularityfm/contracts/health";
 import * as session from "@singularityfm/contracts/session";
 import * as store from "@singularityfm/contracts/store";
 const want = {
-  health: ["HEALTH_DEVICES", "HEALTH_GROUPS", "HEALTH_JOBS", "HEALTH_SPEED"],
+  health: ["HEALTH_DEVICES", "HEALTH_GROUPS", "HEALTH_JOBS", "HEALTH_SPEED", "HEALTH_TILES"],
   session: ["COOKIE", "cookieOf", "createSession", "hmac", "same", "SESSION_SECONDS", "sessionValid"],
-  store: ["configStoreUrl", "connectNeon", "readExperimentFlags", "readExperimentHits", "readStageTimings"],
+  store: [
+    "configStoreUrl",
+    "connectNeon",
+    "readExperimentFlags",
+    "readExperimentHits",
+    "readStageTimings",
+    "setExperimentEnabled",
+    "setExperimentPromoted",
+  ],
 };
 const missing = [
   ...want.health.filter((name) => !(name in health)),

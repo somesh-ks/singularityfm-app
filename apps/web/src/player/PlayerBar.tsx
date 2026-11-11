@@ -1,5 +1,9 @@
 import IconButton from "@singularityfm/design-system/IconButton";
-import { swipeLeaves } from "@singularityfm/design-system/swipe";
+import {
+  createVelocityTracker,
+  swipeLeaves,
+  TAP_SLOP_PX,
+} from "@singularityfm/design-system/swipe";
 import {
   type PointerEvent as ReactPointerEvent,
   useCallback,
@@ -11,7 +15,6 @@ import {
 } from "react";
 import { chapterMask } from "./core/chapterMask";
 import { formatClock, longDateFromDigestId } from "./core/formatTime";
-import { createVelocityTracker, TAP_SLOP_PX } from "./core/gestureMath";
 import { heldTap } from "./core/heldTap";
 import {
   errorSummary,

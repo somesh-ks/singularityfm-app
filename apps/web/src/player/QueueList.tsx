@@ -1,6 +1,6 @@
+import { TAP_SLOP_PX } from "@singularityfm/design-system/swipe";
 import { useEffect, useLayoutEffect, useRef } from "react";
 import { announce } from "./core/announcerDom";
-import { TAP_SLOP_PX } from "./core/gestureMath";
 import { getPlayQueue } from "./core/playerRuntime";
 import { moveInQueue } from "./core/playQueue";
 import QueueRow, { type QueueGestures } from "./QueueRow";

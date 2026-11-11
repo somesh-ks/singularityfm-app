@@ -1,11 +1,12 @@
 import {
   AXIS_PX,
+  createVelocityTracker,
   SIDEWAYS_RATIO,
   SWIPE_SHARE,
   swipeLeaves,
+  TAP_SLOP_PX,
 } from "@singularityfm/design-system/swipe";
 import { type PointerEvent, useRef } from "react";
-import { createVelocityTracker, TAP_SLOP_PX } from "./core/gestureMath";
 import { getPlayQueue } from "./core/playerRuntime";
 import { getHaptics } from "./sound/soundController";
 

@@ -8,11 +8,12 @@
 
 import {
   AXIS_PX,
+  createVelocityTracker,
   SIDEWAYS_RATIO,
   SWIPE_SHARE,
   swipeLeaves,
+  TAP_SLOP_PX,
 } from "@singularityfm/design-system/swipe";
-import { createVelocityTracker, TAP_SLOP_PX } from "../player/core/gestureMath";
 
 /** How long a row takes to slide home: --duration-press-out and a frame, as the queue's LEAVE_MS. */
 const HOME_MS = 180;

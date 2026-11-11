@@ -1,4 +1,4 @@
-import { MAX_REGENERATIONS, StoryCount } from "@singularityfm/core";
+import { MAX_REGENERATIONS, SCHEDULE_LENGTHS, StoryCount } from "@singularityfm/core";
 import type { GenerateResponse } from "../types/contracts";
 import { cancelTokenFor } from "./cancelToken";
 import { missingSettings, readServerConfig, type ServerEnv, secretsOf } from "./config";
@@ -119,8 +119,8 @@ export function parseTopics(bodyText: string): string[] | null | undefined {
   return chosen;
 }
 
-/** The lengths a person can ask a run for, the schedule's own choices (core's ScheduleLengthMinutes). */
-const LENGTHS: readonly number[] = [3, 5, 10, 15];
+/** The lengths a person can ask a run for, the schedule's own choices. */
+const LENGTHS: readonly number[] = SCHEDULE_LENGTHS;
 
 /**
  * The minutes this one run is asked to be, in place of the schedule's: absent means the schedule's,

@@ -2,7 +2,7 @@
 
 Operations for the owner. Short, imperative, in the order you need it.
 
-Status: updated 2026-10-06 against the built code. Correct a step here when it turns out wrong. `npm run singularity -- <command>` runs the engine CLI; `--help` on any command lists its flags.
+Status: commands and repository visibility checked 2026-11-10. Correct a step here when it turns out wrong. `pnpm run singularity <command>` runs the engine CLI; `--help` on any command lists its flags.
 
 Repository: `somesh-ks/singularityfm-app` (public, D298; renamed from `knowledge-hub`, D382). Site: `news.someshks.work`.
 
@@ -14,7 +14,7 @@ Accounts for Anthropic, Google AI Studio (Gemini), TypeSafe, Exa, Firecrawl and 
 
 **Cost.** About 2 USD per month, dominated by Exa. Judgments cost about 0.01 USD per run and the writer under 0.07 USD per run. Speechify, Vercel Hobby, GitHub Actions (about 120 of 2,000 free minutes) and Cloudflare DNS use free tiers. Details: `git show 91bc533:docs/plan/build-plan.md` Section 10.
 
-**Privacy.** The site is public but unlisted: `noindex` headers, `robots.txt` disallow, no sitemap, no inbound links. Anyone with the URL can read it, and the Blob audio URLs are public. The repository is private. Put nothing in a digest that you would not show a stranger who has the link.
+**Privacy.** The site is public but unlisted: `noindex` headers, `robots.txt` disallow, no sitemap, no inbound links. Anyone with the URL can read it, and the Blob audio URLs are public. Put nothing in a digest that you would not show a stranger who has the link.
 
 Never paste a key into chat. The agent cannot read `.env`; keep it that way.
 
@@ -23,7 +23,7 @@ Never paste a key into chat. The agent cannot read `.env`; keep it that way.
 1. Install Node 24 (`.nvmrc` pins the version). Node 25 and later ship without Corepack: run `npm install -g corepack` first.
 2. Run `corepack enable` once (it gives you the pnpm version `package.json` pins), then from the repository root run `pnpm install --frozen-lockfile`.
 3. Log in to GitHub: `gh auth login`.
-4. Optional: log in to Vercel (`npx vercel login`) to use the CLI for the Blob store or env checks. Creating the project needs only the dashboard.
+4. Optional: log in to Vercel (`pnpm --filter @singularityfm/web exec vercel login`) to use the CLI for the Blob store or env checks. Creating the project needs only the dashboard.
 
 ### 1.2 Create `.env` and add the service keys
 
@@ -55,7 +55,7 @@ Models are not chosen in `.env` or Settings. `config/models.json` lists, per ste
 3. Compare candidates before trusting one. This calls Jev and the routed models with your keys and costs a few cents:
 
 ```bash
-npm run singularity -- eval --yes --only bakeoff --models <id>,<id>
+pnpm run singularity eval --yes --only bakeoff --models <id>,<id>
 ```
 
 ### 1.4 Create the Vercel project
@@ -69,7 +69,7 @@ Vercel deploys through its GitHub integration (D25). No Vercel token is needed i
 
 ### 1.4a Create the admin project (D224)
 
-The command center is a second Vercel project, `singularity-admin`, from the same repo: Root Directory `apps/admin`, "Include source files outside of the Root Directory" on, Production Deployment Protection off (the app gates itself; Vercel protection cannot guard a project reached through a rewrite). The reader's `apps/web/vercel.json` rewrites `/admin` to its `singularity-admin-psi.vercel.app` address. Set `ADMIN_PASSWORD` (a long random password) and `ADMIN_SESSION_SECRET` (a random string of 32 or more characters) in `.env`; `npm run secrets:push` sends them to this project once `apps/admin` is linked (`cd apps/admin && npx vercel link`), or add them by hand under the project's Environment Variables (Production). Until both exist the app answers 503 to everyone. The Experiments switches (D249) also need `DATABASE_URL` and `SINGULARITY_CONFIG_STORE=postgres` on this project, the same values the reader has (Production); without them the page shows the last deploy and its switches stay still.
+The command center is a second Vercel project, `singularity-admin`, from the same repo: Root Directory `apps/admin`, "Include source files outside of the Root Directory" on, Production Deployment Protection off (the app gates itself; Vercel protection cannot guard a project reached through a rewrite). The reader's `apps/web/vercel.json` rewrites `/admin` to its `singularity-admin-psi.vercel.app` address. Set `ADMIN_PASSWORD` (a long random password) and `ADMIN_SESSION_SECRET` (a random string of 32 or more characters) in `.env`; `pnpm run secrets:push` sends them to this project once `apps/admin` is linked (`pnpm --filter @singularityfm/web exec vercel --cwd ../admin link`), or add them by hand under the project's Environment Variables (Production). Until both exist the app answers 503 to everyone. The Experiments switches (D249) also need `DATABASE_URL` and `SINGULARITY_CONFIG_STORE=postgres` on this project, the same values the reader has (Production); without them the page shows the last deploy and its switches stay still.
 
 The design guide is a third project, `singularity-design-system`, built from the design system repo (Root Directory `apps/design`, D382). The reader's `apps/web/vercel.json` rewrites `/design` to its `singularity-design.vercel.app` address.
 
@@ -94,8 +94,8 @@ After that, a version bump in `packages/contracts/package.json` publishes on mer
 Nothing to create. The `snapshot` workflow copies the config store into the `config_snapshots` table of the same Neon database every Sunday and keeps eight (D300). It uses the `DATABASE_URL` secret the other jobs already have.
 
 1. Run the `snapshot` workflow once by hand and check that its log says `snapshot config-snapshots/<date>.json`.
-2. To restore, `.env` needs `DATABASE_URL` and `SINGULARITY_CONFIG_STORE=postgres`. Run `npm run singularity -- config restore --latest --force`. It overwrites newer edits, so run it only when the store has lost its rows.
-3. The table lives in the same database, so it does not help if the database itself is lost. For that, `npm run singularity -- config snapshot --out <file>` makes a copy on your machine; restore it with `--file <file>`.
+2. To restore, `.env` needs `DATABASE_URL` and `SINGULARITY_CONFIG_STORE=postgres`. Run `pnpm run singularity config restore --latest --force`. It overwrites newer edits, so run it only when the store has lost its rows.
+3. The table lives in the same database, so it does not help if the database itself is lost. For that, `pnpm run singularity config snapshot --out <file>` makes a copy on your machine; restore it with `--file <file>`.
 
 ### 1.6 Add the domain and the DNS record
 
@@ -119,10 +119,10 @@ The site has no passphrase (D160): anyone who opens it can start runs and narrat
 
 ### 1.9 Send the secrets
 
-Run this after sections 1.2 to 1.8. The Vercel part needs the project from section 1.4 and a Vercel login (`npx vercel login`); otherwise add the three Vercel variables in the dashboard.
+Run this after sections 1.2 to 1.8. The Vercel part needs the project from section 1.4 and a Vercel login (`pnpm --filter @singularityfm/web exec vercel login`); otherwise add the three Vercel variables in the dashboard.
 
-1. Preview: `npm run secrets:push -- --dry-run`.
-2. Send: `npm run secrets:push`. Use `-- --only github` or `-- --only vercel` to send one side.
+1. Preview: `pnpm run secrets:push --dry-run`.
+2. Send: `pnpm run secrets:push`. Use `--only github` or `--only vercel` to send one side.
 3. The script reads `.env` and sends each non-empty value to GitHub Actions secrets, GitHub Actions variables or the Vercel production environment, with the value on stdin. It prints names and results, never values. Which name goes where is in `scripts/pushSecrets.ts`.
 4. Check the names arrived:
 
@@ -131,11 +131,11 @@ gh secret list -R somesh-ks/singularityfm-app
 gh variable list -R somesh-ks/singularityfm-app
 ```
 
-For the Vercel side, open the project's Settings, Environment Variables in the dashboard (or run `npx vercel link` once, choose the existing `singularityfm-app` project, then `cd apps/web && npx vercel env ls production`).
+For the Vercel side, open the project's Settings, Environment Variables in the dashboard (or run `pnpm --filter @singularityfm/web exec vercel --cwd ../.. link` once, choose the existing `singularityfm-app` project, then `pnpm run vercel:env-list production`).
 
 ### 1.10 Check the setup
 
-Run `npm run singularity -- doctor --online`. It checks Node, git, config, state and key names, then makes authenticated requests: the Anthropic and Gemini model lists must answer, Jev answers a trivial question, Exa answers one search (about 0.007 USD), Firecrawl reports credits, Speechify lists the voice id, Vercel Blob accepts a list call and the site's GitHub token opens the repository and reads Actions variables (with its expiry; write access cannot be tested). Fix every `fail` and read every `warn` before going on.
+Run `pnpm run singularity doctor --online`. It checks Node, git, config, state and key names, then makes authenticated requests: the Anthropic and Gemini model lists must answer, Jev answers a trivial question, Exa answers one search (about 0.007 USD), Firecrawl reports credits, Speechify lists the voice id, Vercel Blob accepts a list call and the site's GitHub token opens the repository and reads Actions variables (with its expiry; write access cannot be tested). Fix every `fail` and read every `warn` before going on.
 
 ### 1.11 Push `main` and deploy
 
@@ -173,7 +173,7 @@ Do this on the current iOS, once a digest with audio is live. Note the iOS versi
 Nothing to do on most days.
 
 - A scheduled run starts in the hour chosen in Settings, Schedule (07:00 to 07:59 Stockholm time by default): Vercel Cron calls `/api/cron/run` every hour, and in that hour it dispatches `run.yml` when the gate says something is due (D61). A regular digest is due every second day, and a weekly digest follows on Sundays. GitHub's own schedule still fires, hours late, as a fallback that ends gated once the briefing exists.
-- The trigger needs `CRON_SECRET` on Vercel: a random value of 16 or more characters in `.env` (for example `openssl rand -hex 24`), sent with `npm run secrets:push -- --only vercel`. Vercel sends it with every cron call, and the route refuses calls while it is missing. To check, open the project's Cron Jobs page in the Vercel dashboard: each call's log line says whether it dispatched.
+- The trigger needs `CRON_SECRET` on Vercel: a random value of 16 or more characters in `.env` (for example `openssl rand -hex 24`), sent with `pnpm run secrets:push --only vercel`. Vercel sends it with every cron call, and the route refuses calls while it is missing. To check, open the project's Cron Jobs page in the Vercel dashboard: each call's log line says whether it dispatched.
 - The digest lands as a `chore(digest): <id>` commit, and the site updates within minutes.
 - GitHub emails you when a scheduled run fails. That is the only notification (D11).
 - Read the briefing at `news.someshks.work`, installed to the iPhone home screen.
@@ -181,7 +181,7 @@ Nothing to do on most days.
 
 Monthly:
 
-1. Run `npm run singularity -- status` and read the failing sources. Fix or drop any that fail five runs in a row.
+1. Run `pnpm run singularity status` and read the failing sources. Fix or drop any that fail five runs in a row.
 2. Check balances: Anthropic and Gemini balances, Exa, Speechify characters (`state/usage-<month>.json` in the content store, or `state/usage.json` without Blob, D339), the TypeSafe console, Vercel Blob usage.
 3. Check the token expiry dates in section 6.
 
@@ -270,7 +270,7 @@ Rotate on a schedule, after any suspected leak, and before expiry. If a key appe
 
 1. Create the new key at the service. Delete the old one after the new one works.
 2. Edit the value in `.env`.
-3. Run `npm run secrets:push`.
+3. Run `pnpm run secrets:push`.
 4. If the value feeds Vercel (`SINGULARITY_GH_TOKEN`, `GITHUB_REPOSITORY`), redeploy from the Vercel dashboard (Deployments, Redeploy on the latest production deployment). Vercel applies new environment values only to new deployments.
 
 | Key | Rotate at | Used by |
@@ -310,7 +310,7 @@ Vercel Hobby holds 1 GB of Blob storage. A four-minute digest is about 4 MB at t
 
 ### 8.1 A digest did not arrive
 
-1. Run `npm run singularity -- status`. A regular digest is due every second day, so a quiet day can be correct (`gated`).
+1. Run `pnpm run singularity status`. A regular digest is due every second day, so a quiet day can be correct (`gated`).
 2. Check the last runs: `gh run list -R somesh-ks/singularityfm-app --workflow run.yml --limit 5`.
 3. No run at 07:13: GitHub can delay or drop scheduled runs. The next daily trigger widens the window, so nothing is lost. Start an on-demand run to get it now.
 4. Run exists but the outcome is `nothing`: fewer than three items cleared the bar. Normal on a quiet day.
@@ -327,7 +327,7 @@ Vercel Hobby holds 1 GB of Blob storage. A four-minute digest is about 4 MB at t
 
 ### 8.3 A model id changed or was retired
 
-Models are resolved at run start from the providers' lists. Symptoms: the run log warns "A model failed; falling back" with `model_not_found`, or `singularity models` shows a family on its fallback id. Run `npm run singularity -- models`, then set `pin` or `fallback_id` for that family in `config/models.json`.
+Models are resolved at run start from the providers' lists. Symptoms: the run log warns "A model failed; falling back" with `model_not_found`, or `singularity models` shows a family on its fallback id. Run `pnpm run singularity models`, then set `pin` or `fallback_id` for that family in `config/models.json`.
 
 ### 8.4 Jev is unavailable
 
@@ -340,7 +340,7 @@ Models are resolved at run start from the providers' lists. Symptoms: the run lo
 
 1. Open the project's Deployments in the Vercel dashboard and read the latest deployment. After a run concludes, the site updates when Vercel finishes, usually a minute or two.
 2. No deployment appeared, or it says blocked: Hobby accepts only commits authored by the team owner. Check that `SINGULARITY_GIT_NAME` and `SINGULARITY_GIT_EMAIL` are set (`gh variable list -R somesh-ks/singularityfm-app`), that the commit author is the owner, and that the GitHub login connected to Vercel matches.
-3. A deployment shows as skipped (Canceled by Ignored Build Step): the push touched nothing the site reads, which is expected for `state`, `config`, docs and `.github`. A push that did touch code is also skipped while it waits for the batch: five merges, three hours, or `[deploy]` in a commit since the last deploy (D375, `scripts/deploy-batch.sh`). The three hours are judged only when some push to main runs the script, so on a quiet night push again or use `[deploy]` before suspecting the `ignoreCommand`; `site_behind` warns only after six hours. To ship a merge at once, merge with `[deploy]` at the end of the PR title; for one already made, ask any session to merge a one-line docs change titled `docs: deploy now [deploy]`. If a code push stayed skipped past the batch, check the `ignoreCommand` in `apps/web/vercel.json`; `singularity health` warns `site_behind` when this happens, and faults (the `health` issue) once the oldest commit the site lacks is a day old (D159). Vercel refuses an `ignoreCommand` over 256 characters (the whole deploy fails), so keep it short. Hobby also refuses every deploy at 100 in a rolling 24 hours, cancelled builds included ("Deployment rate limited"); `health` warns `deploy_rate` at 70 (D247), and the cure is to find the project that builds more than merges explain.
+3. A deployment shows as skipped (Canceled by Ignored Build Step): the push touched nothing the site reads, which is expected for `state`, `config`, docs and `.github`. A push that did touch code is also skipped while it waits for the batch: five merges, three hours, or `[deploy]` in a commit since the last deploy (D375, `scripts/deploy-batch.sh`). The three hours are judged on a push and by `deploy-due.yml` every hour, which starts the Deploy Hook in `VERCEL_DEPLOY_HOOK_WEB` once per due commit (D389); with that secret unset, a lone merge waits for the next push or a `[deploy]`; `site_behind` warns only after six hours. To ship a merge at once, merge with `[deploy]` at the end of the PR title; for one already made, ask any session to merge a one-line docs change titled `docs: deploy now [deploy]`. If a code push stayed skipped past the batch, check the `ignoreCommand` in `apps/web/vercel.json`; `singularity health` warns `site_behind` when this happens, and faults (the `health` issue) once the oldest commit the site lacks is a day old (D159). Vercel refuses an `ignoreCommand` over 256 characters (the whole deploy fails), so keep it short. Hobby also refuses every deploy at 100 in a rolling 24 hours, cancelled builds included ("Deployment rate limited"); `health` warns `deploy_rate` at 70 (D247), and the cure is to find the project that builds more than merges explain.
 4. A build error about missing packages or paths: check Root Directory is `apps/web`, "Include source files outside of the Root Directory" is on, and the `installCommand` in `apps/web/vercel.json` runs `pnpm install --frozen-lockfile` from the repository root.
 5. `news.someshks.work` shows an old page but the deploy succeeded: wait a minute, then hard refresh. Check that the DNS record is DNS only. A proxied record (orange cloud) breaks certificate issuance.
 
@@ -359,9 +359,9 @@ Models are resolved at run start from the providers' lists. Symptoms: the run lo
 ### 9.1 Add a source
 
 1. Add a row to `config/sources.md` under the right category.
-2. Run `npm run singularity -- sources import`. It rebuilds `config/sources.json` from the list, keeping what discovery already found. The new source's id is its name in lowercase with hyphens.
-3. Run `npm run singularity -- sources discover --only <id>`. It finds and verifies the feed. A site with no feed becomes a Firecrawl scrape source.
-4. Run `npm run singularity -- sources check --only <id>` and confirm the source answers.
+2. Run `pnpm run singularity sources import`. It rebuilds `config/sources.json` from the list, keeping what discovery already found. The new source's id is its name in lowercase with hyphens.
+3. Run `pnpm run singularity sources discover --only <id>`. It finds and verifies the feed. A site with no feed becomes a Firecrawl scrape source.
+4. Run `pnpm run singularity sources check --only <id>` and confirm the source answers.
 5. Commit both files as `feat(sources): add <name>` and push. Bot runs cannot change `config/`, so this is always a manual commit.
 
 ### 9.2 Teach with `/learn`
@@ -383,8 +383,8 @@ Git holds the code, state and docs. It does not hold secrets (`.env`, GitHub sec
 | --- | --- |
 | A bad digest | Delete it in the app (or run `delete` on `run.yml`) and run again. It is no longer in git, so a revert does not bring back an older one |
 | A bad edit to one file | `git checkout <sha> -- <path>`, commit, push |
-| Laptop lost | Clone `https://github.com/somesh-ks/singularityfm-app.git`, run `pnpm install --frozen-lockfile`, recreate `.env` from the services (reissue keys if needed), run `npm run secrets:push` only if the stores lost their values |
-| GitHub repository lost | Any clone is a full copy. Create a new private repository, push, then repeat section 1.9 and update `GITHUB_REPOSITORY` |
+| Laptop lost | Clone `https://github.com/somesh-ks/singularityfm-app.git`, run `pnpm install --frozen-lockfile`, recreate `.env` from the services (reissue keys if needed), run `pnpm run secrets:push` only if the stores lost their values |
+| GitHub repository lost | Any clone is a full copy. Create a new repository, push, then repeat section 1.9 and update `GITHUB_REPOSITORY` |
 | Audio lost | Digests are in the content store, not git. Run `content pull`, delete the digest's `.audio.json` locally, set `audio: null` in its `.md`, then `content put <path of the .md>` and `content remove <path of the .audio.json>` (in that order, so a failure between them never leaves a digest pointing at a missing file), and run `audio.yml`. It regenerates at a cost in Speechify characters |
 | Vercel project lost | Repeat sections 1.4 to 1.6 and 1.9, then push to `main` or redeploy from the dashboard |
 
@@ -392,7 +392,7 @@ Git holds the code, state and docs. It does not hold secrets (`.env`, GitHub sec
 
 Do this once, around the merge of the pull request that stops git holding `Digests/` and `Podcasts/`.
 
-1. Before the merge, on a checkout of `main` with `BLOB_READ_WRITE_TOKEN` in `.env`: `npm run singularity -- content sync`. It prints how many files it uploaded; run it again and it should say 0 uploaded. This makes the store match git one last time.
+1. Before the merge, on a checkout of `main` with `BLOB_READ_WRITE_TOKEN` in `.env`: `pnpm run singularity content sync`. It prints how many files it uploaded; run it again and it should say 0 uploaded. This makes the store match git one last time.
 2. Merge the pull request. It edits `run.yml`, `podcast.yml`, `audio.yml`, `health.yml` and `content.yml`, which only you can merge.
 3. Run `run.yml` once with `dry_run` and check its log: `Load content` ends with `N pulled`, and `Save content` ends with `0 uploaded` or the files the run changed.
 4. After the next real daily, check that the digest page shows it and that the Vercel build log has a `content pull` line with `already here` or `pulled`.
@@ -408,8 +408,8 @@ The owner's config (sources, topics, queries, preferences, schedule, structure, 
 ### 11.1 Switch on
 
 1. The workflows already pass the store to the engine: `run.yml`'s Gate step and `podcast.yml`'s Podcast step read `DATABASE_URL` (secret) and `SINGULARITY_CONFIG_STORE` (variable); either one unset leaves the run with no config, and with no files it stops (D296).
-2. GitHub secret `DATABASE_URL`: the Neon connection string (Vercel → Storage → the Neon database → Connect; `vercel env pull` writes `[SENSITIVE]` for a hidden value, which is not the string). Settings → Secrets and variables → Actions → New repository secret, or `npm run secrets:push -- --only github` from `.env`.
-3. Seed from a laptop: `DATABASE_URL` in `.env`, then `npm run singularity -- config pull` (the examples), edit them, `npm run singularity -- config seed --dry-run` and `npm run singularity -- config seed`. It never replaces a row. The `seed` workflow reads `main`, which no longer holds the files (D296), so it writes no document; it still creates the shared rate-limit table (D150).
+2. GitHub secret `DATABASE_URL`: the Neon connection string (Vercel → Storage → the Neon database → Connect; `vercel env pull` writes `[SENSITIVE]` for a hidden value, which is not the string). Settings → Secrets and variables → Actions → New repository secret, or `pnpm run secrets:push --only github` from `.env`.
+3. Seed from a laptop: `DATABASE_URL` in `.env`, then `pnpm run singularity config pull` (the examples), edit them, `pnpm run singularity config seed --dry-run` and `pnpm run singularity config seed`. It never replaces a row. The `seed` workflow reads `main`, which no longer holds the files (D296), so it writes no document; it still creates the shared rate-limit table (D150).
 4. Production's store is already seeded and holds the live copy, so there is nothing to refresh. A new store starts from step 3.
 5. Make sure no edit is waiting: no `config.yml` run is queued before step 6.
 6. GitHub variable: Settings → Secrets and variables → Actions → Variables → `SINGULARITY_CONFIG_STORE` = `postgres`.
@@ -419,7 +419,7 @@ The owner's config (sources, topics, queries, preferences, schedule, structure, 
 
 ### 11.2 Fork or local checkout
 
-The files are not in git, so a fresh checkout has none. `npm run singularity -- config pull` fills `config/`: with `DATABASE_URL` and `SINGULARITY_CONFIG_STORE=postgres` in `.env` it copies the stored documents, and without them it copies `config/examples/`. The site's build runs it first (`apps/web` `prebuild`). To start a store of your own, pull the examples, edit them, then `npm run singularity -- config seed`.
+The files are not in git, so a fresh checkout has none. `pnpm run singularity config pull` fills `config/`: with `DATABASE_URL` and `SINGULARITY_CONFIG_STORE=postgres` in `.env` it copies the stored documents, and without them it copies `config/examples/`. The site's build runs it first (`apps/web` `prebuild`). To start a store of your own, pull the examples, edit them, then `pnpm run singularity config seed`.
 
 If the database is down while the store is on, pages show the build's copy and an edit answers "unavailable" and stays pending on the page. A run, a podcast, an ingest or a build stops when it holds no config files; the cron answers 503. Nothing is made from defaults.
 
@@ -463,7 +463,7 @@ create policy audio_state_rows on state_documents to audio_state
 ```
 
 2. Make the connection string for that login: the owner's string with the user `audio_state` and the new password in place of the owner's (Neon: Connect, choose the role). Use the same pooled host as `DATABASE_URL`.
-3. Put it in `.env` as `AUDIO_DATABASE_URL` and run `npm run secrets:push -- --only github` (or add it by hand: Settings → Secrets and variables → Actions → New repository secret). GitHub only, never Vercel: the site does not use it and the shared `DATABASE_URL` stays out of the audio job.
+3. Put it in `.env` as `AUDIO_DATABASE_URL` and run `pnpm run secrets:push --only github` (or add it by hand: Settings → Secrets and variables → Actions → New repository secret). GitHub only, never Vercel: the site does not use it and the shared `DATABASE_URL` stays out of the audio job.
 4. Merge the pull request (it edits `audio.yml`, `run.yml` and `podcast.yml`, which only you can merge). Nothing changes until the repository variable `SINGULARITY_STATE_STORE` is `postgres`, which a later change sets once every job saves its state.
 5. Check the login with the secret's own string, since a wrong password or host would stop the audio job: from a terminal, `psql '<the AUDIO_DATABASE_URL string>' -c 'select path from state_documents'`. It connects and lists only `state/costs-...` and `state/usage.json` rows, however many others exist.
 
@@ -486,7 +486,7 @@ After the cutover (D300 step 5) there is no turning it off: git holds no `state/
 Do these in order. GitHub redirects the old address for git, the web pages and the API; Vercel, the Claude GitHub App and CodeRabbit follow the repository by its id.
 
 1. GitHub: Settings → General → Repository name → `singularityfm-app` → Rename.
-2. In `.env`, set `GITHUB_REPOSITORY=somesh-ks/singularityfm-app`, then run `npm run secrets:push`. The site starts Regenerate and Catch up runs with it, so do this right after step 1.
+2. In `.env`, set `GITHUB_REPOSITORY=somesh-ks/singularityfm-app`, then run `pnpm run secrets:push`. The site starts Regenerate and Catch up runs with it, so do this right after step 1.
 3. Merge the rename pull request (it edits `AGENTS.md`, which only you merge).
 4. On each machine: `git remote set-url origin https://github.com/somesh-ks/singularityfm-app.git`.
 5. Claude project settings → Repositories: replace the old address with the new one.

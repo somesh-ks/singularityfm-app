@@ -9,6 +9,8 @@ node_modules
 .claude/worktrees/
 .DS_Store
 .claude/settings.local.json
+# Held by apps/web/e2e/run.mjs while a browser suite builds or serves apps/web/dist.
+apps/web/dist.lock
 
 # The owner's own config lives in the config store, not in git (D296). `singularity config pull`
 # fills these from the store, or from config/examples when the store is off.

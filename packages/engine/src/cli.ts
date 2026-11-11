@@ -276,7 +276,7 @@ export async function runCli(argv: readonly string[], io: CliIo = {}): Promise<n
             : "SINGULARITY_CONFIG_STORE is not 'postgres'",
         ].filter((reason) => reason !== null);
         err(
-          `singularity: config/ is missing ${missing.join(", ")} and the config store is off (${off.join("; ")}). In GitHub Actions set the repository variable SINGULARITY_CONFIG_STORE=postgres and the secret DATABASE_URL; on a machine run: npm run singularity -- config pull\n`,
+          `singularity: config/ is missing ${missing.join(", ")} and the config store is off (${off.join("; ")}). In GitHub Actions set the repository variable SINGULARITY_CONFIG_STORE=postgres and the secret DATABASE_URL; on a machine run: pnpm run singularity config pull\n`,
         );
         return 1;
       }

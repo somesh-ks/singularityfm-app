@@ -37,8 +37,8 @@ jobs:
         with:
           ref: main
           persist-credentials: false
-          # The batch counts commits since the live one; further back than this, nothing is done.
-          fetch-depth: 50
+          # Full history: the batch counts commits since the live one, however far behind it is.
+          fetch-depth: 0
       - name: Ask the batch rule whether the reader is due
         id: due
         shell: bash
@@ -50,7 +50,7 @@ jobs:
             exit 0
           }
           live=$(git rev-parse -q --verify "$build^{commit}") && git merge-base --is-ancestor "$live" HEAD || {
-            echo "The live build $build is not a commit in main's last 50: nothing to judge."
+            echo "The live build $build is not a commit on main: nothing to judge."
             exit 0
           }
           head=$(git rev-parse HEAD)

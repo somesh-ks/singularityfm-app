@@ -98,7 +98,6 @@ test("a podcast without audio says where it was left, as its cards do", async ({
     "aria-label",
     "Resume · 2 min left, the podcast",
   );
-  await expect(page.locator(".play-fab [data-chip-label]")).toHaveText("Resume · 2 min left");
 
   await page.goto("/library");
   await hydrated(page);
@@ -150,7 +149,6 @@ test("a podcast heard to the end shows Played in its subtitle and its play butto
   await expect(chip).not.toHaveAttribute("data-state", "played");
   await expect(chip.locator("[data-chip-label]")).not.toHaveText(/played/i);
   await expect(chip).not.toHaveAccessibleName(/played/i);
-  await expect(page.locator(".play-fab [data-chip-label]")).not.toHaveText(/played/i);
   await expect(page.locator(".play-fab")).not.toHaveAttribute("aria-label", /played/i);
 });
 
@@ -162,6 +160,5 @@ test("the floating Play on Today follows the chip", async ({ page }) => {
   const chip = page.locator(".hero [data-play-digest]");
   const fab = page.locator(".play-fab");
   await expect(chip.locator("[data-chip-label]")).toHaveText("1 min left");
-  await expect(fab.locator("[data-chip-label]")).toHaveText("Resume · 1 min left");
   await expect(fab).toHaveAttribute("aria-label", "Resume · 1 min left, the podcast");
 });

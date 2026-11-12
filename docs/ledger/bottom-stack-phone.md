@@ -24,9 +24,9 @@ The navigation bar, the player bar, the floating button, the run indicator and t
   - The navigation slides away by `--player-p` as the player rises.
   - It sat a layer under the player (z 20 over 10), so the slide was hidden from the first frame. It now rises above the player while moving and drops back at rest (`shell.css:269-286`).
 - **The dock fades with travel.** On a phone it fades by `1 - p/0.3` while riding the page (`player.css:1060-1065`).
-- **Floating button** (D52, D59, D60, D77).
+- **Floating button** (D52, D59, D60, D77, D390).
   - Create on the Library only. Play on any page with audio, shown only once the hero's Play has scrolled away. Nothing at 64rem and wider.
-  - Extended at the top and on scroll up, folded on scroll down.
+  - Create: extended at the top and on scroll up, folded on scroll down. Play: the play mark alone, never extended (owner, 2026-11-11: "Play button to remain just an icon FAB").
   - It rides above the navigation, the dock and the run indicator through summed CSS variables, and hides under the open player.
   - No outline: the tonal fill alone lifts it (owner, 2026-11-03: "the fab button has a thin outline that shouldnt be there"). Its border is transparent, so forced colours still draw an edge.
 - **Toasts** (2026-10-10 final audit, D90).

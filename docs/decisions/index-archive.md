@@ -62,7 +62,7 @@ The oldest rows of the decisions Index (D1 to D150), moved here so the live Inde
 | D56 | One panel adds a topic or a source and edits a source; no Custom page | active |
 | D57 | A topic's page edits its details and adds suiting sources; topics are listed by name | active; amended by D64 and D69 |
 | D58 | The Model page offers six top Nebius writers by name, live list or not | superseded by D136 |
-| D59 | On a phone, Play takes the floating button's place on an episode or old briefing | active; Today floats Play too since D60 |
+| D59 | On a phone, Play takes the floating button's place on an episode or old briefing | amended by D390; Today floats Play too since D60 |
 | D60 | On a phone Create floats on the Library alone; every page with audio floats Play | active; Play floats once the hero's Play scrolls off since D77 |
 | D61 | Vercel Cron starts the scheduled briefing in its hour; GitHub's schedule is the fallback | active |
 | D62 | Daily and Weekly each choose topics; voice samples play in the site | active; each topic's Scope sets them since D69 |

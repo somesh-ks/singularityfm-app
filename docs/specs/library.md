@@ -10,7 +10,7 @@ What it does now. Reasons: D44, D59, D60, D77, D78, D88, D97, D104, D109, D127; 
 - Every briefing has Share, Regenerate and Delete in its More menu (D104); a podcast page's More menu also offers Download and Add to queue (D214). Share is a secondary icon button (a circle on the select's fill) after Play (D219). Regenerate replaces that digest over its own window (`singularity run --replace`); Delete removes the digest and its timeline (`singularity run --delete`). Both go through `run.yml` and `/api/generate`. Today's Regenerate takes feedback for the writer and makes a new digest, not a replacement (D103).
 - Regenerate chooses the topics again and takes comments, for an episode and a briefing (D109). A briefing's also takes a Length (Usual, 3, 5, 10 or 15 min). Usual sends no override and keeps the run's own sizing (the schedule's, or none for an on-demand run); the others size the run to that length (D207).
 - Each story has like, dislike and "Stop hearing from" controls.
-- The hero Play chip and the floating Play show resume or the length, never Played (D348); the cards and the page subtitle show played and downloaded marks (D97, see player.md).
+- The hero Play chip and the floating Play's name show resume or the length, never Played (D348); the cards and the page subtitle show played and downloaded marks (D97, see player.md).
 
 ### Episode pages
 - An episode's menu offers Share, Regenerate and Delete (D88, D44). Both actions go through `/api/podcast` and `podcast.yml`.
@@ -39,7 +39,7 @@ What it does now. Reasons: D44, D59, D60, D77, D78, D88, D97, D104, D109, D127; 
 ### Floating button
 - A toast sits at the bottom above the bar and the floating button rises by its height while it shows (`--fab-lift`).
 - On a phone the floating button is Catch up on the Library alone (D60), extended (plus and words) at the top and while scrolling up, folded while scrolling down.
-- Today, older briefings and episodes hold Play there ("Play · 5 min"), only once the hero's Play has scrolled away (D77), and it steps aside once the bar holds it (D59, D60). A Today with no briefing has none.
+- Today, older briefings and episodes hold Play there, the play mark alone (D390), only once the hero's Play has scrolled away (D77), and it steps aside once the bar holds it (D59, D60). A Today with no briefing has none.
 - Pressing the tab of the page you are on scrolls it to the top.
 - Every page can scroll its last control clear of the floating button.
 

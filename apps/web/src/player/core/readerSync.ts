@@ -10,8 +10,8 @@
  *   [data-play-item]     a story's play chip. It names its story by index, by id, or by sitting
  *                        inside the story.
  *   On every chip        data-state (idle, current, played, or preparing while audio buffers),
- *                        data-playing, the visible text in [data-chip-label] (the floating
- *                        button's, data-chip-label="fab", with its verb), and aria-label.
+ *                        data-playing, the visible text in [data-chip-label], and aria-label.
+ *                        The floating button has no words: its name says the chip's after its verb.
  *                        Offline, with nothing loaded, the briefing's chip is data-state
  *                        "unavailable" and aria-disabled.
  *                        A chip of a page without audio carries data-minutes, its page's estimate.
@@ -41,7 +41,6 @@ import {
   briefingChipView,
   type ChipView,
   createHeardTracker,
-  fabLabel,
   fabName,
   type ItemVisualState,
   itemVisualState,
@@ -98,10 +97,11 @@ function writeChip(chip: HTMLElement, view: ChipView, blocked = false): void {
   setDataset(chip, "state", blocked ? "unavailable" : view.state);
   setDataset(chip, "playing", String(view.playing));
   const label = chip.querySelector<HTMLElement>("[data-chip-label]");
-  if (label) {
-    const text = label.dataset.chipLabel ? fabLabel(view) : view.label;
-    if (label.textContent !== text) label.textContent = text;
-    const name = label.dataset.chipLabel
+  if (label && label.textContent !== view.label) label.textContent = view.label;
+  // The floating Play is the glyph alone, so its name is all it says; a chip names itself with its words.
+  const fab = chip.classList.contains("play-fab");
+  if (label || fab) {
+    const name = fab
       ? fabName(view, chip.dataset.noun === "episode" ? "episode" : "podcast")
       : view.name;
     if (chip.getAttribute("aria-label") !== name) chip.setAttribute("aria-label", name);

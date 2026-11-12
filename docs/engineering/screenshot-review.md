@@ -41,7 +41,7 @@ How a thread shows the owner a visual change. One screenshot review per PR, buil
       "id": "suggested",
       "title": "Suggested stays",
       "stills": [
-        { "id": "suggested.phone-light", "file": "stills/suggested-phone-light.webp", "caption": "After tapping +", "tags": { "device": "Phone", "browser": "Chrome", "theme": "Light" }, "new_in": 2 }
+        { "id": "suggested.phone-light", "file": "stills/suggested-phone-light.webp", "caption": "After tapping +", "tags": { "device": "Phone", "browser": "Firefox", "theme": "Light" }, "new_in": 2 }
       ]
     }
   ],

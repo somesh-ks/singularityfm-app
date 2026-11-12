@@ -101,6 +101,7 @@ const PAGE_IDS = [
   "stage",
   "review-data",
   "pr-link",
+  "topbar",
   "notes-copy",
   "theme-btn",
   "device-slot",

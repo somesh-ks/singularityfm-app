@@ -430,7 +430,7 @@ details.history ul { margin: var(--space-2) 0 0; padding-inline-start: 1.25em; d
       // The picture opens the viewer; in comment mode the click goes to the composer first (capture below).
       s.mediaBox = h("div", { class: "media", role: "button", tabindex: "0", "aria-label": `Open ${s.n} full length`,
         onclick: (e) => { if (localPinMode !== s && e.target.tagName !== "VIDEO") openViewer(s); },
-        onkeydown: (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openViewer(s); } } }, media);
+        onkeydown: (e) => { if (localPinMode !== s && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); openViewer(s); } } }, media);
       if (s.width && s.height) new ResizeObserver(() => s.mediaBox.classList.toggle("is-cut", s.mediaBox.scrollHeight > s.mediaBox.clientHeight + 1)).observe(s.mediaBox);
       s.media = media;
       s.notesEl = h("div", { class: "notes" });
@@ -479,7 +479,7 @@ details.history ul { margin: var(--space-2) 0 0; padding-inline-start: 1.25em; d
   // keep: flipping before and after keeps the zoom and position, so the two compare pixel for pixel.
   function openViewer(s, keep = false) {
     keep &&= !!vs && vs.width === s.width && vs.height === s.height;
-    vs = s; viewer.hidden = false; document.documentElement.style.overflow = "hidden";
+    vs = s; viewer.hidden = false; document.documentElement.style.overflow = "hidden"; pageInert(true);
     const c = s.change;
     $("#v-state").replaceChildren(c.states.length > 1 ? segmented("Viewer, before or after", c.states, () => c.state, (x) => { c.state = x; flip(c); }) : "");
     showPicks();
@@ -497,10 +497,13 @@ details.history ul { margin: var(--space-2) 0 0; padding-inline-start: 1.25em; d
       if (keep) return apply();
       vz.k = vz.fit; vz.x = (r.width - w * vz.k) / 2; vz.y = Math.max(0, (r.height - hh * vz.k) / 2); apply();
     };
-    if (vEl.complete || vEl.tagName === "VIDEO") requestAnimationFrame(fit); else vEl.addEventListener("load", fit, { once: true });
+    if (vEl.tagName === "VIDEO" ? s.width || vEl.readyState >= 1 : vEl.complete) requestAnimationFrame(fit);
+    else vEl.addEventListener(vEl.tagName === "VIDEO" ? "loadedmetadata" : "load", fit, { once: true });
     if (!keep) $("#v-close").focus(); else $('#v-state [aria-selected="true"]')?.focus();
   }
-  function closeViewer() { const s = vs; viewer.hidden = true; vs = null; vEl = null; document.documentElement.style.overflow = ""; report(); s?.mediaBox.focus(); }
+  // Only the page's own parts go inert, so the host's comment layer still works over the viewer.
+  function pageInert(on) { $("#topbar").inert = on; $("main").inert = on; }
+  function closeViewer() { const s = vs; viewer.hidden = true; vs = null; vEl = null; document.documentElement.style.overflow = ""; pageInert(false); report(); s?.mediaBox.focus(); }
   function step(d) { const o = order(); const i = o.indexOf(vs); if (i < 0) return; openViewer(o[(i + d + o.length) % o.length]); }
   function apply() { if (vEl) vEl.style.transform = `translate(${vz.x}px, ${vz.y}px) scale(${vz.k})`; report(); }
   function zoomAt(cx, cy, k) {
@@ -567,7 +570,7 @@ details.history ul { margin: var(--space-2) 0 0; padding-inline-start: 1.25em; d
     }
     if (comments) { try { await comments.openComposer({ element: s.media }); } catch (e) { console.warn("openComposer", e?.code); } return; }
     localPinMode = s; s.mediaBox.style.cursor = "crosshair";
-    s.notesEl.prepend(h("p", { class: "meta", "data-hint": "" }, "Tap the spot."));
+    s.notesEl.prepend(h("p", { class: "meta", "data-hint": "" }, "Tap the spot, or press Enter to pin the middle."));
   }
 
   document.addEventListener("click", async (e) => {
@@ -608,12 +611,15 @@ details.history ul { margin: var(--space-2) 0 0; padding-inline-start: 1.25em; d
       try { await navigator.clipboard.writeText(text); copy.textContent = "Copied"; setTimeout(() => (copy.textContent = "Copy notes"), 1500); }
       catch { const ta = h("textarea", { style: "position:fixed;inset:auto 0 0;height:40vh;z-index:30" }); ta.value = text; document.body.append(ta); ta.select(); ta.addEventListener("blur", () => ta.remove()); }
     };
-    for (const s of stills) s.mediaBox.addEventListener("click", (e) => {
-      if (localPinMode !== s || e.target.closest("button")) return;
-      const [x, y] = pct(s.media, e);
+    const addNote = (s, x, y) => {
       notes.push({ still: s.id, x: +x, y: +y, text: "" }); localPinMode = null; s.mediaBox.style.cursor = "";
       s.notesEl.querySelector("[data-hint]")?.remove(); save(); renderNotes(); [...s.notesEl.querySelectorAll(".note textarea")].at(-1)?.focus();
-    });
+    };
+    for (const s of stills) {
+      s.mediaBox.addEventListener("click", (e) => { if (localPinMode === s && !e.target.closest("button")) addNote(s, ...pct(s.media, e)); });
+      s.mediaBox.addEventListener("keydown", (e) => { if (localPinMode === s && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); addNote(s, 50, 50); } });
+      new ResizeObserver(() => placePins(s)).observe(s.media);
+    }
     renderNotes();
   }
   function save() { store.set(NOTES_KEY, notes); }
@@ -633,7 +639,15 @@ details.history ul { margin: var(--space-2) 0 0; padding-inline-start: 1.25em; d
   }
   function renderLocalPins() {
     for (const p of document.querySelectorAll(".media > .pin")) p.remove();
-    notes.forEach((n, i) => { const s = byId.get(n.still); if (!s) return; s.mediaBox.append(h("span", { class: "pin", style: `left:${n.x}%;top:${n.y}%` }, String(i + 1))); });
+    notes.forEach((n, i) => { const s = byId.get(n.still); if (!s) return; s.mediaBox.append(h("span", { class: "pin", "data-x": n.x, "data-y": n.y }, String(i + 1))); });
+    for (const s of stills) placePins(s);
+  }
+  // A note's spot is a percent of the picture, which sits centred in its box and is cut when long, so place it from the picture.
+  function placePins(s) {
+    const m = s.media;
+    for (const p of s.mediaBox.querySelectorAll(":scope > .pin")) {
+      p.style.left = `${m.offsetLeft + (p.dataset.x / 100) * m.offsetWidth}px`; p.style.top = `${m.offsetTop + (p.dataset.y / 100) * m.offsetHeight}px`;
+    }
   }
   function notesText() {
     const lines = [`Review notes: PR #${R.pr}, version ${R.version}`];

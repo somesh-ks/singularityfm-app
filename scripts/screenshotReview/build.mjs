@@ -149,6 +149,9 @@ export function normalise(review, dir) {
     if (!change.id || !change.title || !Array.isArray(change.stills))
       fail("each change needs id, title and stills");
     claim(change.id, `change "${change.id}"`);
+    const notes = change.notes ?? {};
+    if (typeof notes !== "object" || Object.values(notes).some((n) => typeof n !== "string"))
+      fail(`change "${change.id}": "notes" maps a state (Before, After) to its text`);
     claim(`${change.id}-h`, `change "${change.id}"`);
     for (const still of change.stills) {
       if (!/^[a-z0-9][a-z0-9.-]{0,60}$/.test(still.id ?? ""))

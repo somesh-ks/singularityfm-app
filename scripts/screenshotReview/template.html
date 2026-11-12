@@ -121,7 +121,14 @@ html[data-comment-mode] .media.is-cut::after { display: none; }
 figcaption { display: grid; gap: 0; }
 .tags { display: flex; gap: var(--space-2); align-items: center; min-width: 0; }
 .viewer-bar .segmented-nav, .bar .segmented-nav, .change-bar .segmented-nav { flex: none; justify-self: start; }
+.change-bar { padding-block: var(--space-2); }
 .viewer-bar .segmented-nav-tab, .bar .segmented-nav-tab, .change-bar .segmented-nav-tab { padding-inline: var(--space-4); }
+/* Every switch on this page is a chip's height, so the bars it sits in keep air above and below it
+   (owner, 2026-11-12); the pill keeps an even inset. A glyph tab is a glyph plus that inset on each
+   side, and its target reaches the touch size, as the system's compact tab does. */
+body { --segmented-height: var(--chip-height); }
+.segmented-nav-tab:has(> .icon-glyph) { padding-inline: var(--space-2); }
+.segmented-nav-tab::before { content: ""; position: absolute; inset-block: calc((var(--segmented-height) - var(--size-touch)) / 2); inset-inline: 0; }
 /* On the New tab every card is new: its New badge would say nothing. */
 html[data-scope="New"] .badge-label { display: none; }
 .tags .no { color: var(--color-on-surface); font-weight: var(--font-weight-medium); font-variant-numeric: tabular-nums; }

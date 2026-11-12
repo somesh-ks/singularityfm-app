@@ -51,7 +51,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .bar-end { justify-self: end; display: flex; align-items: center; gap: var(--space-1); }
 .bar-end .button-text { white-space: nowrap; }
 
-/* Header: title, one quiet line, then what to check. */
+/* Header: title, one quiet line, then what to check; the New and All tabs open the stills. */
 header.intro { display: grid; gap: var(--space-2); padding-top: var(--space-4); }
 h1 { margin: 0; font-size: var(--text-display-size); line-height: var(--text-display-leading); font-weight: var(--font-weight-medium); text-wrap: balance; }
 .meta { margin: 0; color: var(--color-on-surface-muted); font-size: var(--text-meta-size); }
@@ -71,14 +71,22 @@ h1 { margin: 0; font-size: var(--text-display-size); line-height: var(--text-dis
 .filters .segmented-nav { flex: 0 1 auto; }
 @media (width >= 40rem) { .filters .segmented-nav-tab { padding-inline: var(--space-4); } }
 
-/* A change: its title, then its stills. Light and dark copies of one view share a card; the theme
-   filter picks which one shows, so the page is one card per view. */
+/* A change: a bar with its title and its Before and After switch that sticks under the top bar while
+   its stills scroll, so the context stays in view; then its notes, then its cards. A hairline opens
+   each change; the stuck bar takes the top bar's hairline. */
 #changes { display: grid; gap: var(--space-12); }
-section.change { display: grid; gap: var(--space-4); scroll-margin-top: var(--space-16); }
+section.change { display: grid; gap: var(--space-4); padding-top: var(--space-8); box-shadow: inset 0 0.0625rem 0 var(--color-surface-container); scroll-margin-top: var(--size-touch-comfortable); }
+.change-bar {
+  position: sticky; top: calc(env(safe-area-inset-top, 0rem) + var(--size-touch-comfortable)); z-index: 4;
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-4);
+  min-height: var(--size-touch-comfortable); margin-inline: calc(-1 * var(--gutter)); padding-inline: var(--gutter);
+  background: var(--color-surface);
+}
+.change-bar.is-stuck { box-shadow: 0 0.0625rem 0 var(--color-surface-container); }
+.change-bar h2 { margin: 0; min-width: 0; font-size: var(--text-title-size); line-height: var(--text-title-leading); font-weight: var(--font-weight-medium); text-wrap: balance; }
 .change-head { display: grid; gap: var(--space-1); }
-.change-head h2 { margin: 0; font-size: var(--text-title-size); line-height: var(--text-title-leading); font-weight: var(--font-weight-medium); text-wrap: balance; }
+.change-head:empty { display: none; }
 .change-head p { margin: 0; color: var(--color-on-surface-reading); }
-.change-head .segmented-nav { margin-top: var(--space-2); }
 .state-note { display: grid; }
 .state-note:empty { display: none; }
 .state-note > * { grid-area: 1 / 1; }
@@ -88,7 +96,7 @@ section.change { display: grid; gap: var(--space-4); scroll-margin-top: var(--sp
 /* A still: the picture (tap to open it full length), then one line of labels. Nothing sits on the
    picture, so nothing hides what is being judged. A tall still shows its top and fades; the viewer
    shows all of it. */
-figure.still { margin: 0; display: grid; gap: var(--space-2); min-width: 0; scroll-margin-top: var(--space-16); }
+figure.still { margin: 0; display: grid; gap: var(--space-2); min-width: 0; scroll-margin-top: calc(var(--size-touch-comfortable) * 2 + var(--space-4)); }
 /* A card is a slot: the copy that shows, and its copy in the change's other state kept invisible in
    the same cell, so the card is as tall as the taller of the two and a flip never moves the page.
    A view with no copy in the picked state says so in the space it keeps. */
@@ -112,8 +120,10 @@ html[data-comment-mode] .media { cursor: crosshair; }
 html[data-comment-mode] .media.is-cut::after { display: none; }
 figcaption { display: grid; gap: 0; }
 .tags { display: flex; gap: var(--space-2); align-items: center; min-width: 0; }
-.viewer-bar .segmented-nav, .bar .segmented-nav, .change-head .segmented-nav { flex: none; justify-self: start; }
-.viewer-bar .segmented-nav-tab, .bar .segmented-nav-tab, .change-head .segmented-nav-tab { padding-inline: var(--space-4); }
+.viewer-bar .segmented-nav, .bar .segmented-nav, .change-bar .segmented-nav { flex: none; justify-self: start; }
+.viewer-bar .segmented-nav-tab, .bar .segmented-nav-tab, .change-bar .segmented-nav-tab { padding-inline: var(--space-4); }
+/* On the New tab every card is new: its New badge would say nothing. */
+html[data-scope="New"] .badge-label { display: none; }
 .tags .no { color: var(--color-on-surface); font-weight: var(--font-weight-medium); font-variant-numeric: tabular-nums; }
 .tagline { flex: 1; min-width: 0; color: var(--color-on-surface-muted); font-size: var(--text-meta-size); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .comment-btn { margin-inline-end: calc((var(--size-touch) - var(--size-icon-lg)) / -2); }
@@ -263,11 +273,11 @@ details.history ul { margin: var(--space-2) 0 0; padding-inline-start: 1.25em; d
   // The system's Segmented navigation, drawn as segmentedNav.ts does: tabs a press or Left, Right, Home
   // and End choose. `get` reads the choice, `set` makes it.
   let navs = [];
-  function segmented(name, values, get, set, { compact = false, glyphs = compact } = {}) {
+  function segmented(name, values, get, set, { compact = false, glyphs = compact, labels = {} } = {}) {
     const nav = h("div", { class: `segmented-nav${compact ? " segmented-nav-compact" : ""}`, role: "tablist", "aria-label": name });
     nav.style.setProperty("--seg-n", values.length);
     for (const v of values) nav.append(h("button", { class: "segmented-nav-tab", type: "button", role: "tab", "data-value": v,
-      "aria-label": glyphs ? v : null, title: glyphs ? v : null }, glyphs ? ic(ICON[v]) : v));
+      "aria-label": glyphs ? v : null, title: glyphs ? v : null }, glyphs ? ic(ICON[v]) : labels[v] ?? v));
     nav.addEventListener("click", (e) => { const t = e.target.closest("[role=tab]"); if (t && t.dataset.value !== get()) set(t.dataset.value); });
     nav.addEventListener("keydown", (e) => {
       const i = values.indexOf(get());
@@ -298,6 +308,14 @@ details.history ul { margin: var(--space-2) 0 0; padding-inline-start: 1.25em; d
     $("#device-slot").append(control("theme", themes));
   }
   const filterRow = $("#filters");
+  // New and All: a later version opens on what is new in it. A view is new when any copy of it is.
+  const isNewView = (view) => view.some((s) => s.new_in === R.version);
+  const newViews = views.filter(isNewView).length;
+  if (R.version > 1 && newViews && newViews < views.length) {
+    picked.scope = "New";
+    filterRow.append(segmented("Show", ["New", "All"], () => picked.scope, (v) => pick("scope", v),
+      { labels: { New: `New · ${newViews}`, All: `All · ${views.length}` } }));
+  }
   for (const key of ["mood", "hue"]) {
     const values = valuesOf(key).sort((a, b) => (b === "Default") - (a === "Default"));
     if (values.length < 2) continue;
@@ -336,8 +354,9 @@ details.history ul { margin: var(--space-2) 0 0; padding-inline-start: 1.25em; d
   const isWide = (s) => s.width > s.height || s.tags?.device === "Desktop";
   function applyFilters() {
     showPicks();
+    document.documentElement.dataset.scope = picked.scope ?? "All";
     for (const view of views) {
-      const c = view[0].change, pass = filtersPass(view[0]), shown = pass ? shownCopy(view) : null;
+      const c = view[0].change, pass = filtersPass(view[0]) && (picked.scope !== "New" || isNewView(view)), shown = pass ? shownCopy(view) : null;
       const twins = pass && c.states.length > 1 ? c.states.filter((x) => x !== c.state).map((x) => inState(view, x)).filter((t) => t && t !== shown) : [];
       for (const s of view) {
         s.fig.hidden = s !== shown && !twins.includes(s);
@@ -355,9 +374,21 @@ details.history ul { margin: var(--space-2) 0 0; padding-inline-start: 1.25em; d
       for (const n of c.noteEl.children) n.classList.toggle("is-ghost", n.dataset.state !== c.state);
     }
     report();
+    stuck();
   }
+  // The hairline goes under whichever bar is stuck at the top: a change's, else the top bar's.
   const topbar = $("#topbar");
-  addEventListener("scroll", () => topbar.classList.toggle("is-stuck", scrollY > 0), { passive: true });
+  function stuck() {
+    const top = topbar.getBoundingClientRect().bottom;
+    let any = false;
+    for (const c of R.changes) {
+      const r = c.bar.getBoundingClientRect();
+      const on = !c.section.hidden && r.top <= top + 1 && c.section.getBoundingClientRect().bottom > r.bottom + 1;
+      c.bar.classList.toggle("is-stuck", on); any ||= on;
+    }
+    topbar.classList.toggle("is-stuck", scrollY > 0 && !any);
+  }
+  addEventListener("scroll", stuck, { passive: true });
 
   /* ---- Changes and stills */
   const changesEl = $("#changes");
@@ -368,9 +399,11 @@ details.history ul { margin: var(--space-2) 0 0; padding-inline-start: 1.25em; d
     const sharedLine = shared && shared !== c.what ? shared : null;
     // Every state's note sits in one cell, the others invisible, so the head keeps its height on a flip.
     c.noteEl = h("div", { class: "state-note" }, ...c.states.filter((x) => c.notes?.[x]).map((x) => h("p", { "data-state": x }, c.notes[x])));
+    c.bar = h("div", { class: "change-bar" }, h("h2", { id: `${c.id}-h` }, c.title),
+      c.states.length > 1 ? segmented(`${c.title}: before or after`, c.states, () => c.state, (v) => { c.state = v; flip(c); }) : null);
     c.section = h("section", { class: "change", id: c.id, "aria-labelledby": `${c.id}-h` },
-      h("div", { class: "change-head measure" }, h("h2", { id: `${c.id}-h` }, c.title), c.what ? h("p", {}, c.what) : null, sharedLine ? h("p", {}, sharedLine) : null,
-        c.states.length > 1 ? segmented(`${c.title}: before or after`, c.states, () => c.state, (v) => { c.state = v; flip(c); }) : null, c.noteEl),
+      c.bar,
+      h("div", { class: "change-head measure" }, c.what ? h("p", {}, c.what) : null, sharedLine ? h("p", {}, sharedLine) : null, c.noteEl),
       grid);
     // In card order, so the copy that shows sits where its card's number says, whichever copy it is.
     for (const s of [...c.stills].sort((x, y) => x.n - y.n)) {
@@ -385,7 +418,7 @@ details.history ul { margin: var(--space-2) 0 0; padding-inline-start: 1.25em; d
       const tags = h("div", { class: "tags" },
         h("span", { class: "no" }, String(s.n)),
         s.tagsEl,
-        isNew && R.version > 1 ? h("span", { class: "badge-label" }, "Changed") : null,
+        isNew && R.version > 1 ? h("span", { class: "badge-label" }, "New") : null,
         h("button", { class: "icon-btn comment-btn", type: "button", "data-comment": s.id, "aria-label": `Comment on ${s.n}`, onclick: () => commentOn(s) }, ic(ICON.comment)));
       // The picture opens the viewer; in comment mode the click goes to the composer first (capture below).
       s.mediaBox = h("div", { class: "media", role: "button", tabindex: "0", "aria-label": `Open ${s.n} full length`,
@@ -420,6 +453,7 @@ details.history ul { margin: var(--space-2) 0 0; padding-inline-start: 1.25em; d
     if (!isShown(target)) {
       if (target.change.states.length > 1 && target.tags?.state) target.change.state = target.tags.state;
       for (const k of ["mood", "hue"]) if (!filtersPass(target) && picked[k] && picked[k] !== "All") pick(k, "All", false);
+      if (picked.scope === "New" && !isNewView(target.view)) pick("scope", "All", false);
       applyFilters();
     }
     const s = isShown(target) ? target : shownCopy(target.view) ?? target;

@@ -9,3 +9,18 @@ allowBuilds:
 overrides:
   "@vercel/cli-config>zod": 4.6.7
   "@vercel/routing-utils>path-to-regexp": 6.3.0
+
+  # Security floors for transitive dependencies of the pinned vercel CLI (dev tooling only; no
+  # runtime path). Each line lifts every vulnerable range to the first patched release in the same
+  # major line. Re-run `pnpm audit` after a vercel bump and drop lines the CLI no longer needs.
+  "undici@<6.29.1": ^6.29.1
+  "@fastify/busboy@<3.2.2": ^3.2.2
+  "tar@<7.5.21": ^7.5.21
+  "js-yaml@>=4.0.0 <4.3.2": ^4.3.2
+  "smol-toml@<1.9.0": ^1.9.0
+  "zod@<4.6.6": ^4.6.6
+  "ajv@>=8.0.0 <8.18.0": ^8.18.0
+  "path-to-regexp@>=8.0.0 <8.4.0": ^8.4.0
+  "esbuild@>=0.27.3 <0.28.1": ^0.28.1
+  "glob@>=13.0.0 <14.0.2": ^14.0.2
+  "minimatch@>=10.0.0 <11.0.1": ^11.0.1

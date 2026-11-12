@@ -1,0 +1,61 @@
+# Screenshot review
+
+How a thread shows the owner a visual change. One screenshot review per PR, built from `scripts/screenshotReview/`, published as an Artifact and updated in place for each new version. The owner found the old stills pages hard to use: every version stacked on one page, loose grouping, and no way to comment on a picture (2026-11-03).
+
+## When to use what
+
+- **Exploring a direction:** a Design canvas (the claude.ai Design artifact) with three or more directions drawn from the design system. Boards are approximate; say which ones would need a new design system component. No code, build or capture, so it costs far less than a stills round.
+- **Approving a real change:** a screenshot review, with stills of the PR's code. It is the only OK to ship.
+- **One small change:** skip the canvas and go straight to a screenshot review; his OK there is still the only OK to ship.
+
+## The rule
+
+- **One artifact per PR.** A new version republishes to the same URL (keep it in `artifact_url` in `review.json`). Never start a second page for the same PR, and never put two PRs on one page.
+- **Only the current version's stills.** Earlier versions are one line each in `history`. A still that did not change keeps its `id` and its `new_in`, so its comments stay on it and it reads "Same since vN".
+- **Few words.** The owner wants it clean (2026-11-06): a short title, `check` as at most three lines of a few words, each pointing at still ids, change titles of two or three words, and a caption only where the picture needs one. The tags say the device and theme; captions never repeat them.
+- **Group stills by change, never by device.** Each change gets a short title. The copies of one view (same change and tags but `device`, `theme` and `state`) share one card: the top bar's phone and desktop switch and its light and dark button pick the copy, and the change's Before and After switch, under its title, shows one state at a time (After first) and flips every card in place; the viewer has the same switch and keeps the zoom. A change's `notes` (`{"Before": "…", "After": "…"}`) shows the picked state's words under the switch; the pictures' own captions follow the state too. So tag every still's `device`, `theme` and, for a before and after, `state`; two crops with the same tags are two cards. A view without the picked copy shows its nearest one, so no card drops out. The card's labels name only what the top bar has not picked; a caption every still of a change shares is said once, under its title. Mood and hue get a filter row when the stills carry two or more. From version 2, New and All tabs open the page on the cards with a copy new in this version (`new_in`), so keep `new_in` true. Each change's title and switch stick under the top bar while its cards scroll.
+- **Full-length stills of every page and sub-page** the change touches: phone and desktop, light and dark, Firefox (see the owner's stills rule in project memory). A clip is a still with `"kind": "clip"`: an animated WebP, or an MP4 or WebM.
+- **Read every comment, sent or not.** The page declares `comments` with custom anchors. A comment the owner drops on a still is a thread named `<still id>@<x>,<y>` in percent, so it stays on its spot at any size. Only Send to Claude wakes the publishing session, and an unsent comment reaches no one: the one comment left before the 2026-11-11 audit sat unread for six days. So at every wake, and before each new version, read the page's threads with `ArtifactComments` and act on them; reply and resolve where a thread was sent to Claude, and answer the rest in the thread chat. Where comments are off, the page keeps numbered notes and a Copy notes button.
+
+## Steps
+
+1. Put the stills and a `review.json` in `/mnt/project-files/reviews/pr-<n>/` (not in git; stills are per PR and heavy). Start from the example below.
+2. `node scripts/screenshotReview/build.mjs /mnt/project-files/reviews/pr-<n> --out <scratchpad>/pr-<n>` writes `index.html`, copies it and the stills to the scratchpad (the Artifact tool publishes only from the working directory or the scratchpad) and prints the publish call.
+3. Publish with the Artifact tool: `file_path` the copied `index.html`, `root` that folder, `files` as printed, `capabilities: {comments: {customAnchors: true}}`, and `icon: "review"` on the first publish. On a later version pass `url` (read the artifact first if another session published it) and leave `capabilities` out.
+4. Post the link once, saying the version and what to check. Then read the page's comments at every wake (see the rule above).
+
+## review.json
+
+```json
+{
+  "pr": 635,
+  "pr_url": "https://github.com/somesh-ks/knowledge-hub/pull/635",
+  "short_title": "Up next review",
+  "title": "Up next",
+  "area": "Queue and player",
+  "version": 2,
+  "updated": "2026-11-03T14:00:00Z",
+  "check": [{ "text": "Tap + on a suggestion; Suggested stays", "stills": ["suggested.phone-light"] }],
+  "changes": [
+    {
+      "id": "suggested",
+      "title": "Suggested stays",
+      "stills": [
+        { "id": "suggested.phone-light", "file": "stills/suggested-phone-light.webp", "caption": "After tapping +", "tags": { "device": "Phone", "browser": "Firefox", "theme": "Light" }, "new_in": 2 }
+      ]
+    }
+  ],
+  "history": [{ "version": 1, "date": "3 Nov", "summary": "Drag the playing row; clocks read forward." }],
+  "artifact_url": "https://claude.ai/artifact/CEDVruftcepjTcV8xjgwGJ"
+}
+```
+
+Tags are `device`, `browser`, `theme`, `mood`, `hue` and `state` (Before or After). A change may add `notes`, one line for each state. Still ids are lowercase letters, digits, dots and dashes; keep them stable across versions. `new_in` defaults to the current version. The builder stops on a missing field or file, an unknown tag, a repeated id, and a check that names a still the page lacks.
+
+## Why it is built this way
+
+- The builder inlines the tokens, font, icons and the Button, Badge, Banner, Icon and Segmented navigation rules from the pinned design system package, so the page looks like the app and follows the design system as it changes. A session that has not installed the repo gets that same version from npm into the temp folder; before that, the build failed there and threads hand-made pages instead (audit, 2026-11-11). The template's own rules read semantic tokens only.
+- Nothing sits on a picture: the number and labels are under it, and a tap opens the viewer. A tall still shows its top and fades; the viewer shows all of it. Neither the card nor the viewer scales a picture past its own pixels, so a small crop stays sharp.
+- Stills are files published beside the page, not `data:` URIs, so the page stays near 200 KB and a session that reads it back does not pull megabytes of base64.
+- Pins at a point on the picture, threads that can be resolved, and pins that survive a new version are what screenshot-review tools share (Figma comments, Pinhub). Percent positions keep a pin on its spot at any width and in the zoom viewer.
+- Agentation (the dev toolbar in `npm run dev`) annotates the live app on a desktop browser. It does not run on phones or on pictures, so it is the tool for reviewing the running app, not stills.

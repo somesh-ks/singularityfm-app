@@ -27,12 +27,12 @@ On demand: [docs/specs/](docs/specs/README.md) for what a capability does (code 
 - Commits are Conventional Commits. Digest, state and config commits go through the write guard.
 - No em dashes. Persisted data is snake_case; docs and config files are lowercase kebab-case.
 - Do not edit `Digests/` or `state/` by hand.
-- Merging: a PR merges itself once its review is clean, it is up to date with `main` and every required check is green, `.github/workflows`, `AGENTS.md` and design-system bumps included; a visual change keeps his OK on stills. Only he merges changes to branch rulesets, secret or env handling, npm publish or trusted-publisher permissions, and `CODEOWNERS` or the review config that gates merging: code-review.md, Who merges.
+- Merging: a PR merges itself once its review is clean, it is up to date with `main` and every required check is green, `.github/workflows`, `AGENTS.md` and design-system bumps included. Only he merges changes to branch rulesets, secret or env handling, npm publish or trusted-publisher permissions, and `CODEOWNERS` or the review config that gates merging: code-review.md, Who merges.
 - Review before merge (D292): [code-review.md](docs/engineering/code-review.md). `[skip-review]` and green CI only if every file is Tier 0: docs outside `decisions/`, `engineering/`, `design/` and the ledger, test data, or a few-line copy fix outside Tier 2 (D254). Tier 2 (pipeline, store, auth, billing, workflows, design system, `AGENTS.md`, `.coderabbit.yaml`, gates): a review pass with your tool's review command (Claude Code: `/code-review`) before the PR. CodeRabbit does not review this repo on its own (under 10 stars, drafts skipped): `@coderabbitai review` asks for one, about one an hour (Free plan); Greptile (`@greptileai`, 50 free credits a month) backs it up on Tier 2 and rate-limited PRs. A cancelled CI run (newer push) is not a failure.
 - TypeScript stays on 6.x.
 - Change log (D355): CI fails a `feat`/`fix`/`perf` PR while `lib/changelog.ts` is over 2 days old.
 - Scope: one PR per task per thread; review fixes and follow-ups go on its branch, never a new PR; batch small fixes (D254). Before a PR, `git diff --stat origin/main` must list only the task's files; name any shared stylesheet or component in it, and why, in the PR body.
-- A visual change shows stills and gets his OK before the PR opens. Owner OK on stills: keep the PR mergeable (merge main in at each wake and before asking); a bare "ok" answers the latest ask. Ask in what he sees, never token names, with the default you will take, and keep building on it; stop only before a step that cannot be undone. State a paid probe's credit cost first.
+- Visual: explore 3+ directions on a Design canvas (approximate; flag new DS components); his OK on a [screenshot review](docs/engineering/screenshot-review.md) before the PR is the only OK to ship; one small change skips the canvas. Keep that PR mergeable (merge main in each wake and before asking); a bare "ok" answers the latest ask. Ask in what he sees, never token names, with your default, and keep building; stop only before an irreversible step. State a paid probe's credit cost first.
 - Reply to him in plain words (define a term the first time), short, with links he can open (artifact or PR, never a `/mnt` path); give numbered steps with URLs for what is missing, and say what is left. "Decide yourself" means decide. A click, setting or merge only he can do goes in `docs/state.md` Next with `closed when:`. Docs name tokens, never pixel values.
 - State authority: the config store owns the owner's config; its files are not in git (D296). Edit in the app, never a PR; `config pull` fills `config/` locally.
 - Pipeline discipline: verify the core daily loop runs green in production before adding new intake types or audience matrices.
@@ -40,7 +40,7 @@ On demand: [docs/specs/](docs/specs/README.md) for what a capability does (code 
 
 ## Also loaded
 
-Read [code.md](code.md) (code and tests) and [design.md](design.md) (the design system and UI work) before any work: they are part of these rules. Claude Code imports them through `CLAUDE.md`; every other tool must open them itself.
+Read [code.md](code.md) (code, tests) and [design.md](design.md) (design system, UI) before any work; they are part of these rules. Claude Code imports them via `CLAUDE.md`; other tools open them.
 
 ## Keeping the record
 

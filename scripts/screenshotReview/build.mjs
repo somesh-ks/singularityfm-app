@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
- * Builds a review page (docs/engineering/review-page.md): one artifact per PR that shows the stills
+ * Builds a screenshot review (docs/engineering/screenshot-review.md): one artifact per PR that shows the stills
  * of its current version, grouped by change and numbered, in the app's own look, with comments that
  * land on a spot of a still.
  *
- *   node scripts/reviewPage/build.mjs <review-dir> [--out <publish-dir>]
+ *   node scripts/screenshotReview/build.mjs <review-dir> [--out <publish-dir>]
  *
  * <review-dir> holds review.json and the stills it names (paths relative to it). Writes
  * <review-dir>/index.html and prints the Artifact publish call. The Artifact tool publishes only from
@@ -12,25 +12,82 @@
  * Button, Badge, Banner and Icon rules are read from the pinned design system package at build time, so the page follows the
  * design system as it changes. Plain Node, no dependencies.
  */
-import { cpSync, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import {
+  cpSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  renameSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, "..", "..");
-/** The pinned design system package (D382 step 8), as the reader installs it. */
-const SYSTEM = join(
-  dirname(
-    createRequire(join(ROOT, "apps", "web", "package.json")).resolve(
-      "@singularityfm/design-system/flags/LICENSE.txt",
-    ),
-  ),
-  "..",
-);
+/**
+ * The pinned design system package (D382 step 8): the installed copy, or, in a session that has not
+ * installed the repo, that same version fetched once from npm into the temp folder. Without this the
+ * build failed in fresh sessions and threads fell back to hand-made pages (audit, 2026-11-11).
+ */
+function systemDir() {
+  const web = join(ROOT, "apps", "web", "package.json");
+  try {
+    return join(
+      dirname(createRequire(web).resolve("@singularityfm/design-system/flags/LICENSE.txt")),
+      "..",
+    );
+  } catch {
+    const version = JSON.parse(readFileSync(web, "utf8")).dependencies[
+      "@singularityfm/design-system"
+    ];
+    if (!/^\d+\.\d+\.\d+$/.test(version ?? ""))
+      fail(`design system pin "${version}" is not an exact version`);
+    // In this checkout's own (ignored) node_modules, not the shared temp folder, so no other user's
+    // files reach the page. It unpacks beside the cache and moves in whole, so a cut-off run never
+    // leaves a half-filled cache that later builds trust.
+    const cache = join(
+      ROOT,
+      "node_modules",
+      ".cache",
+      `screenshot-review-design-system-${version}`,
+    );
+    if (!existsSync(cache)) {
+      mkdirSync(dirname(cache), { recursive: true });
+      const work = mkdtempSync(`${cache}.part-`);
+      const tgz = execFileSync(
+        "npm",
+        ["pack", `@singularityfm/design-system@${version}`, "--silent"],
+        { cwd: work, encoding: "utf8", shell: process.platform === "win32" },
+      )
+        .trim()
+        .split("\n")
+        .at(-1);
+      execFileSync("tar", ["xzf", tgz], { cwd: work });
+      renameSync(join(work, "package"), cache);
+      rmSync(work, { recursive: true, force: true });
+    }
+    return cache;
+  }
+}
+const SYSTEM = systemDir();
 const STYLES = join(SYSTEM, "styles");
-const DS_FILES = ["buttons.css", "badge.css", "banner.css", "icon.css"];
-const ICONS = ["close", "chevronLeft", "chevronRight", "pencilSimple", "search", "openInNew"];
+const DS_FILES = ["buttons.css", "badge.css", "banner.css", "icon.css", "primitives.css"];
+const ICONS = ["close", "chevronLeft", "chevronRight", "pencilSimple", "openInNew", "sun", "moon"];
+// shortcut: the design system has no phone or desktop glyph yet, so the page carries Phosphor's
+// regular DeviceMobile and Desktop (the system's own icon set, MIT); move them into the system's
+// glyphs.json when an app screen needs them, and drop these.
+const PAGE_ICONS = {
+  deviceMobile:
+    "M176,16H80A24,24,0,0,0,56,40V216a24,24,0,0,0,24,24h96a24,24,0,0,0,24-24V40A24,24,0,0,0,176,16ZM72,64H184V192H72Zm8-32h96a8,8,0,0,1,8,8v8H72V40A8,8,0,0,1,80,32Zm96,192H80a8,8,0,0,1-8-8v-8H184v8A8,8,0,0,1,176,224Z",
+  desktop:
+    "M208,40H48A24,24,0,0,0,24,64V176a24,24,0,0,0,24,24h72v16H96a8,8,0,0,0,0,16h64a8,8,0,0,0,0-16H136V200h72a24,24,0,0,0,24-24V64A24,24,0,0,0,208,40ZM48,56H208a8,8,0,0,1,8,8v80H40V64A8,8,0,0,1,48,56ZM208,184H48a8,8,0,0,1-8-8V160H216v16A8,8,0,0,1,208,184Z",
+};
 const TAG_KEYS = ["device", "browser", "theme", "mood", "hue", "state"];
 // Ids the template's own elements use; a change or still must not take one.
 const PAGE_IDS = [
@@ -44,10 +101,13 @@ const PAGE_IDS = [
   "stage",
   "review-data",
   "pr-link",
+  "topbar",
   "notes-copy",
-  "ver-badge",
+  "theme-btn",
+  "device-slot",
   "v-close",
   "v-title",
+  "v-state",
   "v-prev",
   "v-next",
 ];
@@ -60,7 +120,7 @@ function escapeHtml(text) {
 }
 
 function fail(message) {
-  console.error(`review page: ${message}`);
+  console.error(`screenshot review: ${message}`);
   process.exit(1);
 }
 
@@ -110,6 +170,16 @@ export function normalise(review, dir) {
     if (!change.id || !change.title || !Array.isArray(change.stills))
       fail("each change needs id, title and stills");
     claim(change.id, `change "${change.id}"`);
+    const notes = change.notes ?? {};
+    const states = new Set(change.stills.map((s) => s.tags?.state).filter(Boolean));
+    if (
+      Array.isArray(notes) ||
+      typeof notes !== "object" ||
+      Object.entries(notes).some(([state, text]) => !states.has(state) || typeof text !== "string")
+    )
+      fail(
+        `change "${change.id}": "notes" maps a state its stills are tagged with (${[...states].join(", ") || "none"}) to its text`,
+      );
     claim(`${change.id}-h`, `change "${change.id}"`);
     for (const still of change.stills) {
       if (!/^[a-z0-9][a-z0-9.-]{0,60}$/.test(still.id ?? ""))
@@ -138,14 +208,18 @@ export function normalise(review, dir) {
 
 function iconSvgs() {
   const src = readFileSync(join(SYSTEM, "src", "icons.ts"), "utf8");
-  const out = {};
+  const paths = { ...PAGE_ICONS };
   for (const name of ICONS) {
     const m = new RegExp(`\\n  ${name}:\\s*"([^"]+)"`).exec(src);
     if (!m) fail(`icon "${name}" not found in icons.ts`);
-    out[name] =
-      `<svg class="icon-glyph" viewBox="0 0 256 256" aria-hidden="true"><path d="${m[1]}"/></svg>`;
+    paths[name] = m[1];
   }
-  return out;
+  return Object.fromEntries(
+    Object.entries(paths).map(([name, d]) => [
+      name,
+      `<svg class="icon-glyph" viewBox="0 0 256 256" aria-hidden="true"><path d="${d}"/></svg>`,
+    ]),
+  );
 }
 
 function fontFace() {
@@ -191,7 +265,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   const out = outAt >= 0 ? resolve(args[outAt + 1] ?? fail("--out needs a folder")) : null;
   const dir = resolve(
     args.find((_, i) => outAt < 0 || (i !== outAt && i !== outAt + 1)) ??
-      fail("usage: node scripts/reviewPage/build.mjs <review-dir> [--out <publish-dir>]"),
+      fail("usage: node scripts/screenshotReview/build.mjs <review-dir> [--out <publish-dir>]"),
   );
   const { review, files, bytes } = build(dir);
   let publishDir = dir;

@@ -86,10 +86,9 @@ test.describe("the floating button", () => {
       await expect(playFab(page), path).toBeHidden();
       await pastHero(page);
       await expect(playFab(page), path).toBeVisible();
-      // It says what the hero chip says: its words after the verb, which its name starts with.
+      // It is the play mark alone, and its name says what the hero chip says, after the verb.
       const length = await page.locator(".hero [data-chip-label]").textContent();
       await expect(playFab(page), path).toHaveAccessibleName(`Play · ${length}, the ${noun}`);
-      await expect(playFab(page), path).toContainText(`Play · ${length}`);
       await expect(createFab(page), path).toHaveCount(0);
       await expect(page.locator("html"), path).toHaveAttribute("data-fab", "");
     }
@@ -144,19 +143,6 @@ test.describe("the floating button", () => {
         );
       }
     }
-  });
-
-  test("Play is extended at the top and folds while scrolling down to read", async ({ page }) => {
-    await page.goto(SILENT_DIGEST);
-    const play = playFab(page);
-    expect(Math.round((await play.boundingBox())?.width ?? 0)).toBeGreaterThan(56);
-    await page.mouse.wheel(0, 600);
-    await page.waitForTimeout(150);
-    await page.mouse.wheel(0, 600);
-    await expect(play).toHaveAttribute("data-folded", "");
-    await expect.poll(async () => Math.round((await play.boundingBox())?.width ?? 0)).toBe(56);
-    await page.mouse.wheel(0, -400);
-    await expect(play).not.toHaveAttribute("data-folded", "");
   });
 
   test("Play plays the page's audio as the hero chip does, and steps aside while the bar holds it", async ({

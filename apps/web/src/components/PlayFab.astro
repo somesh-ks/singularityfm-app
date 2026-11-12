@@ -2,7 +2,7 @@
 import { FAB_CLASSES } from "@singularityfm/design-system/fab";
 import Icon from "@singularityfm/design-system/Icon";
 import "@singularityfm/design-system/styles/fab.css";
-import { type ChipNoun, fabLabel, fabName, idleBriefingChip } from "../player/core/readerMath";
+import { type ChipNoun, fabName, idleBriefingChip } from "../player/core/readerMath";
 
 /** The page's own audio, which the floating Play button plays: what the hero chip calls it. */
 export interface PageAudio {
@@ -20,18 +20,19 @@ interface Props extends PageAudio {
 
 const { digestId, noun, length, expired = false } = Astro.props;
 const chip = idleBriefingChip(length, noun);
-// The FAB's own classes: the Fab draws one glyph and a word, and this face is written by the player's
-// script, so it draws its own button with them (fab.css), as an island takes iconButtonClass().
-const [fabClass, fabLabelClass] = FAB_CLASSES;
+// The FAB's own class: the Fab draws a glyph and a word, and this face is the glyph alone, written by
+// the player's script, so it draws its own button with it (fab.css), as an island takes iconButtonClass().
+const [fabClass] = FAB_CLASSES;
 ---
 
 {/* Play in the floating button's place on Today, a briefing or an episode, below 64rem (BaseLayout).
-     It takes the floating button's shape, place, motion and fold from .create-fab. It is a second
-     face of the hero chip, not a second player: data-play-digest gives it to the player's delegated
-     listener, so a press plays, or first makes, the page's audio exactly as the chip does, and the
-     player writes its state (preparing while narration makes the first file, disabled offline) and
-     the chip's words after its verb ("Resume · 1 min left", "Loading"). Expired audio gets the
-     chip's hint. While the bar holds this page's audio the bar is its control, and it steps aside
+     It takes the floating button's shape, place and motion from .create-fab, and is the play mark
+     alone, a circle at every scroll (owner, 2026-11-11: "Play button to remain just an icon FAB").
+     It is a second face of the hero chip, not a second player: data-play-digest gives it to the
+     player's delegated listener, so a press plays, or first makes, the page's audio exactly as the
+     chip does, and the player writes its state (preparing while narration makes the first file,
+     disabled offline) and its name, the chip's words after its verb ("Resume · 1 min left, the
+     podcast"). Expired audio gets the chip's hint. While the bar holds this page's audio the bar is its control, and it steps aside
      (readerSync.ts). */}
 <button
   class:list={[fabClass, "play-fab"]}
@@ -46,10 +47,4 @@ const [fabClass, fabLabelClass] = FAB_CLASSES;
   <span class="play-fab-glyph" aria-hidden="true">
     <Icon name="play" size="lg" />
   </span>
-  {/* The words that change sit in one child; the label reserves the widest ones, so the button keeps
-       its width as it prepares, plays and fails (DS-9). shortcut: the reserve assumes up to two digits of minutes
-       (a briefing is minutes long); a three-digit time left would end in an ellipsis. Upgrade if an episode can pass 99 min. */}
-  <span class={fabLabelClass} aria-hidden="true" data-reserve="Resume · 88 min left"
-    ><span data-chip-label="fab">{fabLabel(chip)}</span></span
-  >
 </button>

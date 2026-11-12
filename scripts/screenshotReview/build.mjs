@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
- * Builds a review page (docs/engineering/review-page.md): one artifact per PR that shows the stills
+ * Builds a screenshot review (docs/engineering/screenshot-review.md): one artifact per PR that shows the stills
  * of its current version, grouped by change and numbered, in the app's own look, with comments that
  * land on a spot of a still.
  *
- *   node scripts/reviewPage/build.mjs <review-dir> [--out <publish-dir>]
+ *   node scripts/screenshotReview/build.mjs <review-dir> [--out <publish-dir>]
  *
  * <review-dir> holds review.json and the stills it names (paths relative to it). Writes
  * <review-dir>/index.html and prints the Artifact publish call. The Artifact tool publishes only from
@@ -39,7 +39,7 @@ function systemDir() {
     ];
     if (!/^\d+\.\d+\.\d+$/.test(version ?? ""))
       fail(`design system pin "${version}" is not an exact version`);
-    const cache = join(tmpdir(), `review-page-design-system-${version}`);
+    const cache = join(tmpdir(), `screenshot-review-design-system-${version}`);
     if (!existsSync(join(cache, "package", "styles"))) {
       mkdirSync(cache, { recursive: true });
       const tgz = execFileSync(
@@ -88,7 +88,7 @@ function escapeHtml(text) {
 }
 
 function fail(message) {
-  console.error(`review page: ${message}`);
+  console.error(`screenshot review: ${message}`);
   process.exit(1);
 }
 
@@ -219,7 +219,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   const out = outAt >= 0 ? resolve(args[outAt + 1] ?? fail("--out needs a folder")) : null;
   const dir = resolve(
     args.find((_, i) => outAt < 0 || (i !== outAt && i !== outAt + 1)) ??
-      fail("usage: node scripts/reviewPage/build.mjs <review-dir> [--out <publish-dir>]"),
+      fail("usage: node scripts/screenshotReview/build.mjs <review-dir> [--out <publish-dir>]"),
   );
   const { review, files, bytes } = build(dir);
   let publishDir = dir;

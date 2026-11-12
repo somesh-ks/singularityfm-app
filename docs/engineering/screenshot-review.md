@@ -1,11 +1,11 @@
-# Review pages
+# Screenshot review
 
-How a thread shows the owner a visual change. One page per PR, built from `scripts/reviewPage/`, published as an Artifact and updated in place for each new version. The owner found the old stills pages hard to use: every version stacked on one page, loose grouping, and no way to comment on a picture (2026-11-03).
+How a thread shows the owner a visual change. One screenshot review per PR, built from `scripts/screenshotReview/`, published as an Artifact and updated in place for each new version. The owner found the old stills pages hard to use: every version stacked on one page, loose grouping, and no way to comment on a picture (2026-11-03).
 
 ## When to use what
 
 - **Exploring a direction:** a Design canvas (the claude.ai Design artifact) with three or more directions drawn from the design system. Boards are approximate; say which ones would need a new design system component. No code, build or capture, so it costs far less than a stills round.
-- **Approving a real change:** this page, with stills of the PR's code. It is the only OK to ship.
+- **Approving a real change:** a screenshot review, with stills of the PR's code. It is the only OK to ship.
 - **One small change:** straight to stills; skip the canvas.
 
 ## The rule
@@ -20,7 +20,7 @@ How a thread shows the owner a visual change. One page per PR, built from `scrip
 ## Steps
 
 1. Put the stills and a `review.json` in `/mnt/project-files/reviews/pr-<n>/` (not in git; stills are per PR and heavy). Start from the example below.
-2. `node scripts/reviewPage/build.mjs /mnt/project-files/reviews/pr-<n> --out <scratchpad>/pr-<n>` writes `index.html`, copies it and the stills to the scratchpad (the Artifact tool publishes only from the working directory or the scratchpad) and prints the publish call.
+2. `node scripts/screenshotReview/build.mjs /mnt/project-files/reviews/pr-<n> --out <scratchpad>/pr-<n>` writes `index.html`, copies it and the stills to the scratchpad (the Artifact tool publishes only from the working directory or the scratchpad) and prints the publish call.
 3. Publish with the Artifact tool: `file_path` the copied `index.html`, `root` that folder, `files` as printed, `capabilities: {comments: {customAnchors: true}}`, and `icon: "review"` on the first publish. On a later version pass `url` (read the artifact first if another session published it) and leave `capabilities` out.
 4. Post the link once, saying the version and what to check. Then read the page's comments at every wake (see the rule above).
 

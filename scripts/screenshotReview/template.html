@@ -275,7 +275,7 @@ details.history ul { margin: var(--space-2) 0 0; padding-inline-start: 1.25em; d
      The viewer's last pick is kept for the next review. */
   const picked = {};
   const valuesOf = (k) => [...new Set(stills.map((s) => s.tags?.[k]).filter(Boolean))];
-  const prefer = (k, v) => { const all = valuesOf(k); return all.includes(store.get(`screenshot-review:${k}`)) ? store.get(`screenshot-review:${k}`) : all.find((x) => x.toLowerCase() === v) ?? all[0]; };
+  const prefer = (k, v) => { const all = valuesOf(k), saved = store.get(`screenshot-review:${k}`); return all.includes(saved) ? saved : all.find((x) => x.toLowerCase() === v) ?? all[0]; };
 
   // The system's Segmented navigation, drawn as segmentedNav.ts does: tabs a press or Left, Right, Home
   // and End choose. `get` reads the choice, `set` makes it.
@@ -456,8 +456,10 @@ details.history ul { margin: var(--space-2) 0 0; padding-inline-start: 1.25em; d
   }
   // A check line turns its change to the still's before or after, and opens a filter that hides it;
   // the device and theme the owner picked stay, and the card shows its copy for them.
-  function reveal(target) {
-    if (!isShown(target)) {
+  // exact (a comment's pin): show that very still, switching device and theme if need be.
+  function reveal(target, exact = false) {
+    if (exact) for (const k of ["device", "theme"]) if (picked[k] && target.tags?.[k]) pick(k, target.tags[k], false);
+    if (exact || !isShown(target)) {
       if (target.change.states.length > 1 && target.tags?.state) target.change.state = target.tags.state;
       for (const k of ["mood", "hue"]) if (!filtersPass(target) && picked[k] && picked[k] !== "All") pick(k, "All", false);
       if (picked.scope === "New" && !isNewView(target.view)) pick("scope", "All", false);
@@ -473,7 +475,7 @@ details.history ul { margin: var(--space-2) 0 0; padding-inline-start: 1.25em; d
   /* ---- The viewer */
   const viewer = $("#viewer"), stage = $("#stage");
   let vs = null, vz = { k: 1, x: 0, y: 0, fit: 1 }, vEl = null;
-  const order = () => stills.filter(isShown);
+  const order = () => stills.filter(isShown).sort((a, b) => a.n - b.n);
   // keep: flipping before and after keeps the zoom and position, so the two compare pixel for pixel.
   function openViewer(s, keep = false) {
     keep &&= !!vs && vs.width === s.width && vs.height === s.height;
@@ -507,7 +509,7 @@ details.history ul { margin: var(--space-2) 0 0; padding-inline-start: 1.25em; d
     vz.x = px - ((px - vz.x) * k) / vz.k; vz.y = py - ((py - vz.y) * k) / vz.k; vz.k = k; apply();
   }
   $("#v-close").onclick = closeViewer; $("#v-prev").onclick = () => step(-1); $("#v-next").onclick = () => step(1);
-  addEventListener("keydown", (e) => { if (viewer.hidden) return; if (e.key === "Escape") closeViewer(); if (e.key === "ArrowLeft") step(-1); if (e.key === "ArrowRight") step(1); });
+  addEventListener("keydown", (e) => { if (viewer.hidden || e.defaultPrevented) return; if (e.key === "Escape") closeViewer(); if (e.key === "ArrowLeft") step(-1); if (e.key === "ArrowRight") step(1); });
   stage.addEventListener("wheel", (e) => { e.preventDefault(); zoomAt(e.clientX, e.clientY, vz.k * Math.exp(-e.deltaY * 0.002)); }, { passive: false });
   const pts = new Map(); let pinch = null, lastTap = 0, moved = false;
   stage.addEventListener("pointerdown", (e) => { if (commentMode) return; stage.setPointerCapture(e.pointerId); pts.set(e.pointerId, { x: e.clientX, y: e.clientY }); moved = false;
@@ -585,7 +587,7 @@ details.history ul { margin: var(--space-2) 0 0; padding-inline-start: 1.25em; d
         ca = await comments.customAnchors({
           mode(on) { commentMode = on; document.documentElement.toggleAttribute("data-comment-mode", on); if (!on) threads = []; report(); },
           threads(list) { threads = list; report(); },
-          reveal(id) { const t = threads.find((x) => x.id === id); const m = t && ANCHOR.exec(t.anchor); const s = m && byId.get(m[1]); if (s) { if (vs && vs !== s) closeViewer(); if (!vs) reveal(s); } else report(); },
+          reveal(id) { const t = threads.find((x) => x.id === id); const m = t && ANCHOR.exec(t.anchor); const s = m && byId.get(m[1]); if (s) { if (vs && vs !== s) closeViewer(); if (!vs) reveal(s, true); } else report(); },
           composing() {},
         });
         report();

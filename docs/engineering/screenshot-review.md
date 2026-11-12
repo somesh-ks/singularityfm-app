@@ -6,7 +6,7 @@ How a thread shows the owner a visual change. One screenshot review per PR, buil
 
 - **Exploring a direction:** a Design canvas (the claude.ai Design artifact) with three or more directions drawn from the design system. Boards are approximate; say which ones would need a new design system component. No code, build or capture, so it costs far less than a stills round.
 - **Approving a real change:** a screenshot review, with stills of the PR's code. It is the only OK to ship.
-- **One small change:** straight to stills; skip the canvas.
+- **One small change:** skip the canvas and go straight to a screenshot review; his OK there is still the only OK to ship.
 
 ## The rule
 

@@ -13,9 +13,18 @@
  * design system as it changes. Plain Node, no dependencies.
  */
 import { execFileSync } from "node:child_process";
-import { cpSync, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import {
+  cpSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  renameSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import { createRequire } from "node:module";
-import { tmpdir } from "node:os";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -39,20 +48,31 @@ function systemDir() {
     ];
     if (!/^\d+\.\d+\.\d+$/.test(version ?? ""))
       fail(`design system pin "${version}" is not an exact version`);
-    const cache = join(tmpdir(), `screenshot-review-design-system-${version}`);
-    if (!existsSync(join(cache, "package", "styles"))) {
-      mkdirSync(cache, { recursive: true });
+    // In this checkout's own (ignored) node_modules, not the shared temp folder, so no other user's
+    // files reach the page. It unpacks beside the cache and moves in whole, so a cut-off run never
+    // leaves a half-filled cache that later builds trust.
+    const cache = join(
+      ROOT,
+      "node_modules",
+      ".cache",
+      `screenshot-review-design-system-${version}`,
+    );
+    if (!existsSync(cache)) {
+      mkdirSync(dirname(cache), { recursive: true });
+      const work = mkdtempSync(`${cache}.part-`);
       const tgz = execFileSync(
         "npm",
         ["pack", `@singularityfm/design-system@${version}`, "--silent"],
-        { cwd: cache, encoding: "utf8" },
+        { cwd: work, encoding: "utf8", shell: process.platform === "win32" },
       )
         .trim()
         .split("\n")
         .at(-1);
-      execFileSync("tar", ["xzf", tgz], { cwd: cache });
+      execFileSync("tar", ["xzf", tgz], { cwd: work });
+      renameSync(join(work, "package"), cache);
+      rmSync(work, { recursive: true, force: true });
     }
-    return join(cache, "package");
+    return cache;
   }
 }
 const SYSTEM = systemDir();
@@ -150,8 +170,15 @@ export function normalise(review, dir) {
       fail("each change needs id, title and stills");
     claim(change.id, `change "${change.id}"`);
     const notes = change.notes ?? {};
-    if (typeof notes !== "object" || Object.values(notes).some((n) => typeof n !== "string"))
-      fail(`change "${change.id}": "notes" maps a state (Before, After) to its text`);
+    const states = new Set(change.stills.map((s) => s.tags?.state).filter(Boolean));
+    if (
+      Array.isArray(notes) ||
+      typeof notes !== "object" ||
+      Object.entries(notes).some(([state, text]) => !states.has(state) || typeof text !== "string")
+    )
+      fail(
+        `change "${change.id}": "notes" maps a state its stills are tagged with (${[...states].join(", ") || "none"}) to its text`,
+      );
     claim(`${change.id}-h`, `change "${change.id}"`);
     for (const still of change.stills) {
       if (!/^[a-z0-9][a-z0-9.-]{0,60}$/.test(still.id ?? ""))

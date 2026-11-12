@@ -203,36 +203,6 @@
   padding-block-end: var(--space-8);
 }
 
-/* The clear button, for every pointer: the native one is hidden, as it differs in every browser.
-   The script shows it only while the field has text. Its 44px box sits over the field's right end. */
-.search-wrap {
-  position: relative;
-}
-
-.search-clear {
-  position: absolute;
-  inset-block: 0;
-  inset-inline-end: 0;
-  display: grid;
-  place-items: center;
-  width: var(--size-touch);
-  height: var(--size-touch);
-  margin-block: auto;
-  border: 0;
-  border-radius: var(--shape-round);
-  background: none;
-  color: var(--color-on-surface-muted);
-}
-
-.search-clear[hidden] {
-  display: none;
-}
-
-/* While the button shows, the text stops where it starts instead of running under it. */
-.search-wrap:has(.search-clear:not([hidden])) .search-field {
-  padding-inline-end: var(--size-touch);
-}
-
 .library-bar {
   display: flex;
   align-items: center;
@@ -289,16 +259,6 @@
   .library-bar .library-sort {
     display: none;
   }
-
-  /* The chips give up 4px a side so all three fit beside the switch on a 390px phone: 16px of side
-     room, with the check moved 4px out so it still clears the words it slides beside. */
-  .library-filters > .filter-chip {
-    padding-inline: var(--space-4);
-  }
-
-  .library-filters > .filter-chip > .icon-glyph {
-    inset-inline-start: var(--space-1);
-  }
 }
 
 @media (width >= 40rem) {
@@ -311,13 +271,8 @@
   }
 }
 
-/* Every control in the bar fills the same way under the pointer: the search field as the chip. */
+/* Every control in the bar fills the same way under the pointer. */
 @media (hover: hover) and (pointer: fine) {
-  .search-clear:hover {
-    background: var(--ghost-hover);
-    color: var(--color-on-surface);
-  }
-
   .view-btn[aria-pressed="false"]:hover {
     background: var(--ghost-hover);
     color: var(--color-on-surface);
@@ -328,14 +283,9 @@
   }
 }
 
-/* A press goes one step deeper than the hover on the clear button and the view toggle (2026-11-02,
+/* A press goes one step deeper than the hover on the view toggle (2026-11-02,
    D317 step 2: the stills showed press equal to hover). Each rule weighs as much as its hover
    rule above and comes after it, so it wins while a mouse is over the button. */
-.search-clear:active {
-  background: var(--ghost-pressed);
-  color: var(--color-on-surface);
-}
-
 .view-btn[aria-pressed="false"]:active {
   background: var(--ghost-pressed);
   color: var(--color-on-surface);
@@ -753,10 +703,6 @@ html[data-library-page="empty"] {
   line-height: var(--text-heading-leading);
 }
 
-.shelf-head > .button-text {
-  margin-inline-end: calc(var(--space-4) * -1);
-}
-
 /* Its ends fade by .scroll-fade-inline (primitives.css), 40px wide. */
 .shelf {
   display: flex;
@@ -848,11 +794,6 @@ html[data-library-page="empty"] {
   pointer-events: none;
 }
 
-.card-more .icon-glyph {
-  width: 1.25rem;
-  height: 1.25rem;
-}
-
 /* A mouse sees the button when the row is hovered, a key press is inside it, or its menu is open. */
 @media (hover: hover) and (pointer: fine) {
   .card-more {
@@ -941,6 +882,8 @@ html[data-library-page="empty"] {
   --mark: round(1em, 1px);
   /* The bold twin of the glyph in every style: at this size the regular line is barely there. */
   --icon-bold: 1;
+  /* The glyph in it, about 70% of the circle, on whole steps. */
+  --icon-size: round(0.7em, 0.125rem);
   display: inline-flex;
   flex: none;
   align-items: center;
@@ -961,11 +904,6 @@ html[data-library-page="empty"] {
 .status-mark-played {
   background: var(--color-success);
   color: var(--color-surface);
-}
-
-.status-mark .icon-glyph {
-  width: round(0.7em, 0.125rem);
-  height: round(0.7em, 0.125rem);
 }
 
 .card-sub > .status-mark {

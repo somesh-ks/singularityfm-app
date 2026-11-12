@@ -60,7 +60,7 @@ export default function SpeedPanel({
         </IconButton>
       </div>
       <div
-        className={sliderWaveFieldClass()}
+        className={`${sliderWaveFieldClass()} player-speed-slider`}
         style={{ "--range-fill": `${(fill * 100).toFixed(1)}%` } as CSSProperties}
       >
         <input

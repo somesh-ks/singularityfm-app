@@ -1,8 +1,8 @@
 /*
  * A story's like, dislike and More button (components/StoryControls.astro): three 44px icon buttons
- * at the end of the action line. A pressed vote is tonal, as the library's chosen view is, and its
- * glyph steps from the outline to the fill. A press changes the colour and the glyph, never a size,
- * so neither the neighbours nor any words move.
+ * at the end of the action line. A pressed vote is the icon button's own pressed state (the design
+ * system draws its tone and its outline-to-fill glyph); a press changes the colour and the glyph,
+ * never a size, so neither the neighbours nor any words move.
  */
 .story-controls {
   display: flex;
@@ -14,62 +14,6 @@
 /* The last button's glyph, not its 44px target, lines up with the column's edge. */
 .story-controls > :last-child {
   margin-inline-end: calc((var(--size-touch) - var(--size-icon-lg)) / -2);
-}
-
-/* Outline and fill share one cell, as play and pause do: the outgoing glyph fades, shrinks and
-   blurs while the incoming one arrives. As specific as .icon-btn's flex, which loads later. */
-.icon-btn.story-vote {
-  display: inline-grid;
-  place-items: center;
-}
-
-.story-vote .icon-glyph {
-  grid-area: 1 / 1;
-  transition:
-    opacity var(--duration-state) var(--ease-out),
-    transform var(--duration-state) var(--ease-out),
-    filter var(--duration-state) var(--ease-out);
-}
-
-.story-vote .icon-glyph:last-child,
-.story-vote[aria-pressed="true"] .icon-glyph:first-child {
-  opacity: 0;
-  transform: scale(var(--scale-enter));
-  filter: blur(var(--blur-enter));
-}
-
-.story-vote[aria-pressed="true"] .icon-glyph:last-child {
-  opacity: 1;
-  transform: none;
-  filter: none;
-}
-
-/* Turning a vote on pops the fill in. A vote restored on load never carries data-just-voted. */
-.story-vote[data-just-voted] .icon-glyph:last-child {
-  animation: vote-pop var(--duration-spring-pop) var(--ease-spring-pop);
-}
-
-@keyframes vote-pop {
-  from {
-    transform: scale(var(--scale-enter));
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .story-vote[data-just-voted] .icon-glyph:last-child {
-    animation: none;
-  }
-}
-
-.icon-btn.story-vote[aria-pressed="true"] {
-  background: var(--color-accent-container);
-  color: var(--color-on-accent-container);
-}
-
-@media (forced-colors: active) {
-  .icon-btn.story-vote[aria-pressed="true"] {
-    color: Highlight;
-  }
 }
 
 /* The menu hangs under its own story's button, not the header's. */

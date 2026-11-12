@@ -18,10 +18,6 @@
   margin-inline: var(--card-inset);
 }
 
-.blocked-add .search-field {
-  padding-inline-start: calc(var(--card-padding) - var(--card-inset));
-}
-
 .blocked-add .filter-row > .topic-add-source {
   padding-inline: calc(var(--card-padding) - var(--card-inset));
 }

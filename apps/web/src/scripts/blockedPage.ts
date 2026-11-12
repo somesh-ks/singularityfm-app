@@ -6,6 +6,7 @@
  * one built into the page with the edits saved since laid over it, so it is right before the next
  * build (lib/savedOverlay.ts).
  */
+import { installSearchClear, syncSearchClear } from "@singularityfm/design-system/searchField";
 import { filterBlocked, outletsSummary, savedBlocked } from "../lib/blockedOutlets";
 import { hasSaved, SAVED_KEY, storeOn } from "../lib/savedKey";
 import { parseSaved, withStore } from "../lib/savedOverlay";
@@ -26,6 +27,7 @@ function readSaved(store: ConfigReadBody | null = null) {
 }
 
 function mount(root: HTMLElement): void {
+  installSearchClear();
   const one = <T extends HTMLElement = HTMLElement>(selector: string): T =>
     root.querySelector(selector) as T;
   const list = one("[data-list]");
@@ -190,7 +192,7 @@ function mount(root: HTMLElement): void {
         onBlock(domains) {
           for (const domain of domains) add(domain);
           input.value = "";
-          clear.hidden = true;
+          syncSearchClear(input);
           filter();
         },
       }),
@@ -204,17 +206,7 @@ function mount(root: HTMLElement): void {
   input.addEventListener("keydown", (event) => {
     if (event.key === "Enter" && !nomatch.hidden) openSheet(input);
   });
-  const clear = one<HTMLButtonElement>("[data-clear]");
-  input.addEventListener("input", () => {
-    clear.hidden = input.value === "";
-    filter();
-  });
-  clear.addEventListener("click", () => {
-    input.value = "";
-    clear.hidden = true;
-    filter();
-    input.focus();
-  });
+  input.addEventListener("input", filter);
   list.addEventListener("click", (event) => {
     const button = (event.target as Element).closest<HTMLButtonElement>("button[data-remove]");
     if (button) remove(button);

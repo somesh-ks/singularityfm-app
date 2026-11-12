@@ -73,8 +73,8 @@ const dateOf = (item: LibraryItem): string =>
           {/* Search, then what to show, then the order. Every briefing is already in the page, so
                all three work without a round trip, and the page is whole with scripts off. */}
           <form class="library-tools" role="search" aria-label="Library">
-            <div class="search-wrap">
             <SearchField
+              clearable
               label="Search your library"
               name="q"
               placeholder="Search your library"
@@ -82,10 +82,6 @@ const dateOf = (item: LibraryItem): string =>
               enterKeyHint="search"
               data-library-search
             />
-            <button class="search-clear press press-subtle" type="button" aria-label="Clear text" data-library-clear-text hidden>
-              <Icon name="close" />
-            </button>
-            </div>
             <div class="library-bar">
               {/* What to show: one kind at a time, or everything while none is ticked. Each chip is
                    a checkbox (Tab and Space); the script unticks the others. */}

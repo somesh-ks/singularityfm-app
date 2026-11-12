@@ -57,6 +57,7 @@ const { topics } = Astro.props;
           <div class="manage-field">
             <label for="panel-topic-name">Name</label>
             <Field
+              tonal
               id="panel-topic-name"
               name="name"
               type="text"
@@ -73,6 +74,7 @@ const { topics } = Astro.props;
           <div class="manage-field">
             <label for="panel-topic-description">What should count as this category</label>
             <Field
+              tonal
               multiline
               id="panel-topic-description"
               name="description"
@@ -108,6 +110,7 @@ const { topics } = Astro.props;
         <div class="manage-field">
           <label for="panel-source-url">Site or feed address</label>
           <Field
+              tonal
             id="panel-source-url"
             name="url"
             type="url"
@@ -126,13 +129,13 @@ const { topics } = Astro.props;
         </div>
         <div class="manage-field">
           <label for="panel-source-topic">Category</label>
-          <Select id="panel-source-topic" name="topic" data-source-topic>
+          <Select data-tonal id="panel-source-topic" name="topic" data-source-topic>
             {topics.map((topic) => <option value={topic.id}>{topic.name}</option>)}
           </Select>
         </div>
         <div class="manage-field">
           <label for="panel-source-format">Type</label>
-          <Select id="panel-source-format" name="format" data-source-format>
+          <Select data-tonal id="panel-source-format" name="format" data-source-format>
             {Object.entries(FORMAT_LABEL).map(([value, label]) => <option value={value}>{label}</option>)}
           </Select>
         </div>
@@ -150,6 +153,7 @@ const { topics } = Astro.props;
         <div class="manage-field">
           <label for="panel-edit-name">Name</label>
           <Field
+              tonal
             id="panel-edit-name"
             name="name"
             type="text"
@@ -165,13 +169,13 @@ const { topics } = Astro.props;
         </div>
         <div class="manage-field">
           <label for="panel-edit-topic">Category</label>
-          <Select id="panel-edit-topic" name="topic" data-edit-topic>
+          <Select data-tonal id="panel-edit-topic" name="topic" data-edit-topic>
             {topics.map((topic) => <option value={topic.id}>{topic.name}</option>)}
           </Select>
         </div>
         <div class="manage-field">
           <label for="panel-edit-format">Type</label>
-          <Select id="panel-edit-format" name="format" data-edit-format>
+          <Select data-tonal id="panel-edit-format" name="format" data-edit-format>
             {Object.entries(FORMAT_LABEL).map(([value, label]) => <option value={value}>{label}</option>)}
           </Select>
         </div>
@@ -186,7 +190,7 @@ const { topics } = Astro.props;
         </label>
         <div class="manage-field" data-edit-lean-field hidden>
           <label for="panel-edit-lean">Political lean</label>
-          <Select id="panel-edit-lean" name="lean" data-edit-lean>
+          <Select data-tonal id="panel-edit-lean" name="lean" data-edit-lean>
             <option value="">Unrated</option>
             <option value="-2">Left</option>
             <option value="-1">Centre-left</option>

@@ -159,7 +159,7 @@ function DockExpand() {
       label={open ? "Collapse player" : "Expand player"}
       onClick={() => void playerSheet.toggle()}
     >
-      <Icon name="chevronDown" />
+      <Icon name="chevronUp" />
     </IconButton>
   );
 }

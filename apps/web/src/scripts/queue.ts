@@ -60,8 +60,6 @@ const OPEN_AFTER_START_MS = 450;
 const VISIBLE_ROWS = 3.5;
 /** A swipe this long, in pixels, opens or folds the dock. */
 const SWIPE_PX = 32;
-/** How long an icon takes to turn out, before it is taken out of the slot. */
-const ICON_OUT_MS = 300;
 /** The failed run whose row has opened the dock already, kept for the tab so a reload does not open it again. */
 const OPENED_KEY = "singularity:queue-opened";
 const WIDE = "(width >= 64rem)";
@@ -254,12 +252,9 @@ function fillTemplate(text: string, values: Record<string, string>): string {
   );
 }
 
-const calm = (): boolean => matchMedia("(prefers-reduced-motion: reduce)").matches;
-
 /**
  * Puts the icon of `kind` in a slot, or empties it. The icons are in the page (Queue.astro's
- * template), so this carries no paths. A new icon turns in as the old one turns out; under reduced
- * motion it simply replaces it.
+ * template), so this carries no paths. The old icon goes at once.
  */
 function setIcon(slot: Element | null, kind: string | null): void {
   if (!slot || !root) return;
@@ -272,12 +267,7 @@ function setIcon(slot: Element | null, kind: string | null): void {
         ?.content.querySelector(`[data-queue-icon="${kind}"] svg`)
     : null;
   const next = source?.cloneNode(true) as SVGElement | undefined;
-  for (const child of [...element.children]) {
-    if (next && !calm() && !child.hasAttribute("data-leaving")) {
-      child.setAttribute("data-leaving", "");
-      window.setTimeout(() => child.remove(), ICON_OUT_MS);
-    } else if (!child.hasAttribute("data-leaving")) child.remove();
-  }
+  for (const child of [...element.children]) child.remove();
   if (next) element.append(next);
 }
 

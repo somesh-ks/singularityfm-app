@@ -1,5 +1,6 @@
 ---
 import Button from "@singularityfm/design-system/Button";
+import DialogActions from "@singularityfm/design-system/DialogActions";
 import EmptyArt, { type ArtName } from "./EmptyArt.astro";
 
 interface Action {
@@ -61,9 +62,11 @@ const headingId = level === 1 ? "page-title" : "empty-title";
   </Heading>
   {body && <p class="empty-body">{body}</p>}
   <div class="empty-actions">
-    <Button variant="filled" href={primary.href} data-astro-reload={primary.reload ? "true" : undefined} data-retry={primary.retry ? "" : undefined}>
-      {primary.label}
-    </Button>
-    {secondary && <Button variant="text" href={secondary.href}>{secondary.label}</Button>}
+    <DialogActions>
+      <Button variant="filled" href={primary.href} data-astro-reload={primary.reload ? "true" : undefined} data-retry={primary.retry ? "" : undefined}>
+        {primary.label}
+      </Button>
+      {secondary && <Button variant="text" href={secondary.href}>{secondary.label}</Button>}
+    </DialogActions>
   </div>
 </section>

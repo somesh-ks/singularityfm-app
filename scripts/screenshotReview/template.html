@@ -1,3 +1,6 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>@TITLE@</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <!--
@@ -490,14 +493,15 @@ details.history ul { margin: var(--space-2) 0 0; padding-inline-start: 1.25em; d
     const el = vEl;
     const fit = () => {
       if (el !== vEl) return; // a later still replaced this one before it loaded
-      const w = s.width || vEl.naturalWidth || vEl.videoWidth || 1, hh = s.height || vEl.naturalHeight || vEl.videoHeight || 1;
+      const sized = s.width && s.height; // a stored size counts only whole: one side alone would pair with a 1 for the other
+      const w = (sized && s.width) || vEl.naturalWidth || vEl.videoWidth || 1, hh = (sized && s.height) || vEl.naturalHeight || vEl.videoHeight || 1;
       vEl.style.width = `${w}px`; vEl.style.height = `${hh}px`;
       const r = stage.getBoundingClientRect();
       vz.fit = Math.min(r.width / w, r.height / hh, 1); // never past the picture's own pixels: crops blur
       if (keep) return apply();
       vz.k = vz.fit; vz.x = (r.width - w * vz.k) / 2; vz.y = Math.max(0, (r.height - hh * vz.k) / 2); apply();
     };
-    if (vEl.tagName === "VIDEO" ? s.width || vEl.readyState >= 1 : vEl.complete) requestAnimationFrame(fit);
+    if (vEl.tagName === "VIDEO" ? (s.width && s.height) || vEl.readyState >= 1 : vEl.complete) requestAnimationFrame(fit);
     else vEl.addEventListener(vEl.tagName === "VIDEO" ? "loadedmetadata" : "load", fit, { once: true });
     if (!keep) $("#v-close").focus(); else $('#v-state [aria-selected="true"]')?.focus();
   }

@@ -54,6 +54,11 @@ main > .empty {
   margin-block-start: var(--space-6);
 }
 
+.empty-actions > .button-filled,
+.empty-actions > .button-tonal {
+  width: auto;
+}
+
 /* Inside a settings section: smaller art and the section's own type, the same order. */
 .empty[data-compact] {
   padding-block: var(--space-4) var(--space-6);

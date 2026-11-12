@@ -1109,6 +1109,7 @@ const PAGE_OVERRIDES: string[] = [
   "create.css: .create-view .field-input.create-title:focus, .create-view .field-input.create-title:focus-visible",
   "create.css: .create-view .field-input.create-title:focus-visible",
   "create.css: .create-view .field-input.create-title:where(:enabled):hover",
+  "empty.css: .empty-actions > .button-filled, .empty-actions > .button-tonal",
   "library.css: .library-filters > .filter-chip",
   "library.css: .menu-list.card-menu-list",
   "library.css: .menu-list.card-menu-list",

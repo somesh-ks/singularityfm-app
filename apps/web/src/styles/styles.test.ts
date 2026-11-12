@@ -1104,6 +1104,7 @@ const PAGE_OVERRIDES: string[] = [
   "briefing.css: .story-actions > .chip",
   "briefing.css: .story-actions:not(:has(> .chip:not([hidden])))",
   "briefing.css: html[data-offline] .story-actions > .chip",
+  "create-sheet.css: .share-dialog > .sheet-head",
   "create.css: .create-view .field-input.create-title",
   "create.css: .create-view .field-input.create-title",
   "create.css: .create-view .field-input.create-title:focus, .create-view .field-input.create-title:focus-visible",

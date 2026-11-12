@@ -199,6 +199,12 @@ dialog.share-dialog:focus-visible {
   outline: none;
 }
 
+/* The head's words line up with the body's (.share-about) and the close button sits at the corner. */
+.share-dialog > .sheet-head {
+  padding-block: var(--space-1);
+  padding-inline: var(--space-4) var(--space-1);
+}
+
 .share-about {
   margin-block: var(--space-2) var(--space-4);
   padding-inline: var(--space-4);

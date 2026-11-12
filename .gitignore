@@ -9,6 +9,10 @@ node_modules
 .claude/worktrees/
 .DS_Store
 .claude/settings.local.json
+# A local clone of github/spec-kit, once committed by mistake as a gitlink with no URL: it broke
+# actions/checkout's auth cleanup, so deploy-due failed every hour (2026-11-12).
+spec-kit/
+
 # Held by apps/web/e2e/run.mjs while a browser suite builds or serves apps/web/dist.
 apps/web/dist.lock
 

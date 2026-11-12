@@ -57,8 +57,17 @@ function systemDir() {
 }
 const SYSTEM = systemDir();
 const STYLES = join(SYSTEM, "styles");
-const DS_FILES = ["buttons.css", "badge.css", "banner.css", "icon.css"];
-const ICONS = ["close", "chevronLeft", "chevronRight", "pencilSimple", "openInNew"];
+const DS_FILES = ["buttons.css", "badge.css", "banner.css", "icon.css", "primitives.css"];
+const ICONS = ["close", "chevronLeft", "chevronRight", "pencilSimple", "openInNew", "sun", "moon"];
+// shortcut: the design system has no phone or desktop glyph yet, so the page carries Phosphor's
+// regular DeviceMobile and Desktop (the system's own icon set, MIT); move them into the system's
+// glyphs.json when an app screen needs them, and drop these.
+const PAGE_ICONS = {
+  deviceMobile:
+    "M176,16H80A24,24,0,0,0,56,40V216a24,24,0,0,0,24,24h96a24,24,0,0,0,24-24V40A24,24,0,0,0,176,16ZM72,64H184V192H72Zm8-32h96a8,8,0,0,1,8,8v8H72V40A8,8,0,0,1,80,32Zm96,192H80a8,8,0,0,1-8-8v-8H184v8A8,8,0,0,1,176,224Z",
+  desktop:
+    "M208,40H48A24,24,0,0,0,24,64V176a24,24,0,0,0,24,24h72v16H96a8,8,0,0,0,0,16h64a8,8,0,0,0,0-16H136V200h72a24,24,0,0,0,24-24V64A24,24,0,0,0,208,40ZM48,56H208a8,8,0,0,1,8,8v80H40V64A8,8,0,0,1,48,56ZM208,184H48a8,8,0,0,1-8-8V160H216v16A8,8,0,0,1,208,184Z",
+};
 const TAG_KEYS = ["device", "browser", "theme", "mood", "hue", "state"];
 // Ids the template's own elements use; a change or still must not take one.
 const PAGE_IDS = [
@@ -73,9 +82,11 @@ const PAGE_IDS = [
   "review-data",
   "pr-link",
   "notes-copy",
-  "ver-badge",
+  "theme-btn",
+  "device-slot",
   "v-close",
   "v-title",
+  "v-state",
   "v-prev",
   "v-next",
 ];
@@ -166,14 +177,18 @@ export function normalise(review, dir) {
 
 function iconSvgs() {
   const src = readFileSync(join(SYSTEM, "src", "icons.ts"), "utf8");
-  const out = {};
+  const paths = { ...PAGE_ICONS };
   for (const name of ICONS) {
     const m = new RegExp(`\\n  ${name}:\\s*"([^"]+)"`).exec(src);
     if (!m) fail(`icon "${name}" not found in icons.ts`);
-    out[name] =
-      `<svg class="icon-glyph" viewBox="0 0 256 256" aria-hidden="true"><path d="${m[1]}"/></svg>`;
+    paths[name] = m[1];
   }
-  return out;
+  return Object.fromEntries(
+    Object.entries(paths).map(([name, d]) => [
+      name,
+      `<svg class="icon-glyph" viewBox="0 0 256 256" aria-hidden="true"><path d="${d}"/></svg>`,
+    ]),
+  );
 }
 
 function fontFace() {

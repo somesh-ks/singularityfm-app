@@ -25,24 +25,31 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 * { box-sizing: border-box; }
-#notes-copy[hidden], section.change[hidden], details.history[hidden] { display: none; }
+#notes-copy[hidden], #theme-btn[hidden], section.change[hidden], details.history[hidden] { display: none; }
 button { font: inherit; border: 0; background: none; color: inherit; cursor: pointer; }
 :focus-visible { outline: 0.125rem solid var(--color-accent); outline-offset: 0.125rem; }
 main { max-width: 70rem; margin: 0 auto; display: grid; gap: var(--space-8); }
 .measure { max-width: 42.5rem; }
 
-/* Top bar: the PR link, and Copy notes once the page holds a note. */
+/* Top bar, on the page's column: the PR link at the start, the device switch (one glyph a device) in
+   the middle, the theme button at the end. Both pick which copy of each view shows, so they stay in
+   reach while scrolling; the theme button also turns the page, so dark stills are judged on dark. */
 body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0rem); z-index: 10; background: var(--color-surface); }
 .topbar {
   position: sticky; top: env(safe-area-inset-top, 0rem); z-index: 5;
-  display: flex; align-items: center; gap: var(--space-2);
-  min-height: var(--size-touch); margin-inline: calc(-1 * var(--gutter)); padding-inline: max(var(--gutter), (100% - 70rem) / 2);
+  margin-inline: calc(-1 * var(--gutter)); padding-inline: var(--gutter);
   background: var(--color-surface);
 }
-.topbar .pr { font-weight: var(--font-weight-medium); font-size: var(--text-label-size); color: var(--color-on-surface-muted); text-decoration: none; display: inline-flex; gap: var(--space-1); align-items: center; }
-.topbar .pr:hover { color: var(--color-accent); }
-.topbar .spacer { flex: 1; }
-.topbar .button-text { white-space: nowrap; }
+.topbar.is-stuck { box-shadow: 0 0.0625rem 0 var(--color-surface-container); }
+.bar {
+  max-width: 70rem; min-height: var(--size-touch-comfortable); margin-inline: auto;
+  display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: var(--space-2);
+}
+.bar .pr { justify-self: start; min-height: var(--size-touch); font-weight: var(--font-weight-medium); font-size: var(--text-label-size); color: var(--color-on-surface-muted); text-decoration: none; display: inline-flex; gap: var(--space-1); align-items: center; }
+.bar .pr .icon-glyph { width: var(--size-icon-sm); height: var(--size-icon-sm); }
+.bar .pr:hover { color: var(--color-accent); }
+.bar-end { justify-self: end; display: flex; align-items: center; gap: var(--space-1); }
+.bar-end .button-text { white-space: nowrap; }
 
 /* Header: title, one quiet line, then what to check. */
 header.intro { display: grid; gap: var(--space-2); padding-top: var(--space-4); }
@@ -51,22 +58,23 @@ h1 { margin: 0; font-size: var(--text-display-size); line-height: var(--text-dis
 .badge-label.is-new { background: var(--color-accent); color: var(--color-on-accent); }
 
 /* Check lines: each line is the link to the still it names. */
-.checks { margin: 0; padding: 0; list-style: none; display: grid; gap: var(--space-1); }
+.checks { margin: 0; padding: 0; list-style: none; display: grid; }
 .checks a {
-  display: flex; gap: var(--space-2); align-items: baseline; min-height: var(--size-touch); padding-block: var(--space-2);
-  color: var(--color-on-surface); text-decoration: none;
+  display: flex; gap: var(--space-2); align-items: baseline; padding-block: var(--space-2);
+  color: var(--color-on-surface); text-decoration: none; text-wrap: pretty;
 }
 .checks a::before { content: ""; flex: none; width: 0.5rem; height: 0.5rem; border-radius: var(--shape-round); background: var(--color-accent); transform: translateY(-0.125rem); }
 .checks a:hover { color: var(--color-accent); }
 
-/* Filters: the app's pill shape; the picked one takes the accent container. */
+/* Mood and hue: the system's Segmented navigation, a track as wide as its words. Its columns stay
+   equal, so the pill's step stays one column. */
 .filters { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-4); align-items: center; }
-.filter { display: inline-flex; gap: var(--space-1); padding: 0.125rem; border-radius: var(--shape-round); background: var(--color-surface-container); }
-.filter button { min-height: 2.25rem; padding-inline: var(--space-4); border-radius: var(--shape-round); font-size: var(--text-label-size); font-weight: var(--font-weight-medium); color: var(--color-on-surface-muted); }
-.filter button[aria-pressed="true"] { background: var(--color-accent-container); color: var(--color-on-accent-container); }
+.filters .segmented-nav { flex: 0 1 auto; }
+@media (width >= 40rem) { .filters .segmented-nav-tab { padding-inline: var(--space-4); } }
 
 /* A change: its title, then its stills. Light and dark copies of one view share a card; the theme
    filter picks which one shows, so the page is one card per view. */
+#changes { display: grid; gap: var(--space-12); }
 section.change { display: grid; gap: var(--space-4); scroll-margin-top: var(--space-16); }
 .change-head { display: grid; gap: var(--space-1); }
 .change-head h2 { margin: 0; font-size: var(--text-title-size); line-height: var(--text-title-leading); font-weight: var(--font-weight-medium); text-wrap: balance; }
@@ -92,10 +100,13 @@ html[data-comment-mode] .media { cursor: crosshair; }
 html[data-comment-mode] .media.is-cut::after { display: none; }
 figcaption { display: grid; gap: 0; }
 .tags { display: flex; gap: var(--space-2); align-items: center; min-width: 0; }
+.tags .segmented-nav, .viewer-bar .segmented-nav { flex: none; }
+.tags .segmented-nav-tab, .viewer-bar .segmented-nav-tab { padding-inline: var(--space-4); }
 .tags .no { color: var(--color-on-surface); font-weight: var(--font-weight-medium); font-variant-numeric: tabular-nums; }
 .tagline { flex: 1; min-width: 0; color: var(--color-on-surface-muted); font-size: var(--text-meta-size); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .comment-btn { margin-inline-end: calc((var(--size-touch) - var(--size-icon-lg)) / -2); }
 .cap { margin: 0; font-size: var(--text-meta-size); line-height: var(--text-caption-leading); color: var(--color-on-surface-reading); }
+.change-head .cap { color: var(--color-on-surface-muted); }
 
 /* Page notes, used only where claude.ai comments are off: numbered pins on the picture. */
 .pin {
@@ -128,10 +139,15 @@ details.history ul { margin: var(--space-2) 0 0; padding-inline-start: 1.25em; d
 @media (prefers-reduced-motion: no-preference) { figure.still .media { transition: box-shadow 200ms; } }
 </style>
 
-<div class="topbar">
-  <a class="pr" id="pr-link" href="@PR_URL@" target="_blank" rel="noopener" aria-label="Pull request @PR@ on GitHub">#@PR@ @ICON_openInNew@</a>
-  <span class="spacer"></span>
-  <button class="button-text" id="notes-copy" type="button" hidden>Copy notes</button>
+<div class="topbar" id="topbar">
+  <div class="bar">
+    <a class="pr" id="pr-link" href="@PR_URL@" target="_blank" rel="noopener" aria-label="Pull request @PR@ on GitHub">#@PR@ @ICON_openInNew@</a>
+    <div id="device-slot"></div>
+    <div class="bar-end">
+      <button class="button-text" id="notes-copy" type="button" hidden>Copy notes</button>
+      <button class="icon-btn icon-btn-end" id="theme-btn" type="button" hidden></button>
+    </div>
+  </div>
 </div>
 
 <main>
@@ -142,7 +158,7 @@ details.history ul { margin: var(--space-2) 0 0; padding-inline-start: 1.25em; d
 
   <ul class="measure checks" id="check-panel"></ul>
   <div class="filters" id="filters"></div>
-  <div id="changes" style="display:grid;gap:var(--space-12)"></div>
+  <div id="changes"></div>
   <details class="history measure" id="history" hidden><summary>Earlier versions</summary><ul></ul></details>
 </main>
 
@@ -150,6 +166,7 @@ details.history ul { margin: var(--space-2) 0 0; padding-inline-start: 1.25em; d
   <div class="viewer-bar">
     <button class="icon-btn" id="v-close" type="button" aria-label="Close">@ICON_close@</button>
     <span class="title" id="v-title"></span>
+    <div id="v-state"></div>
     <button class="icon-btn" id="v-prev" type="button" aria-label="Previous still">@ICON_chevronLeft@</button>
     <button class="icon-btn" id="v-next" type="button" aria-label="Next still">@ICON_chevronRight@</button>
   </div>
@@ -161,7 +178,7 @@ details.history ul { margin: var(--space-2) 0 0; padding-inline-start: 1.25em; d
 (() => {
   "use strict";
   const R = JSON.parse(document.getElementById("review-data").textContent);
-  const ICON = { comment: `@ICON_pencilSimple@` };
+  const ICON = { comment: `@ICON_pencilSimple@`, sun: `@ICON_sun@`, moon: `@ICON_moon@`, Phone: `@ICON_deviceMobile@`, Desktop: `@ICON_desktop@` };
   const $ = (s, el = document) => el.querySelector(s);
   const h = (tag, attrs = {}, ...kids) => {
     const el = document.createElement(tag);
@@ -178,23 +195,34 @@ details.history ul { margin: var(--space-2) 0 0; padding-inline-start: 1.25em; d
     set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
   };
 
-  /* ---- Light and dark copies of one view (same change, same labels but theme) share a card and its
-     number, in page order. Comments still name the still by its id. */
+  /* ---- One card per view. The copies of a view (same change, same labels but device, theme and
+     before or after) share a card and its number, in page order. The top bar picks the device and
+     theme; a Before and After switch on the card flips that card in place, so a change is seen where it
+     happens. Comments still name the still by its id. */
   const stills = [];
-  const viewKey = (s) => [s.change.id, s.tags?.device, s.tags?.browser, s.tags?.mood, s.tags?.hue, s.tags?.state].join("|");
+  const viewKey = (s) => [s.change.id, s.tags?.browser, s.tags?.mood, s.tags?.hue].join("|");
+  const sameCopy = (a, b) => ["device", "theme", "state"].every((k) => a.tags?.[k] === b.tags?.[k]);
   const views = [];
   for (const c of R.changes) for (const s of c.stills) {
     s.change = c; stills.push(s);
-    // Join the first view with the same labels that has no copy in this theme yet; two crops with the
-    // same labels are two views.
+    // Join the first view with these labels that has no copy for this device and theme yet; two crops
+    // with the same labels are two views.
     const key = viewKey(s);
-    let view = views.find((v) => v.key === key && !v.some((o) => o.tags?.theme === s.tags?.theme));
+    let view = views.find((v) => v.key === key && !v.some((o) => sameCopy(o, s)));
     if (!view) { view = Object.assign([], { key }); views.push(view); }
     view.push(s); s.view = view; s.n = views.indexOf(view) + 1;
   }
   const byId = new Map(stills.map((s) => [s.id, s]));
-  const tagLine = (s) => [s.tags?.device, s.tags?.browser, s.tags?.theme, s.tags?.mood, s.tags?.hue, s.tags?.state].filter(Boolean).join(" · ");
-  const label = (s) => `${s.n} · ${tagLine(s)} · ${s.change.title}`.slice(0, 120);
+  for (const v of views) {
+    v.states = [...new Set(v.map((s) => s.tags?.state).filter(Boolean))];
+    v.state = v.states.find((x) => /^after$/i.test(x)) ?? v.states.at(-1);
+  }
+  const TAGS = ["state", "mood", "hue", "browser", "device", "theme"];
+  // A label that is the same on every still says nothing; neither does one the top bar or a filter has picked.
+  const varies = new Set(TAGS.filter((k) => new Set(stills.map((s) => s.tags?.[k])).size > 1));
+  const fullTags = (s) => TAGS.map((k) => s.tags?.[k]).filter(Boolean).join(" · ");
+  const tagLine = (s) => TAGS.filter((k) => s.tags?.[k] && varies.has(k) && picked[k] !== s.tags[k] && !(k === "state" && s.view.states.length > 1)).map((k) => s.tags[k]).join(" · ");
+  const label = (s) => `${s.n} · ${fullTags(s)} · ${s.change.title}`.slice(0, 120);
 
   /* ---- Header */
   const when = new Date(R.updated);
@@ -210,44 +238,106 @@ details.history ul { margin: var(--space-2) 0 0; padding-inline-start: 1.25em; d
     $("ul", d).append(...R.history.map((v) => h("li", {}, h("strong", {}, `Version ${v.version}`), v.date ? ` (${v.date}): ` : ": ", v.summary)));
   }
 
-  /* ---- Filters, built from the labels the stills carry. Only a label with two or more values gets one. */
-  const FILTERS = ["theme", "device", "mood", "hue"];
+  /* ---- What shows. Device and theme pick a copy of each view (top bar); mood and hue filter the views
+     (a row of Segmented navigation, with All). Only a label with two or more values gets a control.
+     The viewer's last pick is kept for the next review. */
   const picked = {};
+  const valuesOf = (k) => [...new Set(stills.map((s) => s.tags?.[k]).filter(Boolean))];
+  const prefer = (k, v) => { const all = valuesOf(k); return all.includes(store.get(`screenshot-review:${k}`)) ? store.get(`screenshot-review:${k}`) : all.find((x) => x.toLowerCase() === v) ?? all[0]; };
+
+  // The system's Segmented navigation, drawn as segmentedNav.ts does: tabs a press or Left, Right, Home
+  // and End choose. `get` reads the choice, `set` makes it.
+  let navs = [];
+  function segmented(name, values, get, set, { compact = false } = {}) {
+    const nav = h("div", { class: `segmented-nav${compact ? " segmented-nav-compact" : ""}`, role: "tablist", "aria-label": name });
+    nav.style.setProperty("--seg-n", values.length);
+    for (const v of values) nav.append(h("button", { class: "segmented-nav-tab", type: "button", role: "tab", "data-value": v,
+      "aria-label": compact ? v : null, title: compact ? v : null }, compact ? ic(ICON[v]) : v));
+    nav.addEventListener("click", (e) => { const t = e.target.closest("[role=tab]"); if (t && t.dataset.value !== get()) set(t.dataset.value); });
+    nav.addEventListener("keydown", (e) => {
+      const i = values.indexOf(get());
+      const j = { ArrowLeft: i - 1, ArrowRight: i + 1, Home: 0, End: values.length - 1 }[e.key];
+      if (j == null) return;
+      e.preventDefault(); set(values[(j + values.length) % values.length]); nav.querySelector('[aria-selected="true"]')?.focus();
+    });
+    navs.push({ nav, values, get, viewer: name.startsWith("Viewer") });
+    return nav;
+  }
+  const control = (key, values, opts) => segmented(key[0].toUpperCase() + key.slice(1), values, () => picked[key], (v) => pick(key, v), opts);
+  // Smallest screen first, whatever order the stills came in.
+  const devices = valuesOf("device").sort((a, b) => ["Phone", "Tablet", "Desktop"].indexOf(a) - ["Phone", "Tablet", "Desktop"].indexOf(b));
+  if (devices.length > 1) {
+    // A glyph a device where the set has one for each; words otherwise.
+    const glyphs = devices.every((d) => ICON[d]);
+    $("#device-slot").append(control("device", devices, { compact: glyphs }));
+    picked.device = prefer("device", matchMedia("(width < 40rem)").matches ? "phone" : "desktop");
+  }
+  const themes = valuesOf("theme");
+  const lightDark = themes.length === 2 && themes.every((t) => /^(light|dark)$/i.test(t));
+  if (lightDark) {
+    picked.theme = prefer("theme", matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    $("#theme-btn").hidden = false;
+    $("#theme-btn").onclick = () => pick("theme", themes.find((t) => t !== picked.theme));
+  } else if (themes.length > 1) {
+    picked.theme = themes[0];
+    $("#device-slot").append(control("theme", themes));
+  }
   const filterRow = $("#filters");
-  for (const key of FILTERS) {
-    const values = [...new Set(stills.map((s) => s.tags?.[key]).filter(Boolean))].sort((a, b) => (key === "theme" ? (a === "Light" ? -1 : b === "Light" ? 1 : 0) : 0));
+  for (const key of ["mood", "hue"]) {
+    const values = valuesOf(key);
     if (values.length < 2) continue;
-    // Theme has no "All": the card shows the copy for the picked theme, first the one the page is in.
-    const first = key === "theme" ? (values.find((v) => v.toLowerCase() === (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")) ?? values[0]) : "All";
-    picked[key] = first;
-    const group = h("div", { class: "filter", role: "group", "aria-label": key });
-    for (const v of key === "theme" ? values : ["All", ...values]) group.append(h("button", { type: "button", "data-value": v, "aria-pressed": v === first ? "true" : "false", onclick: () => pick(key, v) }, v));
-    filterRow.append(group);
+    picked[key] = "All";
+    filterRow.append(control(key, ["All", ...values]));
   }
   if (!filterRow.children.length) filterRow.remove();
-  function pick(key, v) {
+
+  function pick(key, v, apply = true) {
     picked[key] = v;
-    for (const b of filterRow.querySelectorAll(`[aria-label="${key}"] button`)) b.setAttribute("aria-pressed", b.dataset.value === v ? "true" : "false");
-    applyFilters();
+    if (key === "device" || key === "theme") store.set(`screenshot-review:${key}`, v);
+    if (apply) applyFilters();
   }
-  const matches = (s, k) => picked[k] === "All" || !s.tags?.[k] || s.tags[k] === picked[k];
-  // A view with no copy in the picked theme still shows its first copy, so no view drops out.
-  const visible = (s) => Object.keys(picked).every((k) => k === "theme" || matches(s, k)) &&
-    (!picked.theme || matches(s, "theme") || (!s.view.some((o) => matches(o, "theme")) && s.view[0] === s));
+  function showPicks() {
+    navs = navs.filter((n) => n.nav.isConnected || !n.viewer);
+    for (const { nav, values, get } of navs) {
+      nav.style.setProperty("--seg-i", values.indexOf(get()));
+      for (const t of nav.children) { const on = t.dataset.value === get(); t.setAttribute("aria-selected", String(on)); t.tabIndex = on ? 0 : -1; }
+    }
+    if (lightDark) {
+      const dark = picked.theme.toLowerCase() === "dark";
+      document.documentElement.dataset.theme = dark ? "dark" : "light";
+      const b = $("#theme-btn"); b.replaceChildren(ic(dark ? ICON.sun : ICON.moon));
+      b.setAttribute("aria-label", dark ? "Show light" : "Show dark"); b.title = b.getAttribute("aria-label");
+    }
+  }
+  // The copy of a view that shows: the card's before or after, then the picked device, then the picked
+  // theme, so no view drops out.
+  const score = (s) => (s.tags?.state === s.view.state ? 4 : 0) + (s.tags?.device === picked.device ? 2 : 0) + (s.tags?.theme === picked.theme ? 1 : 0);
+  const shownCopy = (view) => view.reduce((a, b) => (score(b) > score(a) ? b : a));
+  const visible = (s) => ["mood", "hue"].every((k) => !picked[k] || picked[k] === "All" || !s.tags?.[k] || s.tags[k] === picked[k]) && shownCopy(s.view) === s;
   function applyFilters() {
-    for (const s of stills) s.fig.hidden = !visible(s);
+    showPicks();
+    for (const s of stills) {
+      s.fig.hidden = !visible(s);
+      s.tagsEl.textContent = tagLine(s);
+      s.fig.classList.toggle("is-wide", s.width > s.height || s.tags?.device === "Desktop");
+    }
     for (const c of R.changes) c.section.hidden = c.stills.every((s) => s.fig.hidden);
     report();
   }
+  const topbar = $("#topbar");
+  addEventListener("scroll", () => topbar.classList.toggle("is-stuck", scrollY > 0), { passive: true });
 
   /* ---- Changes and stills */
   const changesEl = $("#changes");
   for (const c of R.changes) {
     const grid = h("div", { class: "grid" });
+    // A caption every still of the change shares is said once, under the change's title.
+    const shared = c.stills.length > 1 && c.stills.every((s) => s.caption && s.caption === c.stills[0].caption) ? c.stills[0].caption : null;
     c.section = h("section", { class: "change", id: c.id, "aria-labelledby": `${c.id}-h` },
-      h("div", { class: "change-head measure" }, h("h2", { id: `${c.id}-h` }, c.title), c.what ? h("p", {}, c.what) : null),
+      h("div", { class: "change-head measure" }, h("h2", { id: `${c.id}-h` }, c.title), c.what ? h("p", {}, c.what) : null, shared ? h("p", { class: "cap" }, shared) : null),
       grid);
-    for (const s of c.stills) {
+    // In card order, so the copy that shows sits where its card's number says, whichever copy it is.
+    for (const s of [...c.stills].sort((x, y) => x.n - y.n)) {
       const isVideo = /\.(mp4|webm)$/i.test(s.file);
       const media = isVideo
         ? h("video", { src: s.file, controls: true, muted: true, loop: true, playsinline: true, preload: "metadata", "aria-label": s.caption || label(s) })
@@ -255,9 +345,11 @@ details.history ul { margin: var(--space-2) 0 0; padding-inline-start: 1.25em; d
       media.dataset.still = s.id;
       if (!isVideo) media.addEventListener("load", report);
       const isNew = s.new_in === R.version;
+      s.tagsEl = h("span", { class: "tagline" });
       const tags = h("div", { class: "tags" },
         h("span", { class: "no" }, String(s.n)),
-        h("span", { class: "tagline" }, tagLine(s)),
+        s.tagsEl,
+        s.view.states.length > 1 ? segmented(`Before or after, ${s.n}`, s.view.states, () => s.view.state, (v) => { s.view.state = v; flip(s.view); }) : null,
         isNew && R.version > 1 ? h("span", { class: "badge-label is-new" }, "Changed") : null,
         h("button", { class: "icon-btn comment-btn", type: "button", "data-comment": s.id, "aria-label": `Comment on ${s.n}`, onclick: () => commentOn(s) }, ic(ICON.comment)));
       // The picture opens the viewer; in comment mode the click goes to the composer first (capture below).
@@ -267,16 +359,22 @@ details.history ul { margin: var(--space-2) 0 0; padding-inline-start: 1.25em; d
       if (s.width && s.height) new ResizeObserver(() => s.mediaBox.classList.toggle("is-cut", s.mediaBox.scrollHeight > s.mediaBox.clientHeight + 1)).observe(s.mediaBox);
       s.media = media;
       s.notesEl = h("div", { class: "notes" });
-      const wide = s.width > s.height || s.tags?.device === "Desktop";
-      s.fig = h("figure", { class: `still${wide ? " is-wide" : ""}`, id: s.id.replace(/\./g, "-") },
-        s.mediaBox, h("figcaption", {}, tags, s.caption ? h("p", { class: "cap" }, s.caption) : null), s.notesEl);
+      s.fig = h("figure", { class: "still", id: s.id.replace(/\./g, "-") },
+        s.mediaBox, h("figcaption", {}, tags, s.caption && !shared ? h("p", { class: "cap" }, s.caption) : null), s.notesEl);
       grid.append(s.fig);
     }
     changesEl.append(c.section);
   }
 
+  // Flip one card between before and after in place: the shown copy changes, the page does not move.
+  function flip(view) {
+    applyFilters();
+    const shown = shownCopy(view);
+    if (vs && view.includes(vs)) openViewer(shown, true);
+    else shown.fig.querySelector('.tags [aria-selected="true"]')?.focus();
+  }
   function reveal(s) {
-    if (s.fig.hidden) for (const k of Object.keys(picked)) pick(k, k === "theme" ? s.tags?.theme ?? picked.theme : "All");
+    if (s.fig.hidden) { s.view.state = s.tags?.state ?? s.view.state; for (const k of Object.keys(picked)) pick(k, ["device", "theme"].includes(k) ? s.tags?.[k] ?? picked[k] : "All", false); applyFilters(); }
     const smooth = !matchMedia("(prefers-reduced-motion: reduce)").matches;
     s.fig.scrollIntoView({ block: "center", behavior: smooth ? "smooth" : "auto" });
     s.fig.classList.add("is-flash"); setTimeout(() => s.fig.classList.remove("is-flash"), 1200);
@@ -287,9 +385,14 @@ details.history ul { margin: var(--space-2) 0 0; padding-inline-start: 1.25em; d
   const viewer = $("#viewer"), stage = $("#stage");
   let vs = null, vz = { k: 1, x: 0, y: 0, fit: 1 }, vEl = null;
   const order = () => stills.filter((s) => !s.fig.hidden);
-  function openViewer(s) {
+  // keep: flipping before and after keeps the zoom and position, so the two compare pixel for pixel.
+  function openViewer(s, keep = false) {
+    keep &&= !!vs && vs.width === s.width && vs.height === s.height;
     vs = s; viewer.hidden = false; document.documentElement.style.overflow = "hidden";
-    $("#v-title").textContent = `${s.n} · ${s.caption || tagLine(s)}`;
+    const v = s.view;
+    $("#v-state").replaceChildren(v.states.length > 1 ? segmented("Viewer, before or after", v.states, () => v.state, (x) => { v.state = x; flip(v); }) : "");
+    showPicks();
+    $("#v-title").textContent = `${s.n} · ${s.caption || tagLine(s) || s.change.title}`;
     stage.replaceChildren();
     vEl = s.media.cloneNode(true); vEl.removeAttribute("loading"); vEl.removeAttribute("width"); vEl.removeAttribute("height");
     vEl.dataset.still = s.id; stage.append(vEl);
@@ -300,10 +403,11 @@ details.history ul { margin: var(--space-2) 0 0; padding-inline-start: 1.25em; d
       vEl.style.width = `${w}px`; vEl.style.height = `${hh}px`;
       const r = stage.getBoundingClientRect();
       vz.fit = Math.min(r.width / w, r.height / hh, 1); // never past the picture's own pixels: crops blur
+      if (keep) return apply();
       vz.k = vz.fit; vz.x = (r.width - w * vz.k) / 2; vz.y = Math.max(0, (r.height - hh * vz.k) / 2); apply();
     };
     if (vEl.complete || vEl.tagName === "VIDEO") requestAnimationFrame(fit); else vEl.addEventListener("load", fit, { once: true });
-    $("#v-close").focus();
+    if (!keep) $("#v-close").focus(); else $('#v-state [aria-selected="true"]')?.focus();
   }
   function closeViewer() { const s = vs; viewer.hidden = true; vs = null; vEl = null; document.documentElement.style.overflow = ""; report(); s?.mediaBox.focus(); }
   function step(d) { const o = order(); const i = o.indexOf(vs); if (i < 0) return; openViewer(o[(i + d + o.length) % o.length]); }
@@ -442,7 +546,7 @@ details.history ul { margin: var(--space-2) 0 0; padding-inline-start: 1.25em; d
   }
   function notesText() {
     const lines = [`Review notes: PR #${R.pr}, version ${R.version}`];
-    notes.forEach((n, i) => { const s = byId.get(n.still); if (s && n.text.trim()) lines.push(`${i + 1}. Still ${s.n} (${tagLine(s)}, ${s.change.title}) at ${n.x}%, ${n.y}%: ${n.text.trim()}`); });
+    notes.forEach((n, i) => { const s = byId.get(n.still); if (s && n.text.trim()) lines.push(`${i + 1}. Still ${s.n} (${fullTags(s)}, ${s.change.title}) at ${n.x}%, ${n.y}%: ${n.text.trim()}`); });
     return lines.join("\n");
   }
 

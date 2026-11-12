@@ -105,6 +105,7 @@
  */
 .hero-share,
 .hero-favorite {
+  --chip-height: calc(var(--size-touch) - var(--space-1));
   position: relative;
   min-width: var(--chip-height);
   min-height: var(--chip-height);
@@ -127,8 +128,9 @@
   display: block;
 }
 
-/* The hero's chip is the page's primary button: PlayChip primary (the design system draws the
-   accent fill, its press and the pause glyph while it plays). */
+/* The hero's Play is the page's primary button: PlayChip primary (the design system draws the
+   accent fill on a button's face, a step under the touch size, its press and the pause glyph while it
+   plays). The circles beside it take the same height (above). */
 
 /* Played and Downloaded, after the facts (owner, 2026-11-03): the Library card's own marks (a green check,
    a blue download arrow; library.css) and the word. cardProgress.ts and libraryMenu.ts put them in the

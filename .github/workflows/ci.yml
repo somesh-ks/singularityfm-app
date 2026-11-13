@@ -14,15 +14,13 @@ permissions:
   contents: read
 
 jobs:
-  # One job, so a run bills the fewest whole minutes (each job rounds up on its own, D148).
-  check:
+  # What the change touches, in seconds, so `check` and the browser shards start together (2026-11-13:
+  # the shards waited for `check`, and a pull request that changes the site took 19 minutes).
+  changes:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-    # gitleaks lists the pull request's commits, which needs pull-requests: read.
-    permissions:
-      contents: read
-      pull-requests: read
+    timeout-minutes: 5
     outputs:
+      code: ${{ steps.diff.outputs.code }}
       web: ${{ steps.diff.outputs.web }}
       shared: ${{ steps.diff.outputs.shared }}
     steps:
@@ -65,6 +63,21 @@ jobs:
           else
             echo "code=false" >> "$GITHUB_OUTPUT"
           fi
+
+  # Runners are free on this public repository, so the cost of more jobs is the 20 that run at once (the
+  # D148 reason for one job was the private repository's minutes, which are gone).
+  check:
+    needs: changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # gitleaks lists the pull request's commits, which needs pull-requests: read.
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
       - uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -99,36 +112,37 @@ jobs:
       - name: Docs check
         run: node scripts/docsCheck.mjs
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        if: steps.diff.outputs.code == 'true'
+        if: needs.changes.outputs.code == 'true'
         with:
           node-version-file: .nvmrc
           cache: pnpm
-      - if: steps.diff.outputs.code == 'true'
-        run: pnpm install --frozen-lockfile --ignore-scripts
+      # The registry can fail for a moment; the install runs again, no other step does.
+      - if: needs.changes.outputs.code == 'true'
+        run: bash scripts/retry.sh 3 pnpm install --frozen-lockfile --ignore-scripts
       # The Opus transcode (packages/engine/src/audio/transcode.ts) needs ffmpeg with libopus, which
       # the runner image does not carry; without it audio-episodeOpus.test.ts skips.
       - name: ffmpeg
         timeout-minutes: 5
-        if: steps.diff.outputs.code == 'true'
+        if: needs.changes.outputs.code == 'true'
         uses: ./.github/actions/ffmpeg
         with:
           required: "true"
       - name: Typecheck
-        if: steps.diff.outputs.code == 'true'
+        if: needs.changes.outputs.code == 'true'
         run: pnpm run typecheck
       - name: Lint
-        if: steps.diff.outputs.code == 'true'
+        if: needs.changes.outputs.code == 'true'
         run: pnpm run lint
       - name: Test
-        if: steps.diff.outputs.code == 'true'
+        if: needs.changes.outputs.code == 'true'
         run: pnpm test
       # The admin repository installs @singularityfm/contracts from npm as compiled JavaScript; the
       # workspace link serves .ts source, so only a packed and installed copy shows a broken export (#485).
       - name: Contracts package
-        if: steps.diff.outputs.code == 'true'
+        if: needs.changes.outputs.code == 'true'
         run: node scripts/contractsPack.mjs
       - name: Build site
-        if: steps.diff.outputs.code == 'true'
+        if: needs.changes.outputs.code == 'true'
         env:
           SINGULARITY_FIXTURES: "1"
         run: pnpm run build
@@ -151,14 +165,20 @@ jobs:
   # is built from. They used to run only for the tokens, a shared stylesheet, Dependabot or a
   # `browser` label, so the service worker and BaseLayout change in #346 skipped them and a
   # regression reached main (2026-10-26, D148).
-  # After check: a run that fails it is blocked anyway, and the suites would only spend minutes.
+  # They start with `check`, not after it: a change that fails `check` is blocked anyway, but the
+  # pull request used to wait for `check` and then for the suites, 19 minutes in all. Five shards now
+  # end in about the time of one, and a red `check` costs only free runner minutes.
   browser:
-    needs: check
-    if: needs.check.outputs.web == 'true'
+    needs: changes
+    if: needs.changes.outputs.web == 'true'
+    # A called workflow gets at most the caller's permissions; its `report` job reads the run's artifacts.
+    permissions:
+      contents: read
+      actions: read
     uses: ./.github/workflows/browser.yml
 
   # The one browser check a ruleset can require (D385). A skipped `browser` caller job reports the
-  # bare name `browser`, and a run one reports `browser / site suite` and `browser / player suite`,
+  # bare name `browser`, and a run one reports a name per shard (`browser / site 1/3` and so on, which change with the matrix),
   # so requiring `browser` would hang a site PR and block a docs PR. This job always runs and
   # reports the same name: green when the suites passed or were skipped, red otherwise.
   browser-gate:

@@ -90,11 +90,15 @@ export async function restoreReleasedSeen(root: string): Promise<void> {
   let released: SeenFile["items"];
   try {
     released = JSON.parse(await readFile(releasedSeenPath(root), "utf8")) as SeenFile["items"];
-  } catch {
-    return;
+  } catch (error) {
+    // No copy: the gate released nothing. Any other failure must not save a seen list that lacks the stories.
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return;
+    throw error;
   }
   const seen = await readSeen(root);
   await writeSeen(root, { ...seen, items: { ...seen.items, ...released } });
+  // Used once: a later failed run must not put back what an earlier one released.
+  await rm(releasedSeenPath(root), { force: true });
 }
 
 /**

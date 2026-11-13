@@ -80,9 +80,9 @@ function commitFailed(outcome: CommitOutcome): boolean {
 
 /**
  * `singularity publish`: narrate every digest that lacks audio, and every turn of a recent episode
- * that has none stored (publishEpisodes.ts), upload it, and save the usage count to the run state. A failed narration leaves that digest's audio
- * null, is reported, and does not fail the command, so the text digest still ships (plan 7.9). A
- * failed state save does fail it.
+ * that has none stored (publishEpisodes.ts), upload it, and save the usage count to the run state.
+ * A failed narration leaves that digest's audio null, is reported, and does not fail the command,
+ * so the text digest still ships (plan 7.9). A failed state save does fail it.
  */
 export function createPublishCommand(overrides: Partial<AudioCommandDeps> = {}): CommandRun {
   const deps: AudioCommandDeps = { ...defaultAudioDeps, ...overrides };

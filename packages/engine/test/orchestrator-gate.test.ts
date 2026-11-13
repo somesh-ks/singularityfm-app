@@ -33,7 +33,6 @@ function deps(now: Date): RunDeps {
     fetch: { http: { fetchText: unused, getJson: unused, postJson: unused } },
     runtime: unused,
     pickCover: unused,
-    git: unused,
   };
 }
 

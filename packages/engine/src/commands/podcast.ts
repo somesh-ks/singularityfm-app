@@ -109,10 +109,10 @@ function scriptWriter(ctx: CommandContext, meter: RequestMeter): ScriptWriter {
 }
 
 /**
- * After a pushed add, replace or removal, rewrite the episode index (D173) so the site lists the
- * change without waiting for a build. Best effort: the commit is the record, and the next episode
- * rewrites the whole index anyway. A local --no-push commit is never indexed: the site could not
- * open what the repository does not have.
+ * After a saved add, replace or removal, rewrite the episode index (D173) so the site lists the
+ * change without waiting for a build. Best effort: the next episode rewrites the whole index
+ * anyway. A local --no-push run is never indexed: the site could not open what the store does not
+ * have.
  */
 async function refreshEpisodeIndex(
   ctx: CommandContext,
@@ -122,10 +122,7 @@ async function refreshEpisodeIndex(
 ): Promise<void> {
   // The episode is in the content store, not git (D300), so a run that left git nothing to commit
   // (a removal that changes no state) still changed it. A local --no-push run has no store to index.
-  const changed =
-    outcome.status === "pushed" ||
-    outcome.status === "saved" ||
-    (outcome.status === "nothing_to_commit" && pushing);
+  const changed = outcome.status === "saved" || (outcome.status === "nothing_to_commit" && pushing);
   if (!client || !changed) return;
   try {
     const { index, skipped } = await publishEpisodeIndex(client, ctx.root, ctx.now());
@@ -150,22 +147,13 @@ function commitFailure(
 ): string | null {
   // The episode is on the remote and live: only its cost and timing records missed Postgres, so a
   // retry (which would make a second episode and use up a Catch up) is the wrong answer.
-  if (outcome.status === "push_failed" && outcome.reason === "state_store") {
+  if (outcome.status === "save_failed") {
     log.error(`The episode was saved, but ${outcome.detail}`);
     return null;
   }
-  switch (outcome.status) {
-    case "nothing_to_commit":
-      return pushing && !tracked
-        ? "Nothing was saved: this checkout has no content baseline, so the episode never reached the content store"
-        : null;
-    case "refused":
-      return `Commit refused (${outcome.reason}): ${outcome.offending.join(", ")}`;
-    case "push_failed":
-      return `Committed ${outcome.sha.slice(0, 7)} but the push failed (${outcome.reason}): ${outcome.detail}`;
-    default:
-      return null;
-  }
+  return outcome.status === "nothing_to_commit" && pushing && !tracked
+    ? "Nothing was saved: this checkout has no content baseline, so the episode never reached the content store"
+    : null;
 }
 
 /**

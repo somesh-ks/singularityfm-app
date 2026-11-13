@@ -1,12 +1,9 @@
-import type { GitRunner } from "./runGit.js";
-import { gitOutput } from "./runGit.js";
-
 export type GitCommand = "run" | "publish" | "learn" | "podcast" | "config" | "costs";
 
 /**
- * Where each bot command may write. An entry ending in "/" allows everything beneath it; "*" matches
- * within one path segment and "**" across segments. The state store's save keeps to the same list
- * (store/stateSave.ts).
+ * Where each command may save run state. An entry ending in "/" allows everything beneath it; "*"
+ * matches within one path segment and "**" across segments. The state store's save keeps to this
+ * list (store/stateSave.ts).
  */
 export const ALLOWLISTS: Record<GitCommand, readonly string[]> = {
   run: ["Digests/", "state/"],
@@ -29,100 +26,6 @@ export const ALLOWLISTS: Record<GitCommand, readonly string[]> = {
     "state/source-candidates.json",
   ],
 };
-
-/** One line of `git status --porcelain`: the path, and the old path when git saw a rename or copy. */
-export interface ChangedPath {
-  /** Two-character status such as " M", "R ", "D " or "??". */
-  status: string;
-  path: string;
-  originalPath?: string;
-}
-
-export class GuardViolationError extends Error {
-  readonly offending: string[];
-
-  constructor(offending: string[], allowlist: readonly string[]) {
-    super(`Changes outside the write allowlist (${allowlist.join(", ")}): ${offending.join(", ")}`);
-    this.name = "GuardViolationError";
-    this.offending = offending;
-  }
-}
-
-const OCTAL = /^[0-7]{3}$/;
-
-/** Undo git's C-style quoting of unusual paths, including octal-escaped UTF-8 bytes. */
-function unquote(raw: string): string {
-  if (raw.length < 2 || !raw.startsWith('"') || !raw.endsWith('"')) return raw;
-  const bytes: number[] = [];
-  const inner = raw.slice(1, -1);
-  const simple: Record<string, string> = { n: "\n", t: "\t", r: "\r", '"': '"', "\\": "\\" };
-  for (let index = 0; index < inner.length; index++) {
-    const char = inner.charAt(index);
-    if (char !== "\\") {
-      bytes.push(...Buffer.from(char, "utf8"));
-      continue;
-    }
-    const octal = inner.slice(index + 1, index + 4);
-    if (OCTAL.test(octal)) {
-      bytes.push(Number.parseInt(octal, 8));
-      index += 3;
-      continue;
-    }
-    const escaped = inner.charAt(index + 1);
-    bytes.push(...Buffer.from(simple[escaped] ?? escaped, "utf8"));
-    index += 1;
-  }
-  return Buffer.from(bytes).toString("utf8");
-}
-
-function hasRenameOrCopy(status: string): boolean {
-  return /[RC]/.test(status);
-}
-
-/**
- * Parse `git status --porcelain` output into changed paths. Accepts both the NUL-separated form
- * (`-z`, which never quotes and lists the new path before the old one) and the line form.
- */
-export function parsePorcelain(output: string): ChangedPath[] {
-  const changes: ChangedPath[] = [];
-  if (output.includes("\0")) {
-    const parts = output.split("\0");
-    for (let index = 0; index < parts.length; index++) {
-      const entry = parts[index] ?? "";
-      if (entry.length < 4) continue;
-      const status = entry.slice(0, 2);
-      const path = entry.slice(3);
-      if (hasRenameOrCopy(status)) {
-        index += 1;
-        changes.push({ status, path, originalPath: parts[index] ?? "" });
-      } else {
-        changes.push({ status, path });
-      }
-    }
-    return changes;
-  }
-  for (const line of output.split(/\r?\n/)) {
-    if (line.length < 4) continue;
-    const status = line.slice(0, 2);
-    const rest = line.slice(3);
-    const arrow = rest.indexOf(" -> ");
-    if (hasRenameOrCopy(status) && arrow >= 0) {
-      changes.push({
-        status,
-        path: unquote(rest.slice(arrow + 4)),
-        originalPath: unquote(rest.slice(0, arrow)),
-      });
-    } else {
-      changes.push({ status, path: unquote(rest) });
-    }
-  }
-  return changes;
-}
-
-/** Every change in the working tree and index, untracked files included, one entry per file. */
-export async function readChangedPaths(run: GitRunner): Promise<ChangedPath[]> {
-  return parsePorcelain(await gitOutput(run, ["status", "--porcelain", "-z", "-uall"]));
-}
 
 function globToRegExp(pattern: string): RegExp {
   let source = "";
@@ -157,22 +60,4 @@ export function isPathAllowed(path: string, allowlist: readonly string[]): boole
   return allowlist.some((entry) =>
     entry.endsWith("/") ? normalized.startsWith(entry) : globToRegExp(entry).test(normalized),
   );
-}
-
-/** Paths in `changed` that the allowlist does not cover. A rename counts both its ends. */
-export function findViolations(
-  changed: readonly (ChangedPath | string)[],
-  allowlist: readonly string[],
-): string[] {
-  const offending = new Set<string>();
-  for (const entry of changed) {
-    const paths =
-      typeof entry === "string"
-        ? [entry]
-        : [entry.path, ...(entry.originalPath ? [entry.originalPath] : [])];
-    for (const path of paths) {
-      if (!isPathAllowed(path, allowlist)) offending.add(path);
-    }
-  }
-  return [...offending];
 }

@@ -4,6 +4,7 @@ One note per session, newest first. Read a note only to learn why something was 
 
 | Date | Note | Summary |
 | :--- | :--- | :--- |
+| 2026-11-13 | [Removing the git commit code, step 2](2026-11-13-commit-ts-step-2.md) | `CommitOutcome` is saved or failed; the pre-flight and fast-forward go; a failed Regenerate restores its seen list |
 | 2026-11-13 | [Removing the git commit code, step 1](2026-11-13-commit-ts-step-1.md) | `commitAndPush` became `saveRunState`; git no longer commits or pushes (D300), the guard stays |
 | 2026-11-13 | [Parallel CI](2026-11-13-parallel-ci.md) | CI starts check and five browser shards together (19 minutes down to about 8) and reads a red shard by cause: code, infra (rerun once), flaky or unknown (D393) |
 | 2026-11-13 | [Admin repo](2026-11-13-admin-repo.md) | The command center left this repository for the private singularityfm-admin with its history; it takes contracts and the design system from npm and reads the reader's files at build (D392) |

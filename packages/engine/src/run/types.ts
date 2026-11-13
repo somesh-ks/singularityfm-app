@@ -5,7 +5,6 @@ import type { FirecrawlGuard } from "../fetch/firecrawlBudget.js";
 import type { ListingMemory } from "../fetch/listingCheck.js";
 import type { SourceFetcher } from "../fetch/types.js";
 import type { RunMode } from "../gate/decideRun.js";
-import type { GitRunner } from "../git/runGit.js";
 import type { HttpClient } from "../http.js";
 import type { ExperimentHit } from "../store/experimentHits.js";
 import type { SpendTotals, SpendTracker } from "./spend.js";
@@ -121,7 +120,6 @@ export interface RunDeps {
    */
   runtime: () => Promise<ApiRuntime>;
   pickCover: CoverPickFn;
-  git: GitRunner;
   /** Waits for the scheduled publish time; tests pass a fake that moves their clock. */
   wait?: (ms: number) => Promise<void>;
   /** Counts paid requests and holds the Firecrawl ceiling for the run. Absent in most tests. */
@@ -181,14 +179,7 @@ export interface DigestReport {
   preview: string | null;
 }
 
-export type CommitStatus =
-  | "nothing_to_commit"
-  | "committed"
-  | "pushed"
-  | "saved"
-  | "dry_run"
-  | "refused"
-  | "push_failed";
+export type CommitStatus = "nothing_to_commit" | "saved" | "dry_run" | "save_failed";
 
 /** The commit stage's JSON, read by the workflow: `outcome` and `deploy`. */
 export interface CommitReport {
@@ -199,7 +190,7 @@ export interface CommitReport {
   /** Items across the digests published by this run. */
   items: number;
   dry_run: boolean;
-  commit: { status: CommitStatus; sha?: string; message?: string; detail?: string };
+  commit: { status: CommitStatus; detail?: string };
   /** Why the run failed or was gated, in one sentence. */
   reason?: string;
   /** Paid requests the whole run made, by service. */

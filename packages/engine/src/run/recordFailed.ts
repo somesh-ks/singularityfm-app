@@ -1,12 +1,11 @@
-import { stockholmDate } from "@singularityfm/core";
 import { saveRunState } from "../git/commit.js";
-import { gitOutput } from "../git/runGit.js";
 import { recordRunMetrics } from "../metrics/runMetrics.js";
 import { recordFailure } from "../state/runRecord.js";
 import { readLastRun, writeLastRun } from "../state/store.js";
 import { failedRunMetrics } from "./collectMetrics.js";
 import { decideKinds } from "./gate.js";
 import { readPlan } from "./plan.js";
+import { restoreReleasedSeen } from "./replace.js";
 import { recordSpend } from "./spend.js";
 import type { CommitReport, RunDeps, RunOptions } from "./types.js";
 
@@ -70,44 +69,32 @@ export async function recordFailedRun(deps: RunDeps, options: RunOptions): Promi
   // A scheduled run's failure counts in the failure rate too; without a plan nothing is known of it.
   if (plan) await recordFailedMetrics(deps, plan, at);
   await writeLastRun(deps.root, recordFailure(await readLastRun(deps.root), kinds, at));
-  const message = `chore(state): run ${stockholmDate(now)} failed`;
   const committed = await saveRunState({
     root: deps.root,
     command: "run",
     push: !options.noPush,
   });
   const reason = `Recorded failed for ${kinds.join(", ")}.`;
-  return reportCommit(committed, reason, message);
+  return reportCommit(committed, reason);
 }
 
 /**
- * What a failure record's commit came to, in the same words for a scheduled run and an on-demand
- * one: a refused commit names the paths that broke the allowlist, a failed push its sha and cause.
+ * What a failure record's save came to, in the same words for a scheduled run and an on-demand
+ * one: a failed save names its cause.
  */
 function reportCommit(
   committed: Awaited<ReturnType<typeof saveRunState>>,
   reason: string,
-  message: string,
   dryRun = false,
 ): CommitReport {
   switch (committed.status) {
-    case "pushed":
-    case "committed":
-      return report(reason, { status: committed.status, sha: committed.sha, message }, dryRun);
     case "nothing_to_commit":
-      return report(reason, { status: "nothing_to_commit", message }, dryRun);
     case "saved":
-      return report(reason, { status: "saved", message }, dryRun);
-    case "refused":
+      return report(reason, { status: committed.status }, dryRun);
+    case "save_failed":
       return report(
-        `${reason} The commit was refused (${committed.reason}).`,
-        { status: "refused", message, detail: committed.offending.join(", ") },
-        dryRun,
-      );
-    case "push_failed":
-      return report(
-        `${reason} The push failed (${committed.reason}).`,
-        { status: "push_failed", sha: committed.sha, message, detail: committed.detail },
+        `${reason} The state was not saved.`,
+        { status: "save_failed", detail: committed.detail },
         dryRun,
       );
   }
@@ -157,24 +144,15 @@ async function recordFailedOnDemand(
   await recordFailedMetrics(deps, plan, at);
   // The gate of a Regenerate frees the old digest's stories in state/seen.json, in the working tree
   // only (the commit stage writes the new list). A failed run keeps the old digest, so that release
-  // must not ride in the failure commit: later runs would pick the same stories again.
-  if (plan.replaces !== undefined) await restoreSeen(deps);
-  const message = `chore(state): run ${stockholmDate(deps.now())} failed`;
+  // must not ride in the failure save: later runs would pick the same stories again.
+  if (plan.replaces !== undefined) await restoreReleasedSeen(deps.root);
   const committed = await saveRunState({
     root: deps.root,
     command: "run",
     push: !options.noPush,
   });
   const reason = "Recorded the failed on-demand run.";
-  return reportCommit(committed, reason, message);
-}
-
-async function restoreSeen(deps: RunDeps): Promise<void> {
-  try {
-    await gitOutput(deps.git, ["checkout", "HEAD", "--", "state/seen.json"]);
-  } catch {
-    // Not in the tree (a repository with no seen list yet): nothing was released.
-  }
+  return reportCommit(committed, reason);
 }
 
 /**
@@ -192,11 +170,10 @@ async function recordFailedDryRun(
     await deps.spend.resume(deps.root, plan.created_at);
     await recordSpend(deps.root, deps.spend, plan, now.toISOString());
   }
-  const message = `chore(costs): dry run ${stockholmDate(now)} failed`;
   const committed = await saveRunState({
     root: deps.root,
     command: "costs",
     push: !options.noPush,
   });
-  return reportCommit(committed, "Recorded the failed dry run's spend.", message, true);
+  return reportCommit(committed, "Recorded the failed dry run's spend.", true);
 }

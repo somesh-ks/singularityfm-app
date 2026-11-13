@@ -58,9 +58,7 @@ function formatCommit(report: CommitReport): string[] {
     );
   }
   const commit = report.commit;
-  lines.push(
-    `Commit: ${commit.status}${commit.sha ? ` ${commit.sha.slice(0, 7)}` : ""}${commit.message ? ` "${commit.message}"` : ""}${commit.detail ? ` (${commit.detail})` : ""}`,
-  );
+  lines.push(`Commit: ${commit.status}${commit.detail ? ` (${commit.detail})` : ""}`);
   lines.push(`Deploy: ${report.deploy ? "yes" : "no"}`);
   if (report.spend) lines.push(`Requests: ${formatSpend(report.spend)}`);
   return lines;

@@ -7,8 +7,6 @@ import type { SpeechSynthesizer } from "../audio/speechify.js";
 import type { CommandContext, CommandRun } from "../context.js";
 import type { CommitOutcome } from "../git/commit.js";
 import { saveRunState } from "../git/commit.js";
-import { ALLOWLISTS, findViolations, readChangedPaths } from "../git/guard.js";
-import { createGitRunner } from "../git/runGit.js";
 import { type BlobClient, isPruneDay } from "../publish/blob.js";
 import type { DigestAudioOutcome, PublishAudioResult } from "../publish/publishAudio.js";
 import { listPendingDigests, publishAudio } from "../publish/publishAudio.js";
@@ -47,17 +45,11 @@ function credentials(ctx: CommandContext, deps: AudioCommandDeps): Credentials |
 function describeCommit(outcome: CommitOutcome): string {
   switch (outcome.status) {
     case "nothing_to_commit":
-      return "nothing to commit";
+      return "nothing to save";
     case "saved":
       return `run state saved (${outcome.paths.length} ${outcome.paths.length === 1 ? "file" : "files"})`;
-    case "refused":
-      return `commit refused (${outcome.reason}): ${outcome.offending.join(", ")}`;
-    case "committed":
-      return `committed ${outcome.sha.slice(0, 7)}, not pushed`;
-    case "pushed":
-      return `pushed ${outcome.sha.slice(0, 7)}${outcome.retries > 0 ? ` after ${outcome.retries} rebase retries` : ""}`;
-    case "push_failed":
-      return `committed ${outcome.sha.slice(0, 7)} but push failed (${outcome.reason}): ${outcome.detail}`;
+    case "save_failed":
+      return outcome.detail;
     default: {
       const unreachable: never = outcome;
       throw new Error(`Unhandled commit outcome ${JSON.stringify(unreachable)}`);
@@ -83,15 +75,14 @@ function describeOutcome(outcome: DigestAudioOutcome): string {
 }
 
 function commitFailed(outcome: CommitOutcome): boolean {
-  return outcome.status === "refused" || outcome.status === "push_failed";
+  return outcome.status === "save_failed";
 }
 
 /**
  * `singularity publish`: narrate every digest that lacks audio, and every turn of a recent episode
- * that has none stored (publishEpisodes.ts), upload it, and commit the timeline files and usage
- * count through the write guard. A failed narration leaves that digest's audio
- * null, is reported, and does not fail the command, so the text digest still ships (plan 7.9). A
- * refused commit or a failed push does fail it.
+ * that has none stored (publishEpisodes.ts), upload it, and save the usage count to the run state.
+ * A failed narration leaves that digest's audio null, is reported, and does not fail the command,
+ * so the text digest still ships (plan 7.9). A failed state save does fail it.
  */
 export function createPublishCommand(overrides: Partial<AudioCommandDeps> = {}): CommandRun {
   const deps: AudioCommandDeps = { ...defaultAudioDeps, ...overrides };
@@ -163,7 +154,6 @@ export function createPublishCommand(overrides: Partial<AudioCommandDeps> = {}):
       }
     }
 
-    const git = createGitRunner(ctx.root);
     // A named episode narrates that episode only; a named digest, that digest only.
     const pending =
       episodeId === undefined
@@ -180,25 +170,6 @@ export function createPublishCommand(overrides: Partial<AudioCommandDeps> = {}):
         "Nothing to publish.",
       );
       return 0;
-    }
-
-    // Fail before spending any Speechify budget when the tree already holds changes the bot could
-    // never commit; discovering that after synthesis would waste the characters.
-    let blocked: string[];
-    try {
-      const changed = await readChangedPaths(git);
-      blocked = findViolations(changed, ALLOWLISTS.publish);
-    } catch (error) {
-      ctx.log.error(
-        `Cannot read git status: ${error instanceof Error ? error.message : String(error)}`,
-      );
-      return 1;
-    }
-    if (blocked.length > 0) {
-      ctx.log.error(
-        `Working tree has changes outside the publish allowlist: ${blocked.join(", ")}`,
-      );
-      return 1;
     }
 
     const keys = credentials(ctx, deps);
@@ -258,7 +229,7 @@ export function createPublishCommand(overrides: Partial<AudioCommandDeps> = {}):
       });
     } catch (error) {
       // The files are written; only the state save threw.
-      ctx.log.error(`Commit failed: ${error instanceof Error ? error.message : String(error)}`);
+      ctx.log.error(`State save failed: ${error instanceof Error ? error.message : String(error)}`);
       emit(ctx, deps, result, undefined);
       return 1;
     }
@@ -282,7 +253,7 @@ function emit(
   const lines = result.outcomes.map(describeOutcome);
   if (result.pruned)
     lines.push(`pruned ${result.pruned.deleted.length} old narrations, kept ${result.pruned.kept}`);
-  if (commit) lines.push(`git: ${describeCommit(commit)}`);
+  if (commit) lines.push(`state: ${describeCommit(commit)}`);
   if (note) lines.push(note);
   deps.out(`${lines.join("\n")}\n`);
 }

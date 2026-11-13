@@ -2,7 +2,7 @@ import type { Item, SourceCandidatesFile, Topic, TopicJudgmentEntry } from "@sin
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { makeConfigCommand } from "../src/commands/config.js";
 import { makeSourcesCommand } from "../src/commands/sources.js";
-import { ALLOWLISTS, findViolations } from "../src/git/guard.js";
+import { ALLOWLISTS, isPathAllowed } from "../src/git/guard.js";
 import { createHttpClient } from "../src/http.js";
 import {
   collectDomains,
@@ -399,7 +399,7 @@ describe("singularity sources suggest", () => {
     const scores = entry?.candidates.map((c) => c.q ?? -1) ?? [];
     expect(scores).toEqual([...scores].sort((a, b) => b - a));
 
-    expect(findViolations(repo.dirty(), ALLOWLISTS.config)).toEqual([]);
+    expect(repo.dirty().every((path) => isPathAllowed(path, ALLOWLISTS.config))).toBe(true);
     expect(repo.dirty()).toContain("state/source-candidates.json");
   });
 

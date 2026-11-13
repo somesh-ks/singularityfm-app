@@ -133,7 +133,7 @@ export async function runPipeline(deps: RunDeps, options: RunOptions): Promise<P
     if (options.recordFailed) {
       current = "commit";
       const report = await recordFailedRun(deps, options);
-      const failed = report.commit.status === "refused" || report.commit.status === "push_failed";
+      const failed = report.commit.status === "save_failed";
       return { code: failed ? 1 : 0, report };
     }
     if (options.stage !== undefined) {

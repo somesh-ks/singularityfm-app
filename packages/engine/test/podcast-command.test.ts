@@ -3,7 +3,7 @@ import { rm } from "node:fs/promises";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { makePodcastCommand } from "../src/commands/podcast.js";
-import { ALLOWLISTS, findViolations, isPathAllowed } from "../src/git/guard.js";
+import { ALLOWLISTS, isPathAllowed } from "../src/git/guard.js";
 import { captureStdout, makeContext } from "./curate-helpers.js";
 import { commitAll, createRepoPair, type RepoPair } from "./git-testRepo.js";
 import {
@@ -35,12 +35,6 @@ describe("the podcast allowlist", () => {
     ]) {
       expect(isPathAllowed(path, ALLOWLISTS.podcast)).toBe(false);
     }
-  });
-
-  it("reports every path outside it", () => {
-    expect(findViolations(["Podcasts/a.md", "state/seen.json"], ALLOWLISTS.podcast)).toEqual([
-      "state/seen.json",
-    ]);
   });
 });
 

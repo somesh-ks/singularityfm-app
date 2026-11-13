@@ -1,5 +1,6 @@
-import { readFile, rm } from "node:fs/promises";
-import { join } from "node:path";
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { dirname, join } from "node:path";
+import type { SeenFile } from "@singularityfm/core";
 import {
   audioTimelineRelPath,
   type DigestId,
@@ -12,7 +13,7 @@ import { saveRunState } from "../git/commit.js";
 import { readSeen, writeSeen } from "../state/store.js";
 import { forgetPool } from "./carriedPool.js";
 import { StageFailure } from "./errors.js";
-import type { PlanPass } from "./plan.js";
+import { type PlanPass, runCacheDir } from "./plan.js";
 import type { DeleteReport, RunDeps, RunMode } from "./types.js";
 
 /** The run mode a digest of this kind was made in, so a replacement is written the same way. */
@@ -56,16 +57,59 @@ export async function nextRegenerations(root: string, id: DigestId): Promise<num
   return Math.min((old.regenerations ?? 0) + 1, MAX_REGENERATIONS);
 }
 
+/** The seen entries the gate released, kept for a failed run to put back. */
+function releasedSeenPath(root: string): string {
+  return join(runCacheDir(root), "released-seen.json");
+}
+
 /**
  * Lets the replaced digest's stories be picked again: the run is asked for the same window, and a
  * story already shown (state/seen.json) is skipped by the fetch. Only the working tree changes;
- * the commit stage writes the seen list of the new digest.
+ * the commit stage writes the seen list of the new digest. The released entries are kept in the
+ * run cache, so a failed run can put them back (`restoreReleasedSeen`).
  */
 export async function releaseSeen(root: string, itemIds: readonly string[]): Promise<void> {
   const seen = await readSeen(root);
   const items = { ...seen.items };
-  for (const itemId of itemIds) delete items[itemId];
+  const released: SeenFile["items"] = {};
+  for (const itemId of itemIds) {
+    const entry = items[itemId];
+    if (entry !== undefined) released[itemId] = entry;
+    delete items[itemId];
+  }
+  // A repeated release finds the entries already gone: keep what the first one copied.
+  const earlier = await readReleasedSeen(root);
+  await mkdir(dirname(releasedSeenPath(root)), { recursive: true });
+  await writeFile(releasedSeenPath(root), JSON.stringify({ ...earlier, ...released }), "utf8");
   await writeSeen(root, { ...seen, items });
+}
+
+/**
+ * A failed Regenerate keeps its old digest, so the stories the gate released go back into the seen
+ * list: left out, the next run would pick them again. A run that released nothing changes nothing.
+ */
+export async function restoreReleasedSeen(root: string): Promise<void> {
+  const released = await readReleasedSeen(root);
+  if (Object.keys(released).length === 0) return;
+  const seen = await readSeen(root);
+  await writeSeen(root, { ...seen, items: { ...seen.items, ...released } });
+  // Used once: a later failed run must not put back what an earlier one released.
+  await discardReleasedSeen(root);
+}
+
+/** Drops the copy once the replacement it guards is finished. */
+export async function discardReleasedSeen(root: string): Promise<void> {
+  await rm(releasedSeenPath(root), { force: true });
+}
+
+/** The copy of the released entries; none when the gate released nothing. Any other failure throws. */
+async function readReleasedSeen(root: string): Promise<SeenFile["items"]> {
+  try {
+    return JSON.parse(await readFile(releasedSeenPath(root), "utf8")) as SeenFile["items"];
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return {};
+    throw error;
+  }
 }
 
 /**
@@ -79,7 +123,7 @@ export async function removeDigestFiles(root: string, id: DigestId): Promise<str
   return paths;
 }
 
-/** `singularity run --delete <id>`: removes the digest and its timeline in one guarded commit. */
+/** `singularity run --delete <id>`: removes the digest and its timeline, then saves the run state. */
 export async function deleteDigest(
   deps: RunDeps,
   id: DigestId,
@@ -105,8 +149,8 @@ export async function deleteDigest(
     command: "run",
     push: !options.noPush,
   });
-  if (outcome.status === "refused" || outcome.status === "push_failed") {
-    throw new StageFailure(`Deleting ${id} did not complete (${outcome.status})`);
+  if (outcome.status === "save_failed") {
+    throw new StageFailure(`Deleting ${id} did not complete: ${outcome.detail}`);
   }
   return { outcome: "deleted", id, removed, dry_run: false, commit: outcome.status };
 }

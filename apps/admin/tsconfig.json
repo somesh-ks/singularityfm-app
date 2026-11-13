@@ -1,8 +1,0 @@
-{
-  "extends": "../../tsconfig.base.json",
-  "compilerOptions": {
-    "types": ["node", "astro/client"]
-  },
-  "include": [".astro/types.d.ts", "api", "src", "astro.config.mjs", "e2e", "playwright.config.ts"],
-  "exclude": ["node_modules", "dist", ".vercel", "test-results"]
-}

@@ -15,7 +15,8 @@
       "Edit(./.env.local)",
       "Edit(./.env.production)",
       "Edit(./.env.development)",
-      "Edit(./.env.*.local)"
+      "Edit(./.env.*.local)",
+      "Bash(curl *api.firecrawl.dev*)"
     ]
   },
   "hooks": {

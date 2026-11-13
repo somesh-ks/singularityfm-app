@@ -38,6 +38,7 @@ import {
   type ScriptWriter,
 } from "../podcast/types.js";
 import { type BlobClient, createVercelBlobClient } from "../publish/blob.js";
+import { hasWorkspaceBaseline } from "../publish/contentWorkspace.js";
 import { publishEpisodeIndex } from "../publish/episodeIndex.js";
 import { loadScheduleZone } from "../schedule/store.js";
 
@@ -136,8 +137,17 @@ async function refreshEpisodeIndex(
   }
 }
 
-/** A save of nothing is how a delete or a quiet episode ends (D300): the episode is not in git. */
-function commitFailure(outcome: CommitOutcome, log: CommandContext["log"]): string | null {
+/**
+ * `tracked`: the checkout pulled its content from the store (D300), so an episode is never a git
+ * change and a save of nothing is how a delete or a quiet episode ends, not a failure. Without that
+ * baseline a push-enabled run has nowhere to send the episode: the content push skips it.
+ */
+function commitFailure(
+  outcome: CommitOutcome,
+  tracked: boolean,
+  pushing: boolean,
+  log: CommandContext["log"],
+): string | null {
   // The episode is on the remote and live: only its cost and timing records missed Postgres, so a
   // retry (which would make a second episode and use up a Catch up) is the wrong answer.
   if (outcome.status === "push_failed" && outcome.reason === "state_store") {
@@ -145,6 +155,10 @@ function commitFailure(outcome: CommitOutcome, log: CommandContext["log"]): stri
     return null;
   }
   switch (outcome.status) {
+    case "nothing_to_commit":
+      return pushing && !tracked
+        ? "Nothing was saved: this checkout has no content baseline, so the episode never reached the content store"
+        : null;
     case "refused":
       return `Commit refused (${outcome.reason}): ${outcome.offending.join(", ")}`;
     case "push_failed":
@@ -247,6 +261,7 @@ export function makePodcastCommand(deps: PodcastDeps = {}): CommandRun {
       }
     };
     try {
+      const tracked = await hasWorkspaceBaseline(ctx.root);
       const { request: requestJson, resumeFrom } = splitResumeFrom(values.request);
       const command = parseCommand(requestJson);
       if (command.action === "delete") {
@@ -266,7 +281,7 @@ export function makePodcastCommand(deps: PodcastDeps = {}): CommandRun {
           command: "podcast",
           push: values["no-push"] !== true,
         });
-        const failure = commitFailure(outcome, ctx.log);
+        const failure = commitFailure(outcome, tracked, values["no-push"] !== true, ctx.log);
         if (failure !== null) {
           await recordFailure(commitFailureReason(outcome) ?? undefined);
           ctx.log.error(
@@ -447,7 +462,7 @@ export function makePodcastCommand(deps: PodcastDeps = {}): CommandRun {
         command: "podcast",
         push: values["no-push"] !== true,
       });
-      const failure = commitFailure(outcome, ctx.log);
+      const failure = commitFailure(outcome, tracked, values["no-push"] !== true, ctx.log);
       if (failure !== null) {
         await live.stream?.failed();
         await recordFailure(commitFailureReason(outcome) ?? undefined);

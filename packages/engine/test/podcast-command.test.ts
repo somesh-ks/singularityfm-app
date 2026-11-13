@@ -147,6 +147,14 @@ describe("singularity podcast", () => {
     expect(writer.calls).toHaveLength(0);
   });
 
+  // The bug: with no content baseline the content push skips the episode, so a push-enabled run that
+  // saved nothing reported success for an episode that never reached the store.
+  it("fails a push-enabled run that has no content baseline to send the episode from", async () => {
+    const { code, errors } = await runPodcast(args().filter((arg) => arg !== "--no-push"));
+    expect(code).toBe(1);
+    expect(errors.join(" ")).toMatch(/no content baseline/);
+  });
+
   it("needs --request", async () => {
     const { code } = await runPodcast(["--no-push"]);
     expect(code).toBe(2);

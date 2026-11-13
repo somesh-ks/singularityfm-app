@@ -1195,10 +1195,6 @@
   display: none;
 }
 
-.dock-btn[data-primary] {
-  --icon-size: var(--size-icon-lg);
-}
-
 .dock-btn[aria-disabled="true"] {
   color: var(--color-on-surface-disabled);
 }
@@ -1225,9 +1221,11 @@
     display var(--duration-hover) allow-discrete;
 }
 
+/* The bar's Play and Pause are the regular icon, as every icon button's is, so air stands round them on
+   the wide bar's disc (owner, 2026-11-13). */
 .dock-btn[data-primary] .spinner {
-  width: var(--size-icon-lg);
-  height: var(--size-icon-lg);
+  width: var(--size-icon);
+  height: var(--size-icon);
 }
 
 .transport-btn[data-primary] .spinner {

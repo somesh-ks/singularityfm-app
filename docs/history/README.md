@@ -4,6 +4,7 @@ One note per session, newest first. Read a note only to learn why something was 
 
 | Date | Note | Summary |
 | :--- | :--- | :--- |
+| 2026-11-13 | [Parallel CI](2026-11-13-parallel-ci.md) | CI starts check and five browser shards together (19 minutes down to about 8) and reads a red shard by cause: code, infra (rerun once), flaky or unknown (D393) |
 | 2026-11-13 | [Admin repo](2026-11-13-admin-repo.md) | The command center left this repository for the private singularityfm-admin with its history; it takes contracts and the design system from npm and reads the reader's files at build (D392) |
 | 2026-11-10 | [First tap sound](2026-11-10-first-tap-sound.md) | A slow audio wake on the first press kept only the last cue and judged narration late; the engine now holds every cue in order and drops what came before a press |
 | 2026-11-09 | [Weekly switch off](2026-11-09-weekly-switch-off.md) | The 8 Nov weekly did not air because the Weekly switch was off since 4 Nov; health now faults a weekly that will not air, and Settings says Off (D386) |

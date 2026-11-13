@@ -94,6 +94,11 @@ export async function restoreReleasedSeen(root: string): Promise<void> {
   const seen = await readSeen(root);
   await writeSeen(root, { ...seen, items: { ...seen.items, ...released } });
   // Used once: a later failed run must not put back what an earlier one released.
+  await discardReleasedSeen(root);
+}
+
+/** Drops the copy once the replacement it guards is finished. */
+export async function discardReleasedSeen(root: string): Promise<void> {
   await rm(releasedSeenPath(root), { force: true });
 }
 

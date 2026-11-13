@@ -66,7 +66,7 @@ import {
   runTopicJudgmentsPath,
   writePlan,
 } from "./plan.js";
-import { nextRegenerations, removeDigestFiles } from "./replace.js";
+import { discardReleasedSeen, nextRegenerations, removeDigestFiles } from "./replace.js";
 import { markAdoptedCommitted, resolveCommitPlan } from "./resolveCommitPlan.js";
 import { readSourceCounts } from "./sourceCounts.js";
 import { recordSpend } from "./spend.js";
@@ -457,6 +457,8 @@ export async function commitStage(deps: RunDeps, options: RunOptions): Promise<C
   } else {
     await writePlan(root, { ...plan, committed_at: nowIso });
   }
+  // The replacement is finished: a later failed one must not restore this one's released stories.
+  if (replaces !== undefined) await discardReleasedSeen(root);
   if (committed.status === "save_failed") {
     return failedReport(
       false,

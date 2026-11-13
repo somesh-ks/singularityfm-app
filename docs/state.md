@@ -30,7 +30,7 @@ Unit (CI): 367 files, 5,573 tests, 2 min. Site e2e: 468, 14 min. Player: 81, 7 m
 - First-tap sound (2026-11-10). closed when: a cold start's first tap on his Android makes only its own sound.
 - Deploy batching (D375): 5 merges, 3 hours or `[deploy]`. closed when: a merge day builds at most 8 times; `[deploy]` ships in minutes.
 - Bottom bar ripple (D286, D347) and tab state. closed when: on his Android Chrome Settings pages rise, tabs slide at 250 ms, and the latest podcast keeps its tab lit.
-- Run state in Postgres (D381): `state/` is out of git; the site reads the store (runbook 14.1). 11-11: first daily green. closed when: a second one is.
+- Run state in Postgres (D381): `state/` is out of git; the site reads the store (runbook 14.1). 11-11: first daily green. 11-13: four workflows only read git. closed when: a daily, a failed run, a podcast and a config apply push nothing.
 - Config snapshot (D300 step 1): `snapshot.yml` writes `config_snapshots` each Sunday; untried on Neon. closed when: it has run once and `config restore` on a copy rebuilds the rows.
 - Edge purge waits from the run's last save (#590, D318). closed when: a Catch up's `content` log says `waiting N s` under 30 and its Library entry opens on the new page
 - Queue (D346, D357), dock swipes (D359). The red strip's fix (#659) assumes Chrome's 8 px slop. closed when: on his Android a swipe shows a red strip, the player's swipes are silent, and the bar's pull fades to its target, line at bottom, no ring after a tap.

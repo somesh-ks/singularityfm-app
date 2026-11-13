@@ -21,7 +21,7 @@ export const CHANGELOG: readonly Release[] = [
     version: "0.23.5",
     date: "2026-11-13",
     description:
-      "Problems with playback and older pages now show on the strip at the top, the same as offline. A podcast with no audio shows a screen with Open Downloads and Try again instead of a red banner over the player.",
+      'Playback problems and older pages now show on the strip at the top, the same as offline, and a podcast with no audio shows a screen with Open Downloads and Try again. Searching the Library for a weekday or a month, like Monday, now finds the days that fall on it, not every briefing that says "on Monday" in a story.',
   },
   {
     version: "0.23.4",

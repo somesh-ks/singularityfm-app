@@ -28,7 +28,6 @@ Unit (CI): 367 files, 5,573 tests, 2 min. Site e2e: 468, 14 min. Player: 81, 7 m
 - Rewrite (D376), Stories (D377). closed when: his next rewrite fetches in 1 min, plays at 0:00; 20 stories at 5 min air in 5.5.
 - Listen now streams (D366), for Catch up and Regenerate. closed when: his first live Catch up plays without a pause.
 - First-tap sound (2026-11-10). closed when: a cold start's first tap on his Android makes only its own sound.
-- Blob on Pro trial to 11-13 (D251, D256). closed when: plan chosen.
 - Deploy batching (D375): 5 merges, 3 hours or `[deploy]`. closed when: a merge day builds at most 8 times; `[deploy]` ships in minutes.
 - Bottom bar ripple (D286, D347) and tab state. closed when: on his Android Chrome Settings pages rise, tabs slide at 250 ms, and the latest podcast keeps its tab lit.
 - Run state in Postgres (D381): `state/` is out of git; the site reads the store (runbook 14.1). 11-11: first daily green. closed when: a second one is.
@@ -55,6 +54,7 @@ Unit (CI): 367 files, 5,573 tests, 2 min. Site e2e: 468, 14 min. Player: 81, 7 m
 - Owner's eye: bar centring (over 1px), centred column and label gap (D229), Catch up (#385), card corners (#386), Costs tiles (#387). closed when: signed off.
 - Live content (plan 20): an open page elsewhere does not refresh in 60 s; `smokeLive.mjs --apply` never ran on production. closed when: checked.
 - Reload mid-write (D259). closed when: a phone flip, then reload, holds.
+- Strip for every state (D394), fakes only, after DS#73. closed when: in a store outage on his Android a missing recording shows the empty screen.
 - Offline (D299, D330, D331): fakes only. closed when: in airplane mode on his phone Saved and Settings open, a change syncs once online, nothing reloads.
 - Settings paint the stored copy at once (D205); another device's edit waits for a reload toast. closed when: the owner signs off on a phone.
 - Sources design (D124): production asks Jev for a source's format only after `secrets:push`; no run used a mix or cap. closed when: a production format comes from Jev and a digest follows a mix change.
@@ -73,7 +73,6 @@ Unit (CI): 367 files, 5,573 tests, 2 min. Site e2e: 468, 14 min. Player: 81, 7 m
 
 ## Known risks
 
-- Storage measured 2026-11-01: the Blob store is 133 MB (about 5.6 MB a day since it was created 10-06, so Hobby's 1 GB at about 5 months) and Neon is 11 MB (`ingest_items` 1.5 MB, 2,946 rows). The "near 10 GB" Vercel figure is neither. closed when: the Usage tab names it and the sizes are read again at the plan call.
 - No passphrase (D160): anyone with the URL can run, narrate, delete and edit config, within the caps.
 - Budget counters can read below real spend: workflow and site count apart against one Speechify allowance.
 - A Catch up that fails after its episode is committed (the audio job, or a late Cancel) frees its slot in the two-a-day cap (D213); the 12-a-day policy still bounds it.

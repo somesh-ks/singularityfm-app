@@ -36,8 +36,17 @@ export const CONTENT_CDN_CACHE = "max-age=300, stale-while-revalidate=2592000";
  */
 export const CONTENT_CACHE_TAG = "content";
 
-/** Lets the edge keep a page drawn from the content until the content changes (D318). */
+/**
+ * Lets the edge keep a page drawn from the content until the content changes (D318). A page drawn
+ * from the saved copy (the store did not answer) says so in its head, so the edge never keeps it: it
+ * would go on saying so for five minutes, and for 30 days to the one request after them, once the
+ * store was back.
+ */
 export function keepAtEdge(headers: Headers): void {
+  if (savedContent) {
+    headers.set("Vercel-CDN-Cache-Control", "no-store");
+    return;
+  }
   headers.set("Vercel-CDN-Cache-Control", CONTENT_CDN_CACHE);
   headers.set("Vercel-Cache-Tag", CONTENT_CACHE_TAG);
 }

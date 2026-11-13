@@ -3,7 +3,9 @@
  * injected `fetch`, so every response and outcome is testable without a network. Following the run
  * is the run indicator's work (scripts/runStatus.ts).
  */
+
 import { isSiteAnswer, withErrorRef } from "../../lib/errorRef";
+import { CRASHED, INVALID, OFFLINE_RETRY } from "../../lib/failureCopy";
 import type { GenerateRequest } from "../../types/contracts";
 
 export type FetchLike = (input: string, init?: RequestInit) => Promise<Response>;
@@ -34,14 +36,14 @@ export type StartResult =
   | { kind: "rejected"; reason: StartRejection; message: string; retryAfterSeconds?: number };
 
 export const MESSAGES = {
-  offline: "You're offline. Try again when you're back online.",
+  offline: OFFLINE_RETRY,
   // The server logged why; the reference it sent is added to this (lib/errorRef.ts).
   unavailable:
     "Something broke on our side. A podcast may have started, so check the queue before trying again.",
-  crashed: "Something broke on our side, and nothing changed. Try again in a moment.",
-  invalid: "That didn't go through. Reload the page and try again.",
+  crashed: CRASHED,
+  invalid: INVALID,
   regenerationLimit: "This podcast has been regenerated 3 times, the most it takes.",
-  network: "No connection right now. Try again when you're back online.",
+  network: OFFLINE_RETRY,
 } as const;
 
 function pluralize(count: number, unit: string): string {

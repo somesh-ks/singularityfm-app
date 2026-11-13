@@ -39,8 +39,8 @@ What it does now. Reasons: D32, D50, D54, D59, D85, D86, D90, D92, D97 to D99, D
 - Scenario: WHEN a recording has ended and there is something to offer THEN the view turns to Up next; Stories is a tap away. With autoplay on (default) the first suggestion starts when the queue is empty. Suggested stays under the queue: one added leaves it, a refill goes last, one removed is not offered again.
 
 ### Failure and memory
-- A failure is told once, in the line under the title, and nothing below it moves.
-- Scenario: WHEN Play is pressed in a failure and the page is scrolled past the line THEN the reason scrolls into view (D98, D99).
+- A failure is told once, on the strip over the player; nothing moves (D394). No audio at all shows an empty screen (Open Downloads, Try again) after two retries.
+- Scenario: WHEN Play is pressed in a failure THEN the strip is in view (D98, D394).
 - Scenario: WHEN a refusal lands while the next file loads THEN it fails at that story's start; a press plays nothing of the story before it.
 - Scenario: WHEN offline and Play is pressed THEN the reason repeats and nothing loads.
 - A recording's position, whether it was heard to the end and which stories were heard (`singularity:resume|played|heard:<id>`) is read by one reader and shown alike on every chip, card and shelf, for stored and narrated audio (D97).

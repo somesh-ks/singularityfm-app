@@ -51,21 +51,21 @@ export function errorSummary(error: Pick<PlayerError, "kind" | "summary">): stri
 export const INTERRUPTED_LINE = "Paused by another app";
 
 /**
- * The open player's notice offers an action only where pressing it can help: trying again after a
- * network, decoding or unknown failure, and Play where the browser blocked autoplay. A missing file
- * gets no button of its own (the Play disc, named Try again, is still there).
+ * The one line the strip carries for a failure, or null where something else says it: the strip's own
+ * offline message, or the player's empty screen for a recording with no audio (isUnplayable).
  */
-export function noticeAction(kind: PlayerErrorKind): string | null {
-  switch (kind) {
-    case "blocked":
-      return "Play";
-    case "network":
-    case "decode":
-    case "unknown":
-      return "Try again";
-    default:
-      return null;
-  }
+export function stripLine(error: PlayerError | null): string | null {
+  if (!error || error.kind === "offline" || isUnplayable(error)) return null;
+  return errorSummary(error);
+}
+
+/**
+ * A recording with no audio to play: the file is not there (or the store that holds it is not
+ * answering), so the page shows the empty screen instead of controls that cannot work. A story the
+ * narration refused, a dropped connection and a blocked start keep the controls: other stories play.
+ */
+export function isUnplayable(error: PlayerError | null | undefined): boolean {
+  return error?.kind === "unavailable";
 }
 
 export type TransportGlyph = "play" | "pause" | "refresh" | "replay";

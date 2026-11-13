@@ -1,9 +1,9 @@
 /**
  * The pure parts of the Categories and sources editing: ids from what a person types, web addresses, the
  * words for a refused lookup, whether a topic's details changed, and what a suggested source's +
- * button carries. Free of DOM and of imports, so the page scripts bundle it and the tests read it
- * directly.
+ * button carries. Free of DOM, so the page scripts bundle it and the tests read it directly.
  */
+import { OFFLINE_RETRY } from "./failureCopy";
 
 /** What a name leaves for an id: lowercase letters, digits and hyphens. Under two characters is no id. */
 export function idText(name: string): string {
@@ -41,7 +41,7 @@ export function problemText(status: number): string {
   if (status === 429) return "That was a lot of lookups. Wait a minute, then try again.";
   if (status === 504) return "The site took too long to answer. Try again in a moment.";
   if (status >= 500) return "The lookup didn't work. Try again in a moment.";
-  return "No connection. Try again when you're back online.";
+  return OFFLINE_RETRY;
 }
 
 /**

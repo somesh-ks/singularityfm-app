@@ -687,8 +687,11 @@ describe("buffering", () => {
 });
 
 /** A dropped connection that never comes back: the error, then the two retries that fail too. */
-function failNetworkForGood(harness: ReturnType<typeof createHarness>): void {
-  harness.audio.error = { code: MEDIA_ERR_NETWORK };
+function failNetworkForGood(
+  harness: ReturnType<typeof createHarness>,
+  error: { code: number; message?: string } = { code: MEDIA_ERR_NETWORK },
+): void {
+  harness.audio.error = error;
   harness.audio.emit("error");
   vi.advanceTimersByTime(1_000);
   harness.audio.emit("error");
@@ -816,11 +819,10 @@ describe("errors", () => {
   it("never shows the browser's own MediaError message", () => {
     const harness = createHarness();
     startPlaying(harness);
-    harness.audio.error = {
+    failNetworkForGood(harness, {
       code: MEDIA_ERR_SRC_NOT_SUPPORTED,
       message: "MEDIA_ELEMENT_ERROR: Format error",
-    };
-    harness.audio.emit("error");
+    });
     const error = harness.store.getState().error;
     expect(error?.kind).toBe("unavailable");
     expect(error?.message).toBe("Audio isn't available for this podcast.");
@@ -867,10 +869,18 @@ describe("errors", () => {
     expect(harness.audio.playCalls).toBe(calls + 1);
   });
 
-  it("says the audio is unavailable when the source cannot be used", () => {
+  // Bug: during the Blob outage (12 to 13 Nov) a missing file ended playback on the first try, though
+  // the store may be back a second later.
+  it("says the audio is unavailable when the source cannot be used, after asking for it again", () => {
     const harness = createHarness();
     startPlaying(harness);
     harness.audio.error = { code: MEDIA_ERR_SRC_NOT_SUPPORTED };
+    harness.audio.emit("error");
+    expect(harness.store.getState().status).toBe("loading");
+    expect(harness.store.getState().error).toBeNull();
+    vi.advanceTimersByTime(1_000);
+    harness.audio.emit("error");
+    vi.advanceTimersByTime(3_000);
     harness.audio.emit("error");
     expect(harness.store.getState().error?.kind).toBe("unavailable");
   });

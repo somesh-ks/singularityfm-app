@@ -18,6 +18,7 @@ import {
   topicOptions,
   WINDOWS,
 } from "../lib/createForm";
+import { CRASHED, INVALID, OFFLINE_RETRY } from "../lib/failureCopy";
 import { loadManage } from "../lib/manage";
 import { loadScheduleView } from "../lib/schedule";
 import { heldStory, storyOptions } from "../lib/storyOptions";
@@ -71,7 +72,7 @@ const moreSummary = moreOptionsSummary(
 // script picks one by its key, which keeps it small. The run's own lines are in RunStatus.astro.
 const COPY = {
   topics: "Pick at least one category.",
-  "400": "That didn't go through. Reload the page and try again.",
+  "400": INVALID,
   cooldown: "You can make another episode in",
   daily_cap: "That's today's limit. Try again in",
   // Shown on the button while the request is out, in place of its words.
@@ -79,8 +80,8 @@ const COPY = {
   // A 5xx: the server logged why, and the reference it sent is added to this (lib/errorRef.ts).
   "503": "Something broke on our side, so no episode was started.",
   // A 5xx that is not the site's own answer: the function crashed (lib/errorRef.ts).
-  crashed: "Something broke on our side, and nothing changed. Try again in a moment.",
-  network: "No connection right now. Try again when you're back online.",
+  crashed: CRASHED,
+  network: OFFLINE_RETRY,
 } as const;
 ---
 

@@ -316,7 +316,10 @@
   inset-block-start: 0;
   z-index: var(--z-raised);
   flex: none;
-  block-size: var(--safe-top);
+  /* The strip is drawn over the top of this page while one shows (owner, 2026-11-13: it stays on top
+     of everything), so the page's own top moves down by the strip's body: the box and its units (cqb)
+     stay as they are, so a strip arriving never resizes the cover. */
+  block-size: calc(var(--safe-top) + var(--strip-body));
   margin-inline: calc(max(var(--player-padding), var(--safe-left)) * -1)
     calc(max(var(--player-padding), var(--safe-right)) * -1);
   background: var(--color-surface);
@@ -391,6 +394,21 @@
   padding-block: var(--space-2) var(--space-6);
 }
 
+/* A recording with no audio to play: the site's empty screen (PlayerEmpty) in place of the cover and
+   the controls, centred in the room under the chevron and the menu. */
+.player-empty {
+  display: grid;
+  width: 100%;
+}
+
+.player-empty > .empty {
+  padding-block: var(--space-4);
+}
+
+.player-page-inner[data-unplayable] {
+  justify-content: center;
+}
+
 .player-cover-box {
   width: min(100%, var(--cover-size-player), var(--player-cover-share));
 }
@@ -420,9 +438,9 @@
   );
 }
 
-/* The line under the title: the story and its source, or a notice in their place (a failure, an
-   interruption). It keeps the room of the notice with its action at every width, so nothing below
-   the title moves when a notice comes or goes. */
+/* The line under the title: the story and its source. It keeps its room at every width, so nothing
+   below the title moves when the story changes. A failure no longer takes it: the strip above the
+   app says it, and a recording with no audio shows .player-empty instead of all of this. */
 .player-meta-line {
   display: grid;
   align-content: start;
@@ -430,15 +448,6 @@
   gap: var(--space-1);
   width: 100%;
   min-height: calc(var(--size-touch) + var(--space-1) * 2);
-}
-
-/* In the story's room: the action brings its own 44px, so the notice's own padding above and below
-   is small, and two lines of reason with the action fit the room. */
-.player-meta-line > .banner-notice {
-  justify-self: stretch;
-  margin-block: 0;
-  padding-block: var(--space-1);
-  text-align: start;
 }
 
 /* One line: the full headline is in the Stories list and on the bar. */
@@ -1571,6 +1580,8 @@
     column-gap: var(--space-12);
     max-width: var(--player-page-max);
     padding-inline: var(--space-12);
+    /* The strip is drawn over the top of the page; the grid starts under it. */
+    padding-block-start: var(--strip-body);
     min-height: calc(100cqb - var(--player-dock-height));
   }
 
@@ -2106,7 +2117,7 @@
      parts it from the play controls. */
   .tabs-bar.player-tabs-bar {
     position: sticky;
-    inset-block-start: var(--safe-top);
+    inset-block-start: calc(var(--safe-top) + var(--strip-body));
     z-index: calc(var(--z-raised) + 1);
     margin-block-start: var(--space-6);
     margin-inline: calc(max(var(--player-padding), var(--safe-left)) * -1)

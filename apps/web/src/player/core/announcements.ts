@@ -8,8 +8,8 @@ import { itemPositionLabel } from "./timeline";
  */
 export interface AnnouncementContext {
   /**
-   * The open player is on screen. Its notice (role alert or status) then speaks errors and
-   * interruptions itself, so the live region says nothing to avoid saying it twice.
+   * The open player is on screen. Its bar's caption then speaks an interruption itself, so the live
+   * region says nothing to avoid saying it twice.
    */
   open: boolean;
   /** Playback has been asked for. Before that a failure (a file found missing) is not the listener's news. */
@@ -39,7 +39,11 @@ export function announcementForEvent(
     case "interrupted":
       return context.open ? null : "Paused by another app.";
     case "error":
-      return context.open || context.started === false ? null : event.error.message;
+      // The strip speaks every failure but a recording with no audio (its empty screen, or the bar's
+      // caption, has no live region of its own), so only that one is said here.
+      return context.started === false || event.error.kind !== "unavailable"
+        ? null
+        : event.error.message;
     default:
       // A rate change (the slider's value text and the pressed preset already say it), a load.
       return null;

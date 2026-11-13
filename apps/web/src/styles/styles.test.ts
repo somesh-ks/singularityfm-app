@@ -1133,7 +1133,6 @@ const PAGE_OVERRIDES: string[] = [
   'player.css: .dock-expand[aria-expanded="true"] .icon-glyph',
   "player.css: .glyph-swap > .icon-glyph",
   "player.css: .glyph-swap > .icon-glyph",
-  "player.css: .player-meta-line > .banner-notice",
   "player.css: .player-source-link .icon-glyph",
   "player.css: .transport-btn .icon-glyph",
   "podcast.css: .daily-panel .field-input[aria-invalid]:focus-visible",

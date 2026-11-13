@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
 import type { PlayerDigestData } from "../../types/contracts";
-import { describeMediaError, MEDIA_ERR_NETWORK } from "./audioErrors";
+import { describeMediaError, MEDIA_ERR_NETWORK, MEDIA_ERR_SRC_NOT_SUPPORTED } from "./audioErrors";
 import {
   errorSummary,
-  noticeAction,
+  isUnplayable,
   recordingCaption,
+  stripLine,
   toggleLabel,
   transportGlyph,
 } from "./playerCopy";
@@ -55,8 +56,8 @@ describe("recordingCaption", () => {
 
 describe("a standing refusal", () => {
   const refused = { kind: "refused", message: "Daily narration limit reached." } as const;
-  it("offers no Try again, in the notice or on the disc", () => {
-    expect(noticeAction("refused")).toBeNull();
+  it("offers no Try again on the disc, and says its reason in the strip", () => {
+    expect(stripLine({ ...refused, summary: "Daily limit reached" })).toBe("Daily limit reached");
     expect(toggleLabel({ status: "error", error: refused })).toBe("Play");
     expect(transportGlyph("error", refused)).toBe("play");
   });
@@ -76,10 +77,23 @@ describe("a failure the lost connection caused", () => {
     expect(describeMediaError(MEDIA_ERR_NETWORK, true)?.kind).toBe("network");
   });
   it("offers no Try again that cannot work offline: Play, and one line everywhere", () => {
-    expect(noticeAction("offline")).toBeNull();
+    // The connection's own strip says it, so the player's line stays empty.
+    expect(stripLine(offline)).toBeNull();
     expect(transportGlyph("error", offline)).toBe("play");
     expect(toggleLabel({ status: "error", error: offline })).toBe("Play");
     expect(errorSummary(offline ?? { kind: "offline" })).toBe("You are offline");
+  });
+});
+
+describe("a recording with no audio", () => {
+  // The Blob outage (12 to 13 Nov): the file was gone, and the page kept controls that could only fail.
+  const missing = describeMediaError(MEDIA_ERR_SRC_NOT_SUPPORTED, true);
+  it("shows the empty screen, not a strip line, and a failure that can mend keeps the controls", () => {
+    expect(isUnplayable(missing)).toBe(true);
+    expect(stripLine(missing)).toBeNull();
+    const dropped = describeMediaError(MEDIA_ERR_NETWORK, true);
+    expect(isUnplayable(dropped)).toBe(false);
+    expect(stripLine(dropped)).toBe("Audio did not load");
   });
 });
 

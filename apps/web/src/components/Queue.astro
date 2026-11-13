@@ -3,6 +3,7 @@ import Button from "@singularityfm/design-system/Button";
 import Icon from "@singularityfm/design-system/Icon";
 import IconButton from "@singularityfm/design-system/IconButton";
 import { menuListClass } from "@singularityfm/design-system/menu";
+import { CRASHED, INVALID, OFFLINE_RETRY } from "../lib/failureCopy";
 import { QUEUE_ACTION_ICONS, QUEUE_STATUS_ICONS } from "../lib/queueIcons";
 import { UPDATING_LABEL } from "../lib/runStages";
 import QueueRing from "./QueueRing.astro";
@@ -50,9 +51,9 @@ const lines = {
   "data-retry-daily_cap": "That's today's limit. Try again in {wait}.",
   // A 5xx: the server logged why, and the reference it sent is added to this (lib/errorRef.ts).
   "data-retry-503": "Something broke on our side, so nothing was started.",
-  "data-retry-crashed": "Something broke on our side, and nothing changed. Try again in a moment.",
-  "data-retry-400": "That didn't go through. Reload the page and try again.",
-  "data-retry-network": "No connection right now. Try again when you're back online.",
+  "data-retry-crashed": CRASHED,
+  "data-retry-400": INVALID,
+  "data-retry-network": OFFLINE_RETRY,
   // A briefing (Regenerate) rides the same queue: data-briefing-<state>, and its stage names come
   // from the status route like an episode's (lib/runStages.ts). A nothing or a gated run is a done
   // one with its own sentence; a failed one names its step (briefingFailureLine).

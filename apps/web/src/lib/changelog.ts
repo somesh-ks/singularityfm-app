@@ -18,6 +18,12 @@ export interface Release {
 
 export const CHANGELOG: readonly Release[] = [
   {
+    version: "0.23.5",
+    date: "2026-11-13",
+    description:
+      "Problems with playback and older pages now show on the strip at the top, the same as offline. A podcast with no audio shows a screen with Open Downloads and Try again instead of a red banner over the player.",
+  },
+  {
     version: "0.23.4",
     date: "2026-11-11",
     description:

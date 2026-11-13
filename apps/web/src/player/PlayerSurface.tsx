@@ -1,8 +1,9 @@
 import { buttonClass } from "@singularityfm/design-system/button";
 import IconButton from "@singularityfm/design-system/IconButton";
 import { type PointerEvent, useDeferredValue, useEffect, useSyncExternalStore } from "react";
+import { setStripNotice } from "../scripts/deviceBanners";
 import { longDateFromDigestId } from "./core/formatTime";
-import { recordingCaption } from "./core/playerCopy";
+import { isUnplayable, recordingCaption, stripLine } from "./core/playerCopy";
 import { classifyKeyTarget, shouldToggleOnKey } from "./core/playerKeys";
 import { getPlayerStore } from "./core/playerRuntime";
 import { playerSheet } from "./core/playerSheet";
@@ -11,6 +12,7 @@ import type { GestureZone, PointerInput } from "./core/sheetController";
 import { usePlayerState } from "./hooks/usePlayer";
 import { useQueue } from "./hooks/useQueue";
 import PlayerBar, { PLAYER_PAGE_ID } from "./PlayerBar";
+import PlayerEmpty from "./PlayerEmpty";
 import PlayerMenu from "./PlayerMenu";
 import {
   getPageContent,
@@ -118,6 +120,14 @@ export default function PlayerSurface() {
   const lean =
     !(digest?.turns?.length || digest?.items.length) && queued.length === 0 && !state.upNextId;
   const visible = state.hasStarted && Boolean(digest?.audio);
+  // A recording with no audio to play shows the empty screen in place of controls that cannot work.
+  const unplayable = isUnplayable(state.error);
+  const line = stripLine(state.error);
+  // The strip says a failure the controls can carry on from; it lives as long as the failure does.
+  const failure = state.error;
+  // biome-ignore lint/correctness/useExhaustiveDependencies: a new failure is said again, even in the same words
+  useEffect(() => setStripNotice(line, true), [failure]);
+  useEffect(() => () => setStripNotice(null), []);
   const cover = digest ? (
     <PlayerCover cover={digest.cover} weekly={digest.kind === "weekly"} size="player" />
   ) : null;
@@ -153,7 +163,7 @@ export default function PlayerSurface() {
           className="player-page"
           id={PLAYER_PAGE_ID}
           data-player-page
-          aria-labelledby={TITLE_ID}
+          aria-labelledby={unplayable ? "player-empty-title" : TITLE_ID}
           tabIndex={-1}
           inert
           onKeyDown={(event) => {
@@ -180,7 +190,11 @@ export default function PlayerSurface() {
             getPlayerStore().toggle();
           }}
         >
-          <div className="player-page-inner" data-lean={lean ? "" : undefined}>
+          <div
+            className="player-page-inner"
+            data-lean={lean || unplayable ? "" : undefined}
+            data-unplayable={unplayable ? "" : undefined}
+          >
             <div className="player-drag" data-player-drag>
               {/* A chevron at the top left on a phone (owner, 2026-10-20), so a listener who does not
                   know the page pulls down still sees how to put it away. From 64rem it shows only on
@@ -193,42 +207,44 @@ export default function PlayerSurface() {
                 <Icon name="chevronDown" />
               </IconButton>
               <PlayerMenu />
-              <div className="player-cover-slot">
-                <div className="player-cover-box" data-player-cover>
-                  {digest ? <PlayerCoverGlow cover={digest.cover} /> : null}
-                  {cover}
-                </div>
-              </div>
-              {/* Room for a changing story is kept only where the story changes: a recording with
-                  no timeline of stories has one fixed line, and no empty gap under it. */}
-              <div
-                className="player-meta"
-                data-stories={(timeline?.items.length ?? 0) > 0 ? "" : undefined}
-                data-sourced={(timeline?.items.length ?? 0) > 0 ? "" : undefined}
-              >
-                <h2 className="player-title text-title" id={TITLE_ID} title={title}>
-                  {title}
-                </h2>
-                {/* The story being read, and where it came from. A recording without stories says
-                    what it is, and so does an episode's rundown, before story 1: no story is being
-                    read, and the line is the one story 1 will fill, so nothing moves when it starts.
-                    A failure takes the same room: its notice (PlayerNotice.tsx) is put here in their
-                    place, so nothing below the title moves when it comes or goes. */}
-                <div className="player-meta-line" data-notice-slot>
-                  {state.error ? null : (
-                    <>
+              {unplayable ? (
+                <PlayerEmpty />
+              ) : (
+                <>
+                  <div className="player-cover-slot">
+                    <div className="player-cover-box" data-player-cover>
+                      {digest ? <PlayerCoverGlow cover={digest.cover} /> : null}
+                      {cover}
+                    </div>
+                  </div>
+                  {/* Room for a changing story is kept only where the story changes: a recording with
+                      no timeline of stories has one fixed line, and no empty gap under it. */}
+                  <div
+                    className="player-meta"
+                    data-stories={(timeline?.items.length ?? 0) > 0 ? "" : undefined}
+                    data-sourced={(timeline?.items.length ?? 0) > 0 ? "" : undefined}
+                  >
+                    <h2 className="player-title text-title" id={TITLE_ID} title={title}>
+                      {title}
+                    </h2>
+                    {/* The story being read, and where it came from. A recording without stories says
+                        what it is, and so does an episode's rundown, before story 1: no story is being
+                        read, and the line is the one story 1 will fill, so nothing moves when it starts. */}
+                    <div className="player-meta-line">
                       <p className="player-story" key={item?.id ?? "story"}>
                         {item?.headline ?? recordingCaption(digest, state.duration)}
                       </p>
                       <SourceLink />
-                    </>
-                  )}
-                </div>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+            {unplayable ? null : (
+              <div className="player-body">
+                <PageBody />
               </div>
-            </div>
-            <div className="player-body">
-              <PageBody />
-            </div>
+            )}
           </div>
         </section>
       </div>

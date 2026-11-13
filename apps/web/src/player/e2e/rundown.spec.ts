@@ -93,7 +93,7 @@ test.describe("an episode's rundown and the controls under the transcript", () =
     await expect(previous).toHaveAttribute("aria-disabled", "true");
   });
 
-  test("the cover and the controls hold still from the rundown through Next to a failure @desktop", async ({
+  test("the cover and the controls hold still from the rundown through Next @desktop", async ({
     player,
     finger,
     page,
@@ -120,11 +120,8 @@ test.describe("an episode's rundown and the controls under the transcript", () =
     await page.waitForTimeout(800);
     expect(await place()).toEqual(rundown);
     expect(await player.sheet.evaluate((element) => element.scrollTop)).toBe(0);
-    // A failure shows no story and no source, and nothing moves.
-    await page.route("**/narrated/*.mp3", (route) => route.fulfill({ status: 404, body: "" }));
-    await finger.press(next);
-    await expect(player.root).toHaveAttribute("data-player-state", "error", { timeout: 10_000 });
-    expect(await place()).toEqual(rundown);
+    // A failure that leaves the page up holds still too: errors.spec.ts measures it. A missing file
+    // replaces the page with the empty screen, so there is no cover left to hold.
   });
 
   test("the open page and the bar under it show one play control @desktop", async ({

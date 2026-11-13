@@ -5,7 +5,6 @@ One line each: symptom, cause, fix. Search before debugging; older gotchas are i
 ## Browser tests
 
 - 2026-11-10: `topics.spec.ts` "Add source" compares a committed Linux baseline, off CI only (`CI` skips it). A red on it after a topics.css or design-system change belongs to that PR: read the diff, then `--update-snapshots` with his OK and `tests-ok` (CI gate).
-- 2026-10-22: in the cloud container Chromium goes through the agent proxy, so `--host-resolver-rules` (to serve a build under the production host) did nothing until launched with `--no-proxy-server`.
 - 2026-10-23: a changed card token reached a page outside the grid spec (Costs), and a hold-still test missed 10px at 320. Screenshot every page using the primitive; measure at 320 and 360.
 - 2026-10-23: reduced motion in the tokens alone missed every raw travel on those durations (chip labels, nav pill, floating button). Sweep the CSS with the tokens; check with `document.getAnimations()` under emulated reduced motion.
 - 2026-10-12: a mocked route answers while the browser context is offline. A test of an offline save takes its mock offline with it (`route.abort`), and waits for the lazy chunk it needs before going offline.
@@ -14,7 +13,8 @@ One line each: symptom, cause, fix. Search before debugging; older gotchas are i
 - 2026-10-14: headless Chromium has no mobile address bar, so the bottom-stack drift cannot be reproduced in the browser suites or in screenshots. Reason from the anchors, and ask for a recording on a phone.
 - 2026-10-13: voice-picker specs failed beside others: a scroll after the press closed the list; `openPicker` (`e2e/picker.ts`) presses until it stays open.
 - 2026-10-12: an axe scan after `emulateMedia` read colours mid-fade. Wait for the page's `CSSTransition`s to finish first, and cap that wait, because an infinite or paused animation never finishes.
-- 2026-10-12: Playwright reuses a listening server and skips the build, so a leftover one tests the wrong build. Stop old servers; use a fresh PORT after a page edit.
+- 2026-10-22: in the cloud container Chromium goes through the agent proxy; launch with `--no-proxy-server` for `--host-resolver-rules`.
+- 2026-10-12: Playwright reuses a listening server and skips the build: use a fresh PORT after a page edit.
 - 2026-11-04: axe 4.14 made label-in-name an A rule: a name holds the visible words in one run ("Play · 1 min" failed).
 - 2026-10-11: Playwright `addStyleTag` and injected axe scripts hit the fixture site's CSP; use `bypassCSP: true` for an audit, on a build in its own directory and port (a rebuilt `dist` read as "page has no title").
 - 2026-10-10: a lone IntersectionObserver threshold of 1 reports a target partly past the root edge as not intersecting and never calls back. To tell a sticky element is stuck, observe `[0, 1]` and compare its `top` with `rootBounds.top`.
@@ -163,3 +163,4 @@ One line each: symptom, cause, fix. Search before debugging; older gotchas are i
 - 2026-11-02: the cloud image's Chromium is an older build than the repo's Playwright wants; point `PLAYWRIGHT_BROWSERS_PATH` at links named for the wanted build. A 2px negative margin fails the 8pt spec: size a target `max()` of both.
 - 2026-11-03: a step summary is not in the job log or API; `tee -a` what you must read.
 - 2026-11-06: a script-built DS part (`codeSnippetHtml`) needs its sheet imported by a page component; unstyled, it passed.
+- 2026-11-13: a bare `role="status"` line stayed 12 days, cached past the outage: a status has one home (D394).

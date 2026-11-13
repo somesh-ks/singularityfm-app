@@ -3,6 +3,7 @@
  * throws: a refusal, a network failure and a page that is not JSON all come back as a reason the
  * interface can explain.
  */
+import { OFFLINE_RETRY } from "../lib/failureCopy";
 import type { NarrateRequest, NarrationTimeline } from "../types/contracts";
 import type { SegmentInfo } from "./narrationPlan";
 import type { NarrateResult, NarrationFailure } from "./segmentQueue";
@@ -222,7 +223,7 @@ export function failureCopy(reason: NarrationFailure, noun: NarrationNoun): stri
     case "unavailable":
       return "Narration hit a snag. Try again.";
     case "offline":
-      return "You're offline. Try again when you're back online.";
+      return OFFLINE_RETRY;
     case "failed":
       return "Couldn't make the audio. Try again.";
     case "link_limit":

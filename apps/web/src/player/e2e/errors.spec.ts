@@ -51,7 +51,7 @@ async function serve(page: Page, answer: (key: string) => Answer): Promise<void>
 }
 
 test.describe("a recording that fails", () => {
-  test("a missing audio file is said in plain words, and the disc tries again once it is back", async ({
+  test("a recording with no audio shows the empty screen, and Try again plays it once the audio is back", async ({
     player,
     page,
     finger,
@@ -60,23 +60,25 @@ test.describe("a recording that fails", () => {
     let missing = true;
     await serve(page, () => ({ file: !missing }));
     await finger.press(player.cta);
-    await expect(player.root).toHaveAttribute("data-player-state", "error", { timeout: 10_000 });
-    await expect(player.cta.locator("[data-chip-label]")).toHaveText("Try again");
+    // The file is asked for again a few times before the page gives up on it (the store may be back).
+    await expect(player.root).toHaveAttribute("data-player-state", "error", { timeout: 15_000 });
     await expect(page.locator(".dock-caption")).toHaveText("Audio isn't available");
     await player.openPlayer();
-    const notice = player.dialog.getByRole("alert");
-    await expect(notice).toContainText("Audio isn't available");
+    // Controls that can only fail are not shown: the empty screen is, with a way to Downloads.
+    await expect(
+      player.dialog.getByRole("heading", { name: "Audio isn't available" }),
+    ).toBeVisible();
+    await expect(player.dialog.getByRole("link", { name: "Open Downloads" })).toBeVisible();
+    await expect(player.dialog.locator(".transport")).toHaveCount(0);
     await expect(page.locator("body")).not.toContainText("MEDIA_ELEMENT_ERROR");
     const live = await page.locator("[aria-live]").allTextContents();
     expect(live.join(" ")).not.toContain("MEDIA_ELEMENT_ERROR");
-    // The notice offers no button of its own; the Play disc is the one Try again.
-    await expect(notice.getByRole("button")).toHaveCount(0);
-    const disc = player.dialog.getByRole("button", { name: "Try again" });
-    await expect(disc).toHaveCount(1);
     missing = false;
-    await finger.press(disc);
+    await finger.press(player.dialog.getByRole("button", { name: "Try again" }));
     await expect(player.root).toHaveAttribute("data-player-state", "playing", { timeout: 10_000 });
-    await expect(page.getByRole("alert")).toHaveCount(0);
+    await expect(player.dialog.getByRole("heading", { name: "Audio isn't available" })).toHaveCount(
+      0,
+    );
   });
 
   test("when the server cannot list the narration, it says so and starts nothing", async ({
@@ -115,29 +117,25 @@ test.describe("a recording that fails", () => {
     await expect(player.root).toHaveAttribute("data-player-state", "playing");
     await next.click();
     await expect(player.root).toHaveAttribute("data-player-state", "error", { timeout: 10_000 });
-    // Money: a standing cap is not offered as something to retry, in the notice or on the disc.
-    const notice = player.dialog.getByRole("alert");
-    await expect(notice).toContainText("Daily narration limit reached");
-    await expect(notice.getByRole("button")).toHaveCount(0);
+    // Money: a standing cap is not offered as something to retry, in the strip or on the disc.
+    const strip = page.locator('[data-banner="audio"]');
+    await expect(strip).toContainText("Daily limit reached");
+    await expect(strip.getByRole("button")).toHaveCount(0);
     await expect(player.dialog.getByRole("button", { name: "Try again" })).toHaveCount(0);
     await expect(page.locator(".dock-caption")).toHaveText("Daily limit reached");
     // The chip under the page says what the disc and the bar say: Play, with the reason.
     await expect(player.cta).toHaveAttribute("data-state", "idle");
     await expect(player.cta).toHaveAttribute("aria-label", "Play the podcast, Daily limit reached");
-    // A press on Play sends nothing; the reason's alert is put in again, so it is said again.
-    await notice.evaluate((element) => {
-      element.setAttribute("data-seen", "");
-    });
+    // A press on Play sends nothing, and the reason stays.
     await player.dialog.locator(".transport [data-primary]").click();
-    await expect(notice).toContainText("Daily narration limit reached");
-    await expect(notice).not.toHaveAttribute("data-seen", "");
+    await expect(strip).toContainText("Daily limit reached");
     // Back to story 1, whose file was made: it plays, and the reason goes.
     await player.dialog.locator(".transport [aria-label='Previous story']").click();
     await expect(player.root).toHaveAttribute("data-player-state", "playing", { timeout: 10_000 });
-    await expect(player.dialog.getByRole("alert")).toHaveCount(0);
+    await expect(page.locator('[data-banner="audio"]')).toHaveCount(0);
   });
 
-  test("a 503 mid-recording passes: Enter on Try again keeps focus on the disc and sends the request once the server is back", async ({
+  test("a 503 mid-recording passes: Enter on the disc sends the request again once the server is back", async ({
     player,
     page,
   }) => {
@@ -153,32 +151,35 @@ test.describe("a recording that fails", () => {
     await player.openPlayer();
     await player.dialog.getByRole("button", { name: "Next story" }).first().click();
     await expect(player.root).toHaveAttribute("data-player-state", "error", { timeout: 10_000 });
-    const notice = player.dialog.getByRole("alert");
-    await expect(notice).toContainText("Narration hit a snag.");
-    // Still down: Enter on the notice's Try again retries, the notice leaves while it loads, and
-    // focus stays on the page, on the Play disc.
-    await notice.getByRole("button", { name: "Try again" }).focus();
-    await page.keyboard.press("Enter");
+    const strip = page.locator('[data-banner="audio"]');
+    await expect(strip).toContainText("Narration hit a snag");
+    // Still down: Enter on the disc (named Try again) retries, and focus stays on it.
     const disc = player.dialog.locator(".transport [data-primary]");
+    await disc.focus();
+    await page.keyboard.press("Enter");
     await expect(disc).toBeFocused();
     await expect(player.root).toHaveAttribute("data-player-state", "error", { timeout: 10_000 });
     await expect(disc).toBeFocused();
     down = false;
     const before = asked;
-    await notice.getByRole("button", { name: "Try again" }).click();
+    await disc.click();
     await expect(player.root).toHaveAttribute("data-player-state", "playing", { timeout: 10_000 });
     expect(asked).toBeGreaterThan(before);
   });
 
-  test("a failure and its retry move nothing on the open page, and its reason is clear of the bar", async ({
+  test("a failure and its retry move nothing on the open page, and its strip is above the page", async ({
     player,
     page,
   }) => {
     const measure = () =>
       page.evaluate(() => {
-        const top = (selector: string) =>
+        // From the cover: the strip squeezes the page as it does the app (the whole page moves a
+        // little, and a centred group half as far), but the controls keep their distances.
+        const at = (selector: string) =>
           document.querySelector(`[data-player-page] ${selector}`)?.getBoundingClientRect().top ??
           -1;
+        const coverTop = at(".player-cover-frame");
+        const top = (selector: string) => at(selector) - coverTop;
         const sheet = document.querySelector<HTMLElement>("[data-player-page]");
         return {
           overflow: sheet ? sheet.scrollHeight - sheet.clientHeight : -1,
@@ -209,15 +210,16 @@ test.describe("a recording that fails", () => {
       await expect(player.root).toHaveAttribute("data-player-state", "error", { timeout: 10_000 });
       const failed = await measure();
       expect(failed.positions, `${size} in a failure`).toEqual(rest.positions);
-      if (width >= 1024) expect(failed.overflow, `${size} in a failure`).toBeLessThanOrEqual(1);
-      const dock = page.locator("[data-player-dock]");
-      if (await dock.isVisible()) {
-        const notice = await player.boxOf(player.dialog.getByRole("alert"));
-        const bar = await player.boxOf(dock);
-        expect(notice.y + notice.height, `${size} reason over the bar`).toBeLessThanOrEqual(
-          bar.y + 1,
-        );
-      }
+      // The strip takes its own room off a short window, so the page may scroll a little in a failure.
+      // The strip sits at the top of the window over the player, and the cover starts below it.
+      const strip = await player.boxOf(page.locator('[data-banner="audio"]'));
+      const cover = await player.boxOf(
+        page.locator("[data-player-page] .player-cover-frame").first(),
+      );
+      expect(strip.y, `${size} strip at the top`).toBeLessThanOrEqual(1);
+      expect(strip.y + strip.height, `${size} cover below the strip`).toBeLessThanOrEqual(
+        cover.y + 1,
+      );
       // A retry that fails again: during its load and after, nothing moves either.
       await player.dialog.locator(".transport [data-primary]").click();
       expect((await measure()).positions, `${size} retrying`).toEqual(rest.positions);
@@ -253,7 +255,7 @@ test.describe("a recording that fails", () => {
     await expect(player.root).toHaveAttribute("data-player-state", "error");
   });
 
-  test("offline the notice offers no Try again, and the connection's return plays on", async ({
+  test("offline the strip is over the player and offers no Try again, and the connection's return plays on", async ({
     player,
     page,
     context,
@@ -268,9 +270,9 @@ test.describe("a recording that fails", () => {
     await context.setOffline(true);
     await player.dialog.getByRole("button", { name: "Next story" }).first().click();
     await expect(player.root).toHaveAttribute("data-player-state", "error", { timeout: 10_000 });
-    const notice = player.dialog.getByRole("alert");
-    await expect(notice).toHaveText("You are offline. Reconnect to play on.");
-    await expect(notice.getByRole("button")).toHaveCount(0);
+    const strip = page.locator('[data-banner="offline"]');
+    await expect(strip).toHaveText("You are offline");
+    await expect(strip).toBeInViewport();
     await expect(player.dialog.getByRole("button", { name: "Try again" })).toHaveCount(0);
     await expect(page.locator(".dock-caption")).toHaveText("You are offline");
     offline = false;

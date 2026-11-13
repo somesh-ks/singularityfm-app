@@ -160,14 +160,22 @@ describe("announcements", () => {
     expect(announcementForEvent({ type: "ended" }, track)).toBe("Podcast finished.");
     const episode = { ...track, digest: { ...track.digest, turns: [] } } as typeof track;
     expect(announcementForEvent({ type: "ended" }, episode)).toBe("Episode finished.");
+    // The strip speaks a failure the controls carry on from; only a recording with no audio has no
+    // live region of its own, so only it is said here.
     expect(
       announcementForEvent(
         { type: "error", error: { kind: "network", message: "Audio did not load." } },
         track,
       ),
-    ).toBe("Audio did not load.");
+    ).toBeNull();
+    expect(
+      announcementForEvent(
+        { type: "error", error: { kind: "unavailable", message: "Audio isn't available." } },
+        track,
+      ),
+    ).toBe("Audio isn't available.");
     expect(announcementForEvent({ type: "interrupted" }, track)).toBe("Paused by another app.");
-    // With the open player on screen its notice speaks errors and interruptions itself.
+    // With the open player on screen its bar speaks interruptions itself.
     expect(announcementForEvent({ type: "interrupted" }, track, { open: true })).toBeNull();
     // A file found missing before any press is not announced.
     expect(

@@ -32,7 +32,6 @@ test.describe("playback on a podcast", () => {
     // Paused, the chip offers the minutes that are left, and its name says what a press does.
     await expect(player.cta).toHaveAttribute("data-state", "current");
     await expect(player.cta).toHaveAttribute("data-playing", "false");
-    await expect(player.cta.locator("[data-chip-label]")).toHaveText(/^\d+ min left$/);
     await expect(player.cta).toHaveAccessibleName(/^Resume the podcast, \d+ min left$/);
     await player.finger.press(player.dock.getByRole("button", { name: "Play", exact: true }));
     await expect(page.locator("html")).toHaveAttribute("data-player-state", "playing");
@@ -69,16 +68,16 @@ test.describe("playback on a podcast", () => {
     await expect(chip).toBeVisible();
     seen.idle = await measure();
     await player.play();
-    await expect(chip.locator("[data-chip-label]")).toHaveText("Playing");
+    await expect(chip).toHaveAccessibleName(/^Pause, playing: /);
     seen.playing = await measure();
     await player.dock.getByRole("button", { name: "Pause", exact: true }).click();
-    await expect(chip.locator("[data-chip-label]")).toHaveText("Paused");
+    await expect(chip).toHaveAccessibleName(/^Resume, paused: /);
     seen.paused = await measure();
     // Heard out (from just before its end, play on into the next), the button is a Play button again
     // with its length, never Played (D351).
     await playOnOutOf(player, 0);
     await player.dock.getByRole("button", { name: "Play", exact: true }).click();
-    await expect(chip.locator("[data-chip-label]")).toHaveText(/^\d+:\d\d$/);
+    await expect(chip).toHaveAccessibleName(/^Play from here, \d+:\d\d: /);
     seen.played = await measure();
     const places = new Set(Object.values(seen).map((s) => s.controls));
     const widths = new Set(Object.values(seen).map((s) => s.chip));
@@ -242,7 +241,6 @@ test.describe("playback on a podcast", () => {
     await page.evaluate(() => sessionStorage.clear());
     await page.reload({ waitUntil: "networkidle" });
     await expect(player.cta).toHaveAttribute("data-state", "idle");
-    await expect(player.cta.locator("[data-chip-label]")).toHaveText(/^\d+ min left$/);
     await expect(player.cta).toHaveAccessibleName(/^Resume the podcast, \d+ min left$/);
     await player.finger.press(player.cta);
     await expect(player.root).toHaveAttribute("data-player-state", "playing");

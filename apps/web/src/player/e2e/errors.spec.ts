@@ -62,6 +62,7 @@ test.describe("a recording that fails", () => {
     await finger.press(player.cta);
     // The file is asked for again a few times before the page gives up on it (the store may be back).
     await expect(player.root).toHaveAttribute("data-player-state", "error", { timeout: 15_000 });
+    await expect(player.cta).toHaveAccessibleName("Try again");
     await expect(page.locator(".dock-caption")).toHaveText("Audio isn't available");
     await player.openPlayer();
     // Controls that can only fail are not shown: the empty screen is, with a way to Downloads.

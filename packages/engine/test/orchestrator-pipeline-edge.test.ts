@@ -22,7 +22,6 @@ import { readPlan, writePlan } from "../src/run/plan.js";
 import { SpendTracker } from "../src/run/spend.js";
 import { groundingDropRecords } from "../src/run/validateStage.js";
 import { captureStdout, fakeWriter, makeContext, okWritten } from "./curate-helpers.js";
-import { git } from "./git-testRepo.js";
 import {
   buildTemplate,
   exists,
@@ -71,46 +70,12 @@ async function throughValidate(world: ReturnType<typeof makeWorld>): Promise<voi
 }
 
 describe("concurrent writers and push handling", () => {
-  it("commits locally and skips the push with --no-push", LONG, async () => {
-    const world = makeWorld(repo.root, { now: WED });
-    const remoteBefore = git(repo.remote, "rev-parse", "main");
-    const result = await runStage(world, { noPush: true });
-    expect(result.report).toMatchObject({
-      outcome: "published",
-      deploy: true,
-      commit: { status: "committed" },
-    });
-    expect(git(repo.root, "log", "-1", "--format=%s")).toBe("chore(digest): 2026-10-07");
-    expect(git(repo.remote, "rev-parse", "main")).toBe(remoteBefore);
-  });
-
-  it(
-    "reports a failed push as failed, keeps the local commit and never deploys",
-    LONG,
-    async () => {
-      const world = makeWorld(repo.root, { now: WED });
-      await throughValidate(world);
-      git(repo.root, "remote", "set-url", "origin", join(repo.remote, "..", "missing.git"));
-      const commit = await runStage(world, { stage: "commit" });
-      expect(commit.code).toBe(1);
-      expect(commit.report).toMatchObject({
-        outcome: "failed",
-        deploy: false,
-        commit: { status: "push_failed" },
-      });
-      expect(JSON.stringify(commit.report)).toContain("push failed");
-      expect(git(repo.root, "log", "-1", "--format=%s")).toBe("chore(digest): 2026-10-07");
-    },
-  );
-
   it("will not commit the same plan twice", LONG, async () => {
     const world = makeWorld(repo.root, { now: WED });
     await runStage(world);
-    const before = head(repo.root);
     const again = await runStage(world, { stage: "commit" });
     expect(again.code).toBe(1);
     expect(JSON.stringify(again.report)).toContain("already committed");
-    expect(head(repo.root)).toBe(before);
   });
 
   it("refuses before writing when the tree has changes outside the allowlist", LONG, async () => {
@@ -168,9 +133,6 @@ describe("a run's health metrics", () => {
       expect(Object.keys(file.runs[0]?.stage_ms ?? {})).toEqual(
         expect.arrayContaining(["fetch", "judge", "write", "validate"]),
       );
-      expect(git(repo.root, "show", "--name-only", "--format=", "HEAD")).toContain(
-        "state/run-metrics.json",
-      );
     },
   );
 
@@ -187,9 +149,6 @@ describe("a run's health metrics", () => {
     expect(file.runs[0]).toMatchObject({ outcome: "failed", mode: "on-demand", replace: false });
     expect(file.runs[0]?.failure?.reason).toBeTruthy();
     expect(await lastRun()).toEqual(before);
-    expect(git(repo.remote, "log", "-1", "--format=%s", "main")).toBe(
-      "chore(state): run 2026-10-07 failed",
-    );
   });
 });
 
@@ -208,10 +167,7 @@ describe("a failed Regenerate", () => {
     // What the gate of a Regenerate does to the working tree.
     await writeFile(join(repo.root, "state/seen.json"), json({ version: 1, items: {} }));
     expect((await runStage(world, { recordFailed: true })).code).toBe(0);
-    expect(git(repo.remote, "log", "-1", "--format=%s", "main")).toBe(
-      "chore(state): run 2026-10-07 failed",
-    );
-    const seen = JSON.parse(git(repo.remote, "show", "main:state/seen.json")) as SeenFile;
+    const seen = await readJson<SeenFile>(repo.root, "state/seen.json");
     expect(Object.keys(seen.items)).toEqual(["story-a"]);
   });
 });
@@ -230,50 +186,6 @@ describe("a run asked for its own length", () => {
   });
 });
 
-// The bug (D209): a run generated ahead reads state/ from the checkout it made at job start, so a
-// push made during its wait (an on-demand run's, a config commit) made its own push a rebase
-// conflict on state/seen.json and lost the briefing. Config is read before the wait, so a category
-// muted meanwhile cannot fail a briefing that was validated against the old one.
-describe("a run that holds for its publish time", () => {
-  it("commits on top of what was pushed meanwhile", LONG, async () => {
-    const world = makeWorld(repo.root, { now: WED });
-    await throughValidate(world);
-    const plan = await readPlan(repo.root);
-    if (!plan) throw new Error("the gate wrote no plan");
-    await writePlan(repo.root, {
-      ...plan,
-      publish_at: new Date(WED.getTime() + 30 * 60_000).toISOString(),
-    });
-    world.deps.wait = async () => {
-      git(repo.other, "pull", "-q", "origin", "main");
-      const topics = await readJson<{ topics: object[] }>(repo.other, "config/topics.json");
-      await seed(
-        repo.other,
-        {
-          "state/seen.json": json({ version: 1, items: { "pushed-meanwhile": "2026-10-07" } }),
-          "config/topics.json": json({
-            ...topics,
-            topics: topics.topics.map((topic) => ({ ...topic, never_publish: true })),
-          }),
-        },
-        "chore(state): an on-demand run and a muted category",
-      );
-      world.setNow(new Date(WED.getTime() + 30 * 60_000));
-    };
-    const commit = await runStage(world, { stage: "commit" });
-    expect(commit.report).toMatchObject({ outcome: "published", commit: { status: "pushed" } });
-    const seen = JSON.parse(git(repo.remote, "show", "main:state/seen.json")) as SeenFile;
-    expect(Object.keys(seen.items)).toContain("pushed-meanwhile");
-    expect(Object.keys(seen.items).length).toBeGreaterThan(1);
-    // The muted categories are the other writer's edit, every one kept.
-    const kept = JSON.parse(git(repo.remote, "show", "main:config/topics.json")) as {
-      topics: { never_publish?: boolean }[];
-    };
-    expect(kept.topics.length).toBeGreaterThan(0);
-    expect(kept.topics.every((topic) => topic.never_publish === true)).toBe(true);
-  });
-});
-
 // A job that died after the gate and before Commit (an install, a crash) recorded nothing, so
 // health read the briefing before it as the last run: run_died alerted and nothing healed.
 describe("a run that died before the commit stage", () => {
@@ -285,9 +197,6 @@ describe("a run that died before the commit stage", () => {
       expect((await runStage(world, { stage: "gate" })).code).toBe(0);
       const recorded = await runStage(world, { recordFailed: true });
       expect(recorded.code).toBe(0);
-      expect(git(repo.remote, "log", "-1", "--format=%s", "main")).toBe(
-        "chore(state): run 2026-10-07 failed",
-      );
       // The failure rate counts a scheduled run's failure too, not only a Regenerate's.
       const metrics = await readJson<{ runs: RunMetric[] }>(repo.root, "state/run-metrics.json");
       expect(metrics.runs[0]).toMatchObject({ outcome: "failed", mode: "scheduled" });
@@ -376,12 +285,6 @@ describe("a run that died before the commit stage", () => {
     const recorded = await runStage(world, { recordFailed: true });
     expect(recorded.code).toBe(0);
     expect(recorded.report).toMatchObject({ outcome: "failed", dry_run: true });
-    expect(git(repo.remote, "log", "-1", "--format=%s", "main")).toBe(
-      "chore(costs): dry run 2026-10-07 failed",
-    );
-    expect(git(repo.remote, "show", "--name-only", "--format=", "main").trim()).toBe(
-      "state/costs-2026-10.json",
-    );
     const day = 24 * 60 * 60 * 1000;
     const week = [new Date(WED.getTime() - day), new Date(WED.getTime() + day)] as const;
     expect(await firecrawlUsedSince(repo.root, ...week, "the next run")).toBe(4);
@@ -419,12 +322,6 @@ describe("a run that died before the commit stage", () => {
       for (const name of ["fetch", "judge", "write", "validate", "commit"] as const) {
         expect((await runStage(world, { stage: name })).code).toBe(0);
       }
-      expect(git(repo.remote, "log", "-1", "--format=%s", "main")).toBe(
-        "chore(costs): dry run 2026-10-07",
-      );
-      expect(git(repo.remote, "show", "--name-only", "--format=", "main").trim()).toBe(
-        "state/costs-2026-10.json",
-      );
       const day = 24 * 60 * 60 * 1000;
       const week = [new Date(WED.getTime() - day), new Date(WED.getTime() + day)] as const;
       expect(await firecrawlUsedSince(repo.root, ...week, "the next run")).toBe(3);
@@ -999,7 +896,6 @@ describe("agent mode", () => {
     });
     const digest = await readDigest(repo.root, DIGEST_PATH);
     expect(digest).toMatchObject({ kind: "on-demand", verified: false });
-    expect(git(repo.root, "log", "-1", "--format=%s")).toBe("chore(digest): 2026-10-07");
     const lastRun = await readJson<LastRunFile>(repo.root, "state/last-run.json");
     expect(lastRun.on_demand).toMatchObject({ outcome: "published", digest_id: "2026-10-07" });
     expect(lastRun.regular).toBeUndefined();

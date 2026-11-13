@@ -187,6 +187,7 @@
   .cover-play {
     /* The glyph's box. The bars take their size from it, so a smaller cover (the list's) scales both. */
     --cover-glyph: calc(var(--size-icon-lg) * 2);
+    --icon-size: var(--cover-glyph);
     display: grid;
     place-items: center;
     width: var(--size-touch-comfortable);
@@ -202,11 +203,6 @@
     transition:
       scale var(--duration-hover) var(--ease-hover),
       opacity var(--duration-hover) var(--ease-hover);
-  }
-
-  .cover-play .icon-glyph {
-    width: var(--cover-glyph);
-    height: var(--cover-glyph);
   }
 
   /* The hover that brings the button in weighs no more than one class, so the press below wins. */

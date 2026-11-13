@@ -4,6 +4,7 @@
  * page is whole HTML without it. The state lives in the address (?q=&format=a&format=b), written with
  * replaceState so a reload, or Back to the page, finds it as it was.
  */
+import { installSearchClear, syncSearchClear } from "@singularityfm/design-system/searchField";
 import {
   type FilterRow,
   type FilterState,
@@ -25,7 +26,6 @@ export function mountFilter(root: HTMLElement): void {
   filter.dataset.mounted = "";
   const field = filter.querySelector<HTMLInputElement>("[data-filter-q]");
   const none = filter.querySelector<HTMLElement>("[data-filter-none]");
-  const clearText = filter.querySelector<HTMLButtonElement>("[data-filter-clear-text]");
   const tabs = [...filter.querySelectorAll<HTMLButtonElement>("[data-tab]")];
   // The index swaps its topic list for the flat list of sources while a search is set.
   const library = root.querySelector<HTMLElement>("[data-library]");
@@ -33,6 +33,7 @@ export function mountFilter(root: HTMLElement): void {
   const list = library ?? root.querySelector<HTMLElement>("ul[data-sources]:not([data-added])");
   const more = root.querySelector<HTMLButtonElement>("[data-show-all]");
   if (!field || !list) return;
+  installSearchClear();
   let expanded = list.hasAttribute("data-all");
   let wasIdle = true;
 
@@ -64,7 +65,7 @@ export function mountFilter(root: HTMLElement): void {
       tab.setAttribute("aria-selected", String(chosen));
       tab.tabIndex = chosen ? 0 : -1;
     }
-    if (clearText) clearText.hidden = state.q === "";
+    syncSearchClear(field);
     // The index shows its topics until something narrows the list; a topic's page lifts its fold.
     if (library) {
       library.hidden = idle;

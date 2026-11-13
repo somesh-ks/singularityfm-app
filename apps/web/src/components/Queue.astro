@@ -126,10 +126,10 @@ const icons = QUEUE_STATUS_ICONS;
     </div>
   </section>
 
-  {/* The popover is the More menu's own surface (hero.css) with its own place and size (queue.css).
+  {/* The popover is the Menu's surface, flush, with its own place and size (queue.css).
        It opens only from the side column's row, which shows once something has been made today. */}
   <div
-    class:list={[menuListClass(false), "queue-pop"]}
+    class:list={[menuListClass(false, true), "queue-pop"]}
     id="queue-pop"
     popover
     role="dialog"
@@ -137,11 +137,13 @@ const icons = QUEUE_STATUS_ICONS;
     data-picker
     data-queue-pop
   >
-    <div class="queue-pop-head">
-      <h2 class="queue-pop-title" id="queue-pop-title">{words["data-word-title"]}</h2>
-    </div>
-    <div class="queue-body">
-      <ul class="queue-list" role="list" data-queue-list></ul>
+    <div class="queue-pop-inner">
+      <div class="queue-pop-head">
+        <h2 class="queue-pop-title" id="queue-pop-title">{words["data-word-title"]}</h2>
+      </div>
+      <div class="queue-body">
+        <ul class="queue-list" role="list" data-queue-list></ul>
+      </div>
     </div>
   </div>
 
@@ -165,7 +167,7 @@ const icons = QUEUE_STATUS_ICONS;
           <QueueRing class="queue-ring-row" data-queue-ring role="progressbar" aria-valuemin="0" aria-valuemax="100" />
           <span class="queue-time" data-queue-time></span>
         </div>
-        <IconButton className="queue-play" href="#" label="Start listening" data-queue-play hidden>
+        <IconButton variant="filled" className="queue-play" href="#" label="Start listening" data-queue-play hidden>
           <Icon name={QUEUE_ACTION_ICONS.play} size="lg" />
         </IconButton>
         <span class="queue-end-icon" data-queue-end-icon hidden></span>

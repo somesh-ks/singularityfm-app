@@ -44,11 +44,6 @@
     transition: background-color var(--duration-hover) var(--ease-hover);
   }
 
-  .app-nav-create .icon-glyph {
-    width: var(--size-icon-lg);
-    height: var(--size-icon-lg);
-  }
-
   @media (hover: hover) and (pointer: fine) {
     .app-nav-create[aria-current="page"]:where(:not([aria-disabled="true"])):hover {
       background: var(--nav-side-item-bg);
@@ -78,11 +73,6 @@
 
 .play-fab-glyph > * {
   grid-area: 1 / 1;
-}
-
-/* Optical center: a play triangle's mass sits left of its box. */
-.play-fab-glyph > .icon-glyph {
-  translate: 0.0625rem 0;
 }
 
 .play-fab[data-state="preparing"] {
@@ -209,6 +199,7 @@ dialog.share-dialog:focus-visible {
   outline: none;
 }
 
+/* The head's words line up with the body's (.share-about) and the close button sits at the corner. */
 .share-dialog > .sheet-head {
   padding-block: var(--space-1);
   padding-inline: var(--space-4) var(--space-1);

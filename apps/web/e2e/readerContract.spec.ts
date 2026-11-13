@@ -18,7 +18,6 @@ const face = (chip: Locator) =>
   chip.evaluate((node) => ({
     state: node.getAttribute("data-state"),
     playing: node.getAttribute("data-playing"),
-    label: node.querySelector("[data-chip-label]")?.textContent,
     name: node.getAttribute("aria-label"),
   }));
 
@@ -29,7 +28,6 @@ test.describe("what the player writes on a real page", () => {
     expect(await face(chip)).toEqual({
       state: "idle",
       playing: "false",
-      label: "1 min",
       name: "Play the podcast, 1 min",
     });
 
@@ -37,8 +35,8 @@ test.describe("what the player writes on a real page", () => {
     await expect(page.locator("html")).toHaveAttribute("data-player-state", "playing");
     await expect(chip).toHaveAttribute("data-state", "current");
     await expect(chip).toHaveAttribute("data-playing", "true");
-    // Playing, the briefing's chip is the pause button with the time left (D77).
-    await expect(chip.locator("[data-chip-label]")).toHaveText("1 min left");
+    // Playing, the briefing's chip is the pause button with the time left (D77), in its name: it is
+    // the glyph alone (DS-13).
     await expect(chip).toHaveAccessibleName("Pause the podcast, 1 min left");
     await closePlayer(page);
 
@@ -46,7 +44,6 @@ test.describe("what the player writes on a real page", () => {
     await expect(page.locator("html")).toHaveAttribute("data-player-state", "paused");
     await expect(chip).toHaveAttribute("data-state", "current");
     await expect(chip).toHaveAttribute("data-playing", "false");
-    await expect(chip.locator("[data-chip-label]")).toHaveText("1 min left");
     await expect(chip).toHaveAccessibleName("Resume the podcast, 1 min left");
 
     await chip.click();
@@ -64,7 +61,6 @@ test.describe("what the player writes on a real page", () => {
     const headline = (await third.locator("h3 span[id]").textContent()) ?? "";
 
     await chip.click();
-    await expect(chip.locator("[data-chip-label]")).toHaveText("Playing");
     await expect(chip).toHaveAccessibleName(`Pause, playing: ${headline}`);
     await expect(chip).toHaveAttribute("data-playing", "true");
 
@@ -74,7 +70,6 @@ test.describe("what the player writes on a real page", () => {
     await expect(third).toHaveAttribute("data-state", "current");
     await expect(chip).toHaveAttribute("data-state", "current");
     await expect(chip).toHaveAttribute("data-playing", "false");
-    await expect(chip.locator("[data-chip-label]")).toHaveText("Paused");
     await expect(chip).toHaveAccessibleName(`Resume, paused: ${headline}`);
     // Only one story is the one being read.
     await expect(page.locator('.story[data-state="current"]')).toHaveCount(1);
@@ -84,7 +79,9 @@ test.describe("what the player writes on a real page", () => {
       const earlier = stories.nth(index);
       await expect(earlier).not.toHaveAttribute("data-state", /.*/);
       await expect(earlier.locator("[data-play-item]")).toHaveAttribute("data-state", "idle");
-      await expect(earlier.locator("[data-chip-label]")).toHaveText(/^\d+:\d\d$/);
+      await expect(earlier.locator("[data-play-item]")).toHaveAccessibleName(
+        /^Play from here, \d+:\d\d: /,
+      );
     }
     // Playing on out of the third into the fourth is hearing it: the third is played, the first two are not.
     await chip.click();
@@ -92,7 +89,7 @@ test.describe("what the player writes on a real page", () => {
     await expect(third).toHaveAttribute("data-state", "played", { timeout: 15_000 });
     // The story is played (its data-state), its button stays a Play button with the length.
     await expect(chip).toHaveAttribute("data-state", "idle");
-    await expect(chip.locator("[data-chip-label]")).toHaveText(/^\d+:\d\d$/);
+    await expect(chip).toHaveAccessibleName(/^Play from here, \d+:\d\d: /);
     await expect(chip).not.toHaveAccessibleName(/played/i);
     await expect(stories.nth(0)).not.toHaveAttribute("data-state", /.*/);
     await expect(stories.nth(3)).toHaveAttribute("data-state", "current");
@@ -100,12 +97,12 @@ test.describe("what the player writes on a real page", () => {
     await expect(page.locator("html")).toHaveAttribute("data-player-state", "paused");
     const later = stories.nth(5).locator("[data-play-item]");
     await expect(later).toHaveAttribute("data-state", "idle");
-    await expect(later.locator("[data-chip-label]")).toHaveText("0:03");
+    await expect(later).toHaveAccessibleName(/^Play from here, 0:03: /);
     await expect(stories.nth(5)).not.toHaveAttribute("data-state", /.*/);
     // The briefing's own chip tells the same story: paused, with the time that is left.
     const podcast = page.locator(".hero [data-play-digest]");
     await expect(podcast).toHaveAttribute("data-state", "current");
-    await expect(podcast.locator("[data-chip-label]")).toHaveText("1 min left");
+    await expect(podcast).toHaveAccessibleName("Resume the podcast, 1 min left");
   });
 
   test("the chips are written again on every page the reader moves to", async ({ page }) => {
@@ -128,9 +125,7 @@ test.describe("what the player writes on a real page", () => {
     await page.locator('a[href="/"]:visible').first().click();
     await expect(page).toHaveURL(/\/$/);
     await expect(page.locator(".hero [data-play-digest]")).toHaveAttribute("data-state", "current");
-    await expect(page.locator(".hero [data-play-digest] [data-chip-label]")).toHaveText(
-      /min left$/,
-    );
+    await expect(page.locator(".hero [data-play-digest]")).toHaveAccessibleName(/min left$/);
     await expect(page.locator('.story[data-state="current"]')).toHaveCount(1);
     await expect(page.locator('[data-play-item][data-state="current"]')).toHaveCount(1);
   });
@@ -146,7 +141,7 @@ test.describe("what the player writes on a real page", () => {
     await page.evaluate(() => window.dispatchEvent(new Event("offline")));
     await expect(chip).toHaveAttribute("data-state", "unavailable");
     await expect(chip).toHaveAttribute("aria-disabled", "true");
-    await expect(chip.locator("[data-chip-label]")).toHaveText("1 min");
+    await expect(chip).toHaveAccessibleName("Play the podcast, 1 min");
     await context.setOffline(false);
     await page.evaluate(() => window.dispatchEvent(new Event("online")));
     await expect(chip).toHaveAttribute("data-state", "idle");

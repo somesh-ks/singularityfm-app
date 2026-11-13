@@ -73,19 +73,15 @@ const items = libraryItems(entries, episodes);
         {/* Shown by downloadsPage.ts once there are enough downloads to search. Words are matched as the
              Library's search does, against the row's own text. */}
         <form class="downloads-search" role="search" novalidate hidden data-search-form>
-          <div class="search-wrap">
-            <SearchField
-              label="Search downloads"
-              name="q"
-              placeholder="Search downloads"
-              autoComplete="off"
-              enterKeyHint="search"
-              data-search
-            />
-            <button class="search-clear press press-subtle" type="button" aria-label="Clear text" hidden data-clear>
-              <Icon name="close" />
-            </button>
-          </div>
+          <SearchField
+            clearable
+            label="Search downloads"
+            name="q"
+            placeholder="Search downloads"
+            autoComplete="off"
+            enterKeyHint="search"
+            data-search
+          />
         </form>
         {/* The red strip with the bin a row slides over when a finger swipes it away
              (downloadsSwipe.ts, D369); put into a row on its first press. */}

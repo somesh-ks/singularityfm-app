@@ -8,7 +8,7 @@ import {
   MAX_REGENERATIONS,
   parseDigestFile,
 } from "@singularityfm/core";
-import { commitAndPush } from "../git/commit.js";
+import { saveRunState } from "../git/commit.js";
 import { readSeen, writeSeen } from "../state/store.js";
 import { forgetPool } from "./carriedPool.js";
 import { StageFailure } from "./errors.js";
@@ -100,12 +100,10 @@ export async function deleteDigest(
     };
   }
   const removed = await removeDigestFiles(deps.root, id);
-  const outcome = await commitAndPush({
+  const outcome = await saveRunState({
     root: deps.root,
-    message: `chore(digest): remove ${id}`,
     command: "run",
     push: !options.noPush,
-    git: deps.git,
   });
   if (outcome.status === "refused" || outcome.status === "push_failed") {
     throw new StageFailure(`Deleting ${id} did not complete (${outcome.status})`);

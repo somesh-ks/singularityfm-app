@@ -35,11 +35,6 @@
   border: 0;
 }
 
-.manage-fields:disabled :is(.switch-input, .field-input, .search-field) {
-  opacity: var(--opacity-disabled);
-  cursor: default;
-}
-
 /* ------------------------------------------------------------------ the add form */
 
 .manage-form {
@@ -77,15 +72,9 @@
   gap: var(--space-2);
   margin: 0;
   color: var(--color-danger);
+  --icon-size: var(--size-icon-sm);
   font-size: var(--text-label-size);
   font-weight: var(--font-weight-medium);
-}
-
-.manage-error .icon-glyph {
-  flex: none;
-  width: var(--size-icon-sm);
-  height: var(--size-icon-sm);
-  block-size: 1lh;
 }
 
 /* ------------------------------------------------------------------ a quiet line */

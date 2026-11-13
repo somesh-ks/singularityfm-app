@@ -6,6 +6,8 @@ name: browser
 # job of ci.yml for a pull request that changes the site.
 # Digest, state and docs commits cannot change the site, so a push that only touches them skips
 # the run (they also arrive from a token that starts no workflow).
+# The suites are cut into shards that run at once (2026-11-13: the site suite alone took 15 minutes
+# and the pull request waited 19). scripts/ciSuite.mjs runs each shard and reads a red one by cause.
 on:
   push:
     branches: [main]
@@ -26,16 +28,24 @@ permissions:
   contents: read
 
 jobs:
-  # One job per suite, in parallel: each takes about 6 minutes, so a run ends in the time of the
-  # slower one instead of the sum. Split a suite further with `--shard` if one passes 10 minutes.
+  # One job per shard, all at once, so a run ends in the time of the slowest shard. The player suite
+  # runs one worker and shards by file; the site suite shards by test. Add a shard when one passes
+  # 6 minutes; the names are not required checks (`browser gate` in ci.yml is, D385).
   suite:
-    name: ${{ matrix.suite }} suite
+    name: ${{ matrix.suite }} ${{ matrix.shard }}
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # A shard takes about 6 minutes; a runner that is twice as slow still ends. The 30 minutes the
+    # whole site suite had ran out on one slow runner (2026-11-13) and cancelled the job.
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
-        suite: [player, site]
+        include:
+          - { suite: player, shard: 1/2, script: e2e:player, report: player-results.json }
+          - { suite: player, shard: 2/2, script: e2e:player, report: player-results.json }
+          - { suite: site, shard: 1/3, script: e2e, report: results.json }
+          - { suite: site, shard: 2/3, script: e2e, report: results.json }
+          - { suite: site, shard: 3/3, script: e2e, report: results.json }
     env:
       PORT: "4501"
     steps:
@@ -45,30 +55,71 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: pnpm
-      - run: pnpm install --frozen-lockfile --ignore-scripts
+      # The two downloads are the steps a registry or a mirror can fail for a moment (a Chromium
+      # download took 83 s instead of 17 on 2026-11-13); they run again, nothing else does.
+      - run: bash scripts/retry.sh 3 pnpm install --frozen-lockfile --ignore-scripts
       - name: Install Chromium
-        run: pnpm exec playwright install --with-deps chromium
+        run: bash ../../scripts/retry.sh 3 pnpm exec playwright install --with-deps chromium
         working-directory: apps/web
-      - name: Player suite
-        if: matrix.suite == 'player'
-        run: pnpm --filter @singularityfm/web run e2e:player
-      - name: Site suite
-        if: matrix.suite == 'site'
-        run: pnpm --filter @singularityfm/web run e2e
-      # The daily health check reads the newest report from main for the week's flaky count (D360).
-      - name: Keep the site suite's report
+      # A failed test stops the shard at 15 failures: a change that breaks that many has one cause,
+      # and the rest of the run is minutes spent confirming it. An infra fault reruns once.
+      - name: Run the shard
+        run: >-
+          node scripts/ciSuite.mjs run "${{ matrix.suite }} ${{ matrix.shard }}" apps/web/test-results/${{ matrix.report }} --
+          pnpm --filter @singularityfm/web run ${{ matrix.script }}
+          --shard=${{ matrix.shard }} --max-failures=15
+      # The daily health check reads the newest report from main for the week's flaky count (D360);
+      # `report` below sums the site shards into the one `browser-results` it reads.
+      - name: Keep the shard's report
         if: always() && matrix.suite == 'site'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: browser-results
-          path: apps/web/test-results/results.json
-          retention-days: 7
+          name: browser-results-site-${{ strategy.job-index }}
+          path: apps/web/test-results/${{ matrix.report }}
+          # A re-run of one shard (same run, next attempt) replaces its report instead of failing the upload.
+          overwrite: true
+          retention-days: 1
           if-no-files-found: ignore
       - name: Keep the traces of a failure
         if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: browser-traces-${{ matrix.suite }}-${{ github.run_id }}-${{ github.run_attempt }}
+          name: browser-traces-${{ matrix.suite }}-${{ strategy.job-index }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: apps/web/test-results/
           retention-days: 14
+          if-no-files-found: ignore
+
+  # One artifact for the health check, whatever the shard count. The shards' reports come down with
+  # gh (preinstalled, no third-party action to pin) and their stats are summed.
+  report:
+    name: report
+    needs: suite
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # Bookkeeping for the health check: its failure must not turn `browser gate` red.
+    continue-on-error: true
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          sparse-checkout: scripts
+      - name: Sum the site shards
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          mkdir -p shards
+          gh run download "$GITHUB_RUN_ID" --pattern 'browser-results-site-*' --dir shards || true
+          # 3 is the site shards in the matrix above; keep them in step.
+          node scripts/ciSuite.mjs merge shards merged/results.json 3
+      - name: Keep the week's report
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: browser-results
+          path: merged/results.json
+          overwrite: true
+          retention-days: 7
           if-no-files-found: ignore

@@ -1,5 +1,4 @@
 ---
-import Icon from "@singularityfm/design-system/Icon";
 import { menuListClass } from "@singularityfm/design-system/menu";
 import SearchField from "@singularityfm/design-system/SearchField";
 import SheetHeader from "@singularityfm/design-system/SheetHeader";
@@ -15,10 +14,12 @@ const { id } = Astro.props;
      phone and a popover under the emoji button from 40rem. Only the frame is here; emojiPicker.ts
      fills it when it first opens, with the list fetched then (public/emoji.json), so no page
      carries it. data-picker keeps heroMenu.ts's menu keys and focus rules off it. */}
-<div class:list={[menuListClass(), "emoji-picker"]} id={id} popover role="dialog" aria-labelledby={`${id}-title`} data-picker>
+<div class:list={[menuListClass(true, true), "emoji-picker"]} id={id} popover role="dialog" aria-labelledby={`${id}-title`} data-picker>
   <SheetHeader title="Choose an emoji" titleId={`${id}-title`} close="data-menu-close" />
-  <div class="search-wrap emoji-search">
+  <div class="emoji-picker-inner">
     <SearchField
+      clearable
+      className="emoji-search"
       label="Search emoji"
       name="q"
       placeholder="Search emoji"
@@ -28,9 +29,6 @@ const { id } = Astro.props;
       enterKeyHint="search"
       data-emoji-q
     />
-    <button class="search-clear press press-subtle" type="button" aria-label="Clear text" data-emoji-clear hidden>
-      <Icon name="close" />
-    </button>
+    <div class="emoji-body" data-emoji-body></div>
   </div>
-  <div class="emoji-body" data-emoji-body></div>
 </div>

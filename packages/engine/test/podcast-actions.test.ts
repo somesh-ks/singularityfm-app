@@ -1,5 +1,5 @@
 import { existsSync } from "node:fs";
-import { readFile, writeFile } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { PodcastCommand, parseEpisodeFile } from "@singularityfm/core";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -8,7 +8,7 @@ import { parseCommand } from "../src/podcast/actions.js";
 import { scriptUserMessage } from "../src/podcast/prompt.js";
 import { InvalidRequestError } from "../src/podcast/types.js";
 import { captureStdout, makeContext } from "./curate-helpers.js";
-import { commitAll, createRepoPair, git, type RepoPair } from "./git-testRepo.js";
+import { commitAll, createRepoPair, type RepoPair } from "./git-testRepo.js";
 import {
   dayAgo,
   FakeScriptWriter,
@@ -133,36 +133,24 @@ describe("singularity podcast delete and regenerate", () => {
     await pair.cleanup();
   });
 
-  it("delete removes only that file and commits it as chore(podcast)", async () => {
+  it("delete removes only that file", async () => {
     const { code, stdout } = await run([...act({ action: "delete", id: OLD_ID }), "--no-push"]);
     expect(code).toBe(0);
     expect(stdout.trimEnd().split("\n").at(-1)).toBe(OLD_ID);
     expect(existsSync(join(root, OLD_PATH))).toBe(false);
     expect(existsSync(join(root, OTHER_PATH))).toBe(true);
-    expect(git(root, "log", "-1", "--format=%s")).toBe(`chore(podcast): remove ${OLD_ID}`);
-    expect(git(root, "show", "--name-status", "--format=", "HEAD")).toBe(`D\t${OLD_PATH}`);
-    expect(git(root, "status", "--porcelain")).toBe("");
   });
 
   it("delete of an unknown id fails with a plain message and changes nothing", async () => {
-    const before = git(root, "rev-parse", "HEAD");
     const { code, errors } = await run([
       ...act({ action: "delete", id: "ep-20200101-0000" }),
       "--no-push",
     ]);
     expect(code).toBe(1);
     expect(errors.join(" ")).toMatch(/There is no episode ep-20200101-0000/);
-    expect(git(root, "rev-parse", "HEAD")).toBe(before);
   });
 
-  it("delete refuses to commit when something outside Podcasts/ changed", async () => {
-    await writeFile(join(root, "notes.txt"), "stray");
-    const { code, errors } = await run([...act({ action: "delete", id: OLD_ID }), "--no-push"]);
-    expect(code).toBe(1);
-    expect(errors.join(" ")).toMatch(/Commit refused \(guard\).*notes\.txt/);
-  });
-
-  it("regenerate replaces the episode in one commit and gives the writer the feedback", async () => {
+  it("regenerate replaces the episode and gives the writer the feedback", async () => {
     const { code, stdout, writer } = await run([
       ...act({ action: "regenerate", id: OLD_ID, feedback: "Less jargon, more on the planner" }),
       "--no-push",
@@ -171,19 +159,12 @@ describe("singularity podcast delete and regenerate", () => {
     expect(stdout.trimEnd().split("\n").at(-1)).toBe(NEW_ID);
     expect(writer.calls[0]?.input.feedback).toBe("Less jargon, more on the planner");
     expect(existsSync(join(root, OLD_PATH))).toBe(false);
-    expect(git(root, "log", "-1", "--format=%s")).toBe(
-      `feat(podcast): replace ${OLD_ID} with ${NEW_ID}`,
-    );
-    expect(
-      git(root, "show", "--no-renames", "--name-status", "--format=", "HEAD").split("\n").sort(),
-    ).toEqual([`A\t${NEW_PATH}`, `D\t${OLD_PATH}`].sort());
     const episode = parseEpisodeFile(await readFile(join(root, NEW_PATH), "utf8"));
     expect(episode.replaces).toBe(OLD_ID);
     expect(episode.feedback).toBe("Less jargon, more on the planner");
     // The count the site stops at (D212) starts here.
     expect(episode.regenerations).toBe(1);
     expect(episode.request).toEqual(REQUEST);
-    expect(git(root, "status", "--porcelain")).toBe("");
   });
 
   it("regenerate with chosen topics, a length and no comments writes the new episode for those only", async () => {
@@ -201,8 +182,7 @@ describe("singularity podcast delete and regenerate", () => {
     expect(episode.request).toEqual({ ...REQUEST, topic_ids: ["ai"], length_minutes: 10 });
   });
 
-  it("a failed regenerate leaves the old file and commits nothing", async () => {
-    const before = git(root, "rev-parse", "HEAD");
+  it("a failed regenerate leaves the old file", async () => {
     const broken = new FakeScriptWriter(() => ({ nope: true }));
     const { code } = await run(
       [...act({ action: "regenerate", id: OLD_ID, feedback: "Change it" }), "--no-push"],
@@ -211,8 +191,6 @@ describe("singularity podcast delete and regenerate", () => {
     expect(code).toBe(1);
     expect(existsSync(join(root, OLD_PATH))).toBe(true);
     expect(existsSync(join(root, NEW_PATH))).toBe(false);
-    expect(git(root, "rev-parse", "HEAD")).toBe(before);
-    expect(git(root, "status", "--porcelain")).toBe("");
   });
 
   it("regenerate of an unknown id fails before the writer is called", async () => {
@@ -226,7 +204,6 @@ describe("singularity podcast delete and regenerate", () => {
   });
 
   it("dry runs change nothing", async () => {
-    const before = git(root, "rev-parse", "HEAD");
     const del = await run([...act({ action: "delete", id: OLD_ID }), "--dry-run"]);
     expect(del.code).toBe(0);
     expect(JSON.parse(del.stdout)).toMatchObject({ action: "delete", would_remove: [OLD_PATH] });
@@ -243,7 +220,5 @@ describe("singularity podcast delete and regenerate", () => {
     });
     expect(existsSync(join(root, OLD_PATH))).toBe(true);
     expect(existsSync(join(root, NEW_PATH))).toBe(false);
-    expect(git(root, "rev-parse", "HEAD")).toBe(before);
-    expect(git(root, "status", "--porcelain")).toBe("");
   });
 });

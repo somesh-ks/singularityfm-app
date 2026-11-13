@@ -21,9 +21,12 @@ function setPreparing(digestId: string | null): void {
     const label = chip.querySelector<HTMLElement>("[data-chip-label]");
     if (digestId !== null && chip.dataset.playDigest === digestId) {
       chip.dataset.restLabel ??= label?.textContent ?? "";
+      chip.dataset.restName ??= chip.getAttribute("aria-label") ?? "";
       chip.dataset.state = "preparing";
       chip.setAttribute("aria-busy", "true");
       if (label) label.textContent = PREPARING_LABEL;
+      // A glyph-only Play has no words: its name says what the words said (D391).
+      else chip.setAttribute("aria-label", PREPARING_LABEL);
       // The waiting words shimmer from their first frame, on the document's one clock (shimmerClock.ts).
       syncShimmerClock();
     } else if (chip.dataset.restLabel !== undefined) {
@@ -33,8 +36,10 @@ function setPreparing(digestId: string | null): void {
       if (chip.dataset.state === "preparing" && !getPlayerStore().getPageDigest()?.audio) {
         chip.dataset.state = "idle";
         if (label) label.textContent = chip.dataset.restLabel;
+        else if (chip.dataset.restName) chip.setAttribute("aria-label", chip.dataset.restName);
       }
       delete chip.dataset.restLabel;
+      delete chip.dataset.restName;
     }
   }
 }

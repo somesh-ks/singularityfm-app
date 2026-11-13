@@ -7,7 +7,6 @@ import { prefilter } from "../src/prefilter/prefilter.js";
 import { categoryHint } from "../src/sources/hint.js";
 import { loadSources, loadUserSources, mergeUserSources } from "../src/sources/registry.js";
 import { NOW as FETCH_NOW, fakeFetch, makeDeps, makeItem, makeSource } from "./fetch-helpers.js";
-import { git } from "./git-testRepo.js";
 import { realPreferences } from "./score-factories.js";
 import {
   type ConfigRepo,
@@ -979,41 +978,6 @@ describe("invalid input", () => {
     );
     expect(repo.dirty()).toEqual([]);
     expect(JSON.parse(out.join("")).files).toContain("config/topics.json");
-  });
-});
-
-describe("config commit", () => {
-  it("commits what apply wrote through the guard, with the message apply suggested", async () => {
-    const { run } = command();
-    await run(["apply", "--op", JSON.stringify(QUANTUM)], repo.context());
-    const message = JSON.parse(out.join("")).commit_message as string;
-    out.length = 0;
-    expect(await run(["commit", "--message", message, "--no-push"], repo.context())).toBe(0);
-    expect(git(repo.root, "log", "-1", "--format=%s")).toBe(
-      "chore(config): add topic Quantum computing",
-    );
-    expect(git(repo.root, "show", "--name-only", "--format=", "HEAD").split("\n").sort()).toEqual([
-      "config/queries.json",
-      "config/topics.json",
-    ]);
-    expect(repo.dirty()).toEqual([]);
-  });
-
-  it("refuses to commit when anything outside the allowlist changed, and stages nothing", async () => {
-    const { run } = command();
-    await run(["apply", "--op", JSON.stringify(QUANTUM)], repo.context());
-    const { put } = await import("./git-testRepo.js");
-    await put(repo.root, "package.json", '{"name":"tampered"}\n');
-    expect(await run(["commit", "--message", "add topic", "--no-push"], repo.context())).toBe(1);
-    expect(repo.errors.join("\n")).toContain("package.json");
-    expect(git(repo.root, "diff", "--cached", "--name-only")).toBe("");
-  });
-
-  it("adds the conventional prefix to a bare message", async () => {
-    const { run } = command();
-    await run(["apply", "--op", JSON.stringify(QUANTUM)], repo.context());
-    expect(await run(["commit", "--message", "add topic", "--no-push"], repo.context())).toBe(0);
-    expect(git(repo.root, "log", "-1", "--format=%s")).toBe("chore(config): add topic");
   });
 });
 

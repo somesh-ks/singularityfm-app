@@ -6,13 +6,8 @@ import { describeRefusal } from "../audio/budget.js";
 import type { SpeechSynthesizer } from "../audio/speechify.js";
 import type { CommandContext, CommandRun } from "../context.js";
 import type { CommitOutcome } from "../git/commit.js";
-import { commitAndPush } from "../git/commit.js";
-import {
-  ALLOWLISTS,
-  findDigestContentViolations,
-  findViolations,
-  readChangedPaths,
-} from "../git/guard.js";
+import { saveRunState } from "../git/commit.js";
+import { ALLOWLISTS, findViolations, readChangedPaths } from "../git/guard.js";
 import { createGitRunner } from "../git/runGit.js";
 import { type BlobClient, isPruneDay } from "../publish/blob.js";
 import type { DigestAudioOutcome, PublishAudioResult } from "../publish/publishAudio.js";
@@ -47,15 +42,6 @@ function credentials(ctx: CommandContext, deps: AudioCommandDeps): Credentials |
   } catch (error) {
     return { error: error instanceof Error ? error.message : String(error) };
   }
-}
-
-function commitMessage(outcomes: readonly DigestAudioOutcome[]): string {
-  const ids = outcomes.flatMap((outcome) =>
-    outcome.status === "published" ? [outcome.digestId] : [],
-  );
-  if (ids.length === 0) return "chore(audio): record speechify usage";
-  const label = ids.length <= 3 ? [...ids].sort().join(", ") : `${ids.length} digests`;
-  return `chore(audio): add narration for ${label}`;
 }
 
 function describeCommit(outcome: CommitOutcome): string {
@@ -202,9 +188,6 @@ export function createPublishCommand(overrides: Partial<AudioCommandDeps> = {}):
     try {
       const changed = await readChangedPaths(git);
       blocked = findViolations(changed, ALLOWLISTS.publish);
-      if (blocked.length === 0) {
-        blocked = await findDigestContentViolations({ root: ctx.root, run: git, changed });
-      }
     } catch (error) {
       ctx.log.error(
         `Cannot read git status: ${error instanceof Error ? error.message : String(error)}`,
@@ -264,19 +247,17 @@ export function createPublishCommand(overrides: Partial<AudioCommandDeps> = {}):
     }
     for (const warning of result.warnings) ctx.log.warn(warning);
 
-    // Always ask git what changed rather than trusting the result: usage.json moves even when an
-    // upload fails after synthesis, and that spend must reach the repo.
+    // Save the run state whatever the result: usage.json moves even when an upload fails after
+    // synthesis, and that spend must reach the store.
     let commit: CommitOutcome;
     try {
-      commit = await commitAndPush({
+      commit = await saveRunState({
         root: ctx.root,
-        message: commitMessage(result.outcomes),
         command: "publish",
         push: values["no-push"] !== true,
-        git,
       });
     } catch (error) {
-      // A failing pre-commit hook or a broken git leaves the files written and the tree dirty.
+      // The files are written; only the state save threw.
       ctx.log.error(`Commit failed: ${error instanceof Error ? error.message : String(error)}`);
       emit(ctx, deps, result, undefined);
       return 1;

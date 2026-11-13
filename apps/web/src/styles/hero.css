@@ -86,14 +86,10 @@
 }
 
 /*
- * The select of a day's Catch ups (D219) is the tonal Select (select.css) at
- * the hero chip's height, so it and Play read as one row. A select is as wide as its longest option
+ * The select of a day's Catch ups (D219) is the tonal Select (select.css) at the chip height Play,
+ * Share and Favorite take, so the row reads as one. A select is as wide as its longest option
  * whichever is chosen, and the names are one width (lib/catchUps.ts), so switching moves nothing.
  */
-.hero-album {
-  --chip-height: calc(var(--size-touch) - var(--space-1));
-}
-
 .hero-album > select {
   font-variant-numeric: tabular-nums;
 }
@@ -105,7 +101,6 @@
  */
 .hero-share,
 .hero-favorite {
-  --chip-height: calc(var(--size-touch) - var(--space-1));
   position: relative;
   min-width: var(--chip-height);
   min-height: var(--chip-height);
@@ -128,70 +123,8 @@
   display: block;
 }
 
-/*
- * The hero's chip is the page's primary button: filled with the accent, a size up from a story's
- * chip, so it is the strongest thing in the header and plainly not a tag. It keeps the primary fill
- * once this page's audio is loaded (the chip's current state, buttons.css), as every primary button
- * does (owner, 2026-11-04: "all should have the same color synchronized"); it stepped down to the
- * accent container then, a second colour for the same Play. Played, preparing and unavailable keep
- * their meaning.
- */
-.hero-actions > .chip {
-  --chip-bg: var(--cta-bg);
-  --chip-bg-hover: var(--cta-bg-hover);
-  --chip-bg-pressed: var(--cta-bg-pressed);
-  --chip-fg: var(--cta-fg);
-  --chip-bg-current: var(--cta-bg);
-  --chip-bg-current-hover: var(--cta-bg-hover);
-  --chip-bg-current-pressed: var(--cta-bg-pressed);
-  --chip-fg-current: var(--cta-fg);
-  min-height: calc(var(--size-touch) - var(--space-1));
-  padding-inline: var(--space-4) var(--space-6);
-  /* The press may change its corners (--cta-radius-pressed): the pill by default, so nothing moves.
-     Half the chip's height, so the change starts from the pill; the spatial spring collapses under
-     reduced motion with the other shape changes. */
-  border-radius: min(var(--chip-radius), calc((var(--size-touch) - var(--space-1)) / 2));
-  transition:
-    transform var(--duration-press-out) var(--ease-out),
-    background-color var(--duration-hover) var(--ease-hover),
-    color var(--duration-hover) var(--ease-hover),
-    border-radius var(--duration-spring-spatial-fast) var(--ease-spring-spatial-fast);
-}
-
-/* The layer over a filled control is its own ink: lighter on the accent, never a grey wash. */
-@media (hover: hover) and (pointer: fine) {
-  .hero-actions
-    > .chip:not(
-      [data-state="played"],
-      [data-state="current"],
-      [data-state="unavailable"],
-      [aria-disabled="true"]
-    ):hover {
-    background: var(--cta-bg-hover);
-  }
-}
-
-.hero-actions
-  > .chip:not(
-    [data-state="played"],
-    [data-state="current"],
-    [data-state="unavailable"],
-    [aria-disabled="true"]
-  ):active {
-  border-radius: min(var(--cta-radius-pressed), calc((var(--size-touch) - var(--space-1)) / 2));
-  background: var(--cta-bg-pressed);
-  color: var(--cta-fg);
-}
-
-/* Playing, the hero's chip is the pause button: the pause glyph, not the moving bars a story's chip
-   shows, so the page has one "this is playing" mark per story and one way to pause. */
-.hero-actions > .chip[data-state="current"][data-playing="true"] .chip-glyph > .swap {
-  display: grid;
-}
-
-.hero-actions > .chip[data-state="current"][data-playing="true"] .chip-bars {
-  display: none;
-}
+/* The hero's chip is the page's primary button: PlayChip primary (the design system draws the
+   accent fill, its press and the pause glyph while it plays). */
 
 /* Played and Downloaded, after the facts (owner, 2026-11-03): the Library card's own marks (a green check,
    a blue download arrow; library.css) and the word. cardProgress.ts and libraryMenu.ts put them in the

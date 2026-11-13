@@ -6,6 +6,7 @@
  */
 
 import { whenIdle } from "@singularityfm/design-system/idle";
+import { installSearchClear, syncSearchClear } from "@singularityfm/design-system/searchField";
 import { sendToast } from "@singularityfm/design-system/toastEvent";
 import { downloadsSummary, SEARCH_FROM } from "../lib/downloads";
 import { normalize, textHasWords } from "../lib/library";
@@ -21,6 +22,7 @@ interface Ask {
 }
 
 function mount(root: HTMLElement): void {
+  installSearchClear();
   const one = <T extends HTMLElement = HTMLElement>(selector: string): T =>
     root.querySelector(selector) as T;
   const sections = [...root.querySelectorAll<HTMLElement>("[data-section]")];
@@ -32,7 +34,6 @@ function mount(root: HTMLElement): void {
 
   const form = one<HTMLFormElement>("[data-search-form]");
   const input = one<HTMLInputElement>("[data-search]");
-  const clear = one<HTMLButtonElement>("[data-clear]");
   const nomatch = one("[data-nomatch]");
   const menu = one("[data-menu-wrap]");
 
@@ -47,7 +48,7 @@ function mount(root: HTMLElement): void {
       card.hidden = !match;
       if (match) found += 1;
     }
-    clear.hidden = query === "";
+    syncSearchClear(input);
     nomatch.hidden = found > 0 || saved.length === 0;
   };
 
@@ -78,11 +79,6 @@ function mount(root: HTMLElement): void {
 
   input.addEventListener("input", filter);
   form.addEventListener("submit", (event) => event.preventDefault());
-  clear.addEventListener("click", () => {
-    input.value = "";
-    filter();
-    input.focus();
-  });
 
   const open = (next: Ask): void => {
     ask = next;

@@ -158,7 +158,7 @@ describe("a run with a custom topic", () => {
       ).toBe("quantum");
       expect(digest.section_titles?.quantum).toBe("Quantum computing");
 
-      // State: fits cached, counters recorded, both in the one commit.
+      // State: fits cached, counters recorded.
       const cache = await readJson<TopicJudgmentsFile>(repo.root, "state/topic-judgments.json");
       expect(Object.keys(cache.entries)).toHaveLength(asked);
       const stats = await readJson<SourceStatsFile>(repo.root, "state/source-stats.json");
@@ -166,16 +166,6 @@ describe("a run with a custom topic", () => {
       expect(stats.sources["blog-a"]?.judged).toBeGreaterThanOrEqual(7);
       expect(stats.sources["blog-a"]?.passed).toBeGreaterThanOrEqual(5);
       expect(stats.sources["blog-a"]?.published).toBeGreaterThanOrEqual(5);
-      const changed = git(repo.root, "show", "--name-only", "--format=", "HEAD")
-        .split("\n")
-        .filter(Boolean);
-      expect(changed).toEqual(
-        expect.arrayContaining([
-          "state/topic-judgments.json",
-          "state/source-stats.json",
-          DIGEST_PATH,
-        ]),
-      );
     },
   );
 

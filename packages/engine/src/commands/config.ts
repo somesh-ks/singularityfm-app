@@ -12,8 +12,7 @@ import {
 import { type CommandContext, type CommandRun, redact, secretsFromEnv } from "../context.js";
 import { loadPreferences } from "../curate/inputs.js";
 import { loadQueries, QUERIES_PATH } from "../fetch/queries.js";
-import { commitAndPush } from "../git/commit.js";
-import { createGitRunner } from "../git/runGit.js";
+import { saveRunState } from "../git/commit.js";
 import { createHttpClient, type HttpClient } from "../http.js";
 import {
   createFileProfileStore,
@@ -329,15 +328,10 @@ async function runCommit(argv: string[], ctx: CommandContext): Promise<number> {
     print(USAGE);
     return 2;
   }
-  const message = /^[a-z]+(\([^)]*\))?!?: /.test(values.message)
-    ? values.message
-    : `chore(config): ${values.message}`;
-  const outcome = await commitAndPush({
+  const outcome = await saveRunState({
     root: ctx.root,
-    message,
     command: "config",
     push: !values["no-push"],
-    git: createGitRunner(ctx.root),
   });
   switch (outcome.status) {
     case "nothing_to_commit":

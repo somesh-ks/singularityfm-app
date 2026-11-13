@@ -72,7 +72,8 @@ const publisher = publisherOf(item.source, host);
   <div class="story-actions">
     {/* Always in the page. Hidden while the briefing has no audio timeline, so audio that arrives
          later only has to reveal it. */}
-    <PlayChip label={chip.label} aria-label={chip.name} data-play-item={index} hidden={!hasAudio} />
+    {/* The glyph alone, its length and state in its name (owner, 2026-11-13: "the same in chapters"; DS-13). */}
+    <PlayChip aria-label={chip.name} data-play-item={index} hidden={!hasAudio} />
     <StoryControls
       id={item.id}
       url={item.url}

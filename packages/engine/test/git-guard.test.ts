@@ -1,17 +1,14 @@
-import { serializeDigestFile } from "@singularityfm/core";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   ALLOWLISTS,
-  findDigestContentViolations,
   findViolations,
   isPathAllowed,
   parsePorcelain,
   readChangedPaths,
 } from "../src/git/guard.js";
 import { createGitRunner } from "../src/git/runGit.js";
-import { digestFor, makeItem, must } from "./audio-fixtures.js";
 import type { RepoPair } from "./git-testRepo.js";
-import { createRepoPair, git, put, SEED_DIGEST_ID, SEED_DIGEST_PATH } from "./git-testRepo.js";
+import { createRepoPair, git, put, SEED_DIGEST_PATH } from "./git-testRepo.js";
 
 describe("ALLOWLISTS", () => {
   it("names the commands and their paths", () => {
@@ -281,98 +278,5 @@ describe("against a real repository", () => {
       .map((entry) => entry.path)
       .sort();
     expect(paths).toEqual(["state/with space.json", "state/\u00FCn\u00EFcode.json"]);
-  });
-});
-
-describe("findDigestContentViolations", () => {
-  let pair: RepoPair;
-  beforeEach(async () => {
-    pair = await createRepoPair();
-  });
-  afterEach(async () => {
-    await pair.cleanup();
-  });
-
-  const check = async () => {
-    const run = createGitRunner(pair.a);
-    return findDigestContentViolations({ root: pair.a, run, changed: await readChangedPaths(run) });
-  };
-
-  const withAudio = () => ({
-    ...digestFor(SEED_DIGEST_ID),
-    audio: {
-      url: "https://store.public.blob.vercel-storage.com/audio/2026-10-05.mp3",
-      duration_ms: 240_000,
-    },
-  });
-
-  it("accepts a rewrite of the audio field alone", async () => {
-    await put(pair.a, SEED_DIGEST_PATH, serializeDigestFile(withAudio()));
-    expect(await check()).toEqual([]);
-  });
-
-  it("accepts a staged audio rewrite", async () => {
-    await put(pair.a, SEED_DIGEST_PATH, serializeDigestFile(withAudio()));
-    git(pair.a, "add", SEED_DIGEST_PATH);
-    expect(await check()).toEqual([]);
-  });
-
-  it("flags an edit that changes anything besides audio", async () => {
-    const digest = withAudio();
-    digest.items[0] = { ...must(digest.items[0]), headline: "A different headline" };
-    await put(pair.a, SEED_DIGEST_PATH, serializeDigestFile(digest));
-    expect(await check()).toEqual([`${SEED_DIGEST_PATH} (changes more than the audio field)`]);
-  });
-
-  it("flags a changed score, kind or item list", async () => {
-    const digest = withAudio();
-    digest.items = [...digest.items, makeItem(9)];
-    await put(pair.a, SEED_DIGEST_PATH, serializeDigestFile(digest));
-    expect(await check()).toHaveLength(1);
-  });
-
-  it("flags a new digest file", async () => {
-    await put(
-      pair.a,
-      "Digests/2026/10/2026-10-07.md",
-      serializeDigestFile(digestFor("2026-10-07")),
-    );
-    expect(await check()).toEqual([
-      "Digests/2026/10/2026-10-07.md (a digest may be edited, not added, removed or renamed)",
-    ]);
-  });
-
-  it("flags a deleted or renamed digest", async () => {
-    git(pair.a, "mv", SEED_DIGEST_PATH, "Digests/2026/10/2026-10-06.md");
-    expect(await check()).toHaveLength(1);
-  });
-
-  it("flags a digest renamed to a name the path rules would otherwise accept", async () => {
-    git(pair.a, "mv", SEED_DIGEST_PATH, "Digests/2026/10/2026-10-05.audio.json");
-    expect(await check()).toEqual([
-      `${SEED_DIGEST_PATH} (a digest may be edited, not added, removed or renamed)`,
-    ]);
-  });
-
-  it("flags a deleted digest", async () => {
-    git(pair.a, "rm", "-q", SEED_DIGEST_PATH);
-    expect(await check()).toEqual([
-      `${SEED_DIGEST_PATH} (a digest may be edited, not added, removed or renamed)`,
-    ]);
-  });
-
-  it("flags a digest file that no longer parses", async () => {
-    await put(pair.a, SEED_DIGEST_PATH, "not a digest");
-    expect(await check()).toEqual([`${SEED_DIGEST_PATH} (could not be compared with HEAD)`]);
-  });
-
-  it("ignores changes that are not digests", async () => {
-    await put(pair.a, "state/usage.json", "{}\n");
-    await put(pair.a, "Digests/2026/10/2026-10-05.audio.json", "{}\n");
-    expect(await check()).toEqual([]);
-  });
-
-  it("is clean when nothing changed", async () => {
-    expect(await check()).toEqual([]);
   });
 });

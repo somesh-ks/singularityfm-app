@@ -35,14 +35,9 @@ fieldset.sheet-field {
   gap: var(--space-2);
   padding-inline: var(--space-2);
   color: var(--color-danger);
+  --icon-size: var(--size-icon-sm);
   font-size: var(--text-meta-size);
   font-weight: var(--font-weight-medium);
-}
-
-.sheet-field-error .icon-glyph {
-  width: var(--size-icon-sm);
-  height: var(--size-icon-sm);
-  block-size: 1lh;
 }
 
 /* With no field to belong to (the passphrase step is off), the error stands in the form by itself and
@@ -58,16 +53,6 @@ fieldset.sheet-field {
   margin-block-start: var(--space-4);
 }
 
-/* Busy keeps its accent fill: the spinner and the word say "working", not "unavailable". */
-.sheet-actions .button-filled[data-busy="true"] {
-  background: var(--cta-bg);
-  color: var(--cta-fg);
-  cursor: progress;
-}
-
-.sheet-actions .button-filled[aria-disabled="true"]:active {
-  transform: none;
-}
 /* ------------------------------------------------------------------ toast */
 
 /*

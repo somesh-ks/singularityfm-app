@@ -36,7 +36,10 @@ export default defineConfig({
   // The flicks state each touch event's time (helpers.ts) and run on Chromium touch only, so a busy
   // machine no longer turns them into slow drags: nothing here needs a retry to pass.
   retries: 0,
-  reporter: [["list"]],
+  // In CI a JSON report too: scripts/ciSuite.mjs reads it to tell a failed test from a dead runner.
+  reporter: process.env.CI
+    ? [["list"], ["json", { outputFile: "../../../test-results/player-results.json" }]]
+    : [["list"]],
   outputDir: "../../../test-results/player",
   // The device sits in the schedule's zone, so the time zone prompt (D239) stays out of every test.
   use: { colorScheme: "light", baseURL: siteURL, timezoneId: "Europe/Stockholm" },

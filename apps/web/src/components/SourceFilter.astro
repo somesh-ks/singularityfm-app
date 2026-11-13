@@ -1,6 +1,5 @@
 ---
 import Button from "@singularityfm/design-system/Button";
-import Icon from "@singularityfm/design-system/Icon";
 import SearchField from "@singularityfm/design-system/SearchField";
 import type { ManageSource } from "../lib/manage";
 import { FORMAT_LABEL } from "../lib/sourceFilter";
@@ -35,21 +34,18 @@ const shownChips = chips && formats.length > 1;
   data-needs-js
 >
   <div class="filter-row">
-    <div class="search-wrap filter-field">
-      <SearchField
-        label="Search sources"
-        name="q"
-        placeholder="Search sources"
-        autoComplete="off"
-        autoCapitalize="off"
-        spellCheck="false"
-        enterKeyHint="search"
-        data-filter-q
-      />
-      <button class="search-clear press press-subtle" type="button" aria-label="Clear text" data-filter-clear-text hidden>
-        <Icon name="close" />
-      </button>
-    </div>
+    <SearchField
+      clearable
+      className="filter-field"
+      label="Search sources"
+      name="q"
+      placeholder="Search sources"
+      autoComplete="off"
+      autoCapitalize="off"
+      spellCheck="false"
+      enterKeyHint="search"
+      data-filter-q
+    />
     {/* The page's add action beside the field, where the wide layout has no floating button. */}
     <slot name="action" />
   </div>

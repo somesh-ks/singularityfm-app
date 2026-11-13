@@ -95,7 +95,12 @@ export default function PlayerNotice({ onRetry }: PlayerNoticeProps) {
     // A missing file is not fixed by trying again; the Play disc still offers it, once.
     const action = noticeAction(state.error.kind);
     notice = (
-      <div className={bannerClass()} data-tone="danger" role="alert" key={errorKey}>
+      <div
+        className={`${bannerClass()} player-meta-notice`}
+        data-tone="danger"
+        role="alert"
+        key={errorKey}
+      >
         <Icon name="alert" />
         <div className={bannerText.column}>
           <p className={bannerText.title}>{state.error.message}</p>

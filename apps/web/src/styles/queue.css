@@ -449,9 +449,8 @@ html[data-player="open"] .queue-dock {
   color: var(--color-danger);
 }
 
-.queue-ring[data-ended] .queue-stage-icon .icon-glyph {
-  width: var(--queue-ring-size);
-  height: var(--queue-ring-size);
+.queue-ring[data-ended] {
+  --icon-size: var(--queue-ring-size);
 }
 
 .queue-play[hidden],
@@ -459,26 +458,8 @@ html[data-player="open"] .queue-dock {
   display: none;
 }
 
-/* Start listening: the ring has become a play button, filled, in the ring's own place. A link to the
-   podcast, so it needs no script to work. It is a Play, so it wears the one primary fill with its own
-   hover and press (owner, 2026-11-04: every primary button one colour); the icon button's ghost states
-   would turn it grey under a pointer. */
-.icon-btn.queue-play {
-  background: var(--cta-bg);
-  color: var(--cta-fg);
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .icon-btn.queue-play:hover {
-    background: var(--cta-bg-hover);
-    color: var(--cta-fg);
-  }
-}
-
-.icon-btn.queue-play:active {
-  background: var(--cta-bg-pressed);
-}
-
+/* Start listening: the ring has become a play button, filled (IconButton variant="filled"), in the
+   ring's own place. A link to the podcast, so it needs no script to work. */
 .queue-end-icon {
   display: grid;
   place-items: center;
@@ -576,25 +557,27 @@ html:has(.queue-pop:popover-open) .app-nav-queue-title.queue-word[data-live] {
 
 /* ------------------------------------------------------------------ the popover (from 64rem) */
 
-/* Beside the side column, level with its foot: it covers the page and never the navigation. The extra
-   class beats the menu's own rules (hero.css). */
-.menu-list.queue-pop {
+/* Beside the side column, level with its foot: it covers the page and never the navigation. The
+   Menu draws the surface, flush (menuListClass(false, true)); this places and sizes it, and the
+   attribute beats the Menu's own placement. */
+.queue-pop[popover] {
   inset: auto auto calc(var(--dock-room) + var(--space-4))
     calc(var(--side-nav-width) + var(--space-2));
-  flex-direction: column;
   width: 26rem;
   max-height: min(36rem, 70dvh);
-  padding: 0;
   transform-origin: bottom left;
 }
 
-.menu-list.queue-pop:popover-open {
+/* The head and the body stack in a column inside the surface, so the body scrolls under the head. */
+.queue-pop-inner {
   display: flex;
+  flex-direction: column;
+  max-height: inherit;
 }
 
 @media (width < 64rem) {
-  .menu-list.queue-pop,
-  .menu-list.queue-pop:popover-open {
+  .queue-pop[popover],
+  .queue-pop[popover]:popover-open {
     display: none;
   }
 }

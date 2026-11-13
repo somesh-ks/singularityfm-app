@@ -47,23 +47,20 @@ const offers = (await loadSourceCatalog()).flatMap((offer) => {
         <form class="blocked-add" method="dialog" role="search" novalidate data-add>
           {/* The Library's field and the Add source button beside it (SourceFilter.astro, topics.css). */}
           <div class="filter-row">
-            <div class="search-wrap filter-field">
-              <SearchField
-                label="Search sources"
-                name="domain"
-                inputMode="url"
-                maxLength={2048}
-                autoComplete="off"
-                autoCapitalize="none"
-                spellCheck="false"
-                enterKeyHint="search"
-                placeholder="Search sources"
-                data-input
-              />
-              <button class="search-clear press press-subtle" type="button" aria-label="Clear text" hidden data-clear>
-                <Icon name="close" />
-              </button>
-            </div>
+            <SearchField
+              clearable
+              className="filter-field"
+              label="Search sources"
+              name="domain"
+              inputMode="url"
+              maxLength={2048}
+              autoComplete="off"
+              autoCapitalize="none"
+              spellCheck="false"
+              enterKeyHint="search"
+              placeholder="Search sources"
+              data-input
+            />
             <Button variant="tonal" className="topic-add-source" type="submit">
               <Icon name="plus" />
               <span>Block</span>
@@ -118,7 +115,7 @@ const offers = (await loadSourceCatalog()).flatMap((offer) => {
       <template data-sheet>
         <Sheet className="blocked-sheet" title="Block sources" titleId="blocked-sheet-title" close="data-panel-close">
             <div class="manage-field blocked-sheet-field">
-              <div class="search-wrap filter-field">
+              <div class="filter-field">
                 <SearchField
                   label="Search sources or paste an address"
                   inputMode="url"

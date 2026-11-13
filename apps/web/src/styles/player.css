@@ -429,15 +429,14 @@
   justify-items: center;
   gap: var(--space-1);
   width: 100%;
-  min-height: calc(var(--size-touch) + var(--space-1) * 2);
+  min-height: calc(var(--size-touch) + var(--banner-padding) * 2);
 }
 
-/* In the story's room: the action brings its own 44px, so the notice's own padding above and below
-   is small, and two lines of reason with the action fit the room. */
-.player-meta-line > .banner-notice {
+/* In the story's room the notice (PlayerNotice.tsx) fills the line and sits flush with the title above
+   and the body below; two lines of reason with the action fit the room. */
+.player-meta-line > .player-meta-notice {
   justify-self: stretch;
   margin-block: 0;
-  padding-block: var(--space-1);
   text-align: start;
 }
 
@@ -1196,11 +1195,6 @@
   display: none;
 }
 
-.dock-btn[data-primary] .icon-glyph {
-  width: var(--size-icon-lg);
-  height: var(--size-icon-lg);
-}
-
 .dock-btn[aria-disabled="true"] {
   color: var(--color-on-surface-disabled);
 }
@@ -1227,9 +1221,11 @@
     display var(--duration-hover) allow-discrete;
 }
 
+/* The bar's Play and Pause are the regular icon, as every icon button's is, so air stands round them on
+   the wide bar's disc (owner, 2026-11-13). */
 .dock-btn[data-primary] .spinner {
-  width: var(--size-icon-lg);
-  height: var(--size-icon-lg);
+  width: var(--size-icon);
+  height: var(--size-icon);
 }
 
 .transport-btn[data-primary] .spinner {
@@ -1786,7 +1782,7 @@
 }
 
 .transport-btn {
-  --transport-glyph: var(--size-icon-lg);
+  --icon-size: var(--size-icon-lg);
   position: relative;
   display: grid;
   place-items: center;
@@ -1796,14 +1792,9 @@
   color: var(--color-on-surface);
 }
 
-.transport-btn .icon-glyph {
-  width: var(--transport-glyph);
-  height: var(--transport-glyph);
-}
-
 /* Play is the one filled control: the accent's disc, larger than everything around it. */
 .transport-btn[data-primary] {
-  --transport-glyph: var(--player-play-glyph);
+  --icon-size: var(--player-play-glyph);
   width: var(--control-size-lg);
   height: var(--control-size-lg);
   background: var(--color-accent);
@@ -1824,7 +1815,7 @@
    Their glyphs are the skips' outline weight at the skips' size (2026-10-22), so the four helpers
    draw as one family. */
 .transport-btn:not([data-primary], .transport-skip) {
-  --transport-glyph: var(--player-skip-glyph);
+  --icon-size: var(--player-skip-glyph);
   width: var(--size-touch-comfortable);
   height: var(--size-touch-comfortable);
   color: var(--color-on-surface-muted);
@@ -1845,7 +1836,7 @@
 
 /* A skip control: a circular arrow with its own numeral set in the arrow's open center. */
 .transport-skip {
-  --transport-glyph: var(--player-skip-glyph);
+  --icon-size: var(--player-skip-glyph);
   width: var(--size-touch-comfortable);
   height: var(--size-touch-comfortable);
   color: var(--color-on-surface-muted);
@@ -2276,37 +2267,6 @@
 }
 /* ------------------------------------------------------------------ source, stories, notice, up next */
 
-.player-source-link {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  min-width: 0;
-  min-height: var(--size-touch);
-  padding-inline: var(--space-4);
-  border-radius: var(--button-radius);
-  color: var(--color-accent);
-  /* The story's size, so the block under the title keeps to two type sizes. */
-  font-size: var(--text-label-size);
-  font-weight: var(--font-weight-medium);
-  text-decoration: none;
-  transition: background-color var(--duration-hover) var(--ease-hover);
-}
-
-.player-source-link:active {
-  background: var(--ghost-accent-pressed);
-}
-
-.player-source-link span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.player-source-link .icon-glyph {
-  width: var(--space-4);
-  height: var(--space-4);
-}
-
 .story-group {
   margin-block-end: var(--space-2);
 }
@@ -2428,14 +2388,6 @@
   .player-upnext-row:hover {
     background: var(--color-surface-container-hover);
   }
-
-  .player-source-link:hover {
-    background: var(--ghost-accent-hover);
-  }
-
-  .player-source-link:hover:active {
-    background: var(--ghost-accent-pressed);
-  }
 }
 
 /* After the hovers, so a press shows under a mouse too. */
@@ -2495,7 +2447,7 @@
 @media (width < 64rem) {
   .player .player-collapse {
     inset-block-start: calc((var(--player-bar-room) - var(--size-touch)) / 2);
-    inset-inline-start: calc((var(--size-icon-lg) - var(--size-touch)) / 2);
+    inset-inline-start: calc((var(--size-icon) - var(--size-touch)) / 2);
     padding: 0;
     background: transparent;
     color: var(--color-on-surface-muted);
@@ -2528,7 +2480,7 @@
 @media (width < 64rem) {
   .player .player-more {
     inset-block-start: calc((var(--player-bar-room) - var(--size-touch)) / 2);
-    inset-inline-end: calc((var(--size-icon-lg) - var(--size-touch)) / 2);
+    inset-inline-end: calc((var(--size-icon) - var(--size-touch)) / 2);
   }
 }
 
@@ -3058,25 +3010,4 @@ html:is([data-player="open"], :has(dialog[open])) .player-dock {
 /* Component rules that set display must not defeat the hidden attribute. Keep this rule last. */
 [hidden] {
   display: none;
-}
-
-/*
- * The expand chevron, right of the volume in dock-tools (desktop only, as the tools are). The glyph
- * is the chevron down; collapsed it is turned to point up, open it points down. The turn takes the
- * state duration and is skipped for reduced motion. Uses the shared .icon-btn; only the turn is its own.
- */
-.dock-expand .icon-glyph {
-  width: var(--size-icon-lg);
-  height: var(--size-icon-lg);
-  rotate: 180deg;
-}
-
-.dock-expand[aria-expanded="true"] .icon-glyph {
-  rotate: 0deg;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .dock-expand .icon-glyph {
-    transition: rotate var(--duration-state) var(--ease-out);
-  }
 }

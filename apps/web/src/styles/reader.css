@@ -3,12 +3,6 @@
  * wraps cleanly, and a section header with a quiet fact at the end of its line.
  */
 
-/* Fixed-width digits only where the number ticks: a chip's time while it plays. A still label such
-   as "1 min" keeps the font's own figures, which space it evenly. */
-.chip[data-playing="true"] .chip-label {
-  font-variant-numeric: tabular-nums;
-}
-
 /* ------------------------------------------------------------------ page title */
 
 /* The one h1 of a page: a date, or the page's name. It takes the display role (text-display) in its

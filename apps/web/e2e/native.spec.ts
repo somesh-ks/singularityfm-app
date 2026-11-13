@@ -87,7 +87,10 @@ test.describe("the floating button", () => {
       await pastHero(page);
       await expect(playFab(page), path).toBeVisible();
       // It is the play mark alone, and its name says what the hero chip says, after the verb.
-      const length = await page.locator(".hero [data-chip-label]").textContent();
+      // The hero's Play is its glyph alone (DS-13): its length is the end of its name.
+      const length = (await page.locator(".hero [data-play-digest]").getAttribute("aria-label"))
+        ?.split(", ")
+        .pop();
       await expect(playFab(page), path).toHaveAccessibleName(`Play · ${length}, the ${noun}`);
       await expect(createFab(page), path).toHaveCount(0);
       await expect(page.locator("html"), path).toHaveAttribute("data-fab", "");

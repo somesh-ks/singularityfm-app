@@ -31,15 +31,9 @@
 }
 
 /* The page below the on/off switch (2026-10-26, Q16): no box of its own, so the sections keep the
-   profile's grid. Off, the fieldset is disabled and manage.css dims its controls; the chips, which
-   are not in that list, are dimmed here. */
+   profile's grid. Off, the fieldset is disabled and the design system dims its controls. */
 .podcast-body {
   display: contents;
-}
-
-.podcast-body:disabled .filter-chip {
-  opacity: var(--opacity-disabled);
-  cursor: default;
 }
 
 /* A quiet line under a group's name or its rows. */

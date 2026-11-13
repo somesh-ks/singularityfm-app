@@ -41,7 +41,7 @@ Worth keeping, and worth copying into new work:
   - `buildTokens.test.ts` holds contrast, motion policy and the reduced-motion remap.
   - The browser suites hold 44px targets, rhythm, axe in both themes, and navigation speed.
 - **Interruptible physics.** The spring carries velocity, there is one progress scalar, the state machine separates "committed open" from "position", and the document goes inert the moment an open is decided (`player/core/sheetController.ts`, `spring.ts`).
-- **No-shift layout techniques.** Fixed-width chips, hidden sizer copies, checks that take no room, a stable scrollbar gutter, scroll-lock that re-applies the gutter, and reserved rooms for notices.
+- **No-shift layout techniques.** Fixed glyph slots in controls that hug their words (DS-13), checks that take no room, a stable scrollbar gutter, scroll-lock that re-applies the gutter, and reserved rooms for notices.
 - **Perceived speed.**
   - Modulepreload links checked at build.
   - Idle loading only while online, because a failed import is remembered.

@@ -18,8 +18,8 @@ test.describe("the first press of Play on a page with no audio yet", () => {
   }) => {
     await player.open(`/d/${SITE.earlier}`);
     await serveNarration(page, 1_500);
-    // The header's Play, heart and Share hold still while it prepares and plays: its words change,
-    // its box and what stands beside it do not (DS-9; it was 112, 173 then 143 px wide).
+    // The header's Play, heart and Share hold still while it prepares and plays: Play is its glyph
+    // alone, so only its mark and name change (DS-9, DS-13; it was 112, 173 then 143 px wide).
     const headerBoxes = () =>
       page.locator(".hero-actions > *").evaluateAll((nodes) =>
         nodes.map((node) => {

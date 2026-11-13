@@ -6,6 +6,7 @@
  */
 
 import { showText } from "@singularityfm/design-system/flag";
+import { installSearchClear, syncSearchClear } from "@singularityfm/design-system/searchField";
 import { type EmojiGroup, type EmojiItem, searchEmoji, suggestedEmoji } from "../lib/emojiSearch";
 import { fitAboveKeyboard } from "./keyboardFit";
 import { element } from "./topicsView";
@@ -84,8 +85,8 @@ export function openEmojiPicker(
   const picker = document.getElementById("emoji-picker");
   const body = picker?.querySelector<HTMLElement>("[data-emoji-body]");
   const input = picker?.querySelector<HTMLInputElement>("[data-emoji-q]");
-  const clear = picker?.querySelector<HTMLButtonElement>("[data-emoji-clear]");
-  if (!picker || !body || !input || !clear) return;
+  if (!picker || !body || !input) return;
+  installSearchClear();
 
   let all: EmojiGroup[] = [];
   let status = "";
@@ -120,7 +121,6 @@ export function openEmojiPicker(
   const draw = (): void => {
     window.clearTimeout(later);
     const query = input.value.trim();
-    clear.hidden = input.value === "";
     body.replaceChildren();
     if (query !== "") {
       const found = searchEmoji(all, query);
@@ -147,6 +147,7 @@ export function openEmojiPicker(
 
   const prepare = (): void => {
     input.value = "";
+    syncSearchClear(input);
     status = "Loading emoji";
     draw();
     loadGroups().then(
@@ -168,15 +169,6 @@ export function openEmojiPicker(
   let undoFit = (): void => {};
 
   input.addEventListener("input", draw, { signal });
-  clear.addEventListener(
-    "click",
-    () => {
-      input.value = "";
-      draw();
-      input.focus();
-    },
-    { signal },
-  );
   body.addEventListener(
     "click",
     (event) => {

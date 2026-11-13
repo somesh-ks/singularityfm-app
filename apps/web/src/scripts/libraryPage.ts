@@ -5,6 +5,7 @@
  */
 
 import { whenIdle } from "@singularityfm/design-system/idle";
+import { installSearchClear, syncSearchClear } from "@singularityfm/design-system/searchField";
 import {
   type CardData,
   chipFilter,
@@ -80,12 +81,12 @@ function install(): void {
   const select = root.querySelector<HTMLSelectElement>("[data-library-sort]");
   const status = root.querySelector<HTMLElement>("[data-library-status]");
   const empty = root.querySelector<HTMLElement>("[data-library-empty]");
-  const clearText = root.querySelector<HTMLButtonElement>("[data-library-clear-text]");
   const chips = [...root.querySelectorAll<HTMLInputElement>("[data-library-filter]")];
   const emptyMessage = root.querySelector<HTMLElement>("[data-library-empty-message]");
   const emptyButton = root.querySelector<HTMLButtonElement>("[data-library-clear]");
   let emptyReset: "search" | "everything" = "search";
   if (!grid) return;
+  installSearchClear();
   // Whether the order is offered here (library.css hides it on a phone). getComputedStyle, not
   // checkVisibility(), which Safari only has from 17.4.
   const sortField = select?.closest<HTMLElement>("[data-select]") ?? null;
@@ -191,7 +192,7 @@ function install(): void {
   function apply(): void {
     const query = input?.value ?? "";
     const searching = query.trim() !== "";
-    if (clearText) clearText.hidden = query === "";
+    if (input) syncSearchClear(input);
     // A phone offers no order (library.css hides it), so one left in a link never reorders it unseen.
     const sort = (sortShown() ? (select?.value ?? "newest") : "newest") as LibrarySort;
     const filter = chipFilter(chips.filter((chip) => chip.checked).map((chip) => chip.value));
@@ -297,12 +298,6 @@ function install(): void {
       apply();
     });
   }
-  clearText?.addEventListener("click", () => {
-    if (input) input.value = "";
-    apply();
-    // The field's own X: the next thing is a new query, so the field keeps the focus.
-    input?.focus();
-  });
   emptyButton?.addEventListener("click", () => {
     if (input) input.value = "";
     if (emptyReset === "everything") for (const chip of chips) chip.checked = false;

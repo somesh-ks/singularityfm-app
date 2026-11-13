@@ -864,7 +864,7 @@ html[data-library-page="empty"] {
 
 [data-library][data-view="list"] .card-menu {
   inset-block: 0;
-  inset-inline-end: calc((var(--size-icon-lg) - var(--size-touch)) / 2);
+  inset-inline-end: calc((var(--size-icon) - var(--size-touch)) / 2);
   display: grid;
   align-items: center;
 }

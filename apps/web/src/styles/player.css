@@ -2447,7 +2447,7 @@
 @media (width < 64rem) {
   .player .player-collapse {
     inset-block-start: calc((var(--player-bar-room) - var(--size-touch)) / 2);
-    inset-inline-start: calc((var(--size-icon-lg) - var(--size-touch)) / 2);
+    inset-inline-start: calc((var(--size-icon) - var(--size-touch)) / 2);
     padding: 0;
     background: transparent;
     color: var(--color-on-surface-muted);
@@ -2480,7 +2480,7 @@
 @media (width < 64rem) {
   .player .player-more {
     inset-block-start: calc((var(--player-bar-room) - var(--size-touch)) / 2);
-    inset-inline-end: calc((var(--size-icon-lg) - var(--size-touch)) / 2);
+    inset-inline-end: calc((var(--size-icon) - var(--size-touch)) / 2);
   }
 }
 

@@ -13,7 +13,7 @@
 
 /* The last button's glyph, not its 44px target, lines up with the column's edge. */
 .story-controls > :last-child {
-  margin-inline-end: calc((var(--size-touch) - var(--size-icon-lg)) / -2);
+  margin-inline-end: calc((var(--size-touch) - var(--size-icon)) / -2);
 }
 
 /* The menu hangs under its own story's button, not the header's. */

@@ -7,6 +7,7 @@ import {
   emptyCopy,
   factsLine,
   groupsByMonth,
+  isDateQuery,
   matchCount,
   matchDetail,
   matchExcerpt,
@@ -157,6 +158,17 @@ describe("textHasWords", () => {
     expect(textHasWords("released in 2026", "6")).toBe(false);
     expect(textHasWords("released in 2026", "202")).toBe(false);
     expect(textHasWords("released in 2026", "2026")).toBe(true);
+  });
+});
+
+describe("isDateQuery", () => {
+  // Bug: "monday" listed every briefing whose story says "strikes on Monday", not the Mondays.
+  it("is true only when every word is a weekday or month name", () => {
+    expect(isDateQuery("Monday")).toBe(true);
+    expect(isDateQuery("monday october")).toBe(true);
+    expect(isDateQuery("monday iran")).toBe(false);
+    expect(isDateQuery("mon")).toBe(false);
+    expect(isDateQuery("  ")).toBe(false);
   });
 });
 

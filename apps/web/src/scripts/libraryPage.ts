@@ -13,6 +13,7 @@ import {
   EPISODE_KIND,
   emptyCopy,
   groupsByMonth,
+  isDateQuery,
   LIBRARY_FILTERS,
   LIBRARY_SORTS,
   type LibraryFilter,
@@ -206,7 +207,11 @@ function install(): void {
       const detail = passes ? matchDetail(card.data, query) : { meta: 0, stories: 0 };
       let matches = detail.meta + detail.stories;
       // A word that only the script or a story's text holds: the card is there, for another reason.
-      const inText = passes && matches === 0 && textHasWords(fullText?.get(card.id) ?? "", query);
+      const inText =
+        passes &&
+        matches === 0 &&
+        !isDateQuery(query) &&
+        textHasWords(fullText?.get(card.id) ?? "", query);
       if (inText) matches = 1;
       card.element.hidden = matches === 0;
       if (matches > 0) shown += 1;

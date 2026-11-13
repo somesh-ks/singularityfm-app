@@ -307,6 +307,24 @@ export function textHasWords(text: string, query: string): boolean {
   return text.split("\n").some((line) => lineHasWords(line, words));
 }
 
+// shortcut: English names only, so a show in another language still gets its weekdays searched in its text; upgrade when shows carry a language.
+const DATE_WORDS = new Set(
+  (
+    "monday tuesday wednesday thursday friday saturday sunday " +
+    "january february march april may june july august september october november december"
+  ).split(" "),
+);
+
+/**
+ * True when every word of the query is a weekday or month name. In a story's text those are relative
+ * dates ("strikes on Monday"), not its subject, so the Library does not search the text for them:
+ * "monday" finds the Mondays, not every briefing that says "on Monday". The card's own date answers.
+ */
+export function isDateQuery(query: string): boolean {
+  const words = queryWords(query);
+  return words.length > 0 && words.every((word) => DATE_WORDS.has(word));
+}
+
 /** One entry of /search-index.json: what a card's full text holds, normalized. */
 export interface SearchIndexEntry {
   id: string;

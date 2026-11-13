@@ -21,7 +21,7 @@ export const CHANGELOG: readonly Release[] = [
     version: "0.23.5",
     date: "2026-11-13",
     description:
-      "The Play button at the top of a podcast and the one on each story are just the play icon, the same size as the heart and Share beside them, so they never change size as they play, pause or load. Buttons and the Library's Sort hug their words, with no empty room around a short one.",
+      'The Play button at the top of a podcast and the one on each story are just the play icon, the same size as the heart and Share beside them, so they never change size as they play, pause or load. Buttons and the Library\'s Sort hug their words. Searching the Library for a weekday or a month, like Monday, now finds the days that fall on it, not every briefing that says "on Monday" in a story.',
   },
   {
     version: "0.23.4",

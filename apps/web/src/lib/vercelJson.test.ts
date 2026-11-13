@@ -26,7 +26,13 @@ describe("vercel.json", () => {
     // file fails below, so a new app cannot slip past by having none.
     const notOnVercel: string[] = [];
     const names = readdirSync(apps, { withFileTypes: true })
-      .filter((entry) => entry.isDirectory() && !notOnVercel.includes(entry.name))
+      // An app is a folder with a package.json; a deleted app's ignored build folders are not one.
+      .filter(
+        (entry) =>
+          entry.isDirectory() &&
+          !notOnVercel.includes(entry.name) &&
+          existsSync(new URL(`${entry.name}/package.json`, apps)),
+      )
       .map((entry) => entry.name);
     expect(names).toContain("web");
     for (const name of names) {

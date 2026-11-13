@@ -2,20 +2,19 @@ name: design-system
 
 # The design system lives in its own repository (D382 step 8). Here the owner still decides what bends
 # it: a pull request that adds to a list excusing app code from a system check, or changes who owns
-# the system, needs the design-system label and his merge. It also keeps each app taking shared parts
-# from the package, never from another app. It reads the diff and the labels only, so it installs
+# the system, needs the design-system label and his merge. It reads the diff and the labels only, so it installs
 # nothing and bills about a minute (D148). Re-run when a label is added or removed.
 on:
   pull_request:
     types: [opened, synchronize, reopened, labeled, unlabeled]
-    # SYSTEM_PATHS and the ALLOWLISTS files in scripts/designSystemGate.mjs, and the apps for the
-    # boundary check; its test fails when a guarded path is missing here.
+    # SYSTEM_PATHS and the ALLOWLISTS files in scripts/designSystemGate.mjs; its test fails when a
+    # guarded path is missing here.
     paths:
       - .github/CODEOWNERS
       - scripts/designSystemGate.mjs
       - .claude/skills/feature/references/controls-guide.md
       - scripts/systemUse.test.ts
-      - apps/**
+      - apps/web/src/styles/styles.test.ts
 
 concurrency:
   group: design-system-${{ github.ref }}

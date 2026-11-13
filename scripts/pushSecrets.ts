@@ -78,8 +78,8 @@ const VERCEL_ENV = [
 /**
  * The command center's sign-in (D224), then the config store its Experiments switches read (D249,
  * runbook 1.4a). They go to the separate singularity-admin Vercel project, not the reader's, so they
- * need a checkout of the singularityfm-admin repository linked to it (D382): SINGULARITY_ADMIN_DIR,
- * or ../singularityfm-admin beside this one. Without that link nothing is sent, because the reader's
+ * need a checkout of the singularityfm-admin repository linked to it (D382): SINGULARITY_ADMIN_DIR
+ * (in .env or the shell), or ../singularityfm-admin beside this one, from the repository root. Without that link nothing is sent, because the reader's
  * own link would take them.
  */
 const VERCEL_ADMIN_ENV = [
@@ -212,7 +212,9 @@ function main(): void {
 
   // The reader's project: the repository root or apps/web. The admin project: its own checkout.
   const vercelDir = linkedVercelDir([".", "apps/web"]);
-  const adminDir = linkedVercelDir([process.env.SINGULARITY_ADMIN_DIR ?? "../singularityfm-admin"]);
+  const adminDir = linkedVercelDir([
+    values.SINGULARITY_ADMIN_DIR || process.env.SINGULARITY_ADMIN_DIR || "../singularityfm-admin",
+  ]);
   let adminLinkOk = false;
   if (adminDir) {
     try {

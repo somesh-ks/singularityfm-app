@@ -33,7 +33,37 @@ jobs:
       SITE: https://news.someshks.work
       HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK_WEB }}
     steps:
+      # A build reads the content store before anything else (scripts/pullContent.ts). While the store
+      # refuses reads, every hook build fails there and still bills its minutes (2026-11-13: the store
+      # was blocked after the plan change, three failed builds in a day). This makes the build's first
+      # public read, the content manifest (CONTENT_MANIFEST_KEY); a blocked store answers 403 "Your
+      # store is blocked" even for blobs its CDN holds.
+      - name: Can a build read the content store?
+        id: store
+        shell: bash
+        env:
+          TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+        run: |
+          set -uo pipefail
+          # @vercel/blob reads the store id from the token's fourth field; the public host is that id.
+          # shortcut: copies @vercel/blob 2.x's token layout; read through the engine's client if it changes.
+          id=$(cut -s -d_ -f4 <<<"$TOKEN" | tr '[:upper:]' '[:lower:]')
+          if ! [[ "$id" =~ ^[a-z0-9]+$ ]]; then
+            # A missing secret must not stop the reader shipping: the batch rule decides alone.
+            echo "::warning::BLOB_READ_WRITE_TOKEN is not a store token: the store is not checked."
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 20 \
+            "https://$id.public.blob.vercel-storage.com/content/manifest.json") || code=000
+          if [ "${code:0:1}" != 2 ]; then
+            echo "::warning::The content store answered HTTP $code: a build would fail in prebuild, so no deploy."
+            exit 0
+          fi
+          echo "The content store serves its manifest (HTTP $code)."
+          echo "ok=true" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: steps.store.outputs.ok == 'true'
         with:
           ref: main
           persist-credentials: false
@@ -41,6 +71,7 @@ jobs:
           fetch-depth: 0
       - name: Ask the batch rule whether the reader is due
         id: due
+        if: steps.store.outputs.ok == 'true'
         shell: bash
         run: |
           set -uo pipefail

@@ -40,8 +40,8 @@ importers:
         specifier: workspace:*
         version: link:packages/core
       '@singularityfm/design-system':
-        specifier: 0.11.0
-        version: 0.11.0(@base-ui/react@1.9.0(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(astro@7.4.4(@types/node@26.6.6)(@vercel/blob@2.8.2)(@vercel/functions@3.10.5(ws@8.22.1))(esbuild@0.28.2)(tsx@4.23.15)(yaml@2.9.1))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+        specifier: 0.12.0
+        version: 0.12.0(@base-ui/react@1.9.0(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(astro@7.4.4(@types/node@26.6.6)(@vercel/blob@2.8.2)(@vercel/functions@3.10.5(ws@8.22.1))(esbuild@0.28.2)(tsx@4.23.15)(yaml@2.9.1))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       '@types/node':
         specifier: ^26.6.6
         version: 26.6.6
@@ -91,8 +91,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/cover
       '@singularityfm/design-system':
-        specifier: 0.11.0
-        version: 0.11.0(@base-ui/react@1.9.0(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(astro@7.4.4(@types/node@26.6.6)(@vercel/blob@2.8.2)(@vercel/functions@3.10.5(ws@8.22.1))(esbuild@0.28.2)(tsx@4.23.15)(yaml@2.9.1))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+        specifier: 0.12.0
+        version: 0.12.0(@base-ui/react@1.9.0(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(astro@7.4.4(@types/node@26.6.6)(@vercel/blob@2.8.2)(@vercel/functions@3.10.5(ws@8.22.1))(esbuild@0.28.2)(tsx@4.23.15)(yaml@2.9.1))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       '@singularityfm/engine':
         specifier: workspace:*
         version: link:../../packages/engine
@@ -1917,8 +1917,8 @@ packages:
   '@sinclair/typebox@0.25.24':
     resolution: {integrity: sha512-XJfwUVUKDHF5ugKwIcxEgc9k8b7HbznCp6eUfWgu710hMPNIO4aw4/zB5RogDQz8nd6gyCDpU9O/m6qYEWY6yQ==}
 
-  '@singularityfm/design-system@0.11.0':
-    resolution: {integrity: sha512-XteqSQU0TSrycvUYSVfUqTYsbDAZJLgzq2M+f4pgWjEqsSa02+x3SE9UZe2kHU7UG3OLk8Mhx0WrGfXBIRh8MQ==}
+  '@singularityfm/design-system@0.12.0':
+    resolution: {integrity: sha512-Ll1NrRbIev/ae4xvXVanfMTFyeumAkwriWA61DGA68bemDeBkQf4Xrxd7V12NIXRlxzK+dSCAZMP6kHIbS2VfA==}
     hasBin: true
     peerDependencies:
       '@base-ui/react': ^1.9.0
@@ -5444,7 +5444,7 @@ snapshots:
 
   '@sinclair/typebox@0.25.24': {}
 
-  '@singularityfm/design-system@0.11.0(@base-ui/react@1.9.0(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(astro@7.4.4(@types/node@26.6.6)(@vercel/blob@2.8.2)(@vercel/functions@3.10.5(ws@8.22.1))(esbuild@0.28.2)(tsx@4.23.15)(yaml@2.9.1))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)':
+  '@singularityfm/design-system@0.12.0(@base-ui/react@1.9.0(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(astro@7.4.4(@types/node@26.6.6)(@vercel/blob@2.8.2)(@vercel/functions@3.10.5(ws@8.22.1))(esbuild@0.28.2)(tsx@4.23.15)(yaml@2.9.1))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)':
     dependencies:
       astro: 7.4.4(@types/node@26.6.6)(@vercel/blob@2.8.2)(@vercel/functions@3.10.5(ws@8.22.1))(esbuild@0.28.2)(tsx@4.23.15)(yaml@2.9.1)
       react: 19.3.1

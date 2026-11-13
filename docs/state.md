@@ -9,9 +9,9 @@ Updated 2026-11-13. Rewrite, never append.
 - Desktop layout: the column, with any contents list, centres in the pane at the Library's width (D287).
 - Player as one surface: transcript, chapters, a queue keeping played items (D277): [player](specs/player.md).
 - Narration on Play, per story; `audio.yml` pre-narrates briefings, `podcast.yml` episodes (D198): [narration](specs/narration.md), [create](specs/create.md).
-- Live content: creates, deletes (tombstones) and regenerates show without a deploy (D199). Regenerate and Catch up queue with Cancel; ended runs stay for the day (D204, D231).
+- Live content: creates, deletes (tombstones) and regenerates show without a deploy (D199). Regenerate and Catch up queue with Cancel; ended runs stay a day (D204, D231).
 - Saved copies, offline, downloads, PWA: [navigation and offline](specs/navigation-and-offline.md).
-- Vercel deploys `main`. CI: checks, audit, browser suites by path (D148). CodeRabbit reviews a PR once when it is ready, by tier (D192, D292).
+- Vercel deploys `main`. CI: checks, audit, browser shards by path (D393). CodeRabbit reviews a ready PR once, by tier (D192, D292).
 - Styles (D306, D310, D314, D315, D319): Halloween and Expressive, a Hue slider, live covers. closed when: Somesh OKs the stills ([ghost states](https://claude.ai/artifact/MVNhZmVMk4kYNu2tJbHRPp), [disabled](https://claude.ai/artifact/Kc7RaKbskg5UeGULwwKtU8)) and a style change on his phone recolours every page with no flash and survives a restart, and a press on the Library view toggle and a toast action beats hover.
 
 - Avatar, Settings (D335, D344), Mood (D327), taps (D353): merged. closed when: his phone's shows come home.
@@ -28,6 +28,7 @@ Unit (CI): 367 files, 5,573 tests, 2 min. Site e2e: 468, 14 min. Player: 81, 7 m
 - Rewrite (D376), Stories (D377). closed when: his next rewrite fetches in 1 min, plays at 0:00; 20 stories at 5 min air in 5.5.
 - Listen now streams (D366), for Catch up and Regenerate. closed when: his first live Catch up plays without a pause.
 - First-tap sound (2026-11-10). closed when: a cold start's first tap on his Android makes only its own sound.
+- Parallel CI (D393). closed when: a site PR's CI takes under 10 minutes.
 - Deploy batching (D375): 5 merges, 3 hours or `[deploy]`. closed when: a merge day builds at most 8 times; `[deploy]` ships in minutes.
 - Bottom bar ripple (D286, D347) and tab state. closed when: on his Android Chrome Settings pages rise, tabs slide at 250 ms, and the latest podcast keeps its tab lit.
 - Run state in Postgres (D381): `state/` is out of git; the site reads the store (runbook 14.1). 11-11: first daily green. 11-13: four workflows only read git. closed when: a daily, a failed run, a podcast and a config apply push nothing.
@@ -72,7 +73,7 @@ Unit (CI): 367 files, 5,573 tests, 2 min. Site e2e: 468, 14 min. Player: 81, 7 m
 
 ## Known risks
 
-- Storage measured 2026-11-01: the Blob store is 133 MB (about 5.6 MB a day since it was created 10-06, so Hobby's 1 GB at about 5 months) and Neon is 11 MB (`ingest_items` 1.5 MB, 2,946 rows). The "near 10 GB" Vercel figure is neither. closed when: the Usage tab names it and the sizes are read again at the plan call.
+- Storage measured 2026-11-01: Blob 133 MB (about 5.6 MB a day), Neon 11 MB. The "near 10 GB" Vercel figure is neither. closed when: the Usage tab names it.
 - No passphrase (D160): anyone with the URL can run, narrate, delete and edit config, within the caps.
 - Budget counters can read below real spend: workflow and site count apart against one Speechify allowance.
 - A Catch up that fails after its episode is committed (the audio job, or a late Cancel) frees its slot in the two-a-day cap (D213); the 12-a-day policy still bounds it.

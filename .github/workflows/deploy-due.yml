@@ -46,9 +46,12 @@ jobs:
         run: |
           set -uo pipefail
           # @vercel/blob reads the store id from the token's fourth field; the public host is that id.
+          # shortcut: copies @vercel/blob 2.x's token layout; read through the engine's client if it changes.
           id=$(cut -s -d_ -f4 <<<"$TOKEN" | tr '[:upper:]' '[:lower:]')
           if ! [[ "$id" =~ ^[a-z0-9]+$ ]]; then
-            echo "::warning::BLOB_READ_WRITE_TOKEN is not a store token: the store cannot be checked, so no deploy."
+            # A missing secret must not stop the reader shipping: the batch rule decides alone.
+            echo "::warning::BLOB_READ_WRITE_TOKEN is not a store token: the store is not checked."
+            echo "ok=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 20 \

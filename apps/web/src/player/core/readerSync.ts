@@ -10,8 +10,8 @@
  *   [data-play-item]     a story's play chip. It names its story by index, by id, or by sitting
  *                        inside the story.
  *   On every chip        data-state (idle, current, played, or preparing while audio buffers),
- *                        data-playing, the visible text in [data-chip-label], and aria-label.
- *                        The floating button has no words: its name says the chip's after its verb.
+ *                        data-playing, and aria-label. Every Play is its glyph alone, so its name
+ *                        says where it stands; the floating one says it after its verb.
  *                        Offline, with nothing loaded, the briefing's chip is data-state
  *                        "unavailable" and aria-disabled.
  *                        A chip of a page without audio carries data-minutes, its page's estimate.
@@ -96,8 +96,6 @@ function setDataset(element: HTMLElement, key: string, value: string): void {
 function writeChip(chip: HTMLElement, view: ChipView, blocked = false): void {
   setDataset(chip, "state", blocked ? "unavailable" : view.state);
   setDataset(chip, "playing", String(view.playing));
-  const label = chip.querySelector<HTMLElement>("[data-chip-label]");
-  if (label && label.textContent !== view.label) label.textContent = view.label;
   // Every Play is its glyph alone now (the floating one, the hero's, a story's; DS-13), so its name is
   // all that says where it stands.
   const fab = chip.classList.contains("play-fab");

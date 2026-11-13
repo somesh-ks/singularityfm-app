@@ -35,7 +35,7 @@ test("the select holds both Catch ups and switching it moves nothing in the row"
   expect(await row()).toEqual(before);
 });
 
-test("a row too narrow for the select, Play and Share scrolls sideways instead of widening the page", async ({
+test("at a narrow width the Catch up row never widens the page, and Share stays reachable", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 320, height: 700 });

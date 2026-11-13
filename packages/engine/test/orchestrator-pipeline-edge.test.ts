@@ -19,6 +19,7 @@ import { BudgetExceededError } from "../src/llm/errors.js";
 import type { RunMetric } from "../src/metrics/runMetrics.js";
 import { collectHealth } from "../src/ops/health.js";
 import { readPlan, writePlan } from "../src/run/plan.js";
+import { releaseSeen } from "../src/run/replace.js";
 import { SpendTracker } from "../src/run/spend.js";
 import { groundingDropRecords } from "../src/run/validateStage.js";
 import { captureStdout, fakeWriter, makeContext, okWritten } from "./curate-helpers.js";
@@ -76,20 +77,6 @@ describe("concurrent writers and push handling", () => {
     const again = await runStage(world, { stage: "commit" });
     expect(again.code).toBe(1);
     expect(JSON.stringify(again.report)).toContain("already committed");
-  });
-
-  it("refuses before writing when the tree has changes outside the allowlist", LONG, async () => {
-    const world = makeWorld(repo.root, { now: WED });
-    await throughValidate(world);
-    await writeFile(join(repo.root, "README.md"), "edited by hand\n", "utf8");
-    const before = head(repo.root);
-    const commit = await runStage(world, { stage: "commit" });
-    expect(commit.code).toBe(1);
-    expect(JSON.stringify(commit.report)).toContain("outside the write allowlist");
-    expect(JSON.stringify(commit.report)).toContain("README.md");
-    expect(await exists(repo.root, DIGEST_PATH)).toBe(false);
-    expect(await exists(repo.root, "state/last-run.json")).toBe(false);
-    expect(head(repo.root)).toBe(before);
   });
 
   it("takes the next free id when the planned one appeared meanwhile", LONG, async () => {
@@ -164,8 +151,10 @@ describe("a failed Regenerate", () => {
     expect((await runStage(world, { stage: "gate", mode: "on-demand", force: true })).code).toBe(0);
     const plan = await readPlan(repo.root);
     await writePlan(repo.root, { ...(plan as NonNullable<typeof plan>), replaces: "2026-10-06" });
-    // What the gate of a Regenerate does to the working tree.
-    await writeFile(join(repo.root, "state/seen.json"), json({ version: 1, items: {} }));
+    // What the gate of a Regenerate does to the working tree. The seen list is not in git (D300), so
+    // the failure record cannot get it back from there (2026-11-13).
+    await releaseSeen(repo.root, ["story-a"]);
+    expect((await readJson<SeenFile>(repo.root, "state/seen.json")).items).toEqual({});
     expect((await runStage(world, { recordFailed: true })).code).toBe(0);
     const seen = await readJson<SeenFile>(repo.root, "state/seen.json");
     expect(Object.keys(seen.items)).toEqual(["story-a"]);

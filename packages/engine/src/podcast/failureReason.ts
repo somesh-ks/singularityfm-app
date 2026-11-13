@@ -7,12 +7,6 @@ import { PodcastError } from "./types.js";
  */
 export function commitFailureReason(outcome: CommitOutcome): string | null {
   switch (outcome.status) {
-    case "push_failed":
-      return outcome.reason === "rebase_conflict" || outcome.reason === "rejected"
-        ? "Another run saved at the same moment, so the episode could not be added. Try again."
-        : "The episode was made but could not be saved. Try again.";
-    case "refused":
-      return "The episode was not saved: a safety check refused the change.";
     case "nothing_to_commit":
       return "The episode was made but nothing was saved. Try again.";
     default:

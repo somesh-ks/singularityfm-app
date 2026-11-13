@@ -23,8 +23,6 @@ import {
 import { Selection } from "../curate/selectionFile.js";
 import { mergeListings } from "../fetch/listingCheck.js";
 import { type CommitOutcome, saveRunState } from "../git/commit.js";
-import { fastForwardToRemote } from "../git/fastForward.js";
-import { ALLOWLISTS, findViolations, readChangedPaths } from "../git/guard.js";
 import { pruneTopicJudgments } from "../judge/topicJudge.js";
 import { recordRunMetrics } from "../metrics/runMetrics.js";
 import { createIdAllocator, listTakenIds } from "../render/digestId.js";
@@ -112,20 +110,10 @@ function describeCommit(outcome: CommitOutcome): CommitReport["commit"] {
   switch (outcome.status) {
     case "nothing_to_commit":
       return { status: "nothing_to_commit" };
-    case "committed":
-      return { status: "committed", sha: outcome.sha };
-    case "pushed":
-      return { status: "pushed", sha: outcome.sha };
     case "saved":
       return { status: "saved" };
-    case "refused":
-      return { status: "refused", detail: `${outcome.reason}: ${outcome.offending.join(", ")}` };
-    case "push_failed":
-      return {
-        status: "push_failed",
-        sha: outcome.sha,
-        detail: `${outcome.reason}: ${outcome.detail}`,
-      };
+    case "save_failed":
+      return { status: "save_failed", detail: outcome.detail };
     default: {
       const unreachable: never = outcome;
       throw new Error(`Unhandled commit outcome ${JSON.stringify(unreachable)}`);
@@ -188,12 +176,7 @@ export async function commitStage(deps: RunDeps, options: RunOptions): Promise<C
   for (const pass of plan.passes) {
     sectionPlans.set(pass.id, await loadSectionPlan(root, pass.kind, plan.length_minutes));
   }
-  const held = !dryRun && !adopted && (await holdUntilPublishTime(deps, plan));
-  // State and Digests are read after it, from the remote's branch and not the checkout from job
-  // start (D209).
-  if (held && !options.noPush) {
-    await fastForwardToRemote(deps.git, deps.log);
-  }
+  if (!dryRun && !adopted) await holdUntilPublishTime(deps, plan);
   const now = deps.now();
 
   // An adopted agent run made no model or Firecrawl calls through the stages, so it records none.
@@ -358,14 +341,6 @@ export async function commitStage(deps: RunDeps, options: RunOptions): Promise<C
     };
   }
 
-  // Refuse before writing anything when the tree already holds changes the guard would block.
-  const blocked = findViolations(await readChangedPaths(deps.git), ALLOWLISTS.run);
-  if (blocked.length > 0) {
-    throw new StageFailure(
-      `The working tree has changes outside the write allowlist, so nothing was written: ${blocked.join(", ")}`,
-    );
-  }
-
   // The old digest goes only now that a new one is ready, so a replacement that finds nothing keeps it.
   if (replaces !== undefined && digests.length > 0) await removeDigestFiles(root, replaces);
   for (const digest of digests) await writeDigestFile(root, digest);
@@ -434,18 +409,14 @@ export async function commitStage(deps: RunDeps, options: RunOptions): Promise<C
     }
   }
 
-  const message =
-    outcome === "published"
-      ? `chore(digest): ${replaces === undefined ? "" : "replace "}${digests.map((digest) => digest.id).join(", ")}`
-      : `chore(state): run ${today} nothing cleared the bar`;
-  // Store first (D300): a digest git recorded and the store never got would be skipped by the next
-  // run's gate and lost. A failed save stops here with nothing committed, and the run is repeated.
+  // Store first (D300): a digest the run state recorded and the store never got would be skipped by
+  // the next run's gate and lost. A failed save stops here with nothing recorded, and the run is repeated.
   if (outcome === "published" && !options.noPush && deps.publishContent) {
     try {
       await deps.publishContent();
     } catch (error) {
       throw new StageFailure(
-        `The digest could not be saved to the content store, so nothing was committed: ${error instanceof Error ? error.message : String(error)}`,
+        `The digest could not be saved to the content store, so nothing was recorded: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   }
@@ -468,7 +439,7 @@ export async function commitStage(deps: RunDeps, options: RunOptions): Promise<C
     command: "run",
     push: !options.noPush,
   });
-  const commit = { ...describeCommit(committed), message };
+  const commit = describeCommit(committed);
   const finalReports = reports.map((report) => ({
     ...report,
     path: report.outcome === "published" ? digestRelPath(report.id) : null,
@@ -486,14 +457,13 @@ export async function commitStage(deps: RunDeps, options: RunOptions): Promise<C
   } else {
     await writePlan(root, { ...plan, committed_at: nowIso });
   }
-  if (committed.status === "refused" || committed.status === "push_failed") {
-    const reason =
-      committed.status === "refused"
-        ? `The commit was refused (${committed.reason}): ${committed.offending.join(", ")}`
-        : committed.reason === "state_store"
-          ? `${committed.detail}. Do not run \`state pull\` here until the state is saved.`
-          : `Committed ${committed.sha.slice(0, 7)} locally but the push failed (${committed.reason}). Run git push once the remote is reachable.`;
-    return failedReport(false, reason, commit, finalReports);
+  if (committed.status === "save_failed") {
+    return failedReport(
+      false,
+      `${committed.detail}. Do not run \`state pull\` here until the state is saved.`,
+      commit,
+      finalReports,
+    );
   }
 
   const lacking = await digestsLackingAudio(root, now, DEPLOY_AUDIO_WINDOW_DAYS);
@@ -532,7 +502,6 @@ async function commitGated(
   if (dryRun) {
     return { ...base, deploy: false, dry_run: true, commit: { status: "dry_run" } };
   }
-  const message = "chore(state): gated";
   let commit: CommitReport["commit"];
   try {
     const committed = await saveRunState({
@@ -540,15 +509,15 @@ async function commitGated(
       command: "run",
       push: !options.noPush,
     });
-    commit = { ...describeCommit(committed), message };
-    if (committed.status === "refused" || committed.status === "push_failed") {
-      deps.log.warn("The gated commit did not complete", { detail: commit.detail ?? "" });
+    commit = describeCommit(committed);
+    if (committed.status === "save_failed") {
+      deps.log.warn("The gated run's state was not saved", { detail: committed.detail });
     }
   } catch (error) {
-    // Git itself failing (not a repository, no git) must not turn "not due" into a failure.
+    // The save failing must not turn "not due" into a failure.
     const detail = error instanceof Error ? (error.message.split("\n")[0] ?? "") : "";
-    deps.log.warn("The gated commit could not run", { detail });
-    commit = { status: "nothing_to_commit", message, detail };
+    deps.log.warn("The gated run's state could not be saved", { detail });
+    commit = { status: "nothing_to_commit", detail };
   }
   return { ...base, deploy: lacking.length > 0, dry_run: false, commit };
 }
@@ -573,13 +542,11 @@ async function commitDryRunCosts(
       command: "costs",
       push: !options.noPush,
     });
-    if (committed.status === "refused" || committed.status === "push_failed") {
-      deps.log.warn("The dry run's costs were not committed", {
-        detail: committed.status === "refused" ? committed.offending.join(", ") : committed.reason,
-      });
+    if (committed.status === "save_failed") {
+      deps.log.warn("The dry run's costs were not saved", { detail: committed.detail });
     }
   } catch (error) {
-    deps.log.warn("The dry run's costs were not committed", {
+    deps.log.warn("The dry run's costs were not saved", {
       detail: error instanceof Error ? error.message : String(error),
     });
   }

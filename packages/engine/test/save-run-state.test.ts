@@ -27,7 +27,7 @@ describe("saveRunState", () => {
         throw new Error("the store is down");
       },
     });
-    expect(failed).toMatchObject({ status: "push_failed", reason: "state_store", sha: "" });
+    expect(failed).toMatchObject({ status: "save_failed" });
     // A local run, and a command with no run state, never touch the store.
     await saveRunState({ ...base, push: false, saveState });
     await saveRunState({ ...base, command: "learn", saveState });

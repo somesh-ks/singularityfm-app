@@ -17,7 +17,6 @@ import { pickCover } from "@singularityfm/cover";
 import type { Logger } from "../src/context.js";
 import type { ApiRuntime } from "../src/curate/apiRuntime.js";
 import type { PoolFile } from "../src/fetch/pool.js";
-import { createGitRunner } from "../src/git/runGit.js";
 import { createHttpClient } from "../src/http.js";
 import type { Judge } from "../src/judge/types.js";
 import { runPipeline } from "../src/run/pipeline.js";
@@ -300,7 +299,6 @@ export function makeWorld(root: string, options: WorldOptions = {}): World {
       usage: () => ({ tokens: 0, tokenLimit: 400_000 }),
     }),
     pickCover,
-    git: createGitRunner(root),
   };
   return world;
 }
@@ -502,6 +500,5 @@ export function bareDeps(root: string, now: Date, secrets: readonly string[] = [
     fetch: { http: { fetchText: unused, getJson: unused, postJson: unused } },
     runtime: unused,
     pickCover: unused,
-    git: unused,
   };
 }

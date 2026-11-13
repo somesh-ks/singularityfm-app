@@ -42,7 +42,6 @@ Otherwise stop at the first row that applies, before anything spends:
 | :--- | :--- |
 | A run is in progress (`S/cooldown.mjs --in-progress-only` exits 3) | Relay its line. Stop. |
 | `due_now` is false, no mode flag, no `--weekly`, no `--since`, and the user did not say to force it | One line: nothing due, next regular digest `<next_regular_due>`; ask whether to run on demand anyway (it never moves the regular cadence). Stop until yes. |
-| Local or agent mode and `git status --porcelain` prints anything | "Uncommitted changes, commit or stash first." Stop: the commit stage refuses a dirty tree after the money is spent. |
 | `gh` missing or logged out | Remote mode is impossible: say `gh auth login`. Local and agent modes go on without the in-flight check. |
 
 In-flight check, also the data source for the remote limits:
@@ -94,7 +93,7 @@ One line per run, nothing more unless asked. The site is `https://news.someshks.
 | published | `published (<mode>): <id>, <n> items, https://news.someshks.work/d/<id>`, plus `, unverified` for agent mode |
 | nothing | `nothing cleared the bar (<mode>)` |
 | dry run | `dry run (<mode>): <n> items, preview <path>`; remote: `dry run (remote): finished, nothing written, <run url>` |
-| failed | `failed at <stage>: <first line of error>`, plus the run URL when remote. A `push_failed` commit status means the digest is committed locally: say `git push` is still needed. |
+| failed | `failed at <stage>: <first line of error>`, plus the run URL when remote. A `save_failed` commit status means the run state did not reach the store: say so. |
 | stopped early | the row's line from step 1 |
 
 ## References

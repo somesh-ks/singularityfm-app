@@ -1,7 +1,6 @@
 import { pickCover } from "@singularityfm/cover";
 import { type CommandContext, secretsFromEnv } from "../context.js";
 import { type ApiRuntime, createApiRuntime } from "../curate/apiRuntime.js";
-import { createGitRunner } from "../git/runGit.js";
 import { createHttpClient } from "../http.js";
 import { cacheForRun } from "../httpRunCache.js";
 import { trackOpenBatches } from "../llm/openBatches.js";
@@ -70,7 +69,6 @@ export function buildDeps(ctx: CommandContext): RunDeps {
       return runtime;
     },
     pickCover,
-    git: createGitRunner(ctx.root),
     publishContent: makeContentPublisher(ctx.env, ctx.root, ctx.now),
     // With the config store on, the shadow counts go to Neon for the admin app; off, they stay in the log.
     recordExperimentHits: storeUrl

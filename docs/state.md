@@ -32,7 +32,7 @@ Unit (CI): 367 files, 5,573 tests, 2 min. Site e2e: 468, 14 min. Player: 81, 7 m
 - Deploy batching (D375): 5 merges, 3 hours or `[deploy]`. closed when: a merge day builds at most 8 times; `[deploy]` ships in minutes.
 - Bottom bar ripple (D286, D347) and tab state. closed when: on his Android Chrome Settings pages rise, tabs slide at 250 ms, and the latest podcast keeps its tab lit.
 - Run state in Postgres (D381): `state/` is out of git; the site reads the store (runbook 14.1). 11-11: first daily green. 11-13: four workflows only read git. closed when: a daily, a failed run, a podcast and a config apply push nothing.
-- Git commit removal, step 1 of 3 (`git/commit.ts` saves state only). closed when: the next scheduled run's commit step ends green.
+- Git commit removal, steps 1, 2 of 3. closed when: the next scheduled run's commit step ends green with `saved`. Step 3: `config commit`, git variables.
 - Config snapshot (D300 step 1): `snapshot.yml` writes `config_snapshots` each Sunday; untried on Neon. closed when: it has run once and `config restore` on a copy rebuilds the rows.
 - Edge purge waits from the run's last save (#590, D318). closed when: a Catch up's `content` log says `waiting N s` under 30 and its Library entry opens on the new page
 - Queue (D346, D357), dock swipes (D359). The red strip's fix (#659) assumes Chrome's 8 px slop. closed when: on his Android a swipe shows a red strip, the player's swipes are silent, and the bar's pull fades to its target, line at bottom, no ring after a tap.
@@ -82,7 +82,7 @@ Unit (CI): 367 files, 5,573 tests, 2 min. Site e2e: 468, 14 min. Player: 81, 7 m
 
 ## Next
 
-1. Free the lane in the hold ([D209](decisions/engine.md)): step 1 is built (#399); steps 2, 4 and 5 are not. Step 3 shipped as D294. A batch left open is settled by run.yml's "Settle batches" step. closed when: a scheduled run's write stage logs "Writer first pass by batch" with `back` above 0, and a run that gave up on a batch logs "Settled a batch the run had left open".
+1. Free the lane in the hold ([D209](decisions/engine.md)): step 1 is built (#399); steps 2, 4 and 5 are not. Step 3 shipped as D294. Run.yml's "Settle batches" step settles a batch left open. closed when: a scheduled run's write stage logs "Writer first pass by batch" with `back` above 0, and a run that gave up on a batch logs "Settled a batch the run had left open".
 2. Owner, only he can do these (closed when: each line closes):
    - `secrets:push` (Guardrails), Blob plan by 11-13. closed when: those Unverified lines close.
    - Settings > General: tick "Automatically delete head branches". closed when: the repo API shows `delete_branch_on_merge` true.

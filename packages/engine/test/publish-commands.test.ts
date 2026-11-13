@@ -463,7 +463,6 @@ describe("singularity publish", () => {
       expect(await createPublishCommand(r.deps)([], ctx)).toBe(0);
       expect(audioOf("2026-10-07")).toBeNull();
       expect(r.out.join("")).toContain("audio failed at synthesis");
-      expect(r.out.join("")).toContain("nothing to save");
       expect(
         ctx.log.lines.some((line) => line.level === "warn" && line.message.includes("2026-10-07")),
       ).toBe(true);

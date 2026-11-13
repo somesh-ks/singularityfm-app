@@ -77,8 +77,10 @@ export async function releaseSeen(root: string, itemIds: readonly string[]): Pro
     if (entry !== undefined) released[itemId] = entry;
     delete items[itemId];
   }
+  // A repeated release finds the entries already gone: keep what the first one copied.
+  const earlier = await readReleasedSeen(root);
   await mkdir(dirname(releasedSeenPath(root)), { recursive: true });
-  await writeFile(releasedSeenPath(root), JSON.stringify(released), "utf8");
+  await writeFile(releasedSeenPath(root), JSON.stringify({ ...earlier, ...released }), "utf8");
   await writeSeen(root, { ...seen, items });
 }
 
@@ -87,18 +89,22 @@ export async function releaseSeen(root: string, itemIds: readonly string[]): Pro
  * list: left out, the next run would pick them again. A run that released nothing changes nothing.
  */
 export async function restoreReleasedSeen(root: string): Promise<void> {
-  let released: SeenFile["items"];
-  try {
-    released = JSON.parse(await readFile(releasedSeenPath(root), "utf8")) as SeenFile["items"];
-  } catch (error) {
-    // No copy: the gate released nothing. Any other failure must not save a seen list that lacks the stories.
-    if ((error as NodeJS.ErrnoException).code === "ENOENT") return;
-    throw error;
-  }
+  const released = await readReleasedSeen(root);
+  if (Object.keys(released).length === 0) return;
   const seen = await readSeen(root);
   await writeSeen(root, { ...seen, items: { ...seen.items, ...released } });
   // Used once: a later failed run must not put back what an earlier one released.
   await rm(releasedSeenPath(root), { force: true });
+}
+
+/** The copy of the released entries; none when the gate released nothing. Any other failure throws. */
+async function readReleasedSeen(root: string): Promise<SeenFile["items"]> {
+  try {
+    return JSON.parse(await readFile(releasedSeenPath(root), "utf8")) as SeenFile["items"];
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return {};
+    throw error;
+  }
 }
 
 /**

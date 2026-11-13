@@ -70,11 +70,11 @@ An explicit mode that cannot run says what is missing (doctor's hint) and offers
 1. `git pull --ff-only`.
 2. Free preflight: `D run --stage gate --mode on-demand --dry-run --json [--since <date>]` (`--mode weekly` for `--weekly`). It prints the digest id and fetch window, and rejects a malformed or future `--since` with exit 2. Name the id in the announcement.
 3. `D run --mode on-demand --no-push --json [--since <date>] [--dry-run]` (`--mode weekly` for `--weekly`) runs gate, fetch, judge, write, validate and commit. It takes minutes, so use a background run and a long timeout where the host allows. Stdout is one JSON report; exit 1 means a stage failed and state is untouched.
-4. A published, non-dry run leaves one local commit. Ask once: push `<sha7>` to origin? CI then deploys and adds audio. On yes, `git push`.
+4. A local `--no-push` run writes the digest under `Digests/` and saves nothing else: git carries no digests or run state (D300), so there is no commit to push. To publish, use remote mode, which runs in CI and saves to the store.
 
 ### Agent
 
-Read `references/agent-mode.md` now and follow it. It ends at the same push question.
+Read `references/agent-mode.md` now and follow it. It ends at the same remote-mode note.
 
 ### Remote
 

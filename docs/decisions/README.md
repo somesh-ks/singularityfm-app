@@ -93,7 +93,7 @@ Status words: `active` (holds), `amends Dn` or `supersedes Dn` (holds, and chang
 | D221 | Runs are logged to Neon with stage times and costs | active |
 | D222 | Firecrawl: 300 a week, 60 a run | amends D166 |
 | D223 | Firecrawl warns at 150 | superseded by D227 |
-| D224 | Admin and style guide: own apps | supersedes D189 |
+| D224 | Admin and style guide: own apps | supersedes D189; amended by D392 |
 | D225 | A Haiku call shortens an over-limit headline | active |
 | D226 | The guide lists only imported components | amends D224 |
 | D227 | Firecrawl warns at 210 | supersedes D223 |

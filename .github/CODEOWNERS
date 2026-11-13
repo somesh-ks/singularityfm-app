@@ -3,5 +3,5 @@
 # .github/workflows/design-system.yml).
 /.github/CODEOWNERS @somesh-ks
 /.claude/skills/feature/references/controls-guide.md @somesh-ks
-# The cross-app allowlist in this gate only shrinks; growth needs the owner's review.
+# The gate's list of what it guards; a change needs the owner's review.
 /scripts/designSystemGate.mjs @somesh-ks

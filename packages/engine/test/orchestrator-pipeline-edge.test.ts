@@ -19,7 +19,7 @@ import { BudgetExceededError } from "../src/llm/errors.js";
 import type { RunMetric } from "../src/metrics/runMetrics.js";
 import { collectHealth } from "../src/ops/health.js";
 import { readPlan, writePlan } from "../src/run/plan.js";
-import { releaseSeen } from "../src/run/replace.js";
+import { discardReleasedSeen, releaseSeen, restoreReleasedSeen } from "../src/run/replace.js";
 import { SpendTracker } from "../src/run/spend.js";
 import { groundingDropRecords } from "../src/run/validateStage.js";
 import { captureStdout, fakeWriter, makeContext, okWritten } from "./curate-helpers.js";
@@ -158,6 +158,29 @@ describe("a failed Regenerate", () => {
     expect((await runStage(world, { recordFailed: true })).code).toBe(0);
     const seen = await readJson<SeenFile>(repo.root, "state/seen.json");
     expect(Object.keys(seen.items)).toEqual(["story-a"]);
+  });
+
+  it("puts back its own release only, not an earlier replacement's", LONG, async () => {
+    await seed(repo.root, {
+      "state/seen.json": json({
+        version: 1,
+        items: { "story-a": "2026-10-06", "story-b": "2026-10-07" },
+      }),
+    });
+    // A repeated release (the gate ran twice) still holds the entry the first one copied.
+    await releaseSeen(repo.root, ["story-a"]);
+    await releaseSeen(repo.root, ["story-a"]);
+    await restoreReleasedSeen(repo.root);
+    expect(
+      Object.keys((await readJson<SeenFile>(repo.root, "state/seen.json")).items).sort(),
+    ).toEqual(["story-a", "story-b"]);
+    // A replacement that finished drops its copy; a later failed run restores nothing of it.
+    await releaseSeen(repo.root, ["story-a"]);
+    await discardReleasedSeen(repo.root);
+    await restoreReleasedSeen(repo.root);
+    expect(Object.keys((await readJson<SeenFile>(repo.root, "state/seen.json")).items)).toEqual([
+      "story-b",
+    ]);
   });
 });
 

@@ -8,7 +8,7 @@ export interface AdminGuardEnv {
   dev?: boolean;
 }
 
-/** The command center's gate (MIN_SECRET in apps/admin/src/gate/gate.ts) refuses a shorter secret. */
+/** The command center's gate (MIN_SECRET in src/gate/gate.ts, singularityfm-admin repository) refuses a shorter secret. */
 const MIN_SECRET = 32;
 
 /**

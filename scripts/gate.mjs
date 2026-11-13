@@ -11,10 +11,7 @@ const chains = [
   [{ name: "typecheck", command: "pnpm run typecheck:packages" }],
   [{ name: "lint", command: "pnpm run lint" }],
   [{ name: "test", command: "pnpm test" }],
-  [
-    { name: "site types", command: "pnpm --filter @singularityfm/web run check" },
-    { name: "admin types", command: "pnpm --filter @singularityfm/admin run check" },
-  ],
+  [{ name: "site types", command: "pnpm --filter @singularityfm/web run check" }],
   [{ name: "docs", command: "node scripts/docsCheck.mjs" }],
   [{ name: "contracts pack", command: "node scripts/contractsPack.mjs" }],
 ];

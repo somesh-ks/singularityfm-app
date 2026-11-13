@@ -13,7 +13,7 @@ import { type ExperimentFlags, readExperimentFlags } from "../store/experimentFl
  */
 export const EXPERIMENT_FLAGS_CACHE = ".cache/experiment-flags.json";
 
-/** Experiment ids, shared with the admin app's registry (apps/admin/src/lib/experiments.ts). */
+/** Experiment ids, shared with the admin app's registry (src/lib/experiments.ts in the singularityfm-admin repository). */
 export const EXPERIMENT_IDS = {
   trustedPublishers: "trusted-publishers",
   communityRanking: "community-ranking",

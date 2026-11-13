@@ -1,11 +1,11 @@
+import { existsSync } from "node:fs";
 import { rm } from "node:fs/promises";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { makePodcastCommand } from "../src/commands/podcast.js";
-import { commitAndPush } from "../src/git/commit.js";
 import { ALLOWLISTS, findViolations, isPathAllowed } from "../src/git/guard.js";
 import { captureStdout, makeContext } from "./curate-helpers.js";
-import { commitAll, createRepoPair, git, put, type RepoPair } from "./git-testRepo.js";
+import { commitAll, createRepoPair, type RepoPair } from "./git-testRepo.js";
 import {
   dayAgo,
   FakeScriptWriter,
@@ -85,21 +85,17 @@ describe("singularity podcast", () => {
     "--no-push",
   ];
 
-  it("writes the episode, commits it as feat(podcast) and prints the id last", async () => {
+  it("writes the episode and prints the id last", async () => {
     const { code, stdout, writer } = await runPodcast(args());
     expect(code).toBe(0);
     expect(writer.calls).toHaveLength(1);
     const lines = stdout.trimEnd().split("\n");
     expect(lines.at(-1)).toBe("ep-20261008-0913");
-    expect(git(root, "log", "-1", "--format=%s")).toBe("feat(podcast): add ep-20261008-0913");
-    expect(git(root, "show", "--name-only", "--format=", "HEAD")).toBe(
-      "Podcasts/2026/10/ep-20261008-0913.md",
-    );
-    expect(git(root, "status", "--porcelain")).toBe("");
+    expect(existsSync(join(root, "Podcasts/2026/10/ep-20261008-0913.md"))).toBe(true);
   });
 
   // A failed voice or publish step used to throw the script away, and Try again paid for it twice.
-  it("resumes: a stage that finished is not run again, and publish commits the saved script", async () => {
+  it("resumes: a stage that finished is not run again, and publish writes the saved script", async () => {
     const dir = join(root, "..", `stages-${Date.now()}`);
     const step = (stage: string, writer = new FakeScriptWriter()) =>
       runPodcast([...args(), "--stage", stage, "--artifacts", dir], writer);
@@ -112,10 +108,7 @@ describe("singularity podcast", () => {
     const published = await step("publish");
     expect(published.code).toBe(0);
     expect(published.writer.calls).toHaveLength(0);
-    expect(git(root, "log", "-1", "--format=%s")).toBe("feat(podcast): add ep-20261008-0913");
-    expect(git(root, "show", "--name-only", "--format=", "HEAD")).toContain(
-      "state/podcast-timings.json",
-    );
+    expect(existsSync(join(root, "Podcasts/2026/10/ep-20261008-0913.md"))).toBe(true);
   });
 
   // A run that stopped between the select and cover saves left the script step failing on the cover.
@@ -133,7 +126,6 @@ describe("singularity podcast", () => {
     const { result, stdout } = await captureStdout(() => command(args(), ctx));
     expect(result).toBe(0);
     expect(JSON.parse(stdout)).toMatchObject({
-      outcome: "committed",
       episode_id: "ep-20261008-0913",
       path: "Podcasts/2026/10/ep-20261008-0913.md",
     });
@@ -144,7 +136,6 @@ describe("singularity podcast", () => {
     expect(code).toBe(2);
     expect(errors.join(" ")).toMatch(/length_minutes/);
     expect(writer.calls).toHaveLength(0);
-    expect(git(root, "status", "--porcelain")).toBe("");
   });
 
   it("fails without calling the writer when a chosen topic has no stories", async () => {
@@ -159,42 +150,5 @@ describe("singularity podcast", () => {
   it("needs --request", async () => {
     const { code } = await runPodcast(["--no-push"]);
     expect(code).toBe(2);
-  });
-
-  it("refuses to commit when something outside Podcasts/ changed", async () => {
-    await put(root, "notes.txt", "stray");
-    const { code, errors } = await runPodcast(args());
-    expect(code).toBe(1);
-    expect(errors.join(" ")).toMatch(/Commit refused \(guard\).*notes\.txt/);
-    expect(git(root, "log", "-1", "--format=%s")).toBe("chore: seed digests");
-  });
-});
-
-describe("commitAndPush as podcast", () => {
-  it("commits Podcasts/ and refuses anything else", async () => {
-    const pair = await createRepoPair({ seedDigest: false });
-    try {
-      await put(pair.a, "Podcasts/2026/10/ep-20261008-0913.md", "x\n");
-      const ok = await commitAndPush({
-        root: pair.a,
-        message: "feat(podcast): add ep-20261008-0913",
-        command: "podcast",
-        push: false,
-      });
-      expect(ok.status).toBe("committed");
-
-      await put(pair.a, "Podcasts/2026/10/ep-20261008-0914.md", "y\n");
-      await put(pair.a, "state/seen.json", "{}\n");
-      const refused = await commitAndPush({
-        root: pair.a,
-        message: "feat(podcast): add ep-20261008-0914",
-        command: "podcast",
-        push: false,
-      });
-      expect(refused).toMatchObject({ status: "refused", reason: "guard" });
-      expect(refused.status === "refused" && refused.offending).toEqual(["state/seen.json"]);
-    } finally {
-      await pair.cleanup();
-    }
   });
 });

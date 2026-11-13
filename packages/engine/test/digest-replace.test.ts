@@ -2,7 +2,6 @@ import { rm } from "node:fs/promises";
 import type { LastRunFile, Source } from "@singularityfm/core";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { CARRY_HOURS } from "../src/run/carriedPool.js";
-import { git } from "./git-testRepo.js";
 import {
   buildTemplate,
   exists,
@@ -64,7 +63,7 @@ describe("the narration voice", () => {
 
 describe("replace a briefing", () => {
   it(
-    "makes the same digest again over its own window, supersedes it in one commit and leaves the cadence alone",
+    "makes the same digest again over its own window, supersedes it and leaves the cadence alone",
     LONG,
     async () => {
       const world = makeWorld(repo.root, { now: WED });
@@ -87,14 +86,13 @@ describe("replace a briefing", () => {
         digests: [{ id: ID, outcome: "published" }],
       });
 
-      // Same id (no -2), the old narration timeline is gone, one commit says so.
+      // Same id (no -2), the old narration timeline is gone.
       const second = await readDigest(repo.root, PATH);
       expect(second.generated_at).not.toBe(first.generated_at);
       // The count the site stops at (D212) is carried by the file, so a second one makes two.
       expect(second.regenerations).toBe(1);
       expect(await exists(repo.root, `Digests/2026/10/${ID}-2.md`)).toBe(false);
       expect(await exists(repo.root, TIMELINE)).toBe(false);
-      expect(git(repo.root, "log", "-1", "--format=%s")).toBe(`chore(digest): replace ${ID}`);
       // The Generate sheet's status route reads the on-demand record; the cadence and the fetch
       // window stay where they were.
       const after = await readJson<LastRunFile>(repo.root, "state/last-run.json");
@@ -161,7 +159,7 @@ describe("replace a briefing", () => {
 });
 
 describe("delete a briefing", () => {
-  it("removes the digest and its timeline in one guarded commit", LONG, async () => {
+  it("removes the digest and its timeline", LONG, async () => {
     const world = makeWorld(repo.root, { now: WED });
     await runStaged(world);
     await seed(repo.root, { [TIMELINE]: json({ digest: ID }) }, "chore: audio");
@@ -170,8 +168,6 @@ describe("delete a briefing", () => {
     expect(result.code).toBe(0);
     expect(await exists(repo.root, PATH)).toBe(false);
     expect(await exists(repo.root, TIMELINE)).toBe(false);
-    expect(git(repo.root, "log", "-1", "--format=%s")).toBe(`chore(digest): remove ${ID}`);
-    expect(git(repo.root, "status", "--porcelain")).toBe("");
   });
 
   it("refuses a digest that does not exist", LONG, async () => {

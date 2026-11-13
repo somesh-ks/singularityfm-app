@@ -1,69 +1,16 @@
-import { writeFile } from "node:fs/promises";
-import { join } from "node:path";
 import { STATE_SAVING_COMMANDS, saveStateIfOn } from "../store/stateSave.js";
-import type { ChangedPath, GitCommand } from "./guard.js";
-import {
-  ALLOWLISTS,
-  findDigestContentViolations,
-  findViolations,
-  readChangedPaths,
-} from "./guard.js";
-import type { GitRunner } from "./runGit.js";
-import { createGitRunner, gitOutput } from "./runGit.js";
-import { stateMergerFor } from "./stateMerge.js";
+import type { GitCommand } from "./guard.js";
 
-export interface BotIdentity {
-  name: string;
-  email: string;
-}
-
-export const DEFAULT_BOT: BotIdentity = {
-  name: "singularity-bot",
-  email: "singularity-bot@users.noreply.github.com",
-};
-
-/**
- * The identity unattended commits use. Vercel Hobby only deploys commits authored by the team
- * owner, so the workflows set SINGULARITY_GIT_NAME and SINGULARITY_GIT_EMAIL to the owner's GitHub
- * identity. Both must be set; otherwise the bot identity applies.
- */
-export function identityFromEnv(
-  env: Record<string, string | undefined> = process.env,
-): BotIdentity | undefined {
-  const name = env.SINGULARITY_GIT_NAME?.trim();
-  const email = env.SINGULARITY_GIT_EMAIL?.trim();
-  return name && email ? { name, email } : undefined;
-}
-
-/** Retries after the first push, each preceded by `git pull --rebase`. */
-export const DEFAULT_PUSH_RETRIES = 3;
-
-const CONVENTIONAL =
-  /^(?:feat|fix|chore|docs|style|refactor|perf|test|build|ci|revert)(?:\([a-z0-9._/-]+\))?!?: \S/;
-
-/**
- * Push output that means "someone else pushed first", the only case a rebase can fix. Two pushes in
- * the same instant make GitHub refuse the loser with a ref-lock race ("[remote rejected] ... cannot
- * lock ref" or "incorrect old value"), which a rebase fixes too (2026-10-21, an episode delete).
- */
-const NON_FAST_FORWARD =
-  /non-fast-forward|fetch first|Updates were rejected|\[rejected\]|cannot lock ref|incorrect old value provided/i;
-
-export interface CommitAndPushInput {
+export interface SaveRunStateInput {
   root: string;
-  /** Conventional Commit message, for example "chore(audio): add narration for 2026-10-07". */
-  message: string;
-  /** Selects the write allowlist. */
+  /** Selects the write allowlist the state save keeps to. */
   command: GitCommand;
   push: boolean;
-  identity?: BotIdentity;
-  /** Injected for tests; defaults to real git in `root`. */
-  git?: GitRunner;
   /** Injected for tests; defaults to saving the run state to Postgres when that store is on (D381). */
   saveState?: (root: string, command: GitCommand) => Promise<string[]>;
 }
 
-/** `state_store`: the commit is on the remote but the run state did not reach Postgres. */
+/** `state_store`: the run state did not reach Postgres. The others were git's, which no longer commits. */
 export type PushFailureReason =
   | "rebase_conflict"
   | "rejected"
@@ -88,282 +35,30 @@ export type CommitOutcome =
       conflicts: string[];
     };
 
-function identityFlags(identity: BotIdentity): string[] {
-  // -c flags keep the bot identity out of any global or repository config. Signing is off because a
-  // developer's global gpgsign setting would otherwise make an unattended commit hang or fail.
-  return [
-    "-c",
-    `user.name=${identity.name}`,
-    "-c",
-    `user.email=${identity.email}`,
-    "-c",
-    "commit.gpgsign=false",
-  ];
-}
-
-function pathsOf(changed: readonly ChangedPath[]): string[] {
-  const paths = new Set<string>();
-  for (const change of changed) {
-    paths.add(change.path);
-    if (change.originalPath) paths.add(change.originalPath);
-  }
-  return [...paths].sort();
-}
-
 /**
- * Commit only what the command may change, then optionally push. The guard runs first: any change
- * outside the allowlist, or a publish-command digest edit beyond its audio field, refuses the whole
- * commit and nothing is staged. A rejected push is retried after `git pull --rebase`; supported
- * state conflicts are merged and copied config snapshots take upstream's version. Unresolved
- * conflicts are aborted and reported; the push is never forced. Git command errors during staging
- * or committing, and filesystem errors while writing merged state, propagate to the caller.
+ * Save the run state to Postgres, for the commands that write it (D381). Git carries neither the
+ * run state nor the content (D300), so there is no commit and no push: a local `--no-push` run
+ * saves nothing. A failed save is a failed commit, so the run ends red and the caller marks it done
+ * as it does for any other failure.
+ * shortcut: `CommitOutcome` still lists the git outcomes this never returns (committed, pushed,
+ * refused, the git push failures); drop them with the report that carries them (D300 cleanup).
  */
-export async function commitAndPush(input: CommitAndPushInput): Promise<CommitOutcome> {
-  const run = input.git ?? createGitRunner(input.root);
-  const identity = input.identity ?? identityFromEnv() ?? DEFAULT_BOT;
-  const subject = input.message.split("\n", 1)[0] ?? "";
-  if (!CONVENTIONAL.test(subject))
-    return { status: "refused", reason: "message", offending: [subject] };
-
-  const changed = await readChangedPaths(run);
-  if (changed.length === 0) {
-    // The run state and the content are not in git (D300), so a run leaves git nothing to commit and
-    // its state goes to Postgres alone. A local --no-push run saves nothing.
-    if (!input.push || !STATE_SAVING_COMMANDS.has(input.command)) {
-      return { status: "nothing_to_commit" };
-    }
-    try {
-      const saved = await (input.saveState ?? saveStateIfOn)(input.root, input.command);
-      return saved.length === 0
-        ? { status: "nothing_to_commit" }
-        : { status: "saved", paths: saved };
-    } catch (error) {
-      return stateStoreFailure("", [], 0, error);
-    }
+export async function saveRunState(input: SaveRunStateInput): Promise<CommitOutcome> {
+  if (!input.push || !STATE_SAVING_COMMANDS.has(input.command)) {
+    return { status: "nothing_to_commit" };
   }
-
-  const offending = findViolations(changed, ALLOWLISTS[input.command]);
-  if (offending.length === 0 && input.command === "publish") {
-    offending.push(...(await findDigestContentViolations({ root: input.root, run, changed })));
-  }
-  // A half-resolved merge or rebase means the tree is not in a state the bot should commit from.
-  offending.push(
-    ...changed
-      .filter((change) => /U|^AA$|^DD$/.test(change.status))
-      .map((change) => `${change.path} (unmerged)`),
-  );
-  if (offending.length > 0) return { status: "refused", reason: "guard", offending };
-
-  const paths = pathsOf(changed);
-  // Only paths with a working-tree difference need staging. Anything git already staged (a
-  // `git rm` or `git mv`, whose old path is gone from both tree and index) would make `add` fail.
-  const unstaged = changed
-    .filter((change) => change.status.charAt(1) !== " ")
-    .map((change) => change.path);
-  if (unstaged.length > 0) {
-    // Literal pathspecs: a file name containing glob characters must not match anything else.
-    await gitOutput(run, ["--literal-pathspecs", "add", "-A", "--", ...unstaged]);
-  }
-  await gitOutput(run, [...identityFlags(identity), "commit", "-m", input.message]);
-  const sha = (await gitOutput(run, ["rev-parse", "HEAD"])).trim();
-
-  if (!input.push) return { status: "committed", sha, paths };
-  const pushed = await pushWithRebase({
-    run,
-    root: input.root,
-    identity,
-    remote: "origin",
-    maxRetries: DEFAULT_PUSH_RETRIES,
-    sha,
-    paths,
-  });
-  if (pushed.status !== "pushed" || !STATE_SAVING_COMMANDS.has(input.command)) return pushed;
-  // The run state goes to Postgres only once the commit is on the remote: a failed push must not
-  // leave a story marked seen in the store with no digest. A failed save is a failed commit, so the
-  // run ends red and the caller marks it done as it does for any other push failure.
   try {
-    await (input.saveState ?? saveStateIfOn)(input.root, input.command);
+    const saved = await (input.saveState ?? saveStateIfOn)(input.root, input.command);
+    return saved.length === 0 ? { status: "nothing_to_commit" } : { status: "saved", paths: saved };
   } catch (error) {
-    return stateStoreFailure(sha, paths, pushed.retries, error);
-  }
-  return pushed;
-}
-
-function stateStoreFailure(
-  sha: string,
-  paths: string[],
-  retries: number,
-  error: unknown,
-): CommitOutcome {
-  return {
-    status: "push_failed",
-    reason: "state_store",
-    sha,
-    paths,
-    retries,
-    detail: `the run state was not saved to Postgres: ${error instanceof Error ? error.message : String(error)}`,
-    conflicts: [],
-  };
-}
-
-interface PushInput {
-  run: GitRunner;
-  root: string;
-  identity: BotIdentity;
-  remote: string;
-  maxRetries: number;
-  sha: string;
-  paths: string[];
-}
-
-/** List paths currently marked as unmerged in the index. */
-async function unmergedPaths(run: GitRunner): Promise<string[]> {
-  const unmerged = await run(["diff", "--name-only", "--diff-filter=U"]);
-  return unmerged.stdout
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean);
-}
-
-/**
- * One side of a conflicted file during rebase: 1 the ancestor, 2 the remote's, 3 this run's.
- * Return null when git cannot read that index entry.
- */
-async function indexVersion(
-  run: GitRunner,
-  stage: 1 | 2 | 3,
-  path: string,
-): Promise<string | null> {
-  const shown = await run(["show", `:${stage}:${path}`]);
-  return shown.code === 0 ? shown.stdout : null;
-}
-
-/**
- * Resolve what a rebase stopped on, when every conflicted file has a safe answer, and let it go on.
- * State files two workflows both append to (the cost ledger, the stage timings, the
- * Speechify counter) are merged, so neither run's entries are lost (stateMerge.ts). Anything else
- * stands as a conflict. True when the rebase ended.
- */
-async function resolveRebaseConflicts(
-  run: GitRunner,
-  root: string,
-  identity: BotIdentity,
-): Promise<boolean> {
-  for (let step = 0; step < 4; step++) {
-    const conflicts = await unmergedPaths(run);
-    if (conflicts.length === 0) return false;
-    const merged = new Map<string, string>();
-    for (const path of conflicts) {
-      const merge = stateMergerFor(path);
-      if (merge === undefined) return false;
-      const [base, upstream, mine] = await Promise.all([
-        indexVersion(run, 1, path),
-        indexVersion(run, 2, path),
-        indexVersion(run, 3, path),
-      ]);
-      // A side that deleted the file has nothing to merge into: leave that to a person.
-      if (upstream === null || mine === null) return false;
-      const text = merge({ base, upstream, mine });
-      if (text === null) return false;
-      merged.set(path, text);
-    }
-    for (const [path, text] of merged) await writeFile(join(root, path), text, "utf8");
-    if ((await run(["add", "--", ...conflicts])).code !== 0) return false;
-    const next = await run([
-      ...identityFlags(identity),
-      "-c",
-      "core.editor=true",
-      "rebase",
-      "--continue",
-    ]);
-    if (next.code === 0) return true;
-  }
-  return false;
-}
-
-/**
- * Push the current branch, rebasing after a competing push up to `maxRetries` times. Return a
- * push failure for a detached head, exhausted retries or unresolved conflicts; abort a failed
- * rebase when possible. Git execution errors and merged-state write errors propagate.
- */
-async function pushWithRebase(input: PushInput): Promise<CommitOutcome> {
-  const { run, remote } = input;
-  const failure = (
-    reason: PushFailureReason,
-    retries: number,
-    detail: string,
-    sha: string,
-    conflicts: string[] = [],
-  ): CommitOutcome => ({
-    status: "push_failed",
-    reason,
-    sha,
-    paths: input.paths,
-    retries,
-    detail,
-    conflicts,
-  });
-
-  const branchResult = await run(["symbolic-ref", "--short", "HEAD"]);
-  const branch = branchResult.stdout.trim();
-  if (branchResult.code !== 0 || branch === "") {
-    return failure(
-      "detached_head",
-      0,
-      "HEAD is not on a branch, so there is nothing to push to",
-      input.sha,
-    );
-  }
-
-  let sha = input.sha;
-  for (let retries = 0; ; retries++) {
-    // No --force anywhere: a rejected push must be reconciled, never overwritten.
-    const pushed = await run(["push", remote, `HEAD:refs/heads/${branch}`]);
-    if (pushed.code === 0) return { status: "pushed", sha, paths: input.paths, retries };
-
-    const detail = (pushed.stderr.trim() || pushed.stdout.trim()).split("\n").slice(-3).join(" ");
-    if (!NON_FAST_FORWARD.test(pushed.stderr)) return failure("error", retries, detail, sha);
-    if (retries >= input.maxRetries) return failure("rejected", retries, detail, sha);
-
-    const pulled = await run([
-      ...identityFlags(input.identity),
-      "pull",
-      "--rebase",
-      remote,
-      branch,
-    ]);
-    if (pulled.code !== 0 && (await resolveRebaseConflicts(run, input.root, input.identity))) {
-      sha = (await gitOutput(run, ["rev-parse", "HEAD"])).trim();
-      continue;
-    }
-    if (pulled.code !== 0) {
-      const unmerged = await run(["diff", "--name-only", "--diff-filter=U"]);
-      const conflicts = unmerged.stdout
-        .split("\n")
-        .map((line) => line.trim())
-        .filter(Boolean);
-      // Leave the repository as it was before the rebase, with the local commit intact. "No rebase
-      // in progress" is fine (the pull failed before one began); any other failure means the
-      // repository is stuck mid-rebase and the caller must be told.
-      const aborted = await run(["rebase", "--abort"]);
-      if (aborted.code !== 0 && !/No rebase in progress/i.test(aborted.stderr)) {
-        return failure(
-          "error",
-          retries,
-          `Could not abort the rebase, so the repository is left mid-rebase: ${aborted.stderr.trim()}`,
-          sha,
-          conflicts,
-        );
-      }
-      const reason: PushFailureReason = conflicts.length > 0 ? "rebase_conflict" : "error";
-      return failure(
-        reason,
-        retries,
-        (pulled.stderr.trim() || pulled.stdout.trim()).split("\n").slice(-3).join(" "),
-        sha,
-        conflicts,
-      );
-    }
-    sha = (await gitOutput(run, ["rev-parse", "HEAD"])).trim();
+    return {
+      status: "push_failed",
+      reason: "state_store",
+      sha: "",
+      paths: [],
+      retries: 0,
+      detail: `the run state was not saved to Postgres: ${error instanceof Error ? error.message : String(error)}`,
+      conflicts: [],
+    };
   }
 }

@@ -11,7 +11,7 @@ What keeps a Regenerate or a Catch up from ending in "Stopped while publishing" 
 
 | Guard | Where | What it stops |
 | :--- | :--- | :--- |
-| State merge on a rebase conflict | `git/stateMerge.ts`, `git/commit.ts` `resolveRebaseConflicts` | Cost ledger, podcast timings, usage counter and run metrics are unioned by id or run, never chosen. An unreadable file keeps the conflict and the push reports `rebase_conflict`. |
+| State merge on a rebase conflict | `git/stateMerge.ts`, used by the state store's push (`store/stateDocs.ts`) | Cost ledger, podcast timings, usage counter and run metrics are unioned by id or run, never chosen. The git rebase that once called it is gone (D300). |
 | Grounding prunes first | `validate/groundingRepair.ts` | A story with one unsupported sentence keeps its supported ones when they pass lint (`grounding_pruned`); else one rewrite and a voice repair; dropped only when nothing supported is left. |
 | Allowance trim | `validate/validateDigest.ts` | A section over its allowance gives up its lowest stories (`allowance_trimmed`) instead of failing the refill. |
 | Writer split retry | `write/llmWriter.ts` | A batch whose output cannot be read is written again in halves with more room. |

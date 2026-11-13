@@ -1,5 +1,5 @@
 import { stockholmDate } from "@singularityfm/core";
-import { commitAndPush } from "../git/commit.js";
+import { saveRunState } from "../git/commit.js";
 import { gitOutput } from "../git/runGit.js";
 import { recordRunMetrics } from "../metrics/runMetrics.js";
 import { recordFailure } from "../state/runRecord.js";
@@ -71,12 +71,10 @@ export async function recordFailedRun(deps: RunDeps, options: RunOptions): Promi
   if (plan) await recordFailedMetrics(deps, plan, at);
   await writeLastRun(deps.root, recordFailure(await readLastRun(deps.root), kinds, at));
   const message = `chore(state): run ${stockholmDate(now)} failed`;
-  const committed = await commitAndPush({
+  const committed = await saveRunState({
     root: deps.root,
-    message,
     command: "run",
     push: !options.noPush,
-    git: deps.git,
   });
   const reason = `Recorded failed for ${kinds.join(", ")}.`;
   return reportCommit(committed, reason, message);
@@ -87,7 +85,7 @@ export async function recordFailedRun(deps: RunDeps, options: RunOptions): Promi
  * one: a refused commit names the paths that broke the allowlist, a failed push its sha and cause.
  */
 function reportCommit(
-  committed: Awaited<ReturnType<typeof commitAndPush>>,
+  committed: Awaited<ReturnType<typeof saveRunState>>,
   reason: string,
   message: string,
   dryRun = false,
@@ -162,12 +160,10 @@ async function recordFailedOnDemand(
   // must not ride in the failure commit: later runs would pick the same stories again.
   if (plan.replaces !== undefined) await restoreSeen(deps);
   const message = `chore(state): run ${stockholmDate(deps.now())} failed`;
-  const committed = await commitAndPush({
+  const committed = await saveRunState({
     root: deps.root,
-    message,
     command: "run",
     push: !options.noPush,
-    git: deps.git,
   });
   const reason = "Recorded the failed on-demand run.";
   return reportCommit(committed, reason, message);
@@ -197,12 +193,10 @@ async function recordFailedDryRun(
     await recordSpend(deps.root, deps.spend, plan, now.toISOString());
   }
   const message = `chore(costs): dry run ${stockholmDate(now)} failed`;
-  const committed = await commitAndPush({
+  const committed = await saveRunState({
     root: deps.root,
-    message,
     command: "costs",
     push: !options.noPush,
-    git: deps.git,
   });
   return reportCommit(committed, "Recorded the failed dry run's spend.", message, true);
 }

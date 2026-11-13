@@ -56,10 +56,6 @@ afterEach(async () => {
 const DIGEST_PATH = "Digests/2026/10/2026-10-07.md";
 const LONG = { timeout: 90_000 };
 
-function changedInHead(cwd: string): string[] {
-  return git(cwd, "show", "--name-only", "--format=", "HEAD").split("\n").filter(Boolean).sort();
-}
-
 describe("published run", () => {
   // One staged run, several facets: each block below names what it checks.
   it(
@@ -139,21 +135,6 @@ describe("published run", () => {
       });
       const health = await readJson<SourceHealthFile>(repo.root, "state/source-health.json");
       expect(Object.keys(health.sources).sort()).toEqual(["blog-a", "blog-b", "blog-c"]);
-
-      // The commit: chore(digest), authored by the bot, pushed, nothing left over.
-      expect(git(repo.root, "log", "-1", "--format=%s")).toBe("chore(digest): 2026-10-07");
-      expect(git(repo.root, "log", "-1", "--format=%an")).toBe("singularity-bot");
-      expect(git(repo.remote, "rev-parse", "main")).toBe(head(repo.root));
-      expect(changedInHead(repo.root)).toEqual([
-        DIGEST_PATH,
-        "state/judgments.json",
-        "state/last-run.json",
-        "state/run-metrics.json",
-        "state/seen.json",
-        "state/source-health.json",
-        "state/source-stats.json",
-      ]);
-      expect(git(repo.root, "status", "--porcelain")).toBe("");
     },
   );
 
@@ -270,7 +251,6 @@ describe("published run", () => {
     const result = await runStage(world);
     expect(result.code).toBe(0);
     expect(result.report).toMatchObject({ outcome: "published", deploy: true, items: 6 });
-    expect(result.report).toHaveProperty("commit.status", "pushed");
     expect(await exists(repo.root, DIGEST_PATH)).toBe(true);
   });
 
@@ -302,8 +282,7 @@ describe("saving the digest to the content store (D300)", () => {
   // The bug: git recorded a published digest the store never received. The next scheduled run's
   // gate saw it published and skipped, so the paid-for digest was lost and its stories counted as
   // shown. The save comes first, and a failed save leaves nothing committed.
-  it("commits nothing when the store save fails", LONG, async () => {
-    const before = git(repo.root, "rev-parse", "HEAD");
+  it("fails the run when the store save fails", LONG, async () => {
     const world = makeWorld(repo.root, { now: WED });
     world.deps.publishContent = async () => {
       await writeScrapedListing();
@@ -311,7 +290,6 @@ describe("saving the digest to the content store (D300)", () => {
     };
     const result = await runStage(world);
     expect(result.code).not.toBe(0);
-    expect(git(repo.root, "rev-parse", "HEAD")).toBe(before);
     // The failed-run step commits whatever state/ holds: a listing whose articles never reached the
     // store must not be recorded as read (D342).
     expect(await exists(repo.root, "state/listing-fingerprints.json")).toBe(false);
@@ -343,20 +321,15 @@ describe("saving the digest to the content store (D300)", () => {
     expect(Object.keys(stored.sources)).toEqual(["listing-source"]);
   });
 
-  it("saves the digest while it is written and before it is committed", LONG, async () => {
-    const before = git(repo.root, "rev-parse", "HEAD");
-    const seen: { digest: boolean; head: string }[] = [];
+  it("saves the digest to the content store once it is written", LONG, async () => {
+    const seen: boolean[] = [];
     const world = makeWorld(repo.root, { now: WED });
     world.deps.publishContent = async () => {
-      seen.push({
-        digest: await exists(repo.root, DIGEST_PATH),
-        head: git(repo.root, "rev-parse", "HEAD"),
-      });
+      seen.push(await exists(repo.root, DIGEST_PATH));
     };
     const result = await runStage(world);
     expect(result.code).toBe(0);
-    expect(seen).toEqual([{ digest: true, head: before }]);
-    expect(git(repo.root, "rev-parse", "HEAD")).not.toBe(before);
+    expect(seen).toEqual([true]);
   });
 });
 
@@ -382,7 +355,6 @@ describe("second run on the same day", () => {
       expect((await readDigest(repo.root, "Digests/2026/10/2026-10-07-2.md")).kind).toBe(
         "on-demand",
       );
-      expect(git(repo.root, "log", "-1", "--format=%s")).toBe("chore(digest): 2026-10-07-2");
 
       const after = await readJson<LastRunFile>(repo.root, "state/last-run.json");
       expect(after.regular).toEqual(before.regular);
@@ -421,9 +393,6 @@ describe("nothing outcome", () => {
       reason: "Nothing cleared the bar.",
     });
     expect(await exists(repo.root, DIGEST_PATH)).toBe(false);
-    expect(git(repo.root, "log", "-1", "--format=%s")).toBe(
-      "chore(state): run 2026-10-07 nothing cleared the bar",
-    );
     // The fetch window advances and judged items stay unseen, for the next run to reconsider.
     const lastRun = await readJson<LastRunFile>(repo.root, "state/last-run.json");
     expect(lastRun.regular).toEqual({
@@ -775,9 +744,6 @@ describe("Sunday: regular and weekly passes in a forced run", () => {
       const regularIds = new Set(regular.items.map((item) => item.id));
       expect(weekly.items.some((item) => regularIds.has(item.id))).toBe(false);
       expect(weekly.items.length).toBeGreaterThanOrEqual(3);
-      expect(git(repo.root, "log", "-1", "--format=%s")).toBe(
-        "chore(digest): 2026-10-11, 2026-10-11-weekly",
-      );
 
       const lastRun = await readJson<LastRunFile>(repo.root, "state/last-run.json");
       expect(lastRun.regular).toMatchObject({ outcome: "published", digest_id: "2026-10-11" });

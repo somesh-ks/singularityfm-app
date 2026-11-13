@@ -16,7 +16,7 @@ detector; `health.yml` runs it daily, keeps one issue labelled `health` and heal
 | Runaway spend | `cost_over_ceiling` (ledger, last 24 h, `SINGULARITY_DAILY_USD_CEILING`, default $5), `speech_budget` | none: the caps stop the next call |
 | Vercel skipped a deploy (Hobby author check, failed build) | `site_stale`: `/latest.json` behind the newest digest by 45 min | none |
 | Lost security headers, functions down | `site_headers`, `site_api`, `site_down` | none |
-| Two pushes in one instant (2026-10-21 episode delete) | the push answer | `commitAndPush` now reads a ref-lock race as a rejection and rebases (every engine push uses it) |
+| Two pushes in one instant (2026-10-21 episode delete) | the push answer | Gone with the git push itself (D300): the engine no longer commits or pushes, `saveRunState` writes to Postgres |
 | A cache entry the browser broke | the worker's strategy rejects | `sw.js` (v12) answers from the network and rebuilds its caches once |
 | A stop waiting on a device for weeks | `splitStaleBlocks` | dropped after 7 days with a toast |
 | A deploy that never reaches an open or installed app (2026-10-21, D145) | `site_update` (`/sw.js` cacheable, `/build.json` missing); the `serviceWorker.spec.ts` deploy journey | page loads go to the network first (sw.js v13); a page behind the site reloads itself at the first safe moment (no audio playing or loading, no dialog, sheet or toast open, no typing), checked on load, on return and every 10 minutes (D202); one build is loaded for at most twice per tab; without session storage, automatic reload stops until a full navigation |

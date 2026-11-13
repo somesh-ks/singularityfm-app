@@ -11,7 +11,7 @@ import {
 import { type CommandContext, type CommandRun, secretsFromEnv } from "../context.js";
 import { recordRunCosts } from "../cost/ledger.js";
 import { emit } from "../curate/output.js";
-import { type CommitOutcome, commitAndPush } from "../git/commit.js";
+import { type CommitOutcome, saveRunState } from "../git/commit.js";
 import type { HttpClient } from "../http.js";
 import { describeError } from "../llm/errors.js";
 import { resolveFamilies } from "../llm/modelResolver.js";
@@ -38,7 +38,6 @@ import {
   type ScriptWriter,
 } from "../podcast/types.js";
 import { type BlobClient, createVercelBlobClient } from "../publish/blob.js";
-import { hasWorkspaceBaseline } from "../publish/contentWorkspace.js";
 import { publishEpisodeIndex } from "../publish/episodeIndex.js";
 import { loadScheduleZone } from "../schedule/store.js";
 
@@ -137,15 +136,8 @@ async function refreshEpisodeIndex(
   }
 }
 
-/**
- * `tracked`: the checkout pulled its content from the store (D300), so an episode is never a git
- * change and a commit of nothing is how a delete or a quiet episode ends, not a failure.
- */
-function commitFailure(
-  outcome: CommitOutcome,
-  tracked: boolean,
-  log: CommandContext["log"],
-): string | null {
+/** A save of nothing is how a delete or a quiet episode ends (D300): the episode is not in git. */
+function commitFailure(outcome: CommitOutcome, log: CommandContext["log"]): string | null {
   // The episode is on the remote and live: only its cost and timing records missed Postgres, so a
   // retry (which would make a second episode and use up a Catch up) is the wrong answer.
   if (outcome.status === "push_failed" && outcome.reason === "state_store") {
@@ -153,8 +145,6 @@ function commitFailure(
     return null;
   }
   switch (outcome.status) {
-    case "nothing_to_commit":
-      return tracked ? null : "Nothing to commit: the episode file was not picked up by git";
     case "refused":
       return `Commit refused (${outcome.reason}): ${outcome.offending.join(", ")}`;
     case "push_failed":
@@ -257,7 +247,6 @@ export function makePodcastCommand(deps: PodcastDeps = {}): CommandRun {
       }
     };
     try {
-      const tracked = await hasWorkspaceBaseline(ctx.root);
       const { request: requestJson, resumeFrom } = splitResumeFrom(values.request);
       const command = parseCommand(requestJson);
       if (command.action === "delete") {
@@ -272,13 +261,12 @@ export function makePodcastCommand(deps: PodcastDeps = {}): CommandRun {
           return 0;
         }
         await rm(join(ctx.root, relPath));
-        const outcome = await commitAndPush({
+        const outcome = await saveRunState({
           root: ctx.root,
-          message: `chore(podcast): remove ${command.id}`,
           command: "podcast",
           push: values["no-push"] !== true,
         });
-        const failure = commitFailure(outcome, tracked, ctx.log);
+        const failure = commitFailure(outcome, ctx.log);
         if (failure !== null) {
           await recordFailure(commitFailureReason(outcome) ?? undefined);
           ctx.log.error(
@@ -454,15 +442,12 @@ export function makePodcastCommand(deps: PodcastDeps = {}): CommandRun {
       }
       // The old file goes only now: generation has succeeded and the new file is written.
       if (replaced) await rm(join(ctx.root, replaced.relPath));
-      const outcome = await commitAndPush({
+      const outcome = await saveRunState({
         root: ctx.root,
-        message: replaced
-          ? `feat(podcast): replace ${replaced.episode.id} with ${episode.id}`
-          : `feat(podcast): add ${episode.id}`,
         command: "podcast",
         push: values["no-push"] !== true,
       });
-      const failure = commitFailure(outcome, tracked, ctx.log);
+      const failure = commitFailure(outcome, ctx.log);
       if (failure !== null) {
         await live.stream?.failed();
         await recordFailure(commitFailureReason(outcome) ?? undefined);

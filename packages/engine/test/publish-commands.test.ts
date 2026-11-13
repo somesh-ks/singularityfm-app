@@ -1,4 +1,5 @@
-import { chmod, readFile } from "node:fs/promises";
+import { existsSync, readFileSync } from "node:fs";
+import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import {
   audioTimelineRelPath,
@@ -352,10 +353,6 @@ describe("singularity publish", () => {
     await pair.cleanup();
   });
 
-  const remoteHead = (): string => git(pair.remote, "rev-parse", "refs/heads/main");
-  const remoteSubject = (): string =>
-    git(pair.remote, "log", "-1", "--format=%s", "refs/heads/main");
-
   /** Commit and push digests so the working tree starts clean. */
   async function seed(...ids: string[]): Promise<void> {
     for (const id of ids) await writeDigest(pair.a, digestFor(id));
@@ -364,7 +361,7 @@ describe("singularity publish", () => {
   }
 
   const audioOf = (id: string) =>
-    parseDigestFile(git(pair.a, "show", `HEAD:${digestRelPath(id)}`)).audio;
+    parseDigestFile(readFileSync(join(pair.a, digestRelPath(id)), "utf8")).audio;
 
   describe("usage", () => {
     it.each([
@@ -407,28 +404,15 @@ describe("singularity publish", () => {
   });
 
   describe("publishing", () => {
-    it("narrates, commits as the bot and pushes", async () => {
+    it("narrates and writes the audio timeline", async () => {
       await seed("2026-10-07");
       const r = rig();
       const code = await createPublishCommand(r.deps)([], ctx);
 
       expect(code).toBe(0);
-      expect(remoteSubject()).toBe("chore(audio): add narration for 2026-10-07");
-      expect(
-        git(pair.remote, "show", "--name-only", "--format=", "refs/heads/main").split("\n").sort(),
-      ).toEqual([
-        "Digests/2026/10/2026-10-07.audio.json",
-        "Digests/2026/10/2026-10-07.md",
-        "state/usage.json",
-      ]);
-      expect(git(pair.remote, "log", "-1", "--format=%an|%ae", "refs/heads/main")).toBe(
-        "singularity-bot|singularity-bot@users.noreply.github.com",
-      );
-      expect(remoteHead()).toBe(git(pair.a, "rev-parse", "HEAD"));
+      expect(existsSync(join(pair.a, "Digests/2026/10/2026-10-07.audio.json"))).toBe(true);
       expect(audioOf("2026-10-07")?.url).toMatch(/audio\/2026-10-07\.[0-9a-f]{12}\.mp3$/);
-      expect(git(pair.a, "status", "--porcelain")).toBe("");
       expect(r.out.join("")).toContain("2026-10-07  audio ready");
-      expect(r.out.join("")).toContain("git: pushed");
     });
 
     // The 2026-10-27 briefing was narrated by this command with ffmpeg installed and got no
@@ -445,44 +429,16 @@ describe("singularity publish", () => {
       await seed("2026-10-07");
       const r = rig();
       await createPublishCommand(r.deps)([], ctx);
-      const head = remoteHead();
       expect(await createPublishCommand(r.deps)([], ctx)).toBe(0);
-      expect(remoteHead()).toBe(head);
       expect(r.speech.calls.marks).toHaveLength(1);
     });
 
-    it("lists up to three digests in the commit subject and counts more", async () => {
-      await seed("2026-10-01", "2026-10-02", "2026-10-03", "2026-10-04");
-      await createPublishCommand(rig().deps)([], ctx);
-      expect(remoteSubject()).toBe("chore(audio): add narration for 4 digests");
-
-      await pair.cleanup();
-      pair = await createRepoPair({ seedDigest: false });
-      ctx = makeContext(pair.a);
-      await seed("2026-10-06", "2026-10-07");
-      await createPublishCommand(rig().deps)([], ctx);
-      expect(remoteSubject()).toBe("chore(audio): add narration for 2026-10-06, 2026-10-07");
-    });
-
-    it("--no-push commits locally and leaves the remote alone", async () => {
-      await seed("2026-10-07");
-      const before = remoteHead();
-      const r = rig();
-      expect(await createPublishCommand(r.deps)(["--no-push"], ctx)).toBe(0);
-      expect(remoteHead()).toBe(before);
-      expect(git(pair.a, "log", "-1", "--format=%s")).toBe(
-        "chore(audio): add narration for 2026-10-07",
-      );
-      expect(r.out.join("")).toContain("not pushed");
-    });
-
-    it("emits JSON with outcomes and the commit result", async () => {
+    it("emits JSON with outcomes", async () => {
       await seed("2026-10-07");
       const r = rig();
       await createPublishCommand(r.deps)([], makeContext(pair.a, { json: true }));
       const result = JSON.parse(r.out.join(""));
       expect(result.outcomes[0]).toMatchObject({ status: "published", digestId: "2026-10-07" });
-      expect(result.commit).toMatchObject({ status: "pushed" });
       expect(result.changedPaths).toHaveLength(3);
     });
 
@@ -494,20 +450,17 @@ describe("singularity publish", () => {
         '{ "version": 1, "speechify": { "month": "2026-10", "characters": 10 } }\n',
       );
       expect(await createPublishCommand(rig().deps)([], ctx)).toBe(0);
-      expect(git(pair.a, "status", "--porcelain")).toBe("");
     });
   });
 
   describe("failures never block the text digest", () => {
     it("exits 0 and leaves audio null when synthesis fails, committing nothing", async () => {
       await seed("2026-10-07");
-      const before = remoteHead();
       const r = rig({
         failMarksCall: () =>
           new SpeechifyError("Speechify request failed (HTTP 500)", { status: 500 }),
       });
       expect(await createPublishCommand(r.deps)([], ctx)).toBe(0);
-      expect(remoteHead()).toBe(before);
       expect(audioOf("2026-10-07")).toBeNull();
       expect(r.out.join("")).toContain("audio failed at synthesis");
       expect(r.out.join("")).toContain("nothing to commit");
@@ -518,7 +471,6 @@ describe("singularity publish", () => {
 
     it("exits 0 with a warning when credentials are missing, without synthesizing", async () => {
       await seed("2026-10-07");
-      const before = remoteHead();
       const bare = makeContext(pair.a, { env: loadEnv({}) });
       const out: string[] = [];
       const code = await createPublishCommand({
@@ -526,7 +478,6 @@ describe("singularity publish", () => {
         monthlyChars: () => 500_000,
       })([], bare);
       expect(code).toBe(0);
-      expect(remoteHead()).toBe(before);
       expect(out.join("")).toContain("audio failed at credentials: SPEECHIFY_API_KEY is not set");
       expect(
         bare.log.lines.some(
@@ -550,14 +501,13 @@ describe("singularity publish", () => {
       expect(r.speech.calls.marks).toEqual([]);
     });
 
-    it("still commits the spend when the upload fails after synthesis", async () => {
+    it("still records the spend when the upload fails after synthesis", async () => {
       await seed("2026-10-07");
       const r = rig();
       r.blob.failNextPuts = 10;
       expect(await createPublishCommand({ ...r.deps, createBlob: () => r.blob })([], ctx)).toBe(0);
-      expect(remoteSubject()).toBe("chore(audio): record speechify usage");
       expect(audioOf("2026-10-07")).toBeNull();
-      const usage = JSON.parse(git(pair.remote, "show", "refs/heads/main:state/usage.json"));
+      const usage = JSON.parse(readFileSync(join(pair.a, "state/usage.json"), "utf8"));
       expect(usage.speechify.characters).toBeGreaterThan(0);
     });
 
@@ -588,22 +538,6 @@ describe("singularity publish", () => {
       ).toBe(true);
     });
 
-    it("exits 1 before synthesis when a dirty digest changes more than its audio field", async () => {
-      await seed("2026-10-07", "2026-10-06");
-      const edited = digestFor("2026-10-06");
-      edited.items[0] = { ...must(edited.items[0]), headline: "Edited by hand" };
-      await writeDigest(pair.a, edited);
-      const r = rig();
-      expect(await createPublishCommand(r.deps)([], ctx)).toBe(1);
-      expect(r.speech.calls.marks).toEqual([]);
-      expect(
-        ctx.log.lines.some(
-          (line) =>
-            line.level === "error" && line.message.includes("changes more than the audio field"),
-        ),
-      ).toBe(true);
-    });
-
     it("exits 1 when git status cannot be read", async () => {
       const outside = await makeTempRoot();
       try {
@@ -617,76 +551,11 @@ describe("singularity publish", () => {
     });
   });
 
-  describe("a failing commit step", () => {
-    it("exits 1 and reports it when a pre-commit hook rejects the commit", async () => {
-      await seed("2026-10-07");
-      const hook = join(pair.a, ".git", "hooks", "pre-commit");
-      await put(pair.a, ".git/hooks/pre-commit", "#!/bin/sh\necho blocked by hook >&2\nexit 1\n");
-      await chmod(hook, 0o755);
-      const r = rig();
-      expect(await createPublishCommand(r.deps)([], ctx)).toBe(1);
-      expect(
-        ctx.log.lines.some(
-          (line) => line.level === "error" && line.message.startsWith("Commit failed"),
-        ),
-      ).toBe(true);
-      // The narration was made and written; only the commit was blocked.
-      expect(r.out.join("")).toContain("2026-10-07  audio ready");
-    });
-  });
-
-  describe("pushing", () => {
-    // The 2026-10-27 Catch up lost its episode to a rebase conflict on a ledger two runs both
-    // appended to: the Speechify counter is merged now, each run's characters added.
-    it("lands the narration when a concurrent writer changed usage.json too, adding both counts", async () => {
-      await seed("2026-10-07");
-      git(pair.b, "pull", "-q", "origin", "main");
-      await put(
-        pair.b,
-        "state/usage.json",
-        '{ "version": 1, "speechify": { "month": "2026-10", "characters": 77 } }\n',
-      );
-      await commitAll(pair.b, "chore: other usage");
-      git(pair.b, "push", "-q", "origin", "main");
-      const r = rig();
-      expect(await createPublishCommand(r.deps)([], ctx)).toBe(0);
-      const usage = JSON.parse(git(pair.remote, "show", "refs/heads/main:state/usage.json"));
-      expect(usage.speechify.characters).toBeGreaterThan(77);
-      expect(remoteHead()).toBe(git(pair.a, "rev-parse", "HEAD"));
-    });
-
-    it("exits 1 when a concurrent writer changed a file nothing can merge", async () => {
-      await seed("2026-10-07");
-      git(pair.b, "pull", "-q", "origin", "main");
-      await put(
-        pair.b,
-        "Digests/2026/10/2026-10-07.audio.json",
-        '{ "version": 1, "other": true }\n',
-      );
-      await commitAll(pair.b, "chore: other narration");
-      git(pair.b, "push", "-q", "origin", "main");
-      const before = remoteHead();
-      const out: string[] = [];
-      const r = rig();
-      expect(
-        await createPublishCommand({ ...r.deps, out: (text) => void out.push(text) })([], ctx),
-      ).toBe(1);
-      expect(remoteHead()).toBe(before);
-      expect(out.join("")).toContain("push failed (rebase_conflict)");
-      expect(
-        ctx.log.lines.some(
-          (line) => line.level === "error" && line.message.includes("push failed"),
-        ),
-      ).toBe(true);
-    });
-  });
-
   describe("--prune", () => {
     it("prunes old narrations with nothing else to do and commits nothing", async () => {
       await seed("2026-10-07");
       const r = rig();
       await createPublishCommand(r.deps)([], ctx);
-      const head = remoteHead();
       r.blob.seed("audio/2025-01-01.mp3", new Date("2025-01-01T00:00:00Z"));
       r.out.length = 0;
 
@@ -696,7 +565,6 @@ describe("singularity publish", () => {
         [...r.blob.store.keys()].some((key) => /^audio\/2026-10-07\.[0-9a-f]{12}\.mp3$/.test(key)),
       ).toBe(true);
       expect(r.out.join("")).toContain("pruned 1 old narrations, kept 1");
-      expect(remoteHead()).toBe(head);
     });
 
     // Bug: the daily audio run listed all of audio/ every day, one Blob operation per page.

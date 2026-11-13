@@ -16,6 +16,54 @@
   margin-inline-end: calc((var(--size-touch) - var(--size-icon)) / -2);
 }
 
+/* Outline and fill share one cell, as play and pause do: the outgoing glyph fades, shrinks and
+   blurs while the incoming one arrives. The library swaps a toggle's glyphs at once; the vote keeps
+   its crossfade and pop, so both glyphs stay drawn and their opacity picks the one that shows. As
+   specific as .icon-btn's flex, which loads later. */
+.icon-btn.story-vote {
+  display: inline-grid;
+  place-items: center;
+}
+
+.story-vote .icon-glyph {
+  display: block;
+  grid-area: 1 / 1;
+  transition:
+    opacity var(--duration-state) var(--ease-out),
+    transform var(--duration-state) var(--ease-out),
+    filter var(--duration-state) var(--ease-out);
+}
+
+.story-vote .icon-glyph:last-child,
+.story-vote[aria-pressed="true"] .icon-glyph:first-child {
+  opacity: 0;
+  transform: scale(var(--scale-enter));
+  filter: blur(var(--blur-enter));
+}
+
+.story-vote[aria-pressed="true"] .icon-glyph:last-child {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+
+/* Turning a vote on pops the fill in. A vote restored on load never carries data-just-voted. */
+.story-vote[data-just-voted] .icon-glyph:last-child {
+  animation: vote-pop var(--duration-spring-pop) var(--ease-spring-pop);
+}
+
+@keyframes vote-pop {
+  from {
+    transform: scale(var(--scale-enter));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .story-vote[data-just-voted] .icon-glyph:last-child {
+    animation: none;
+  }
+}
+
 /* The menu hangs under its own story's button, not the header's. */
 .menu-list.story-menu-list {
   position-anchor: var(--story-anchor);

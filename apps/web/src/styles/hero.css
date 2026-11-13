@@ -86,14 +86,10 @@
 }
 
 /*
- * The select of a day's Catch ups (D219) is the tonal Select (select.css) at
- * the hero chip's height, so it and Play read as one row. A select is as wide as its longest option
+ * The select of a day's Catch ups (D219) is the tonal Select (select.css) at the chip height Play,
+ * Share and Favorite take, so the row reads as one. A select is as wide as its longest option
  * whichever is chosen, and the names are one width (lib/catchUps.ts), so switching moves nothing.
  */
-.hero-album {
-  --chip-height: calc(var(--size-touch) - var(--space-1));
-}
-
 .hero-album > select {
   font-variant-numeric: tabular-nums;
 }

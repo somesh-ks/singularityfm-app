@@ -80,7 +80,15 @@ describe("the prototype stylesheets", () => {
 // local spec-kit clone that way (#803, 2026-11-12).
 describe("the git index", () => {
   it("holds no gitlink (a nested repository) without a .gitmodules to name it", () => {
-    const entries = execFileSync("git", ["ls-files", "--stage"], { cwd: ROOT, encoding: "utf8" });
+    // A git hook sets GIT_DIR and GIT_INDEX_FILE, which would point this at another index.
+    const env = Object.fromEntries(
+      Object.entries(process.env).filter(([name]) => !name.startsWith("GIT_")),
+    );
+    const entries = execFileSync("git", ["ls-files", "--stage"], {
+      cwd: ROOT,
+      encoding: "utf8",
+      env,
+    });
     const gitlinks = entries
       .split("\n")
       .filter((line) => line.startsWith("160000 "))

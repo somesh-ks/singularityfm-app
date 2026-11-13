@@ -2,11 +2,9 @@
 // apps pin its published package (D382 step 8), so a system change is a pull request there. Here the
 // owner still decides what bends it: an entry added to a list that excuses app code from a system
 // check, and the files that say who owns the system, need the `design-system` label and his merge.
-// The gate also keeps each app taking shared parts from the package, never from another app.
 // Usage in CI: LABELS='["design-system"]' BASE=<sha> node scripts/designSystemGate.mjs
 import { execFileSync } from "node:child_process";
-import { readdirSync, readFileSync } from "node:fs";
-import { join, posix, resolve } from "node:path";
+import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 export const LABEL = "design-system";
@@ -14,61 +12,10 @@ export const LABEL = "design-system";
 /** What says who owns the system and how the apps draw it: a change needs the label. */
 export const SYSTEM_PATHS = [
   ".github/CODEOWNERS",
-  // The gate itself: its lists of what it guards and of the old cross-app reaches.
+  // The gate itself: its list of what it guards.
   "scripts/designSystemGate.mjs",
   ".claude/skills/feature/references/controls-guide.md",
 ];
-
-/** An app's imports: the JS forms, CSS @import "x", and a stylesheet's url(x), which the first form misses. */
-const APP_IMPORT = /(?:from|import)\s*\(?\s*["']([^"'\s]+)["']|url\(\s*["']?([^"')\s]+)["']?\s*\)/g;
-
-/**
- * What one app still takes from another app's folder (D382 step 4e: the reader, the admin and the
- * guide each take a shared part from the package, never from another app). None reaches today; the
- * admin's session cookie and health rows live in @singularityfm/contracts. The list only shrinks: a new
- * reach fails, and so does an entry that no longer reaches.
- */
-export const CROSS_APP_IMPORTS = [];
-
-const APP_FILE = /\.(?:ts|tsx|astro|mjs|js|css)$/;
-const APP_SKIP = new Set(["node_modules", "dist", "test-results", "playwright-report"]);
-
-/**
- * Each import in an app that reaches another app's folder or package (`@singularityfm/web`, `admin`),
- * as "file: specifier", leaving out the reaches `allowed` lists.
- */
-export function appBoundaryProblems(sources, allowed = CROSS_APP_IMPORTS) {
-  return sources.flatMap(({ file, text }) => {
-    const app = file.split("/")[1];
-    return [...text.matchAll(APP_IMPORT)].flatMap(([, quoted, linked]) => {
-      const specifier = quoted ?? linked;
-      const reach = `${file}: ${specifier}`;
-      const target = specifier.startsWith(".")
-        ? posix.join(posix.dirname(file), specifier.replace(/[?#].*$/, ""))
-        : specifier;
-      const other =
-        /^apps\/([^/]+)\//.exec(target)?.[1] ??
-        /^@singularityfm\/(web|admin)(?:\/|$)/.exec(specifier)?.[1];
-      return other !== undefined && other !== app && !allowed.includes(reach) ? [reach] : [];
-    });
-  });
-}
-
-/** Every source file and stylesheet of the reader and the admin, as appBoundaryProblems reads them. */
-export function appSources(root) {
-  const found = [];
-  const walk = (dir) => {
-    for (const entry of readdirSync(join(root, dir), { withFileTypes: true })) {
-      const path = posix.join(dir, entry.name);
-      if (entry.isDirectory()) {
-        if (!APP_SKIP.has(entry.name) && !entry.name.startsWith(".")) walk(path);
-      } else if (APP_FILE.test(entry.name))
-        found.push({ file: path, text: readFileSync(join(root, path), "utf8") });
-    }
-  };
-  for (const app of ["web", "admin"]) walk(`apps/${app}`);
-  return found;
-}
 
 /**
  * The lists that excuse code from a design-system check, by the file that holds them. Any pull request
@@ -187,11 +134,6 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     .filter(([file]) => files.includes(file))
     .flatMap(([file, lists]) => allowlistAdditions(show(before, file), show("HEAD", file), lists));
   const problems = checkDesignSystemPr({ files, labels, added });
-  for (const reach of appBoundaryProblems(appSources(process.cwd()))) {
-    problems.push(
-      `${reach} takes a part from another app's folder. An app takes a shared part from the design system's package: move the part there (its own repository).`,
-    );
-  }
   for (const problem of problems) console.log(`::error::${problem}`);
   console.log(
     problems.length

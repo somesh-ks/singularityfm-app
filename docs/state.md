@@ -1,6 +1,6 @@
 # State
 
-Updated 2026-11-10. Rewrite, never append.
+Updated 2026-11-13. Rewrite, never append.
 
 ## Working
 
@@ -65,7 +65,7 @@ Unit (CI): 367 files, 5,573 tests, 2 min. Site e2e: 468, 14 min. Player: 81, 7 m
 - Safari and WebKit: the iPhone `@smoke` set (`PLAYER_WEBKIT=1`) has not run. closed when: an iPhone passes it.
 - Time zone (D100, D239) only faked; `sinceLabel`, `pendingAudio` and `podcast/select` still use Stockholm's today. closed when: a run across the 10-25 clock change publishes on the right day.
 - Config saves go through the config store (D149, D296); `config.yml` has nothing left to commit. Never seen live: `topic.scope`, rename or move, a batch adding a topic with sources, a blocked domain, votes, Regenerate with topics, episode delete or regenerate. closed when: each shows in the store row and on a second device.
-- Admin Stage times (D260): `singularity-admin` needs `DATABASE_URL` and postgres. closed when: runs show.
+- Admin in its own repo (D392). Stage times (D260) need `DATABASE_URL` and postgres there. closed when: runs show.
 - Owner config out of git (D296, merged). The 11-02 dry run's gate log said `config store:` and it published. closed when: the Vercel build log says `store on; from the store:`, audio publishing keeps the owner's voice, and the cron answers 200.
 - Config store (D149, D296): Vercel has `SINGULARITY_CONFIG_STORE` and `DATABASE_URL` (checked 11-01); the Actions variable is unreadable, so `health` faults `config_store_split` when the site and runs disagree. closed when: a phone's edit shows on a laptop and health passes the config-store line.
 - Live `SINGULARITY_GH_TOKEN` write access untested. closed when: Generate dispatches.
@@ -84,7 +84,7 @@ Unit (CI): 367 files, 5,573 tests, 2 min. Site e2e: 468, 14 min. Player: 81, 7 m
 1. Free the lane in the hold ([D209](decisions/engine.md)): step 1 is built (#399); steps 2, 4 and 5 are not. Step 3 shipped as D294. A batch left open is settled by run.yml's "Settle batches" step. closed when: a scheduled run's write stage logs "Writer first pass by batch" with `back` above 0, and a run that gave up on a batch logs "Settled a batch the run had left open".
 2. Owner, only he can do these (closed when: each line closes):
    - `secrets:push` (Guardrails), Blob plan by 11-13. closed when: those Unverified lines close.
-   - Import the ruleset (runbook 12): `main` is unprotected. closed when: the rulesets API lists it and Settings allow squash only.
+   - Settings > General: tick "Automatically delete head branches". closed when: the repo API shows `delete_branch_on_merge` true.
    - Deploy Hook secret `VERCEL_DEPLOY_HOOK_WEB`, hourly deploy check (D375 amendment). closed when: it exists and `deploy-due.yml` ran green once.
    - Unknown if done: revoke the old Vercel token; delete store `store_JmrDq8MB5Kwn3ejW`; [PWA calls](history/2026-10-16-pwa-launch-and-one-model-select.md); spend cap; clear Claude project instructions; CodeRabbit leftovers; "go" on the lock system. closed when: he confirms each done or dropped.
    - Design system: [its Next](https://github.com/somesh-ks/singularityfm-design-system/blob/main/docs/state.md#next). closed when: done there.

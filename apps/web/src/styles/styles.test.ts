@@ -29,32 +29,14 @@ const SYSTEM = join(
 );
 const SYSTEM_STYLES = join(SYSTEM, "styles");
 const SYSTEM_SRC = join(SYSTEM, "src");
-/**
- * The two admin stylesheets that moved out of this folder (D382 step 2b) keep the checks they had
- * here until the admin repository has its own. admin.css never had them.
- */
-const ADMIN_STYLES = join(SRC, "..", "..", "admin", "src", "styles");
-const ADMIN_FILES = ["costs.css", "health.css"];
-const STYLE_DIRS = [STYLES, SYSTEM_STYLES, ADMIN_STYLES];
+const STYLE_DIRS = [STYLES, SYSTEM_STYLES];
 const OWN_FILES = [STYLES, SYSTEM_STYLES]
   .flatMap((dir) => readdirSync(dir))
-  .concat(ADMIN_FILES)
   .filter((file) => file.endsWith(".css") && !["tokens.css", "foundations.css"].includes(file))
   .sort();
-// The admin's two sheets are read from its folder only; otherwise the system's copy wins over a
-// same-named reader file. A search over all three would let a later same-named file shadow the admin's.
+// The system's copy wins over a same-named reader file.
 const read = (file: string) =>
-  readFileSync(
-    join(
-      ADMIN_FILES.includes(file)
-        ? ADMIN_STYLES
-        : existsSync(join(SYSTEM_STYLES, file))
-          ? SYSTEM_STYLES
-          : STYLES,
-      file,
-    ),
-    "utf8",
-  );
+  readFileSync(join(existsSync(join(SYSTEM_STYLES, file)) ? SYSTEM_STYLES : STYLES, file), "utf8");
 
 /** Comments and the generated-font header carry prose and commands, not styles. */
 const withoutComments = (css: string) => css.replace(/\/\*[\s\S]*?\*\//g, "");
@@ -1230,9 +1212,9 @@ describe("design-system components in page stylesheets", () => {
 
 describe("component stylesheets", () => {
   it("covers every stylesheet the layout or an island imports", () => {
-    // The admin's Costs and Health sheets live in apps/admin (D382 step 2b). A sheet may import
-    // another (settings.css takes the page frame and the settings rows from the system).
-    const sources = [SRC, SYSTEM_SRC, join(SRC, "..", "..", "admin", "src")].flatMap((src) =>
+    // A sheet may import another (settings.css takes the page frame and the settings rows from the
+    // system).
+    const sources = [SRC, SYSTEM_SRC].flatMap((src) =>
       readdirSync(src, { recursive: true, encoding: "utf8" })
         .filter((file) => /\.(astro|tsx|css)$/.test(file))
         .map((file) => readFileSync(join(src, file), "utf8")),
@@ -1247,7 +1229,6 @@ describe("component stylesheets", () => {
     // `var(--space-5)` with no --space-5 is not an error to the browser: the whole declaration is
     // dropped, silently. The design system's rule (unknown-property): a property with a fallback is
     // one that script or a library may set, and what the reader's markup and script declare counts.
-    // The admin loads the system and its own files only, so its sheets may not lean on the reader's.
     const declaredIn = (roots: string[]) =>
       new Set(
         roots
@@ -1261,23 +1242,9 @@ describe("component stylesheets", () => {
           .flatMap((file) => [...declaredProperties(readFileSync(file, "utf8"), file)]),
       );
     const readerDeclared = declaredIn([SRC, SYSTEM_STYLES, SYSTEM_SRC]);
-    const adminDeclared = declaredIn([join(ADMIN_STYLES, ".."), SYSTEM_STYLES, SYSTEM_SRC]);
-    // The system's sheets the admin's shell loads must hold with what the admin declares, too.
-    const adminLoads = new Set(
-      [
-        ...readFileSync(join(ADMIN_STYLES, "..", "layouts", "Shell.astro"), "utf8").matchAll(
-          /design-system\/styles\/([a-z-]+\.css)/g,
-        ),
-      ].map((match) => match[1]),
-    );
     const offenders = [...OWN_FILES, "foundations.css"].flatMap((file) =>
-      [
-        ...(ADMIN_FILES.includes(file) ? [] : [readerDeclared]),
-        ...(ADMIN_FILES.includes(file) || adminLoads.has(file) ? [adminDeclared] : []),
-      ].flatMap((declared) =>
-        unknownProperty(read(file), file, declared).map(
-          ({ line, message }) => `${file}:${line} ${message}`,
-        ),
+      unknownProperty(read(file), file, readerDeclared).map(
+        ({ line, message }) => `${file}:${line} ${message}`,
       ),
     );
     expect(offenders).toEqual([]);

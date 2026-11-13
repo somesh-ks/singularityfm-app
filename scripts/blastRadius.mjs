@@ -8,7 +8,7 @@ import { execFileSync } from "node:child_process";
 const SHARED_RULES = [
   {
     // The design system is a pinned package (D382 step 8): a bump moves the pin in these manifests.
-    pattern: /^(?:apps\/(?:web|admin)|packages\/cover)\/package\.json$|^package\.json$/,
+    pattern: /^(?:apps\/web|packages\/cover)\/package\.json$|^package\.json$/,
     risk: "HIGH",
     surface: "Design system pin (tokens, components and shared CSS on every page)",
     checks: [

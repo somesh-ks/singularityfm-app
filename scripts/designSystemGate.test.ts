@@ -4,9 +4,6 @@ import { describe, expect, it } from "vitest";
 import {
   ALLOWLISTS,
   allowlistAdditions,
-  appBoundaryProblems,
-  appSources,
-  CROSS_APP_IMPORTS,
   checkDesignSystemPr,
   listEntries,
   SYSTEM_PATHS,
@@ -106,40 +103,5 @@ describe("design-system gate", () => {
     expect([...SYSTEM_PATHS, ...Object.keys(ALLOWLISTS)].filter((path) => !covered(path))).toEqual(
       [],
     );
-    // The boundary check reads every app.
-    expect(filter).toContain("apps/**");
-  });
-
-  // The guide drew its page frame and search field from the reader's folder (D382 step 4e), so a
-  // reader edit restyled the guide and nothing said so. An app takes shared parts from the package.
-  it("fails an app that takes a part from another app's folder, and keeps the old reaches frozen", () => {
-    const admin = "apps/admin/src/layouts/Shell.astro";
-    const text = [
-      'import "@singularityfm/design-system/styles/page-frame.css";',
-      'import "../../../web/src/styles/settings.css";',
-      'import { SUPPORTED_TIMEZONES } from "@singularityfm/core/time";',
-      'import { x } from "@singularityfm/web/lib/x";',
-    ].join("\n");
-    // A stylesheet reaches by url() as well.
-    expect(
-      appBoundaryProblems(
-        [
-          {
-            file: "apps/admin/src/styles/a.css",
-            text: '@import url("../../../web/src/styles/b.css");',
-          },
-        ],
-        [],
-      ),
-    ).toEqual(["apps/admin/src/styles/a.css: ../../../web/src/styles/b.css"]);
-    expect(appBoundaryProblems([{ file: admin, text }], [])).toEqual([
-      `${admin}: ../../../web/src/styles/settings.css`,
-      `${admin}: @singularityfm/web/lib/x`,
-    ]);
-    const sources = appSources(join(import.meta.dirname, ".."));
-    expect(sources.some(({ file }) => file.startsWith("apps/admin/src/"))).toBe(true);
-    expect(appBoundaryProblems(sources)).toEqual([]);
-    // A reach that is gone leaves the list, so it cannot come back unseen.
-    expect(appBoundaryProblems(sources, []).sort()).toEqual([...CROSS_APP_IMPORTS].sort());
   });
 });

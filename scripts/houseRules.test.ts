@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -18,7 +19,6 @@ describe("house rules for authored files", () => {
     "scripts",
     "packages/sound/src",
     "apps/web/src/styles",
-    "apps/admin/src",
     "packages/contracts/src",
     "docs/prototype/sound-lab.html",
     "docs/prototype/ui-prototype.html",
@@ -72,4 +72,30 @@ describe("the prototype stylesheets", () => {
       expect(source, `${file}: ease-in`).not.toMatch(/\bease-in\b(?!-out)/);
     },
   );
+});
+
+// actions/checkout runs `git submodule foreach` when it removes its credentials, and that exits 128
+// on a gitlink with no .gitmodules entry, so every deploy-due run failed after 5fb06f0c committed a
+// local spec-kit clone that way (#803, 2026-11-12).
+describe("the git index", () => {
+  it("holds no gitlink (a nested repository) without a .gitmodules to name it", () => {
+    // A git hook sets GIT_DIR and GIT_INDEX_FILE, which would point this at another index.
+    const env = Object.fromEntries(
+      Object.entries(process.env).filter(([name]) => !name.startsWith("GIT_")),
+    );
+    const entries = execFileSync("git", ["ls-files", "--stage"], {
+      cwd: ROOT,
+      encoding: "utf8",
+      env,
+    });
+    const gitlinks = entries
+      .split("\n")
+      .filter((line) => line.startsWith("160000 "))
+      .map((line) => line.split("\t")[1]);
+    if (readdirSync(ROOT).includes(".gitmodules")) return;
+    expect(
+      gitlinks,
+      "a nested repository was added; use `git rm --cached` or add a submodule",
+    ).toEqual([]);
+  });
 });

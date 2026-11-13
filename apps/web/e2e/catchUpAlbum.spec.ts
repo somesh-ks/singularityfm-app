@@ -41,11 +41,12 @@ test("a row too narrow for the select, Play and Share scrolls sideways instead o
   await page.setViewportSize({ width: 320, height: 700 });
   await page.goto(`/e/${FIRST}`);
   await hydrated(page);
-  const scrolls = await page.locator(".hero-actions").evaluate((row) => ({
-    row: row.scrollWidth > row.clientWidth,
-    page: document.documentElement.scrollWidth > document.documentElement.clientWidth,
-  }));
-  expect(scrolls).toEqual({ row: true, page: false });
+  // The page never widens. Since Play is its glyph alone (D391) the row may fit at this width; if it
+  // does not, it scrolls on its own.
+  const pageScrolls = await page.evaluate(
+    () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
+  );
+  expect(pageScrolls).toBe(false);
   // Share is reachable by scrolling to it.
   const share = page.getByRole("button", { name: "Share", exact: true });
   await share.scrollIntoViewIfNeeded();

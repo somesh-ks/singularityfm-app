@@ -1,4 +1,4 @@
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join, relative } from "node:path";
 import { SUPPORTED_TIMEZONES } from "@singularityfm/core/time";
@@ -22,10 +22,8 @@ const FLAGS = dirname(
   createRequire(import.meta.url).resolve("@singularityfm/design-system/flags/LICENSE.txt"),
 );
 const SRC = join(ROOT, "apps", "web", "src");
-/** Every app that draws the system: the admin app borrows the reader's stylesheets and components. */
-const APPS = ["web", "admin"]
-  .map((app) => join(ROOT, "apps", app, "src"))
-  .filter((dir) => existsSync(dir));
+/** Every app that draws the system: the reader (the admin lives in its own repository, D382). */
+const APPS = [SRC];
 
 /** Source files that draw markup: the app's pages, components, scripts and islands, not tests. */
 function markupFiles(dir: string): string[] {
@@ -71,9 +69,6 @@ describe("quoted (the class guard's reader)", () => {
   });
 });
 
-/** Files that read the classes to count them and draw none: Coverage's class reader (D382 step 7). */
-const CLASS_READERS = new Set(["apps/admin/src/lib/classReader.ts"]);
-
 describe("design-system components", () => {
   it.each(COMPONENTS)(
     "$name: no page in any app writes its classes, or the ones it replaced, by hand",
@@ -81,7 +76,6 @@ describe("design-system components", () => {
       const written = [...c.classes, ...c.retired];
       const offenders = APPS.flatMap((root) =>
         markupFiles(root).flatMap((file) => {
-          if (CLASS_READERS.has(relative(ROOT, file).split("\\").join("/"))) return [];
           const text = quoted(readFileSync(file, "utf8"));
           return written
             .filter((name) => wholeClass(name).test(text))

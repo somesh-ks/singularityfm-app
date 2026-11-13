@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { buildCss, loadTokens } from "@singularityfm/design-system/scripts/buildTokens";
@@ -85,7 +85,7 @@ describe("the git index", () => {
       .split("\n")
       .filter((line) => line.startsWith("160000 "))
       .map((line) => line.split("\t")[1]);
-    if (existsSync(resolve(ROOT, ".gitmodules"))) return;
+    if (readdirSync(ROOT).includes(".gitmodules")) return;
     expect(
       gitlinks,
       "a nested repository was added; use `git rm --cached` or add a submodule",

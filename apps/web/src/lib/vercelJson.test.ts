@@ -28,7 +28,7 @@ describe("vercel.json", () => {
     const names = readdirSync(apps, { withFileTypes: true })
       .filter((entry) => entry.isDirectory() && !notOnVercel.includes(entry.name))
       .map((entry) => entry.name);
-    expect(names).toContain("admin");
+    expect(names).toContain("web");
     for (const name of names) {
       expect({ name, hasVercelJson: existsSync(new URL(`${name}/vercel.json`, apps)) }).toEqual({
         name,

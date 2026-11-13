@@ -18,7 +18,6 @@ describe("house rules for authored files", () => {
     "scripts",
     "packages/sound/src",
     "apps/web/src/styles",
-    "apps/admin/src",
     "packages/contracts/src",
     "docs/prototype/sound-lab.html",
     "docs/prototype/ui-prototype.html",

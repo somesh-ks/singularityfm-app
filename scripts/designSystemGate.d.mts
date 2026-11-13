@@ -14,12 +14,3 @@ export declare function checkDesignSystemPr(input: {
   /** What the pull request adds to the allowlists, as "LIST: entry". */
   added?: string[];
 }): string[];
-/** What one app still takes from another app's folder, as "file: specifier"; the list only shrinks. */
-export declare const CROSS_APP_IMPORTS: string[];
-/** Imports in an app that reach another app. */
-export declare function appBoundaryProblems(
-  sources: { file: string; text: string }[],
-  allowed?: string[],
-): string[];
-/** Every source file and stylesheet under apps/web and apps/admin (read from `root`). */
-export declare function appSources(root: string): { file: string; text: string }[];

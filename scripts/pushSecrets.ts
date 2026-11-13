@@ -78,8 +78,9 @@ const VERCEL_ENV = [
 /**
  * The command center's sign-in (D224), then the config store its Experiments switches read (D249,
  * runbook 1.4a). They go to the separate singularity-admin Vercel project, not the reader's, so they
- * need `apps/admin` linked to it; without that link nothing is sent, because the reader's own link
- * would take them.
+ * need a checkout of the singularityfm-admin repository linked to it (D382): SINGULARITY_ADMIN_DIR,
+ * or ../singularityfm-admin beside this one. Without that link nothing is sent, because the reader's
+ * own link would take them.
  */
 const VERCEL_ADMIN_ENV = [
   "ADMIN_PASSWORD",
@@ -88,7 +89,7 @@ const VERCEL_ADMIN_ENV = [
   "SINGULARITY_CONFIG_STORE",
 ];
 
-/** The admin gate's shortest session secret (MIN_SECRET in apps/admin/src/gate/gate.ts); shorter ones keep sign-in shut. */
+/** The admin gate's shortest session secret (MIN_SECRET in the admin repository's src/gate/gate.ts); shorter ones keep sign-in shut. */
 const ADMIN_SECRET_MIN = 32;
 
 /** The singularity-admin project's id. `vercel link` may have been pointed at another project. */
@@ -209,9 +210,9 @@ function main(): void {
   delete childEnv.VERCEL_ORG_ID;
   delete childEnv.VERCEL_PROJECT_ID;
 
-  // The reader's project: the repository root or apps/web. The admin project: apps/admin only.
+  // The reader's project: the repository root or apps/web. The admin project: its own checkout.
   const vercelDir = linkedVercelDir([".", "apps/web"]);
-  const adminDir = linkedVercelDir(["apps/admin"]);
+  const adminDir = linkedVercelDir([process.env.SINGULARITY_ADMIN_DIR ?? "../singularityfm-admin"]);
   let adminLinkOk = false;
   if (adminDir) {
     try {
@@ -277,7 +278,9 @@ function main(): void {
           break;
         case "vercel-admin":
           if (!adminDir || !adminLinkOk) {
-            throw new Error("apps/admin is not linked to singularity-admin: run vercel link there");
+            throw new Error(
+              "the singularityfm-admin checkout is not linked to singularity-admin: run vercel link there, or set SINGULARITY_ADMIN_DIR",
+            );
           }
           if (target.name === "ADMIN_SESSION_SECRET" && value.length < ADMIN_SECRET_MIN) {
             throw new Error(`ADMIN_SESSION_SECRET needs ${ADMIN_SECRET_MIN} or more characters`);

@@ -127,9 +127,9 @@ One line each: symptom, cause, fix. Search before debugging; older gotchas are i
 - 2026-10-11: Biome rewrote `<T,>(x: T) =>` to `<T>(x: T) =>` in Astro frontmatter, which the compiler rejects: use a `function`.
 - 2026-10-08: branches that pass alone can fail together (tab order, focus ring, touch targets, bundle size): run the whole site suite on the stack.
 - 2026-10-30: every `main` deploy failed on Vercel, none locally: skew protection stamps `?dpl=<id>` on asset URLs and `bundleBudget.ts` looked files up with it. Strip `?query` before a path lookup.
-- 2026-10-30: the Experiments function crashed at load on Vercel only: a bare `@singularityfm/engine/...` import resolves to `.ts` source the bundle omits. Import workspace code by path.
 - 2026-10-31: a switch read back stale: the reader's worker answered `/admin` GETs from a copy up to 10 min old (#494). A write's answer does not prove the next read is fresh; settle only on a read.
 - 2026-11-08: a deleted package folder still read by path (cover palettes) passed unit tests and the static build; only the browser suites' build failed. Resolve package files with createRequire, never a repo path.
+- 2026-11-12: a moved Vercel project kept Root Directory `apps/admin` after the owner edited it (the card's Save was missed); Redeploy failed alike. Check it with `vercel project inspect` before calling a repoint done.
 
 ## Windows and shells
 

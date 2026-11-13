@@ -11,5 +11,5 @@ for attempt in $(seq 1 "$tries"); do
     sleep $((attempt * 15))
   fi
 done
-echo "::error::'$*' failed $tries times: the network or the registry, not the code. Re-run the job once the service answers."
+echo "::error::'$*' failed $tries times. Read its output above; a registry or download that is down is cleared by re-running the job once it answers."
 exit 1

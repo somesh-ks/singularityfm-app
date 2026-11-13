@@ -15,7 +15,7 @@ Why pull requests, CI, builds and deployments failed from 2026-10-15 to 2026-11-
 9. **A PR that GitHub shows as conflicting is also an unchecked one.** Fetch `main` and merge it as soon as `mergeable_state` reads `dirty`, then read the first `ci` run on the merged head before calling the branch green (class 14).
 10. **Probe what a build depends on before paying for it.** A scheduled or hook build that reads the content store asks the store first and does nothing on a refusal (`deploy-due.yml`, #804). Retrying a refusal never fixes it (class 16).
 11. **Moving a repository moves its Vercel project settings too, and they are not in git.** After repointing a project, clear or fix its Root Directory and build once from the new repository before the old folder is deleted (class 18).
-12. **A red browser shard is read by cause before it is run again.** The job page names it: `code` (fix it; running again hides a regression), `infra` (the shard already reran once), `flaky` (a name to fix if it repeats) or `unknown` (read the log). Only the install steps retry on their own (class 22, D393).
+12. **A red browser shard is read by cause before it is run again.** The job page names it: `code` (fix it; running again hides a regression), `infra` (the shard already reran once), `flaky` (a name to fix if it repeats) or `unknown` (read the log). Only the install steps and an `infra` shard (once) run again on their own (class 22, D393).
 
 ## Failure classes
 

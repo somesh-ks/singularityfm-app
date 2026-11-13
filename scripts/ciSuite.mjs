@@ -5,7 +5,7 @@
 //   infra    the run never reached the tests (the server did not start, the runner killed the process,
 //            a network reset) or every failure is the server gone: rerun the shard once, say so.
 //   flaky    green, but a test passed only on its retry: reported by name, never a failure (D360).
-//   unknown  red with no failed test and no known infra signature: read the log, no rerun.
+//   unknown  no report, or red with no failed test and no known infra signature: read the log, no rerun.
 // The result goes to the job page ($GITHUB_STEP_SUMMARY) and to annotations on the run.
 // Usage in CI: node scripts/ciSuite.mjs run "<label>" <report.json> -- <command...>
 //              node scripts/ciSuite.mjs merge <dir of shard reports> <merged.json> <shard count>
@@ -82,7 +82,9 @@ export function readReport(text) {
 
 /** Which kind of run this was; see the top of the file. `report` is readReport's result or null. */
 export function classify({ code, report, log }) {
-  if (code === 0) return { kind: report?.flaky.length ? "flaky" : "pass" };
+  // A green exit with no report is a reporter that wrote nothing: the shard's counts are lost.
+  if (code === 0)
+    return report ? { kind: report.flaky.length ? "flaky" : "pass" } : { kind: "unknown" };
   if (report?.failed.length) {
     return report.failed.every((each) => SERVER_GONE.test(each.error))
       ? { kind: "infra", signature: "the server went away under the tests" }

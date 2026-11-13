@@ -42,6 +42,7 @@ describe("ciSuite", () => {
       }),
     ).toMatchObject({ kind: "infra" });
     expect(classify({ code: 1, report: null, log: "killed by SIGKILL" }).kind).toBe("infra");
+    expect(classify({ code: 0, report: null, log: "" }).kind).toBe("unknown");
     expect(
       classify({ code: 1, report: null, log: "SyntaxError in playwright.config.ts" }).kind,
     ).toBe("unknown");

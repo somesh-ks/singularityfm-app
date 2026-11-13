@@ -338,21 +338,8 @@ async function runCommit(argv: string[], ctx: CommandContext): Promise<number> {
     case "saved":
       print(ctx.json ? JSON.stringify({ status: outcome.status }) : "Nothing to commit.");
       return 0;
-    case "committed":
-    case "pushed":
-      print(
-        ctx.json
-          ? JSON.stringify({ status: outcome.status, sha: outcome.sha, paths: outcome.paths })
-          : `${outcome.status === "pushed" ? "Committed and pushed" : "Committed"} ${outcome.sha.slice(0, 7)}.`,
-      );
-      return 0;
-    case "refused":
-      ctx.log.error(`Commit refused (${outcome.reason}): ${outcome.offending.join(", ")}`);
-      return 1;
-    case "push_failed":
-      ctx.log.error(
-        `Committed ${outcome.sha.slice(0, 7)} but the push failed (${outcome.reason}): ${outcome.detail}`,
-      );
+    case "save_failed":
+      ctx.log.error(outcome.detail);
       return 1;
     default: {
       const unreachable: never = outcome;

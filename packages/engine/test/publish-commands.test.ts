@@ -463,7 +463,6 @@ describe("singularity publish", () => {
       expect(await createPublishCommand(r.deps)([], ctx)).toBe(0);
       expect(audioOf("2026-10-07")).toBeNull();
       expect(r.out.join("")).toContain("audio failed at synthesis");
-      expect(r.out.join("")).toContain("nothing to commit");
       expect(
         ctx.log.lines.some((line) => line.level === "warn" && line.message.includes("2026-10-07")),
       ).toBe(true);
@@ -521,33 +520,6 @@ describe("singularity publish", () => {
       const everything = [...r.out, ...ctx.log.lines.map((line) => line.message)].join("\n");
       expect(everything).not.toContain(FAKE_SPEECHIFY_KEY);
       expect(everything).not.toContain(FAKE_BLOB_TOKEN);
-    });
-  });
-
-  describe("the write guard", () => {
-    it("exits 1 before any synthesis when the tree holds a change outside the allowlist", async () => {
-      await seed("2026-10-07");
-      await put(pair.a, "config/preferences.json", '{"weights":{"x":1}}\n');
-      const r = rig();
-      expect(await createPublishCommand(r.deps)([], ctx)).toBe(1);
-      expect(r.speech.calls.marks).toEqual([]);
-      expect(
-        ctx.log.lines.some(
-          (line) => line.level === "error" && line.message.includes("config/preferences.json"),
-        ),
-      ).toBe(true);
-    });
-
-    it("exits 1 when git status cannot be read", async () => {
-      const outside = await makeTempRoot();
-      try {
-        await writeDigest(outside.root, makeDigest());
-        const r = rig();
-        expect(await createPublishCommand(r.deps)([], makeContext(outside.root))).toBe(1);
-        expect(r.speech.calls.marks).toEqual([]);
-      } finally {
-        await outside.cleanup();
-      }
     });
   });
 

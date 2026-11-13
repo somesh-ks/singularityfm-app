@@ -446,11 +446,11 @@ describe("formatReport", () => {
       deploy: true,
       items: 8,
       dry_run: false,
-      commit: { status: "pushed", sha: "abcdef1234567", message: "chore(digest): 2026-10-07" },
+      commit: { status: "saved" },
     });
     expect(text).toContain("Outcome: published.");
     expect(text).toContain("2026-10-07 (regular): published, 8 items, verified");
-    expect(text).toContain('Commit: pushed abcdef1 "chore(digest): 2026-10-07"');
+    expect(text).toContain("Commit: saved");
     expect(text).toContain("Deploy: yes");
   });
 });

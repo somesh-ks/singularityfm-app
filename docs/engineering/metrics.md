@@ -58,5 +58,5 @@ The voice-rewrite step of the write stage, 28 stories (a 5-minute daily with spa
 
 - `length_share` off: read `funnel` (where did the stories go), then the validate report's `grounding_drops`.
 - `generation_ms` off: read `stage_ms`; validate has been the longest stage.
-- `failure_rate` off: read `failure` of each failed entry; a push failure is `rebase_conflict` or `rejected` in the run log.
+- `failure_rate` off: read `failure` of each failed entry; a failed state save is `save_failed` in the command report's `commit.status` (job output).
 - Nothing is measured until three runs have the metric. `unmeasured` is not a pass.

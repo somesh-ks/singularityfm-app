@@ -9,19 +9,31 @@ async function expectAccessible(page: Page, where: string): Promise<void> {
   for (const colorScheme of ["light", "dark"] as const) {
     await page.emulateMedia({ colorScheme });
     // The colours ease to the new scheme, and the story under the title fades in when it changes;
-    // axe reads them once they are there.
-    await page.evaluate(() =>
-      Promise.all(
+    // axe reads them once they are there. A new story restarts that fade, so look again until none
+    // runs (2 s at most, since an infinite or paused animation never ends): the nightly run on
+    // main failed color-contrast on the docked bar once, mid-fade, 2026-11-13.
+    await page.evaluate(async () => {
+      const running = () =>
         document
           .getAnimations()
           .filter(
             (animation) =>
-              animation instanceof CSSTransition ||
-              (animation instanceof CSSAnimation && animation.animationName === "fade-in"),
-          )
-          .map((animation) => animation.finished.catch(() => null)),
-      ),
-    );
+              animation.playState === "running" &&
+              (animation instanceof CSSTransition ||
+                (animation instanceof CSSAnimation && animation.animationName === "fade-in")),
+          );
+      const deadline = performance.now() + 2000;
+      // The timer races each wait, so a long or paused animation cannot hold the scan past 2 s.
+      const expired = new Promise((resolve) => setTimeout(resolve, 2000));
+      while (running().length > 0 && performance.now() < deadline) {
+        await Promise.race([
+          Promise.all(running().map((animation) => animation.finished.catch(() => null))).then(
+            () => new Promise((resolve) => requestAnimationFrame(resolve)),
+          ),
+          expired,
+        ]);
+      }
+    });
     const results = await new AxeBuilder({ page }).withTags(TAGS).analyze();
     const violations = results.violations
       .map((violation) => ({

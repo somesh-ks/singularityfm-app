@@ -29,8 +29,9 @@ env:
   ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
   GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
+# Read only: the engine writes nothing to git any more (D300 step 5), so a push would be refused here.
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   podcast:

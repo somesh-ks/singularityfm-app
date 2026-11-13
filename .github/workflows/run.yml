@@ -127,8 +127,9 @@ concurrency:
   group: ${{ (github.event_name == 'schedule' && github.event.schedule != (vars.RUN_CRON || '13 7 * * *') && github.event.schedule != vars.RUN_CRON_WEEKLY) && format('singularity-skipped-{0}', github.run_id) || 'singularity' }}
   cancel-in-progress: false
 
+# Read only: the engine writes nothing to git any more (D300 step 5), so a push would be refused here.
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   run:

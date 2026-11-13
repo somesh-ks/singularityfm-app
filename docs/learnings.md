@@ -69,7 +69,7 @@ One line each: symptom, cause, fix. Search before debugging; older gotchas are i
 - 2026-10-11: a judge with a fallback (Jev, then Nebius) shares the fallback's token budget with the writer: score-only work uses the primary judge alone.
 - 2026-11-01: `content sync` mirrors a checkout and deletes what it lacks: safe only while git holds content. Out of git, a job saves with `content push`, a diff against what it pulled.
 - 2026-11-09: a switched-off podcast is never due: the weekly missed 8 Nov with health green (D386).
-- 2026-11-13: a Vercel build that fails in under a second is a settings fault (admin's Root Directory after the repo move), and still bills 1 min x 4 vCPU. Read `vercel inspect <url> --logs`.
+- 2026-11-13: a Vercel build that fails in under a second is a settings fault (admin's Root Directory after the repo move), and still bills 1 min x 4 vCPU. Read `vercel inspect <url> --logs`; check a repoint with `vercel project inspect`.
 - 2026-11-12: a gitlink with no `.gitmodules` fails every `actions/checkout` post step; `houseRules.test.ts` guards it.
 
 ## Site and service worker
@@ -129,7 +129,6 @@ One line each: symptom, cause, fix. Search before debugging; older gotchas are i
 - 2026-10-30: every `main` deploy failed on Vercel, none locally: skew protection stamps `?dpl=<id>` on asset URLs and `bundleBudget.ts` looked files up with it. Strip `?query` before a path lookup.
 - 2026-10-31: a switch read back stale: the reader's worker answered `/admin` GETs from a copy up to 10 min old (#494). A write's answer does not prove the next read is fresh; settle only on a read.
 - 2026-11-08: a deleted package folder still read by path (cover palettes) passed unit tests and the static build; only the browser suites' build failed. Resolve package files with createRequire, never a repo path.
-- 2026-11-12: a moved Vercel project kept Root Directory `apps/admin` after the owner edited it (the card's Save was missed); Redeploy failed alike. Check it with `vercel project inspect` before calling a repoint done.
 
 ## Windows and shells
 

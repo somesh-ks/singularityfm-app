@@ -395,18 +395,15 @@
 }
 
 /* A recording with no audio to play: the site's empty screen (PlayerEmpty) in place of the cover and
-   the controls, centred in the room under the chevron and the menu. */
-.player-empty {
+   the controls, centred in the room under the chevron and the menu, which stay at the top. */
+.player-unplayable {
   display: grid;
   width: 100%;
+  margin-block: auto;
 }
 
-.player-empty > .empty {
+.player-unplayable > .empty {
   padding-block: var(--space-4);
-}
-
-.player-page-inner[data-unplayable] {
-  justify-content: center;
 }
 
 .player-cover-box {

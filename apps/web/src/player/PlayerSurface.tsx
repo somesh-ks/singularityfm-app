@@ -190,11 +190,7 @@ export default function PlayerSurface() {
             getPlayerStore().toggle();
           }}
         >
-          <div
-            className="player-page-inner"
-            data-lean={lean || unplayable ? "" : undefined}
-            data-unplayable={unplayable ? "" : undefined}
-          >
+          <div className="player-page-inner" data-lean={lean || unplayable ? "" : undefined}>
             <div className="player-drag" data-player-drag>
               {/* A chevron at the top left on a phone (owner, 2026-10-20), so a listener who does not
                   know the page pulls down still sees how to put it away. From 64rem it shows only on
@@ -208,7 +204,12 @@ export default function PlayerSurface() {
               </IconButton>
               <PlayerMenu />
               {unplayable ? (
-                <PlayerEmpty />
+                <>
+                  {/* The surface looks for the cover's resting place to open (surfaceView.ts); with
+                      no cover to show it has no size, so no cover flies. */}
+                  <span data-player-cover hidden />
+                  <PlayerEmpty />
+                </>
               ) : (
                 <>
                   <div className="player-cover-slot">

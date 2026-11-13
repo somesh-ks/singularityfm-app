@@ -46,5 +46,5 @@ export default function PlayerEmpty() {
     box.addEventListener("click", onClick);
     return () => box.removeEventListener("click", onClick);
   }, []);
-  return <div className="player-empty" ref={slot} />;
+  return <div className="player-unplayable" ref={slot} />;
 }

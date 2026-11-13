@@ -51,7 +51,7 @@ async function serve(page: Page, answer: (key: string) => Answer): Promise<void>
 }
 
 test.describe("a recording that fails", () => {
-  test("a recording with no audio shows the empty screen, and Try again plays it once the audio is back", async ({
+  test("a recording with no audio shows the empty screen, and Try again plays it once the audio is back @desktop", async ({
     player,
     page,
     finger,

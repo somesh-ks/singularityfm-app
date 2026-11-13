@@ -313,6 +313,7 @@ export function textHasWords(text: string, query: string): boolean {
   return text.split("\n").some((line) => lineHasWords(line, words));
 }
 
+// shortcut: English names only, so a show in another language still gets its weekdays searched in its text; upgrade when shows carry a language.
 const DATE_WORDS = new Set(
   (
     "monday tuesday wednesday thursday friday saturday sunday " +

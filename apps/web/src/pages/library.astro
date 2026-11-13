@@ -29,7 +29,7 @@ import { keepAtEdge, readFromContentRepo } from "../server/contentRepo";
 export const prerender = false;
 
 if (!Astro.isPrerendered) {
-  const unavailable = await readFromContentRepo("library");
+  const unavailable = await readFromContentRepo("library", Astro.url);
   if (unavailable) return unavailable;
   keepAtEdge(Astro.response.headers);
 }

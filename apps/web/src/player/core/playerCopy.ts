@@ -1,6 +1,6 @@
 import { CATCH_UP_LABEL } from "../../lib/formatLabels";
 import type { PlayerDigestData } from "../../types/contracts";
-import type { PlayerError, PlayerErrorKind, PlayerState } from "./playerTypes";
+import type { PlayerError, PlayerState } from "./playerTypes";
 import { briefingLengthLabel } from "./readerMath";
 
 /**
@@ -52,10 +52,11 @@ export const INTERRUPTED_LINE = "Paused by another app";
 
 /**
  * The one line the strip carries for a failure, or null where something else says it: the strip's own
- * offline message, or the player's empty screen for a recording with no audio (isUnplayable).
+ * offline message, the player's empty screen for a recording with no audio (isUnplayable), or a toast
+ * for a cap or allowance that said no (D394).
  */
 export function stripLine(error: PlayerError | null): string | null {
-  if (!error || error.kind === "offline" || isUnplayable(error)) return null;
+  if (!error || error.kind === "offline" || error.limit || isUnplayable(error)) return null;
   return errorSummary(error);
 }
 

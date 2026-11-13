@@ -1,5 +1,6 @@
 import { buttonClass } from "@singularityfm/design-system/button";
 import IconButton from "@singularityfm/design-system/IconButton";
+import { sendToast } from "@singularityfm/design-system/toastEvent";
 import { type PointerEvent, useDeferredValue, useEffect, useSyncExternalStore } from "react";
 import { setStripNotice } from "../scripts/deviceBanners";
 import { longDateFromDigestId } from "./core/formatTime";
@@ -127,6 +128,11 @@ export default function PlayerSurface() {
   const failure = state.error;
   // biome-ignore lint/correctness/useExhaustiveDependencies: a new failure is said again, even in the same words
   useEffect(() => setStripNotice(line, true), [failure]);
+  // A cap or an allowance is an answer to the press, said once on a toast, not a state of the app.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: said once per failure
+  useEffect(() => {
+    if (failure?.limit) sendToast({ message: failure.message });
+  }, [failure]);
   useEffect(() => () => setStripNotice(null), []);
   const cover = digest ? (
     <PlayerCover cover={digest.cover} weekly={digest.kind === "weekly"} size="player" />

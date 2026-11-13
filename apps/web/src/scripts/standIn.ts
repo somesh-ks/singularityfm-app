@@ -19,10 +19,26 @@ const STAND_IN = "[data-stand-in]";
 const TRY_MS = 600;
 
 const present = (): boolean => document.querySelector(STAND_IN) !== null;
+/** The outage page (pages/unavailable.astro): the server is down, not this device, so it never says offline. */
+const outage = (): boolean =>
+  document.querySelector(STAND_IN)?.getAttribute("data-stand-in") === "outage";
+/** How long the outage page waits before it asks the site again by itself. */
+const OUTAGE_WAIT_MS = 15_000;
+let outageTimer: ReturnType<typeof setTimeout> | undefined;
+
+/** Asks the site again on a gap, up to MAX_AUTO_TRIES times; Try again starts the count over. */
+function askLater(): void {
+  clearTimeout(outageTimer);
+  if (autoTries >= MAX_AUTO_TRIES) return;
+  outageTimer = setTimeout(() => {
+    autoTries += 1;
+    void recover();
+  }, OUTAGE_WAIT_MS);
+}
 
 /** The page the stand-in stands for. At /offline itself (opened by hand) that is the app's first page. */
 export function targetOf(location: Pick<Location, "pathname" | "search" | "hash">): string {
-  return location.pathname === "/offline"
+  return location.pathname === "/offline" || location.pathname === "/unavailable"
     ? "/"
     : `${location.pathname}${location.search}${location.hash}`;
 }
@@ -60,9 +76,11 @@ async function recover(): Promise<void> {
     automaticMove.active = false;
     recovering = false;
   }
-  // Answered by the stand-in again: the connection was not usable after all. It is asked again on its own.
-  if (present()) connectivity().reportUnreachable();
-  else autoTries = 0;
+  // Answered by the stand-in again. The outage page asks again on a gap; the offline one, when the
+  // connection check next confirms it was not usable after all.
+  if (!present()) autoTries = 0;
+  else if (outage()) askLater();
+  else connectivity().reportUnreachable();
 }
 
 async function tryAgain(button: HTMLElement): Promise<void> {
@@ -76,6 +94,7 @@ async function tryAgain(button: HTMLElement): Promise<void> {
   button.removeAttribute("aria-disabled");
   autoTries = 0;
   if (link === "online") void recover();
+  else if (outage()) askLater();
 }
 
 let installed = false;
@@ -87,8 +106,12 @@ export function installStandIn(): void {
   const arrive = (): void => {
     if (!present()) return;
     markDestination();
+    if (outage()) {
+      askLater();
+      return;
+    }
     // Opened by hand at its own address there is nothing it stands for: on to the first page.
-    if (location.pathname === "/offline" && link.link() === "online") {
+    if (targetOf(location) === "/" && location.pathname !== "/" && link.link() === "online") {
       void recover();
       return;
     }

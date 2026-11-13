@@ -37,10 +37,9 @@ export const CONTENT_CDN_CACHE = "max-age=300, stale-while-revalidate=2592000";
 export const CONTENT_CACHE_TAG = "content";
 
 /**
- * Lets the edge keep a page drawn from the content until the content changes (D318). A page drawn
- * from the saved copy (the store did not answer) says so in its head, so the edge never keeps it: it
- * would go on saying so for five minutes, and for 30 days to the one request after them, once the
- * store was back.
+ * Lets the edge keep a page drawn from the content until the content changes (D318). The two pages
+ * that answer from the saved copy in an outage (readFromContentRepo's `allowSaved`) are never kept:
+ * the edge would go on serving the old list for five minutes, and for 30 days to the one request after.
  */
 export function keepAtEdge(headers: Headers): void {
   if (savedContent) {
@@ -401,34 +400,68 @@ export async function loadPageSite(
 }
 
 /**
- * The guard every page rendered on request starts with: point getSite() at the content (the
- * store's, or this build's copy when the store cannot answer), so the page and every component it
- * draws read the same content. A page then reads `await getSite()` as a built page does. Answers
- * 503 only when neither the store nor the build has any content to show.
+ * The guard every page rendered on request starts with: point getSite() at the content, so the page
+ * and every component it draws read the same content. A page then reads `await getSite()` as a built
+ * page does. When the store cannot answer (the Blob outage, 12 to 13 Nov) nothing old is shown in
+ * its place (D394, which amends D282): a page answers 503 with the site's own empty screen
+ * (`outagePage`), and a data file answers 503 as plain text. Neither is kept anywhere.
  */
-export async function readFromContentRepo(label: string): Promise<Response | null> {
-  const load = async (): Promise<Site> => {
-    const { site } = await loadPageSite({
+export async function readFromContentRepo(
+  label: string,
+  /** The address asked for, on a page: the outage screen is fetched from the site's own edge. */
+  pageUrl?: URL,
+  /**
+   * Downloads and Saved: the way out the outage screen points to, so they answer from the last
+   * content this instance has instead (shortcut: the rows may be old, the device's own list decides
+   * what shows; end it when those pages draw from Cache Storage alone).
+   */
+  allowSaved = false,
+): Promise<Response | null> {
+  const load = () =>
+    loadPageSite({
       env: process.env,
       fetch,
       now: Date.now,
       log: (message) => console.error(`[${label}] ${message}`),
     });
-    return site;
-  };
   try {
-    await load();
+    if ((await load()).saved && !allowSaved) throw new Error("the content store did not answer");
   } catch (error) {
     console.error(
       `[${label}] no content to show: ${error instanceof Error ? error.message : "unknown"}`,
     );
-    return new Response("Couldn't load this page right now. Try again in a minute.", {
-      status: 503,
-      headers: { "Content-Type": "text/plain; charset=utf-8", "Retry-After": "60" },
-    });
+    return pageUrl ? outagePage(pageUrl) : outageText();
   }
-  readSiteFrom(load);
+  readSiteFrom(async () => (await load()).site);
   return null;
+}
+
+/** Answers that must never be kept: not at the edge, not by the browser, not by the worker. */
+const OUTAGE_HEADERS = {
+  "Cache-Control": "no-store",
+  "Vercel-CDN-Cache-Control": "no-store",
+  "Retry-After": "60",
+};
+
+function outageText(): Response {
+  return new Response("Couldn't load this page right now. Try again in a minute.", {
+    status: 503,
+    headers: { "Content-Type": "text/plain; charset=utf-8", ...OUTAGE_HEADERS },
+  });
+}
+
+/**
+ * The page for an outage of the content store: the built /unavailable page (an empty screen with Try
+ * again and Downloads), fetched from the site's own edge as the 404 is, and answered at the address
+ * that was asked for, so Try again brings the real page in there.
+ */
+export async function outagePage(pageUrl: URL): Promise<Response> {
+  const built = await fetch(new URL("/unavailable", pageUrl)).catch(() => null);
+  if (!built?.ok) return outageText();
+  return new Response(await built.text(), {
+    status: 503,
+    headers: { "Content-Type": "text/html; charset=utf-8", ...OUTAGE_HEADERS },
+  });
 }
 
 /**

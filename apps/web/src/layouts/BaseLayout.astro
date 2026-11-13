@@ -19,7 +19,7 @@ import { loadConfigHash } from "../lib/configHash";
 import { fabFor } from "../lib/fab";
 import type { LinkCard } from "../lib/linkCard";
 import { loadScheduleView } from "../lib/schedule";
-import { CONTENT_META, STRIP, type StripKey } from "../lib/stripMessages";
+import { STRIP, type StripKey } from "../lib/stripMessages";
 import PlayerRoot from "../player/PlayerRoot";
 // The device banners go in before first paint too, by an inline script hashed the same way.
 import bannersInit from "../scripts/bannersInit.js?raw";
@@ -29,7 +29,6 @@ import themeInit from "@singularityfm/design-system/scripts/themeInit.js?raw";
 // The back script, inline after it, bridges popstate to singularity:back before the router's own listener,
 // so the Create sheet can take Back (createSheet.ts). It is hashed the same way.
 import backInit from "../scripts/backInit.js?raw";
-import { isShowingSavedContent } from "../server/contentRepo";
 import SheetsRoot from "../sheets/SheetsRoot";
 import "@singularityfm/design-system/styles/tokens.css";
 import tokensCss from "@singularityfm/design-system/styles/tokens.css?raw";
@@ -182,7 +181,6 @@ const back =
     <meta name="apple-mobile-web-app-title" content="Singularity" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="robots" content="noindex, nofollow" />
-    {isShowingSavedContent() && <meta name={CONTENT_META} content="saved" />}
     <meta name="referrer" content="no-referrer" />
     <meta name="description" content={description} />
     <meta name="singularity-build" content={BUILD_ID} />

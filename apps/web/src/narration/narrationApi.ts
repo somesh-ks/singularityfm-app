@@ -283,7 +283,7 @@ function failureSummary(reason: NarrationFailure): string | undefined {
 export function describeNarrationFailure(
   reason: NarrationFailure,
   noun: NarrationNoun,
-): { message: string; summary?: string; standing: boolean } {
+): { message: string; summary?: string; standing: boolean; limit?: true } {
   // The notice has its own Try again where a retry helps, so the words are not repeated there.
   const message =
     reason === "failed"
@@ -291,5 +291,10 @@ export function describeNarrationFailure(
       : reason === "unavailable"
         ? "Narration hit a snag."
         : failureCopy(reason, noun);
-  return { message, summary: failureSummary(reason), standing: STANDING_REASONS.has(reason) };
+  return {
+    message,
+    summary: failureSummary(reason),
+    standing: STANDING_REASONS.has(reason),
+    ...(reason === "daily_cap" || reason === "monthly_budget" ? { limit: true as const } : {}),
+  };
 }

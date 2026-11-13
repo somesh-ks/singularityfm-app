@@ -4,10 +4,10 @@ import type { IconName } from "@singularityfm/design-system/icons";
  * Every message the strip can show, in one place (BaseLayout draws a template for each, and
  * scripts/deviceBanners.ts shows them by key). A status a reader sees is a strip, an empty screen, a
  * toast or an inline field error (design.md); the strip takes one condition at a time, offline first,
- * then the saved copy, then the player's line. `houseRules.test.ts` fails on any other element that
+ * then back online, then the player's line. `houseRules.test.ts` fails on any other element that
  * says a status, so new text for the strip is a new line here.
  */
-export type StripKey = "offline" | "online" | "saved-copy" | "audio";
+export type StripKey = "offline" | "online" | "audio";
 
 export interface StripMessage {
   tone: "warning" | "success";
@@ -29,10 +29,5 @@ export const STRIP: Record<StripKey, StripMessage> = {
     bodyId: "offline-reason",
   },
   online: { tone: "success", icon: "wifi", title: "Back online" },
-  // The store did not answer, so the page was drawn from the podcasts built into the last deploy.
-  "saved-copy": { tone: "warning", icon: "alert", title: "Showing older podcasts" },
   audio: { tone: "warning", icon: "alert", title: "" },
 };
-
-/** The page says it was drawn from the saved copy in a meta tag (BaseLayout), read again on each page. */
-export const CONTENT_META = "singularity-content";

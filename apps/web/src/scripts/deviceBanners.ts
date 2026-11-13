@@ -7,7 +7,7 @@
  */
 import { bannerText } from "@singularityfm/design-system/banner";
 import { connectivity, type Link } from "../lib/connectivity";
-import { CONTENT_META, type StripKey } from "../lib/stripMessages";
+import type { StripKey } from "../lib/stripMessages";
 
 function bannerStack(): HTMLElement | null {
   return document.getElementById("banners");
@@ -20,15 +20,12 @@ let closeTimer: number | undefined;
 /** What the strip is asked to say. `wanted()` picks one: the strip holds one condition at a time. */
 let link: Link = "online";
 let backOnline = false;
-let savedCopy = false;
 let audioLine: string | null = null;
 
 function wanted(): StripKey | null {
   if (link === "offline") return "offline";
   if (backOnline) return "online";
-  // A failure the reader can act on outranks a note about how old the page is.
-  if (audioLine) return "audio";
-  return savedCopy ? "saved-copy" : null;
+  return audioLine ? "audio" : null;
 }
 
 /**
@@ -82,7 +79,7 @@ let repeatTimer: number | undefined;
 
 /**
  * The player's one line when playback fails (null clears it). Offline and "back online" come first,
- * then this, then the saved copy. `again` is a new failure: if its words are the ones showing, the
+ * then this. `again` is a new failure: if its words are the ones showing, the
  * strip says them once more so a screen reader hears the second try fail too.
  */
 export function setStripNotice(line: string | null, again = false): void {
@@ -99,14 +96,6 @@ export function setStripNotice(line: string | null, again = false): void {
   }
   title.textContent = "";
   repeatTimer = window.setTimeout(paint, REPEAT_GAP_MS);
-}
-
-/** The page says it was drawn from the saved copy in a meta tag; a new page may say it no longer is. */
-function readSavedCopy(): void {
-  savedCopy =
-    document.head.querySelector(`meta[name="${CONTENT_META}"]`)?.getAttribute("content") ===
-    "saved";
-  paint();
 }
 
 /** The banner's title says why (BaseLayout.astro); a disabled control points at it. */
@@ -164,11 +153,8 @@ export function installDeviceBanners(): void {
   // checks. The stack persists across moves, so a swap leaves the strip and its attributes alone;
   // the root's own are carried (navigation.ts) and a new page only has Create controls to mark.
   render(connection.link(), null);
-  readSavedCopy();
   connection.subscribe((next, previous) => render(next, previous));
   document.addEventListener("astro:after-swap", () => syncCreate(connection.link() === "offline"));
-  // Each page says whether it was drawn from the saved copy: the strip follows the page it is under.
-  document.addEventListener("astro:page-load", readSavedCopy);
   window.addEventListener("online", () => connection.hintOnline());
   window.addEventListener("offline", () => connection.hintOffline());
   // An app that slept through the connection's return hears no event: coming back to the front asks.

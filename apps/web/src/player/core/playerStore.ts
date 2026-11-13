@@ -470,6 +470,7 @@ export function createPlayerStore(options: PlayerStoreOptions): PlayerStore {
       error.message = narrated.message;
       if (narrated.summary) error.summary = narrated.summary;
       if (narrated.standing) error.kind = "refused";
+      if (narrated.limit) error.limit = true;
     }
     // A file that is not there may be the store not answering (the Blob outage, 12 to 13 Nov), which
     // passes: it is asked for again like a dropped connection before the page gives up on it.

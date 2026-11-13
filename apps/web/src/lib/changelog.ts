@@ -18,6 +18,12 @@ export interface Release {
 
 export const CHANGELOG: readonly Release[] = [
   {
+    version: "0.23.5",
+    date: "2026-11-13",
+    description:
+      "The Play button at the top of a podcast and the one on each story are just the play icon, the same size as the heart and Share beside them, so they never change size as they play, pause or load. Buttons and the Library's Sort hug their words, with no empty room around a short one.",
+  },
+  {
     version: "0.23.4",
     date: "2026-11-11",
     description:

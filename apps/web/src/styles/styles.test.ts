@@ -1123,7 +1123,6 @@ const PAGE_OVERRIDES: string[] = [
   "podcast.css: .daily-panel input.field-input:focus-visible",
   "podcast.css: .daily-panel input.field-input[aria-invalid]",
   "queue.css: .queue-end-icon .icon-glyph",
-  'reader.css: .chip[data-playing="true"] .chip-label',
   "story-controls.css: .menu-list.story-menu-list",
   "story-controls.css: .menu-list.story-menu-list",
   "topics.css: .source-sheet-foot > .button-filled",

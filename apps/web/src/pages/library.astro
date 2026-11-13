@@ -10,14 +10,7 @@ import EmptyArt from "../components/EmptyArt.astro";
 import EpisodeActions from "../components/EpisodeActions.astro";
 import EpisodeCard from "../components/EpisodeCard.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
-import {
-  LIBRARY_FILTERS,
-  LIBRARY_SORT_RESERVE,
-  LIBRARY_SORTS,
-  monthLabel,
-  monthOf,
-  resultSummary,
-} from "../lib/library";
+import { LIBRARY_FILTERS, LIBRARY_SORTS, monthLabel, monthOf, resultSummary } from "../lib/library";
 import { type LibraryItem, libraryItems } from "../lib/libraryCard";
 import { getSite } from "../lib/site";
 // Inline, so a saved List view is on the page before its first frame, not after the page's script.
@@ -92,7 +85,7 @@ const dateOf = (item: LibraryItem): string =>
                   </Chip>
                 ))}
               </ChipGroup>
-              <Select variant="tonal" label="Sort" reserve={LIBRARY_SORT_RESERVE} className="library-sort" data-library-sort>
+              <Select variant="tonal" label="Sort" className="library-sort" data-library-sort>
                 {LIBRARY_SORTS.map((sort) => (
                   <option value={sort.id}>{sort.label}</option>
                 ))}

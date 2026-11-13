@@ -18,7 +18,6 @@ test.describe("the podcast header", () => {
     const chip = page.locator(".hero [data-play-digest]");
     await expect(chip).toHaveCount(1);
     await expect(chip).toHaveAttribute("data-play-digest", "2026-10-07");
-    await expect(chip.locator("[data-chip-label]")).toHaveText("1 min");
     await expect(chip).toHaveAccessibleName("Play the podcast, 1 min");
     await expect(chip).toHaveAttribute("data-state", "idle");
     await expect(chip).not.toHaveAttribute("aria-disabled", "true");
@@ -35,7 +34,7 @@ test.describe("the podcast header", () => {
     await expect(chip).toHaveAttribute("data-state", "idle");
     await expect(chip).not.toHaveAttribute("aria-disabled", "true");
     // The estimate written with the text stands in until there is a recording to measure.
-    await expect(chip.locator("[data-chip-label]")).toHaveText("3 min");
+    await expect(chip).toHaveAccessibleName("Play the podcast, 3 min");
     // Nothing is said under the chip: pressing it is self-explanatory.
     await expect(page.locator(".hero-hint")).toHaveCount(0);
     // The player leaves a briefing without audio exactly as the page rendered it.
@@ -145,7 +144,7 @@ test.describe("the podcast header", () => {
     await expect(page.locator("html")).toHaveAttribute("data-player-state", "playing");
     const chip = page.locator(".hero [data-play-digest]");
     await expect(chip).toHaveAttribute("data-state", "current");
-    await expect(chip.locator("[data-chip-label]")).toHaveText(/min left$/);
+    await expect(chip).toHaveAccessibleName(/min left$/);
     // The story chips the page rendered hidden now have something to play.
     await expect(page.locator("[data-play-item]").first()).toBeVisible();
     await expect(page.locator(".hero-hint")).toBeHidden();
@@ -261,7 +260,6 @@ test.describe("sections and stories", () => {
     await page.goto("/");
     const chip = page.locator(".story").first().locator("[data-play-item]");
     await expect(chip).toBeVisible();
-    await expect(chip.locator("[data-chip-label]")).toHaveText("0:03");
     await expect(chip).toHaveAccessibleName(`Play from here, 0:03: ${FIRST_HEADLINE}`);
     await expect(chip).toHaveAttribute("data-state", "idle");
     expect(await chip.evaluate((node) => node.tagName)).toBe("BUTTON");
@@ -352,7 +350,7 @@ test.describe("sections and stories", () => {
     await page.goto("/");
     await hydrated(page);
     const chip = page.locator(".hero [data-play-digest]");
-    await expect(chip.locator("[data-chip-label]")).toHaveText("1 min left");
+    await expect(chip).toHaveAccessibleName("Resume the podcast, 1 min left");
     // Heard to the end on another visit: the position is forgotten and the briefing is Played. Set
     // away from the page, which saves its own position as it is left.
     await page.goto("/library");
@@ -363,8 +361,7 @@ test.describe("sections and stories", () => {
     await page.goto("/");
     await hydrated(page);
     await expect(page.locator(".hero-facts .hero-played")).toBeVisible();
-    await expect(chip.locator("[data-chip-label]")).not.toHaveText(/played|left/i);
-    await expect(chip).not.toHaveAccessibleName(/played/i);
+    await expect(chip).not.toHaveAccessibleName(/played|left/i);
     await expect(chip).toHaveAttribute("data-state", "idle");
   });
 

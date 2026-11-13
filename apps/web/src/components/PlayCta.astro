@@ -43,18 +43,17 @@ const unavailable = mode === "expired" ? AUDIO_UNAVAILABLE_COPY.expired : null;
       </Select>
     )
   }
-  {/* The page's main action: the hero's chip is the primary PlayChip. The player owns it once it
-       hydrates (readerSync writes its state, label and name). Without audio the chip still works:
+  {/* The page's main action: the hero's Play is the primary PlayChip, its glyph alone (owner,
+       2026-11-13: "the play button in the hero should be just the icon button"; DS-13), so it never
+       changes size. The player owns it once it hydrates (readerSync writes its state and its name,
+       which carries the words: "Pause the podcast, 1 min left"). Without audio the chip still works:
        pressing it makes the audio first (narration on Play). Only audio that has expired gets a
        line under it, which the floating Play button below 64rem (PlayFab.astro) points to as well.
        data-minutes is the length as a number, from which a page without audio counts the time left
-       where the device left it, as its card does. The reserve is the widest word the chip says ("Processing");
-       shortcut: "N min left" with three digits would be cut, upgrade if a briefing can pass 99 min. */}
+       where the device left it, as its card does. */}
   <PlayChip
     primary
-    label={chip.label}
     state="idle"
-    reserve="Processing"
     aria-label={chip.name}
     aria-describedby={unavailable ? "play-hint" : undefined}
     data-play-digest={digestId}

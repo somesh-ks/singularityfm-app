@@ -61,7 +61,7 @@ test.describe("a recording that fails", () => {
     await serve(page, () => ({ file: !missing }));
     await finger.press(player.cta);
     await expect(player.root).toHaveAttribute("data-player-state", "error", { timeout: 10_000 });
-    await expect(player.cta.locator("[data-chip-label]")).toHaveText("Try again");
+    await expect(player.cta).toHaveAccessibleName("Try again");
     await expect(page.locator(".dock-caption")).toHaveText("Audio isn't available");
     await player.openPlayer();
     const notice = player.dialog.getByRole("alert");

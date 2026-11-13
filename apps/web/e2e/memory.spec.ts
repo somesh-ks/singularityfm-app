@@ -92,7 +92,6 @@ test("a podcast without audio says where it was left, as its cards do", async ({
   await page.goto(SILENT_DIGEST);
   await hydrated(page);
   const chip = page.locator(".hero [data-play-digest]");
-  await expect(chip.locator("[data-chip-label]")).toHaveText("2 min left");
   await expect(chip).toHaveAccessibleName("Resume the podcast, 2 min left");
   await expect(page.locator(".play-fab")).toHaveAttribute(
     "aria-label",
@@ -147,7 +146,6 @@ test("a podcast heard to the end shows Played in its subtitle and its play butto
   await expect(page.locator(".hero-facts .hero-played")).toBeVisible();
   await expect(page.locator(".hero-facts .hero-played .status-mark-played")).toBeVisible();
   await expect(chip).not.toHaveAttribute("data-state", "played");
-  await expect(chip.locator("[data-chip-label]")).not.toHaveText(/played/i);
   await expect(chip).not.toHaveAccessibleName(/played/i);
   await expect(page.locator(".play-fab")).not.toHaveAttribute("aria-label", /played/i);
 });
@@ -159,6 +157,6 @@ test("the floating Play on Today follows the chip", async ({ page }) => {
   await page.mouse.wheel(0, 1200);
   const chip = page.locator(".hero [data-play-digest]");
   const fab = page.locator(".play-fab");
-  await expect(chip.locator("[data-chip-label]")).toHaveText("1 min left");
+  await expect(chip).toHaveAccessibleName("Resume the podcast, 1 min left");
   await expect(fab).toHaveAttribute("aria-label", "Resume · 1 min left, the podcast");
 });

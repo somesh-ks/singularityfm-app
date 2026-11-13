@@ -84,7 +84,7 @@ Unit (CI): 367 files, 5,573 tests, 2 min. Site e2e: 468, 14 min. Player: 81, 7 m
 1. Free the lane in the hold ([D209](decisions/engine.md)): step 1 is built (#399); steps 2, 4 and 5 are not. Step 3 shipped as D294. A batch left open is settled by run.yml's "Settle batches" step. closed when: a scheduled run's write stage logs "Writer first pass by batch" with `back` above 0, and a run that gave up on a batch logs "Settled a batch the run had left open".
 2. Owner, only he can do these (closed when: each line closes):
    - `secrets:push` (Guardrails), Blob plan by 11-13. closed when: those Unverified lines close.
-   - Import the ruleset (runbook 12): `main` is unprotected. closed when: the rulesets API lists it and Settings allow squash only.
+   - Settings > General: tick "Automatically delete head branches". closed when: the repo API shows `delete_branch_on_merge` true.
    - Deploy Hook secret `VERCEL_DEPLOY_HOOK_WEB`, hourly deploy check (D375 amendment). closed when: it exists and `deploy-due.yml` ran green once.
    - Unknown if done: revoke the old Vercel token; delete store `store_JmrDq8MB5Kwn3ejW`; [PWA calls](history/2026-10-16-pwa-launch-and-one-model-select.md); spend cap; clear Claude project instructions; CodeRabbit leftovers; "go" on the lock system. closed when: he confirms each done or dropped.
    - Design system: [its Next](https://github.com/somesh-ks/singularityfm-design-system/blob/main/docs/state.md#next). closed when: done there.

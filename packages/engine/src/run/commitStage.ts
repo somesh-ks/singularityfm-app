@@ -22,7 +22,7 @@ import {
 } from "../curate/inputs.js";
 import { Selection } from "../curate/selectionFile.js";
 import { mergeListings } from "../fetch/listingCheck.js";
-import { type CommitOutcome, commitAndPush } from "../git/commit.js";
+import { type CommitOutcome, saveRunState } from "../git/commit.js";
 import { fastForwardToRemote } from "../git/fastForward.js";
 import { ALLOWLISTS, findViolations, readChangedPaths } from "../git/guard.js";
 import { pruneTopicJudgments } from "../judge/topicJudge.js";
@@ -345,7 +345,7 @@ export async function commitStage(deps: RunDeps, options: RunOptions): Promise<C
       await writeFile(path, serializeDigestFile(digest), "utf8");
       previews.set(digest.id, `.cache/run/${digest.id}/digest-preview.md`);
     }
-    if (spend && deps.spend) await commitDryRunCosts(deps, options, plan, nowIso, today);
+    if (spend && deps.spend) await commitDryRunCosts(deps, options, plan, nowIso);
     return {
       outcome,
       digests: reports.map((report) => ({ ...report, preview: previews.get(report.id) ?? null })),
@@ -463,12 +463,10 @@ export async function commitStage(deps: RunDeps, options: RunOptions): Promise<C
       mergeListings(await readListingFingerprints(root), scraped, now),
     );
   }
-  const committed = await commitAndPush({
+  const committed = await saveRunState({
     root,
-    message,
     command: "run",
     push: !options.noPush,
-    git: deps.git,
   });
   const commit = { ...describeCommit(committed), message };
   const finalReports = reports.map((report) => ({
@@ -476,24 +474,17 @@ export async function commitStage(deps: RunDeps, options: RunOptions): Promise<C
     path: report.outcome === "published" ? digestRelPath(report.id) : null,
   }));
 
-  // Once a local commit exists a second commit stage would publish the same run again, so the run
-  // is marked done even when the push then failed; the failure is reported below.
-  if (
-    committed.status === "committed" ||
-    committed.status === "pushed" ||
-    committed.status === "saved" ||
-    committed.status === "push_failed"
-  ) {
-    if (adopted) {
-      await markAdoptedCommitted(
-        root,
-        plan.passes[0]?.id ?? "",
-        now,
-        digests.map((d) => d.id),
-      );
-    } else {
-      await writePlan(root, { ...plan, committed_at: nowIso });
-    }
+  // The digest is in the content store by now, so a second commit stage would publish the same run
+  // again: the run is marked done even when the state save then failed; the failure is reported below.
+  if (adopted) {
+    await markAdoptedCommitted(
+      root,
+      plan.passes[0]?.id ?? "",
+      now,
+      digests.map((d) => d.id),
+    );
+  } else {
+    await writePlan(root, { ...plan, committed_at: nowIso });
   }
   if (committed.status === "refused" || committed.status === "push_failed") {
     const reason =
@@ -544,12 +535,10 @@ async function commitGated(
   const message = "chore(state): gated";
   let commit: CommitReport["commit"];
   try {
-    const committed = await commitAndPush({
+    const committed = await saveRunState({
       root: deps.root,
-      message,
       command: "run",
       push: !options.noPush,
-      git: deps.git,
     });
     commit = { ...describeCommit(committed), message };
     if (committed.status === "refused" || committed.status === "push_failed") {
@@ -575,17 +564,14 @@ async function commitDryRunCosts(
   options: RunOptions,
   plan: Plan,
   nowIso: string,
-  today: string,
 ): Promise<void> {
   if (!deps.spend) return;
   try {
     await recordSpend(deps.root, deps.spend, plan, nowIso);
-    const committed = await commitAndPush({
+    const committed = await saveRunState({
       root: deps.root,
-      message: `chore(costs): dry run ${today}`,
       command: "costs",
       push: !options.noPush,
-      git: deps.git,
     });
     if (committed.status === "refused" || committed.status === "push_failed") {
       deps.log.warn("The dry run's costs were not committed", {

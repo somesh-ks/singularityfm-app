@@ -11,7 +11,7 @@ import {
 import { type CommandContext, type CommandRun, secretsFromEnv } from "../context.js";
 import { recordRunCosts } from "../cost/ledger.js";
 import { emit } from "../curate/output.js";
-import { type CommitOutcome, commitAndPush } from "../git/commit.js";
+import { type CommitOutcome, saveRunState } from "../git/commit.js";
 import type { HttpClient } from "../http.js";
 import { describeError } from "../llm/errors.js";
 import { resolveFamilies } from "../llm/modelResolver.js";
@@ -139,11 +139,13 @@ async function refreshEpisodeIndex(
 
 /**
  * `tracked`: the checkout pulled its content from the store (D300), so an episode is never a git
- * change and a commit of nothing is how a delete or a quiet episode ends, not a failure.
+ * change and a save of nothing is how a delete or a quiet episode ends, not a failure. Without that
+ * baseline a push-enabled run has nowhere to send the episode: the content push skips it.
  */
 function commitFailure(
   outcome: CommitOutcome,
   tracked: boolean,
+  pushing: boolean,
   log: CommandContext["log"],
 ): string | null {
   // The episode is on the remote and live: only its cost and timing records missed Postgres, so a
@@ -154,7 +156,9 @@ function commitFailure(
   }
   switch (outcome.status) {
     case "nothing_to_commit":
-      return tracked ? null : "Nothing to commit: the episode file was not picked up by git";
+      return pushing && !tracked
+        ? "Nothing was saved: this checkout has no content baseline, so the episode never reached the content store"
+        : null;
     case "refused":
       return `Commit refused (${outcome.reason}): ${outcome.offending.join(", ")}`;
     case "push_failed":
@@ -272,13 +276,12 @@ export function makePodcastCommand(deps: PodcastDeps = {}): CommandRun {
           return 0;
         }
         await rm(join(ctx.root, relPath));
-        const outcome = await commitAndPush({
+        const outcome = await saveRunState({
           root: ctx.root,
-          message: `chore(podcast): remove ${command.id}`,
           command: "podcast",
           push: values["no-push"] !== true,
         });
-        const failure = commitFailure(outcome, tracked, ctx.log);
+        const failure = commitFailure(outcome, tracked, values["no-push"] !== true, ctx.log);
         if (failure !== null) {
           await recordFailure(commitFailureReason(outcome) ?? undefined);
           ctx.log.error(
@@ -454,15 +457,12 @@ export function makePodcastCommand(deps: PodcastDeps = {}): CommandRun {
       }
       // The old file goes only now: generation has succeeded and the new file is written.
       if (replaced) await rm(join(ctx.root, replaced.relPath));
-      const outcome = await commitAndPush({
+      const outcome = await saveRunState({
         root: ctx.root,
-        message: replaced
-          ? `feat(podcast): replace ${replaced.episode.id} with ${episode.id}`
-          : `feat(podcast): add ${episode.id}`,
         command: "podcast",
         push: values["no-push"] !== true,
       });
-      const failure = commitFailure(outcome, tracked, ctx.log);
+      const failure = commitFailure(outcome, tracked, values["no-push"] !== true, ctx.log);
       if (failure !== null) {
         await live.stream?.failed();
         await recordFailure(commitFailureReason(outcome) ?? undefined);

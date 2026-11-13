@@ -1,7 +1,3 @@
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
-import { isDeepStrictEqual } from "node:util";
-import { parseDigestFile } from "@singularityfm/core";
 import type { GitRunner } from "./runGit.js";
 import { gitOutput } from "./runGit.js";
 
@@ -9,8 +5,8 @@ export type GitCommand = "run" | "publish" | "learn" | "podcast" | "config" | "c
 
 /**
  * Where each bot command may write. An entry ending in "/" allows everything beneath it; "*" matches
- * within one path segment and "**" across segments. `publish` may also rewrite a digest's audio
- * field, which `findDigestContentViolations` checks beyond the path.
+ * within one path segment and "**" across segments. The state store's save keeps to the same list
+ * (store/stateSave.ts).
  */
 export const ALLOWLISTS: Record<GitCommand, readonly string[]> = {
   run: ["Digests/", "state/"],
@@ -179,52 +175,4 @@ export function findViolations(
     }
   }
   return [...offending];
-}
-
-function isMarkdownDigest(path: string): boolean {
-  return path.startsWith("Digests/") && path.endsWith(".md");
-}
-
-/** A modification in either column and nothing else: not an add, delete, rename or untracked file. */
-function isPlainModification(status: string): boolean {
-  return /^[ M]{2}$/.test(status) && status !== "  ";
-}
-
-export interface DigestContentCheck {
-  root: string;
-  run: GitRunner;
-  changed: readonly ChangedPath[];
-}
-
-/**
- * Enforce the "audio field rewrite only" half of the publish allowlist: every changed digest must
- * be an edit of an existing file whose frontmatter matches HEAD apart from `audio`. Returns the
- * offending paths, empty when the changes are clean.
- */
-export async function findDigestContentViolations(check: DigestContentCheck): Promise<string[]> {
-  const offending: string[] = [];
-  for (const change of check.changed) {
-    // A rename away from a digest removes it, whatever the new name looks like.
-    if (change.originalPath !== undefined && isMarkdownDigest(change.originalPath)) {
-      offending.push(
-        `${change.originalPath} (a digest may be edited, not added, removed or renamed)`,
-      );
-      continue;
-    }
-    if (!isMarkdownDigest(change.path)) continue;
-    if (!isPlainModification(change.status)) {
-      offending.push(`${change.path} (a digest may be edited, not added, removed or renamed)`);
-      continue;
-    }
-    try {
-      const before = parseDigestFile(await gitOutput(check.run, ["show", `HEAD:${change.path}`]));
-      const after = parseDigestFile(await readFile(join(check.root, change.path), "utf8"));
-      if (!isDeepStrictEqual({ ...before, audio: null }, { ...after, audio: null })) {
-        offending.push(`${change.path} (changes more than the audio field)`);
-      }
-    } catch {
-      offending.push(`${change.path} (could not be compared with HEAD)`);
-    }
-  }
-  return offending;
 }

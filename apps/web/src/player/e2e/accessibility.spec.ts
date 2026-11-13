@@ -74,6 +74,10 @@ test.describe("axe, WCAG 2.2 AA, light and dark", () => {
     const name = await open.getAttribute("aria-label");
     expect(name).toContain(podcast);
     expect(name).toContain(story ?? "");
+    // Paused, so the story does not change (and restart its fade-in) between the wait and the scan:
+    // color-contrast on .dock-caption failed twice on 2026-11-13, once per scheme, and passed on rerun.
+    await page.getByRole("button", { name: "Pause", exact: true }).click();
+    await expect(player.root).toHaveAttribute("data-player-state", "paused");
     await expectAccessible(page, "the bar docked");
   });
 

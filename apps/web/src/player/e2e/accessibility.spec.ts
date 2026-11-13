@@ -23,9 +23,15 @@ async function expectAccessible(page: Page, where: string): Promise<void> {
                 (animation instanceof CSSAnimation && animation.animationName === "fade-in")),
           );
       const deadline = performance.now() + 2000;
+      // The timer races each wait, so a long or paused animation cannot hold the scan past 2 s.
+      const expired = new Promise((resolve) => setTimeout(resolve, 2000));
       while (running().length > 0 && performance.now() < deadline) {
-        await Promise.all(running().map((animation) => animation.finished.catch(() => null)));
-        await new Promise((resolve) => requestAnimationFrame(resolve));
+        await Promise.race([
+          Promise.all(running().map((animation) => animation.finished.catch(() => null))).then(
+            () => new Promise((resolve) => requestAnimationFrame(resolve)),
+          ),
+          expired,
+        ]);
       }
     });
     const results = await new AxeBuilder({ page }).withTags(TAGS).analyze();

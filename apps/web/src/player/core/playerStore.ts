@@ -161,7 +161,7 @@ export function createPlayerStore(options: PlayerStoreOptions): PlayerStore {
   let attachedUrl: string | null = null;
   /** Files of this track that errored or stalled, so the next source is tried (audioSource.ts). */
   const skippedUrls = new Set<string>();
-  // A network error mid-stream (Wi-Fi to cellular, a tunnel) is retried from where it stopped, twice
+  // A network error mid-stream (Wi-Fi to cellular, a tunnel), or a file that is not there, is retried from where it stopped, twice
   // with a growing wait, before the listener is told; one that plays 30 s on starts the count again.
   let networkRetries = 0;
   let networkFailedAt = Number.NEGATIVE_INFINITY;
@@ -470,8 +470,12 @@ export function createPlayerStore(options: PlayerStoreOptions): PlayerStore {
       error.message = narrated.message;
       if (narrated.summary) error.summary = narrated.summary;
       if (narrated.standing) error.kind = "refused";
+      if (narrated.limit) error.limit = true;
     }
-    if (error.kind === "network" && !narrated && wantsPlay && retryNetworkError()) return;
+    // A file that is not there may be the store not answering (the Blob outage, 12 to 13 Nov), which
+    // passes: it is asked for again like a dropped connection before the page gives up on it.
+    const mends = error.kind === "network" || error.kind === "unavailable";
+    if (mends && !narrated && wantsPlay && retryNetworkError()) return;
     // The playhead is where the element failed, not where the last frame left it: a story whose
     // file could not be made fails at its start, while the last frame is still in the tail of the
     // story before. A retry from that tail would play it again before it was refused again.
@@ -794,6 +798,8 @@ export function createPlayerStore(options: PlayerStoreOptions): PlayerStore {
       const error = describePlayRejection(rejection, isOnline(), audioNoun());
       // The element's own error event may have reported this failure already: once is enough.
       if (!error || state.status === "error") return;
+      // The error event scheduled a retry for this same failure: failing now would cancel it.
+      if (networkRetryTimer !== null) return;
       // A file the browser cannot decode (the Opus one) hands over to the next, as its error event does.
       if (error.kind !== "blocked" && fallBack()) return;
       fail(error);

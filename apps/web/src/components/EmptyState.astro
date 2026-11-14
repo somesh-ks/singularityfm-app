@@ -20,6 +20,8 @@ interface Props {
   body?: string;
   /** 1 on a page whose only content this is (the title is the page's); 2 under a page's own title. */
   level?: 1 | 2;
+  /** The title's id, when the screen is drawn a second time in a page that already has the default. */
+  headingId?: string;
   /** The settings size: smaller art and type, the same order. */
   compact?: boolean;
   primary?: Action;
@@ -35,13 +37,14 @@ const {
   title = "No podcasts yet",
   body = "The first one arrives with your next scheduled podcast.",
   level = 1,
+  headingId: ownHeadingId,
   compact = false,
   primary = { label: "Check again", href: "/", reload: true },
   secondary = { label: "Settings", href: "/settings" },
 } = Astro.props;
 const scenes = Array.isArray(art) ? art : [art];
 const Heading = level === 1 ? "h1" : "h2";
-const headingId = level === 1 ? "page-title" : "empty-title";
+const headingId = ownHeadingId ?? (level === 1 ? "page-title" : "empty-title");
 ---
 
 {/* Nothing to show: a spot illustration, a title, one line on what happens next and one way on. */}
@@ -64,6 +67,6 @@ const headingId = level === 1 ? "page-title" : "empty-title";
     <Button variant="filled" href={primary.href} data-astro-reload={primary.reload ? "true" : undefined} data-retry={primary.retry ? "" : undefined}>
       {primary.label}
     </Button>
-    {secondary && <Button variant="text" href={secondary.href}>{secondary.label}</Button>}
+    {secondary && <Button variant="text" href={secondary.href} data-retry={secondary.retry ? "" : undefined}>{secondary.label}</Button>}
   </div>
 </section>

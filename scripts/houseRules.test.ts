@@ -46,6 +46,61 @@ describe("house rules for authored files", () => {
   });
 });
 
+// A status a reader sees is a strip, an empty screen, a toast or an inline field error (design.md).
+// "Showing saved content" sat in the layout as a bare paragraph with role="status" from 1 Nov (D282)
+// to 13 Nov, a fifth way to say a state, because nothing looked at where status text lives. A status
+// element is anything with role="status" or role="alert" that is not screen-reader-only; each file
+// that has some is listed with how many and why. Adding one is a PR reason, as a PAGE_OVERRIDES entry
+// is. The strip's messages are lib/stripMessages.ts.
+describe("where a status line may live", () => {
+  const ALLOWED: Record<string, { count: number; reason: string }> = {
+    "components/CreateForm.astro": { count: 2, reason: "inline form errors" },
+    "components/EpisodeActions.astro": { count: 2, reason: "inline form errors" },
+    "components/TopicsPanel.astro": { count: 4, reason: "inline field errors" },
+    "components/SourceFilter.astro": { count: 1, reason: "a filter that found nothing, inline" },
+    "pages/settings/blocked-outlets.astro": {
+      count: 2,
+      reason: "a filter that found nothing; a sheet's field error",
+    },
+    "pages/settings/downloads.astro": { count: 1, reason: "a filter that found nothing, inline" },
+    "sheets/GenerateSheet.tsx": { count: 3, reason: "inline form errors" },
+    "player/PlayerSurface.tsx": {
+      count: 2,
+      reason: "the controls did not load: moves to the strip with its own retry",
+    },
+    "scripts/settingsSaved.ts": { count: 1, reason: "an inline field note" },
+    "scripts/topicsEditor.ts": { count: 1, reason: "an inline field note" },
+  };
+  const STATUS =
+    /role=["'](?:status|alert)["']|setAttribute\(\s*["']role["']\s*,\s*["'](?:status|alert)["']/g;
+
+  function sources(dir: string): string[] {
+    return readdirSync(dir).flatMap((name) => {
+      const full = join(dir, name);
+      if (statSync(full).isDirectory())
+        return /^(node_modules|e2e|testing|dev|fixtures)$/.test(name) ? [] : sources(full);
+      return /\.(astro|tsx|ts)$/.test(name) && !/\.test\./.test(name) ? [full] : [];
+    });
+  }
+
+  it("holds no status text outside the strip, empty screen, toast or inline field errors", () => {
+    const base = resolve(ROOT, "apps/web/src");
+    const found: Record<string, number> = {};
+    for (const file of sources(base)) {
+      const text = readFileSync(file, "utf8");
+      for (const match of text.matchAll(STATUS)) {
+        const open = text.lastIndexOf("<", match.index);
+        const tag = text.slice(open, text.indexOf(">", match.index) + 1);
+        if (match[0].startsWith("role") && /sr-only/.test(tag)) continue;
+        const key = file.slice(base.length + 1);
+        found[key] = (found[key] ?? 0) + 1;
+      }
+    }
+    const allowed = Object.fromEntries(Object.entries(ALLOWED).map(([k, v]) => [k, v.count]));
+    expect(found).toEqual(allowed);
+  });
+});
+
 // The prototype and the sound lab draw with the system's tokens from outside its package, so a token
 // the system removes is caught here (D378 folded --color-on-surface-subtle), not in the package.
 describe("the prototype stylesheets", () => {

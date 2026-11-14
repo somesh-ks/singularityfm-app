@@ -1,0 +1,26 @@
+---
+import EmptyState from "../components/EmptyState.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+{/* The page for a content store that does not answer (the Blob outage of 12 to 13 Nov, D394). A page
+     drawn on request answers 503 with this one, at the address that was asked for
+     (server/contentRepo.ts, outagePage), instead of showing older podcasts. It is the offline
+     stand-in's twin: scripts/standIn.ts asks again on a gap and on Try again, and never says offline (the device is fine), and brings the real
+     page in, in place, once the store answers. Downloads is the way out for what is on the device. */}
+<BaseLayout
+  title="Podcasts aren't available"
+  view="home"
+  nav={null}
+  skipLabel="Skip to the content"
+>
+  <main id="main" tabindex="-1" data-stand-in="outage">
+    <EmptyState
+      art="notfound"
+      title="Podcasts aren't available"
+      body="Something is down on our side. It usually clears in a minute. Downloaded podcasts still play."
+      primary={{ label: "Try again", href: "#", retry: true }}
+      secondary={{ label: "Open Downloads", href: "/settings/downloads" }}
+    />
+  </main>
+</BaseLayout>

@@ -21,7 +21,7 @@ export const CHANGELOG: readonly Release[] = [
     version: "0.23.5",
     date: "2026-11-13",
     description:
-      'The Play button at the top of a podcast and the one on each story are just the play icon, the same size as the heart and Share beside them, so they never change size as they play, pause or load. Buttons and the Library\'s Sort hug their words. Searching the Library for a weekday or a month, like Monday, now finds the days that fall on it, not every briefing that says "on Monday" in a story.',
+      "The Play button at the top of a podcast and the one on each story are just the play icon, the same size as the heart and Share beside them, so they never change size as they play, pause or load. Buttons and the Library's Sort hug their words. Playback problems now show on the strip at the top, the same as offline, and a podcast with no audio shows a screen with Open Downloads and Try again. When podcasts can't be loaded, you see a screen that says so instead of older podcasts, and the daily limit shows briefly as a message, not a banner. Searching the Library for a weekday or a month, like Monday, now finds the days that fall on it, not every briefing that says \"on Monday\" in a story.",
   },
   {
     version: "0.23.4",

@@ -34,6 +34,8 @@ export interface FailureDescription {
   summary?: string;
   /** True for a refusal that stands until something outside changes (a cap, a budget). */
   standing?: boolean;
+  /** True when a cap or an allowance is the reason: an answer to a press, not a fault, so no strip. */
+  limit?: boolean;
 }
 
 /**

@@ -5,33 +5,52 @@
  * shows. Its markup is cloned from a <template> in the layout, so it has one home. Everything here
  * is progressive: without script the page reads the same, minus the strip.
  */
+import { bannerText } from "@singularityfm/design-system/banner";
 import { connectivity, type Link } from "../lib/connectivity";
+import type { StripKey } from "../lib/stripMessages";
 
 function bannerStack(): HTMLElement | null {
   return document.getElementById("banners");
 }
 
-type Kind = "offline" | "online";
-
 /** The most the strip's close takes, in case its transition never ends (a hidden tab). */
 const CLOSE_MS = 600;
 let closeTimer: number | undefined;
+
+/** What the strip is asked to say. `wanted()` picks one: the strip holds one condition at a time. */
+let link: Link = "online";
+let backOnline = false;
+let audioLine: string | null = null;
+
+function wanted(): StripKey | null {
+  if (link === "offline") return "offline";
+  if (backOnline) return "online";
+  return audioLine ? "audio" : null;
+}
 
 /**
  * Opens the strip with one kind in it. An open strip keeps its height and swaps what it says (offline
  * to back online is one band, not two). The stack persists across moves inside the app (BaseLayout),
  * so a strip is drawn once and a page swapped in under it never redraws it.
  */
-function show(kind: Kind): void {
+function show(kind: StripKey): void {
   const stack = bannerStack();
   const template = document.querySelector<HTMLTemplateElement>(`#banner-${kind}`);
   const source = template?.content.firstElementChild;
-  if (!stack || !source || stack.querySelector(`[data-banner="${kind}"]`)) return;
+  if (!stack || !source) return;
   window.clearTimeout(closeTimer);
-  const banner = source.cloneNode(true) as HTMLElement;
-  banner.dataset.banner = kind;
-  stack.replaceChildren(banner);
   document.documentElement.setAttribute("data-strip", "");
+  let banner = stack.querySelector<HTMLElement>(`[data-banner="${kind}"]`);
+  if (!banner) {
+    banner = source.cloneNode(true) as HTMLElement;
+    banner.dataset.banner = kind;
+    stack.replaceChildren(banner);
+  }
+  // The player's line is its own words, kept in step while it shows.
+  const title = banner.querySelector(`.${bannerText.title}`);
+  if (kind === "audio" && title && audioLine && title.textContent !== audioLine) {
+    title.textContent = audioLine;
+  }
 }
 
 /**
@@ -44,6 +63,39 @@ function hide(): void {
   if (!stack?.firstElementChild) return;
   window.clearTimeout(closeTimer);
   closeTimer = window.setTimeout(() => stack.replaceChildren(), CLOSE_MS);
+}
+
+function paint(): void {
+  const kind = wanted();
+  if (kind) show(kind);
+  else hide();
+}
+
+let installed = false;
+
+/** A failure that says the same words again is heard again: the line goes out and comes back. */
+const REPEAT_GAP_MS = 100;
+let repeatTimer: number | undefined;
+
+/**
+ * The player's one line when playback fails (null clears it). Offline and "back online" come first,
+ * then this. `again` is a new failure: if its words are the ones showing, the
+ * strip says them once more so a screen reader hears the second try fail too.
+ */
+export function setStripNotice(line: string | null, again = false): void {
+  window.clearTimeout(repeatTimer);
+  const repeats = again && line !== null && line === audioLine;
+  audioLine = line;
+  if (!installed) return;
+  const title = repeats
+    ? bannerStack()?.querySelector(`[data-banner="audio"] .${bannerText.title}`)
+    : null;
+  if (!title) {
+    paint();
+    return;
+  }
+  title.textContent = "";
+  repeatTimer = window.setTimeout(paint, REPEAT_GAP_MS);
 }
 
 /** The banner's title says why (BaseLayout.astro); a disabled control points at it. */
@@ -75,36 +127,38 @@ const BACK_ONLINE_MS = 2500;
 let backOnlineTimer: number | undefined;
 
 /** The play chips disable themselves offline (the player's readerSync); this only says why. */
-function render(link: Link, previous: Link | null): void {
-  const isOffline = link === "offline";
+function render(next: Link, previous: Link | null): void {
+  link = next;
+  const isOffline = next === "offline";
   document.documentElement.toggleAttribute("data-offline", isOffline);
   syncCreate(isOffline);
   window.clearTimeout(backOnlineTimer);
-  if (isOffline) show("offline");
-  else if (previous === "offline") {
-    // Only the moment the connection returns says so, not a page opened while online.
-    show("online");
-    backOnlineTimer = window.setTimeout(hide, BACK_ONLINE_MS);
-  } else hide();
+  // Only the moment the connection returns says so, not a page opened while online.
+  backOnline = !isOffline && previous === "offline";
+  if (backOnline) {
+    backOnlineTimer = window.setTimeout(() => {
+      backOnline = false;
+      paint();
+    }, BACK_ONLINE_MS);
+  }
+  paint();
 }
-
-let installed = false;
 
 export function installDeviceBanners(): void {
   if (installed) return;
   installed = true;
-  const link = connectivity();
+  const connection = connectivity();
   // A strip goes in before the page it belongs to shows, so the page is never pushed down after it
   // has drawn: on a first load the inline script has put it in (bannersInit.js) and this only
   // checks. The stack persists across moves, so a swap leaves the strip and its attributes alone;
   // the root's own are carried (navigation.ts) and a new page only has Create controls to mark.
-  render(link.link(), null);
-  link.subscribe((next, previous) => render(next, previous));
-  document.addEventListener("astro:after-swap", () => syncCreate(link.link() === "offline"));
-  window.addEventListener("online", () => link.hintOnline());
-  window.addEventListener("offline", () => link.hintOffline());
+  render(connection.link(), null);
+  connection.subscribe((next, previous) => render(next, previous));
+  document.addEventListener("astro:after-swap", () => syncCreate(connection.link() === "offline"));
+  window.addEventListener("online", () => connection.hintOnline());
+  window.addEventListener("offline", () => connection.hintOffline());
   // An app that slept through the connection's return hears no event: coming back to the front asks.
   document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible") link.hintOnline();
+    if (document.visibilityState === "visible") connection.hintOnline();
   });
 }

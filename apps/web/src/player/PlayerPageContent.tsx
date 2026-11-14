@@ -4,7 +4,6 @@ import { storyTurns } from "./core/storyTurns";
 import { swipeClickGuard } from "./core/swipeClickGuard";
 import { usePlayerState } from "./hooks/usePlayer";
 import { useQueue } from "./hooks/useQueue";
-import PlayerNotice from "./PlayerNotice";
 import Scrubber from "./Scrubber";
 import StoryList from "./StoryList";
 import TransportControls from "./TransportControls";
@@ -79,9 +78,6 @@ export default function PlayerPageContent() {
       <div className="player-controls" data-player-drag {...controlsGuard}>
         <Scrubber />
         <TransportControls />
-        {/* Drawn under the title, in the story line's room (see PlayerNotice), so a notice
-            arriving never moves the timeline or play. */}
-        <PlayerNotice onRetry={() => getPlayerStore().retry()} />
       </div>
       <div className="player-list">
         {/* On a phone the switch sticks under the status bar (player.css, .player-tabs-bar). */}

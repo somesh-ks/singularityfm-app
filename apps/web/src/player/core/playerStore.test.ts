@@ -687,8 +687,11 @@ describe("buffering", () => {
 });
 
 /** A dropped connection that never comes back: the error, then the two retries that fail too. */
-function failNetworkForGood(harness: ReturnType<typeof createHarness>): void {
-  harness.audio.error = { code: MEDIA_ERR_NETWORK };
+function failNetworkForGood(
+  harness: ReturnType<typeof createHarness>,
+  error: { code: number; message?: string } = { code: MEDIA_ERR_NETWORK },
+): void {
+  harness.audio.error = error;
   harness.audio.emit("error");
   vi.advanceTimersByTime(1_000);
   harness.audio.emit("error");
@@ -816,11 +819,10 @@ describe("errors", () => {
   it("never shows the browser's own MediaError message", () => {
     const harness = createHarness();
     startPlaying(harness);
-    harness.audio.error = {
+    failNetworkForGood(harness, {
       code: MEDIA_ERR_SRC_NOT_SUPPORTED,
       message: "MEDIA_ELEMENT_ERROR: Format error",
-    };
-    harness.audio.emit("error");
+    });
     const error = harness.store.getState().error;
     expect(error?.kind).toBe("unavailable");
     expect(error?.message).toBe("Audio isn't available for this podcast.");
@@ -867,10 +869,18 @@ describe("errors", () => {
     expect(harness.audio.playCalls).toBe(calls + 1);
   });
 
-  it("says the audio is unavailable when the source cannot be used", () => {
+  // Bug: during the Blob outage (12 to 13 Nov) a missing file ended playback on the first try, though
+  // the store may be back a second later.
+  it("says the audio is unavailable when the source cannot be used, after asking for it again", () => {
     const harness = createHarness();
     startPlaying(harness);
     harness.audio.error = { code: MEDIA_ERR_SRC_NOT_SUPPORTED };
+    harness.audio.emit("error");
+    expect(harness.store.getState().status).toBe("loading");
+    expect(harness.store.getState().error).toBeNull();
+    vi.advanceTimersByTime(1_000);
+    harness.audio.emit("error");
+    vi.advanceTimersByTime(3_000);
     harness.audio.emit("error");
     expect(harness.store.getState().error?.kind).toBe("unavailable");
   });
@@ -903,7 +913,16 @@ describe("errors", () => {
     harness.audio.error = { code: MEDIA_ERR_SRC_NOT_SUPPORTED };
     harness.audio.emit("error");
     await vi.advanceTimersByTimeAsync(0);
-    expect(harness.events.filter((event) => event.type === "error")).toHaveLength(1);
+    // The rejection belongs to the failure the error event is already retrying: it does not end it.
+    const errors = () => harness.events.filter((event) => event.type === "error");
+    expect(errors()).toHaveLength(0);
+    // Each retry fails the same way, the error event first and the rejection after, until it is spent.
+    for (let attempt = 0; attempt < 4 && errors().length === 0; attempt += 1) {
+      await vi.advanceTimersByTimeAsync(10_000);
+      harness.audio.emit("error");
+      await vi.advanceTimersByTimeAsync(0);
+    }
+    expect(errors()).toHaveLength(1);
   });
 
   it("tries the MP3 when play() rejects an unsupported Opus file before the element's error", async () => {

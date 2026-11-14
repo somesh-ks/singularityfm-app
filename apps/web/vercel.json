@@ -233,6 +233,15 @@
       ]
     },
     {
+      "source": "/unavailable",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    },
+    {
       "source": "/404",
       "headers": [
         {

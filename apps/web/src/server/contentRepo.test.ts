@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { join, relative, sep } from "node:path";
-import { beforeEach, expect, it } from "vitest";
+import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { diskFiles, READ_CONCURRENCY } from "../lib/contentFiles";
 import { loadSite } from "../lib/site";
 import {
@@ -11,6 +11,7 @@ import {
   loadStoreSite,
   loadStoreSiteChecked,
   MANIFEST_TTL_MS,
+  readFromContentRepo,
   resetContentRepo,
 } from "./contentRepo";
 
@@ -482,4 +483,37 @@ it("answers a request that joins a failing load again from the site held before 
     expect(result.value?.site.entries.length).toBe(first?.site.entries.length);
   }
   expect(isShowingSavedContent()).toBe(false);
+});
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+  vi.unstubAllGlobals();
+});
+
+// Bug (owner, 13 Nov): in the Blob outage every page was drawn from older podcasts under a line that
+// said so. The store not answering now gives the site's empty screen (a page) or plain text (a data
+// file), and neither may be kept by the edge, the browser or the worker.
+it("answers 503 and shows nothing old when the store stops answering", async () => {
+  await fillStore("2026-10-24T12:00:00Z");
+  vi.stubEnv("BLOB_READ_WRITE_TOKEN", ENV.BLOB_READ_WRITE_TOKEN);
+  let down = false;
+  vi.stubGlobal("fetch", async (url: string) => {
+    if (new URL(url).pathname === "/unavailable") return new Response("<main>Podcasts</main>");
+    if (down) throw new Error("store blocked");
+    return fakeFetch(url);
+  });
+  const page = new URL("https://news.example/library");
+  expect(await readFromContentRepo("library", page)).toBeNull();
+  down = true;
+  expireContentManifest();
+  const outage = await readFromContentRepo("library", page);
+  expect(outage?.status).toBe(503);
+  expect(await outage?.text()).toContain("Podcasts");
+  expect(outage?.headers.get("Cache-Control")).toBe("no-store");
+  expect(outage?.headers.get("Vercel-CDN-Cache-Control")).toBe("no-store");
+  // A data file says it in plain text; Downloads, the way out, keeps answering.
+  expect((await readFromContentRepo("latest"))?.headers.get("Content-Type")).toContain(
+    "text/plain",
+  );
+  expect(await readFromContentRepo("library", page, true)).toBeNull();
 });

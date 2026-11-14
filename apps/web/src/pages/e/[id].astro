@@ -35,7 +35,7 @@ interface Props {
 let props = Astro.props as Props;
 let removed = false;
 if (!Astro.isPrerendered) {
-  const unavailable = await readFromContentRepo("e");
+  const unavailable = await readFromContentRepo("e", Astro.url);
   if (unavailable) return unavailable;
   const site = await getSite();
   const entry = site.episodes.find((episode) => episode.id === Astro.params.id);

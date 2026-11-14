@@ -42,7 +42,7 @@ if (!itemId) {
   const opened = await openListenLink(token, listenDeps());
   status = opened.status;
   if (opened.status === 200) {
-    const unavailable = await readFromContentRepo("s");
+    const unavailable = await readFromContentRepo("s", Astro.url);
     if (unavailable) return unavailable;
     itemId = opened.link.item_id;
   }

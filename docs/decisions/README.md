@@ -148,7 +148,7 @@ Status words: `active` (holds), `amends Dn` or `supersedes Dn` (holds, and chang
 | D278 | Softer light covers | amends D121 |
 | D280 | Travel 300 ms | partly superseded by D336, D341; amends D271 |
 | D281 | Downloads page, no cap | amends D127, D264; amended by D335, D369 |
-| D282 | A page falls back to the content its build holds when the store cannot answer | amends D173, D251 |
+| D282 | A page falls back to the content its build holds when the store cannot answer | amends D173, D251; amended by D394 |
 | D283 | Read-first is AGENTS.md and state.md (20 KB), the Index is grep-only, the ledger is split by surface; "replaces" retires the old row | active |
 | D284 | Push pings | amends D11 |
 | D285 | Switch can be mixed | active |

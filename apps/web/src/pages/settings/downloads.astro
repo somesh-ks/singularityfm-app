@@ -28,7 +28,7 @@ import "../../styles/downloads.css";
 export const prerender = false;
 
 if (!Astro.isPrerendered) {
-  const unavailable = await readFromContentRepo("library");
+  const unavailable = await readFromContentRepo("library", Astro.url, true);
   if (unavailable) return unavailable;
   keepAtEdge(Astro.response.headers);
 }

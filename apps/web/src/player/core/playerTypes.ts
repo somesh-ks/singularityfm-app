@@ -51,6 +51,8 @@ export interface PlayerError {
   message: string;
   /** The mini player's line where the kind's own would be too general; the narration's reason. */
   summary?: string;
+  /** A cap or an allowance said no: the listener is told once, on a toast, and the strip stays out of it. */
+  limit?: true;
 }
 
 /** A digest that is loaded into the audio element, with its derived timeline. */
@@ -132,7 +134,7 @@ export interface AudioLike {
     /** The browser's own debug text on a real failure: never shown. */
     message?: string;
     /** Words the narration adapter made for a failure it caused. */
-    narrated?: { message: string; summary?: string; standing?: boolean };
+    narrated?: { message: string; summary?: string; standing?: boolean; limit?: boolean };
   } | null;
   playbackRate: number;
   defaultPlaybackRate: number;

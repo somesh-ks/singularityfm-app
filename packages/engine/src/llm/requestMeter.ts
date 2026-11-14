@@ -21,6 +21,36 @@ export class RequestMeter {
     this.units[key] = (this.units[key] ?? 0) + n;
   }
 
+  /**
+   * One answered request's tokens. `inputTokens` is the whole prompt, so the uncached part is what
+   * is left after the cache writes and reads, each priced on its own unit (a write costs more
+   * than a plain input token, a read a tenth or less). A batch's tokens carry the `batch_` prefix (half price).
+   */
+  addTokens(
+    provider: string,
+    product: string,
+    tokens: {
+      inputTokens: number;
+      outputTokens: number;
+      cacheWriteTokens?: number | undefined;
+      cacheReadTokens?: number | undefined;
+    },
+    batch = false,
+  ): void {
+    const prefix = batch ? "batch_" : "";
+    const write = tokens.cacheWriteTokens ?? 0;
+    const read = tokens.cacheReadTokens ?? 0;
+    this.addUnits(
+      provider,
+      product,
+      `${prefix}input_tokens`,
+      Math.max(0, tokens.inputTokens - write - read),
+    );
+    this.addUnits(provider, product, `${prefix}cache_write_input_tokens`, write);
+    this.addUnits(provider, product, `${prefix}cache_read_input_tokens`, read);
+    this.addUnits(provider, product, `${prefix}output_tokens`, tokens.outputTokens);
+  }
+
   /** Reported units since the last `takeUnits`, without resetting them. */
   peekUnits(): Readonly<Record<string, number>> {
     return this.units;

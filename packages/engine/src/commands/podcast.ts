@@ -95,10 +95,7 @@ function scriptWriter(ctx: CommandContext, meter: RequestMeter): ScriptWriter {
     budget: new TokenBudget(env.MAX_TOKENS_PER_RUN),
     log,
     onRequest: (provider) => meter.add(provider),
-    onUsage: (usage) => {
-      meter.addUnits(usage.provider, usage.model, "input_tokens", usage.inputTokens);
-      meter.addUnits(usage.provider, usage.model, "output_tokens", usage.outputTokens);
-    },
+    onUsage: (usage) => meter.addTokens(usage.provider, usage.model, usage),
     onFallback: () => meter.add("model_fallback"),
   });
   return new LlmScriptWriter({

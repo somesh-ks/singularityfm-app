@@ -64,7 +64,7 @@ Vercel deploys through its GitHub integration (D25). No Vercel token is needed i
 1. In the Vercel dashboard, choose Add New, Project, and import the GitHub repo `singularityfm-app`. Name the project `knowledge-hub` (the Vercel project kept its name when the repo was renamed, D382); the production branch is `main`.
 2. Set Root Directory to `apps/web`. Leave "Include source files outside the Root Directory" on (the default). `apps/web/vercel.json` already sets the install, build and ignore commands.
 3. Add the two Vercel environment variables (`SINGULARITY_GH_TOKEN`, `GITHUB_REPOSITORY`) in section 1.9, or by hand in the dashboard.
-4. The engine commits nothing to git (D300), so no deploy depends on a commit author. The GitHub login connected to Vercel must be the account that owns the team.
+4. The engine commits nothing to git (D300), so no engine job needs a commit author. A merge to `main` still deploys only if its author is the account that owns the team, and the GitHub login connected to Vercel must be that account.
 
 ### 1.4a Create the admin project (D224)
 

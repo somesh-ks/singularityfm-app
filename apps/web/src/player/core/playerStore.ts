@@ -798,6 +798,8 @@ export function createPlayerStore(options: PlayerStoreOptions): PlayerStore {
       const error = describePlayRejection(rejection, isOnline(), audioNoun());
       // The element's own error event may have reported this failure already: once is enough.
       if (!error || state.status === "error") return;
+      // The error event scheduled a retry for this same failure: failing now would cancel it.
+      if (networkRetryTimer !== null) return;
       // A file the browser cannot decode (the Opus one) hands over to the next, as its error event does.
       if (error.kind !== "blocked" && fallBack()) return;
       fail(error);

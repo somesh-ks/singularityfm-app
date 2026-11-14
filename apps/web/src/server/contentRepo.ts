@@ -424,15 +424,18 @@ export async function readFromContentRepo(
       now: Date.now,
       log: (message) => console.error(`[${label}] ${message}`),
     });
+  let answered: Awaited<ReturnType<typeof load>>;
   try {
-    if ((await load()).saved && !allowSaved) throw new Error("the content store did not answer");
+    answered = await load();
+    if (answered.saved && !allowSaved) throw new Error("the content store did not answer");
   } catch (error) {
     console.error(
       `[${label}] no content to show: ${error instanceof Error ? error.message : "unknown"}`,
     );
     return pageUrl ? outagePage(pageUrl) : outageText();
   }
-  readSiteFrom(async () => (await load()).site);
+  // The content that passed the guard is the content the page draws, even if the store lapses mid-render.
+  readSiteFrom(async () => answered.site);
   return null;
 }
 

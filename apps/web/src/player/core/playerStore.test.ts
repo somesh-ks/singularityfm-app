@@ -913,7 +913,16 @@ describe("errors", () => {
     harness.audio.error = { code: MEDIA_ERR_SRC_NOT_SUPPORTED };
     harness.audio.emit("error");
     await vi.advanceTimersByTimeAsync(0);
-    expect(harness.events.filter((event) => event.type === "error")).toHaveLength(1);
+    // The rejection belongs to the failure the error event is already retrying: it does not end it.
+    const errors = () => harness.events.filter((event) => event.type === "error");
+    expect(errors()).toHaveLength(0);
+    // Each retry fails the same way, the error event first and the rejection after, until it is spent.
+    for (let attempt = 0; attempt < 4 && errors().length === 0; attempt += 1) {
+      await vi.advanceTimersByTimeAsync(10_000);
+      harness.audio.emit("error");
+      await vi.advanceTimersByTimeAsync(0);
+    }
+    expect(errors()).toHaveLength(1);
   });
 
   it("tries the MP3 when play() rejects an unsupported Opus file before the element's error", async () => {

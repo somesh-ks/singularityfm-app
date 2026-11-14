@@ -43,7 +43,7 @@ export const MESSAGES = {
   crashed: CRASHED,
   invalid: INVALID,
   regenerationLimit: "This podcast has been regenerated 3 times, the most it takes.",
-  network: OFFLINE_RETRY,
+  network: "No connection right now. Try again in a moment.",
 } as const;
 
 function pluralize(count: number, unit: string): string {

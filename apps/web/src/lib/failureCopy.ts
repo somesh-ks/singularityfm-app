@@ -4,8 +4,9 @@
  * happens. Plain cause, then what to do; no codes, no host names (copyGuard.test.ts).
  */
 
-/** A server failure that left nothing changed. A failure with a reference adds it (lib/errorRef.ts). */
-export const CRASHED = "Something broke on our side, and nothing changed. Try again in a moment.";
+/** A server failure: the host stopped the request, so the action may have gone through. A failure with a reference adds it (lib/errorRef.ts). */
+export const CRASHED =
+  "Something broke on our side. It may have gone through, so check before trying again.";
 
 /** A request the server could not read: the page is out of date. */
 export const INVALID = "That didn't go through. Reload the page and try again.";

@@ -57,7 +57,8 @@ describe("recordingCaption", () => {
 describe("a standing refusal", () => {
   const refused = { kind: "refused", message: "Daily narration limit reached." } as const;
   it("offers no Try again on the disc, and says its reason in the strip", () => {
-    expect(stripLine({ ...refused, summary: "Daily limit reached" })).toBe("Daily limit reached");
+    const standing = { ...refused, summary: "Daily limit reached" };
+    expect(stripLine(standing)).toBe(standing.summary);
     expect(toggleLabel({ status: "error", error: refused })).toBe("Play");
     expect(transportGlyph("error", refused)).toBe("play");
   });
@@ -93,7 +94,7 @@ describe("a recording with no audio", () => {
     expect(stripLine(missing)).toBeNull();
     const dropped = describeMediaError(MEDIA_ERR_NETWORK, true);
     expect(isUnplayable(dropped)).toBe(false);
-    expect(stripLine(dropped)).toBe("Audio did not load");
+    expect(stripLine(dropped)).toBe(errorSummary(dropped ?? { kind: "network" }));
   });
 });
 

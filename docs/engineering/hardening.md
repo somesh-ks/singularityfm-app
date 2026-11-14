@@ -42,8 +42,7 @@ day of the same fault only comments.
 
 **Reliability: scheduled runs and pushes.** Before: a failed or missed run was a line in
 `singularity status` and the run's email; `smoke.yml` asked three API questions. The push retry missed
-GitHub's ref-lock race. Gap left: `config.yml` can be cancelled after a 202 (shared group, see the
-[reliability audit](reliability-audit-2026-10-15.md)); the Vercel Cron call is never verified
+GitHub's ref-lock race. Gap left: the Vercel Cron call is never verified
 (D61). Added: a `failure()` step in `run.yml` (Record failure) records `failed` for what a
 scheduled or weekly run was due to make, so the next `health` reports `run_failed` and heals once
 instead of reading the run before; the record is newer than the run, so `run_died` stays quiet for

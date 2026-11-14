@@ -49,9 +49,6 @@ const PLACEHOLDERS: Record<string, string[]> = {
   '"$PERF"': [join(tmpdir(), `singularity-contract-perf-${process.pid}-missing.json`)],
   '"$FEEDBACK"': ["Shorter summaries"],
   '"$TOPICS"': ["ai,design"],
-  '"$OP"': ['{"op":"weights.set","weights":{"design_engineering_craft":0.9}}'],
-  '"$TOPIC_ID"': ["design_engineering_craft"],
-  '"$message"': ["chore(config): set a weight"],
   // podcast.yml's stage steps keep each stage's result here, off the repository.
   '"$RUNNER_TEMP/podcast-stages"': [join(tmpdir(), `singularity-contract-stages-${process.pid}`)],
   '"$REQUEST"': [

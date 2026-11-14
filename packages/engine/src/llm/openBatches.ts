@@ -104,8 +104,7 @@ export async function settleOpenBatches(args: {
       const outcomes = await api.results(id);
       for (const outcome of outcomes.values()) {
         if (outcome.type !== "succeeded") continue;
-        spend.meter.addUnits("anthropic", model, "batch_input_tokens", outcome.reply.inputTokens);
-        spend.meter.addUnits("anthropic", model, "batch_output_tokens", outcome.reply.outputTokens);
+        spend.meter.addTokens("anthropic", model, outcome.reply, true);
       }
       // The tokens go to disk before the batch leaves the list, so a stop in between loses nothing.
       await spend.save(root);

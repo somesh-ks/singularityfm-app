@@ -79,6 +79,8 @@ export interface ModelRouterOptions {
     model: string;
     inputTokens: number;
     outputTokens: number;
+    cacheWriteTokens?: number | undefined;
+    cacheReadTokens?: number | undefined;
     step: ModelStep;
     /** True for tokens billed at the Message Batches price. */
     batch?: boolean;
@@ -348,6 +350,8 @@ export function createModelRouter(options: ModelRouterOptions): ModelRouter {
             model,
             inputTokens: reply.inputTokens,
             outputTokens: reply.outputTokens,
+            cacheWriteTokens: reply.cacheWriteTokens,
+            cacheReadTokens: reply.cacheReadTokens,
             step,
             batch: true,
           });

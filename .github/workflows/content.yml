@@ -8,7 +8,7 @@ name: content
 
 on:
   workflow_run:
-    workflows: [run, podcast, audio, config]
+    workflows: [run, podcast, audio]
     types: [completed]
   workflow_dispatch:
 
@@ -45,14 +45,12 @@ jobs:
       # function instances' 30 s manifest window (MANIFEST_TTL_MS in apps/web) plus the longest a
       # render may run (20 s, FUNCTION_MAX_DURATION_S), so no request puts the old page back. The
       # wait counts from that save, not from this job's start: the job teardown, the queue and the
-      # install above already used most of it. With no save to find (the config workflow, a hand
-      # run) it counts from the end of the run, and a hand run waits all of it. Before Notify, so a
-      # tap on the message opens the new page. The config workflow saves no pages. A run that saved
-      # nothing costs one slow visit. A failed purge never fails the job: the pages then refresh on
+      # install above already used most of it. With no save to find (a hand run) it counts from the end
+      # of the run, and a hand run waits all of it. Before Notify, so a tap on the message opens the
+      # new page. A run that saved nothing costs one slow visit. A failed purge never fails the job: the pages then refresh on
       # the first visit after 5 minutes.
       # The Vercel token stays in this step, out of reach of the packages the engine loads (SEC-03).
       - name: Purge the edge
-        if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.name != 'config'
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           GH_TOKEN: ${{ github.token }}

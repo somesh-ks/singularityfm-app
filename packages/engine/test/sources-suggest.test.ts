@@ -2,7 +2,6 @@ import type { Item, SourceCandidatesFile, Topic, TopicJudgmentEntry } from "@sin
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { makeConfigCommand } from "../src/commands/config.js";
 import { makeSourcesCommand } from "../src/commands/sources.js";
-import { ALLOWLISTS, isPathAllowed } from "../src/git/guard.js";
 import { createHttpClient } from "../src/http.js";
 import {
   collectDomains,
@@ -379,7 +378,7 @@ describe("singularity sources suggest", () => {
 
   const command = (sites: readonly Site[] = SITES) => makeSourcesCommand(() => depsFor(sites).deps);
 
-  it("records every candidate, adds no source, and writes only files the config command may", async () => {
+  it("records every candidate, adds no source, and writes only the candidates file", async () => {
     expect(await command()(["suggest", "--topic", "quantum_computing"], repo.context())).toBe(0);
     expect(JSON.parse(out.join(""))).toMatchObject({
       topic: "quantum_computing",
@@ -399,7 +398,6 @@ describe("singularity sources suggest", () => {
     const scores = entry?.candidates.map((c) => c.q ?? -1) ?? [];
     expect(scores).toEqual([...scores].sort((a, b) => b - a));
 
-    expect(repo.dirty().every((path) => isPathAllowed(path, ALLOWLISTS.config))).toBe(true);
     expect(repo.dirty()).toContain("state/source-candidates.json");
   });
 

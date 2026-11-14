@@ -1,4 +1,4 @@
-export type GitCommand = "run" | "publish" | "learn" | "podcast" | "config" | "costs";
+export type GitCommand = "run" | "publish" | "podcast" | "costs";
 
 /**
  * Where each command may save run state. An entry ending in "/" allows everything beneath it; "*"
@@ -11,20 +11,7 @@ export const ALLOWLISTS: Record<GitCommand, readonly string[]> = {
   // A dry run's spend: the ledger, and the transcript cache its fetch fills (D228). The cache was
   // left out and every dry run that read a new video had its costs refused (2026-11-02).
   costs: ["state/costs-*.json", "state/video-text.json"],
-  learn: ["config/preferences.json"],
   podcast: ["Podcasts/", "state/costs-*.json", "state/podcast-timings.json"],
-  // Exactly the files `singularity config apply` and `singularity sources suggest` write, and no others.
-  config: [
-    "config/topics.json",
-    "config/sources.user.json",
-    "config/queries.json",
-    "config/preferences.json",
-    "config/schedule.json",
-    "config/structure.json",
-    "config/writer.json",
-    "config/profiles/*.json",
-    "state/source-candidates.json",
-  ],
 };
 
 function globToRegExp(pattern: string): RegExp {

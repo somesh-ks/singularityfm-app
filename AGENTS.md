@@ -24,7 +24,7 @@ On demand: [docs/specs/](docs/specs/README.md) for what a capability does (code 
 ## Rules
 
 - Never read, print or ask for key values. Keys live in the gitignored `.env`; `pnpm run secrets:push` sends them to GitHub and Vercel.
-- Commits are Conventional Commits. Digest, state and config commits go through the write guard.
+- Commits are Conventional Commits. The engine commits nothing to git (D300).
 - No em dashes. Persisted data is snake_case; docs and config files are lowercase kebab-case.
 - Do not edit `Digests/` or `state/` by hand.
 - Merging: a PR merges itself once its review is clean, it is up to date with `main` and every required check is green, `.github/workflows`, `AGENTS.md` and design-system bumps included. Only he merges changes to branch rulesets, secret or env handling, npm publish or trusted-publisher permissions, and `CODEOWNERS` or the review config that gates merging: code-review.md, Who merges.

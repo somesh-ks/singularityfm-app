@@ -28,9 +28,8 @@ describe("saveRunState", () => {
       },
     });
     expect(failed).toMatchObject({ status: "save_failed" });
-    // A local run, and a command with no run state, never touch the store.
+    // A local run never touches the store.
     await saveRunState({ ...base, push: false, saveState });
-    await saveRunState({ ...base, command: "learn", saveState });
     expect(calls).toEqual(["run"]);
   });
 });

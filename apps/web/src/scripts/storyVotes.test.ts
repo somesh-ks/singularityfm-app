@@ -1,12 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { stopFailure } from "../lib/storyVotes";
-import { handleConfig } from "../server/configEdit";
+import { configCooldownSeconds, handleConfig, parseConfigRequest } from "../server/configEdit";
 import type { ConfigOp } from "../types/contracts";
 
 /**
- * "Stop hearing from" through the real sender (storyVotes.ts) and the real /api/config handler, with
- * only GitHub faked, on a fake clock. The browser spec (e2e/storyVotes.spec.ts) covers the page; it
- * is not run in CI, so the sender's failure paths are held here, where `npm test` runs them.
+ * "Stop hearing from" through the real sender (storyVotes.ts) and the real /api/config parser and
+ * cooldown, with only the store write faked, on a fake clock. The browser spec
+ * (e2e/storyVotes.spec.ts) covers the page; it is not run in CI, so the sender's failure paths are
+ * held here, where `npm test` runs them.
  *
  * Bugs these prevent: a stop refused by the server's ten seconds between edits (PR #140); a failure
  * whose cause the page knew shown as the same "Could not stop X yet. Try again." whatever it was,
@@ -42,53 +43,35 @@ let toasts: Toast[];
 let errors: string[];
 let releaseSlow: (() => void) | null;
 
-/** GitHub as the handler sees it: each dispatch is listed as a run, so the ten seconds hold. */
-function fakeGitHub(): typeof fetch {
-  const runs: Array<{ id: number; created_at: string; status: string }> = [];
-  return (async (url: string | URL | Request, init: RequestInit = {}) => {
-    const href = String(url);
-    if (github === "refused") return new Response(null, { status: 401 });
-    if (github === "down") throw new TypeError("fetch failed");
-    if (init.method === "POST" && href.endsWith("/dispatches")) {
-      if (github === "slow") await new Promise<void>((resolve) => (releaseSlow = resolve));
-      const { inputs } = JSON.parse(String(init.body)) as { inputs: { op: string } };
-      const edit = JSON.parse(inputs.op) as ConfigOp | ConfigOp[];
-      applied.push(...(Array.isArray(edit) ? edit : [edit]));
-      runs.unshift({
-        id: runs.length + 1,
-        created_at: new Date(Date.now()).toISOString(),
-        status: "queued",
-      });
-      return Response.json({ workflow_run_id: runs.length });
-    }
-    if (href.includes("/runs?")) return Response.json({ workflow_runs: runs });
-    return new Response(null, { status: 404 });
-  }) as typeof fetch;
-}
-
-/** The page's fetch: /api/config answered by the site's own handler. */
+/**
+ * The site's /api/config as the sender sees it: the real request parser and the real ten-second
+ * cooldown, over a stand-in for the store write (the handler itself is held in configEdit.test.ts).
+ */
 function sitefetch(network: { down: boolean }): typeof fetch {
-  const githubFetch = fakeGitHub();
+  let lastWrite: number | null = null;
   return (async (_url: string | URL | Request, init: RequestInit = {}) => {
     if (network.down) throw new TypeError("Failed to fetch");
-    const result = await handleConfig(
-      {
-        bodyText: String(init.body ?? ""),
-        origin: "https://news.test",
-        expectedOrigin: "https://news.test",
-      },
-      {
-        env: {
-          SINGULARITY_GH_TOKEN: "t",
-          GITHUB_REPOSITORY: "o/r",
-        },
-        fetch: githubFetch,
-        now: () => Date.now(),
-        delay: async () => {},
-      },
-    );
-    statuses.push(result.status);
-    return Response.json(result.body, { status: result.status });
+    const respond = (status: number, body: unknown, headers?: Record<string, string>) => {
+      statuses.push(status);
+      return Response.json(body, { status, ...(headers ? { headers } : {}) });
+    };
+    const request = parseConfigRequest(String(init.body ?? ""));
+    if (request === null) return respond(400, { status: 400, error: "invalid_request" });
+    const wait = configCooldownSeconds(lastWrite === null ? [] : [lastWrite], Date.now());
+    if (wait > 0) {
+      return respond(
+        429,
+        { status: 429, error: "cooldown", retry_after_s: wait },
+        { "Retry-After": String(wait) },
+      );
+    }
+    if (github === "refused" || github === "down") {
+      return respond(503, { status: 503, error: "unavailable" });
+    }
+    if (github === "slow") await new Promise<void>((resolve) => (releaseSlow = resolve));
+    applied.push(...(Array.isArray(request.op) ? request.op : [request.op]));
+    lastWrite = Date.now();
+    return respond(202, { status: 202 });
   }) as typeof fetch;
 }
 
@@ -189,7 +172,7 @@ describe("Stop hearing from", () => {
   });
 
   it("says what failed and whether pressing again can help, logs the answer, and keeps nothing", async () => {
-    // The site cannot reach GitHub (here a refused token): every outlet fails the same way.
+    // The site cannot reach the store: every outlet fails the same way.
     github = "refused";
     await stop("https://reveneau.com/ainews/a", "reveneau.com");
     await vi.advanceTimersByTimeAsync(11_000);
@@ -247,7 +230,7 @@ describe("handleConfig without its settings", () => {
       { bodyText: "{}", origin: null, expectedOrigin: "https://news.test" },
       {
         env: {},
-        fetch: fakeGitHub(),
+        fetch: (async () => new Response(null, { status: 404 })) as typeof fetch,
         now: () => 0,
         delay: async () => {},
         log: (message) => logs.push(message),

@@ -57,4 +57,3 @@ Schedule, sources, preferences, voices, model, autosave, blocked outlets. Reason
 - `apps/web/src/scripts/settingsPage.ts`
 - `apps/web/src/pages/api/config.ts`, `server/configView.ts`
 - `packages/core/src/configOps.ts`
-- `.github/workflows/config.yml`

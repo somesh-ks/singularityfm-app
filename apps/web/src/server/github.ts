@@ -303,8 +303,6 @@ export function createGitHubClient(config: ServerConfig, fetchImpl: FetchLike): 
   };
 }
 
-export const CONFIG_WORKFLOW_FILE = "config.yml";
-
 /** The repository variable holding the one cron that run.yml acts on. */
 export const RUN_CRON_VARIABLE = "RUN_CRON";
 

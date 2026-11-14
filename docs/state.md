@@ -27,13 +27,14 @@ Unit (CI): 367 files, 5,573 tests, 2 min. Site e2e: 468, 14 min. Player: 81, 7 m
 - Guardrails (D360): #673 merged; `secrets:push` waits. closed when: Health's Budgets are fresh.
 - Rewrite (D376), Stories (D377). closed when: his next rewrite fetches in 1 min, plays at 0:00; 20 stories at 5 min air in 5.5.
 - Listen now streams (D366), for Catch up and Regenerate. closed when: his first live Catch up plays without a pause.
-- First-tap sound (2026-11-10). closed when: a cold start's first tap on his Android makes only its own sound.
+- First-tap sound. closed when: a cold start's first tap on his Android makes only its own sound.
 - Parallel CI (D393). closed when: a site PR's CI is under 10 minutes.
-- Deploy batching (D375): 5 merges, 3 hours or `[deploy]`. closed when: a merge day builds at most 8 times; `[deploy]` ships in minutes.
+- Deploy batching (D375). closed when: a merge day builds at most 8 times; `[deploy]` ships in minutes.
 - Bottom bar ripple (D286, D347) and tab state. closed when: on his Android Chrome Settings pages rise, tabs slide at 250 ms, and the latest podcast keeps its tab lit.
-- Run state in Postgres (D381): `state/` is out of git; the site reads the store (runbook 14.1). 11-11: first daily green. 11-13: four workflows only read git. closed when: a daily, a failed run, a podcast and a config apply push nothing.
-- Git commit removal, steps 1, 2 of 3. closed when: the next scheduled run's commit step ends green with `saved`. Step 3: `config commit`, git variables.
-- Config snapshot (D300 step 1): `snapshot.yml` writes `config_snapshots` each Sunday; untried on Neon. closed when: it has run once and `config restore` on a copy rebuilds the rows.
+- Run state in Postgres (D381): `state/` is out of git; the site reads the store (runbook 14.1). closed when: a daily, a failed run, a podcast and a config save push nothing.
+- New topics get no source suggestions (`config.yml` ran them, not with the store on). closed when: a new topic shows suggested sources, or he drops them.
+- Git commit removal done. closed when: the next scheduled run's commit step ends green with `saved`, and a Settings edit saves.
+- Config snapshot (D300): `snapshot.yml` writes `config_snapshots` each Sunday; untried. closed when: it ran once and `config restore` on a copy rebuilds the rows.
 - Edge purge waits from the run's last save (#590, D318). closed when: a Catch up's `content` log says `waiting N s` under 30 and its Library entry opens on the new page
 - Queue (D346, D357), dock swipes (D359). The red strip's fix (#659) assumes Chrome's 8 px slop. closed when: on his Android a swipe shows a red strip, the player's swipes are silent, and the bar's pull fades to its target, line at bottom, no ring after a tap.
 - Player ⋮ menu and Saved (D309, #580): checked in Chromium only. closed when: held press, the speed screen and Settings > Saved work on his Android Chrome.
@@ -66,7 +67,7 @@ Unit (CI): 367 files, 5,573 tests, 2 min. Site e2e: 468, 14 min. Player: 81, 7 m
 - Library list month label (D288) sticks and follows the app bar on a real phone. closed when: the owner scrolls the list on his phone and sees no gap or jump under the bar.
 - Safari and WebKit: the iPhone `@smoke` set (`PLAYER_WEBKIT=1`) has not run. closed when: an iPhone passes it.
 - Time zone (D100, D239) only faked; `sinceLabel`, `pendingAudio` and `podcast/select` still use Stockholm's today. closed when: a run across the 10-25 clock change publishes on the right day.
-- Config saves go through the config store (D149, D296); `config.yml` has nothing left to commit. Never seen live: `topic.scope`, rename or move, a batch adding a topic with sources, a blocked domain, votes, Regenerate with topics, episode delete or regenerate. closed when: each shows in the store row and on a second device.
+- Config saves go through the config store (D149, D296); with the store off, `/api/config` answers 503. Never seen live: `topic.scope`, rename or move, a batch adding a topic with sources, a blocked domain, votes, Regenerate with topics, episode delete or regenerate. closed when: each shows in the store row and on a second device.
 - Admin in its own repo (D392). Stage times (D260) need `DATABASE_URL` and postgres there. closed when: runs show.
 - Owner config out of git (D296, merged). The 11-02 dry run's gate log said `config store:` and it published. closed when: the Vercel build log says `store on; from the store:`, audio publishing keeps the owner's voice, and the cron answers 200.
 - Config store (D149, D296): Vercel has `SINGULARITY_CONFIG_STORE` and `DATABASE_URL` (checked 11-01); the Actions variable is unreadable, so `health` faults `config_store_split` when the site and runs disagree. closed when: a phone's edit shows on a laptop and health passes the config-store line.

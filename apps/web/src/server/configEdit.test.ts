@@ -1,7 +1,7 @@
 import { CATEGORIES } from "@singularityfm/core";
 import type { SqlClient } from "@singularityfm/engine/config-store";
 import { describe, expect, it, vi } from "vitest";
-import { createFakeGitHub, REPO, runJson } from "../testing/fakeGitHub";
+import { createFakeGitHub, REPO } from "../testing/fakeGitHub";
 import type { ConfigOp } from "../types/contracts";
 import {
   CONFIG_COOLDOWN_MS,
@@ -18,9 +18,6 @@ import { type ConfigReadBody, handleConfigRead } from "./configStore";
 const NOW = Date.parse("2026-10-07T12:00:00Z");
 const TOKEN = "github_pat_secret_value_123456";
 const ORIGIN = "https://news.someshks.work";
-const RUNS = "GET /actions/workflows/config.yml/runs";
-const DISPATCH = "POST /actions/workflows/config.yml/dispatches";
-const secondsAgo = (seconds: number) => new Date(NOW - seconds * 1000).toISOString();
 
 function setup(overrides: Partial<ConfigDeps> = {}) {
   const github = createFakeGitHub();
@@ -493,274 +490,14 @@ describe("handleConfig", () => {
     expect(result.status).toBe(400);
   });
 
-  it("dispatches config.yml on main with the edit as one JSON input and returns 202", async () => {
-    const { deps, github, delays } = setup();
-    github.on(RUNS, { json: { workflow_runs: [] } });
-    github.on(DISPATCH, { json: { workflow_run_id: 4242 } });
-    const result = await handleConfig(input(body(upsert)), deps);
-    expect(result).toEqual({ status: 202, body: { status: 202, run_id: 4242 } });
-    expect(delays).toEqual([]);
-    const dispatch = github.requests.find((request) => request.method === "POST");
-    expect(dispatch?.body).toEqual({
-      ref: "main",
-      inputs: { op: JSON.stringify(upsert) },
-      return_run_details: true,
-    });
-  });
-
-  it("dispatches a list of edits as one JSON array in the same input, after one cooldown check", async () => {
-    const { deps, github } = setup();
-    github.on(RUNS, { json: { workflow_runs: [] } });
-    github.on(DISPATCH, { json: { workflow_run_id: 77 } });
-    const add: ConfigOp = {
-      op: "source.add",
-      url: "https://a.example/feed",
-      topic_ids: ["motion-craft"],
-    };
-    const result = await handleConfig(
-      input(body([upsert, add, { ...add, url: "https://b.example/rss" }])),
-      deps,
-    );
-    expect(result).toEqual({ status: 202, body: { status: 202, run_id: 77 } });
-    const posts = github.requests.filter((request) => request.method === "POST");
-    expect(posts).toHaveLength(1);
-    expect(posts[0]?.body).toEqual({
-      ref: "main",
-      inputs: {
-        op: JSON.stringify([upsert, add, { ...add, url: "https://b.example/rss" }]),
-      },
-      return_run_details: true,
-    });
-  });
-
-  it("dispatches a list of one as the edit itself, as before", async () => {
-    const { deps, github } = setup();
-    github.on(RUNS, { json: { workflow_runs: [] } });
-    github.on(DISPATCH, { json: { workflow_run_id: 5 } });
-    await handleConfig(input(body([upsert])), deps);
-    const dispatch = github.requests.find((request) => request.method === "POST");
-    expect(dispatch?.body).toMatchObject({ inputs: { op: JSON.stringify(upsert) } });
-  });
-
-  it("refuses a list while the cooldown holds, as it would one edit", async () => {
-    const { deps, github } = setup();
-    github.on(RUNS, { json: { workflow_runs: [runJson({ created_at: secondsAgo(3) })] } });
-    const add: ConfigOp = { op: "source.add", url: "https://a.example/feed" };
-    const result = await handleConfig(input(body([upsert, add])), deps);
-    expect(result.status).toBe(429);
-    expect(github.requests.some((request) => request.method === "POST")).toBe(false);
-  });
-
-  it("dispatches a source.update as it was validated, alone or with another edit", async () => {
-    const { deps, github } = setup();
-    github.on(RUNS, { json: { workflow_runs: [] } });
-    github.on(DISPATCH, { json: { workflow_run_id: 12 } });
-    const update: ConfigOp = { op: "source.update", id: "openai-blog", topic_ids: [] };
-    const pin: ConfigOp = { op: "source.set", id: "openai-blog", pinned: true };
-    const result = await handleConfig(
-      input(body([{ ...update, name: " OpenAI ", extra: 1 }, pin])),
-      deps,
-    );
-    expect(result).toEqual({ status: 202, body: { status: 202, run_id: 12 } });
-    const dispatch = github.requests.find((request) => request.method === "POST");
-    const sent = (dispatch?.body as { inputs?: { op?: string } } | undefined)?.inputs?.op;
-    expect(JSON.parse(sent ?? "null")).toEqual([{ ...update, name: "OpenAI" }, pin]);
-  });
-
-  it("answers 400 for a source.update that changes nothing", async () => {
-    const { deps, github } = setup();
-    const result = await handleConfig(
-      input(body({ op: "source.update", id: "openai-blog" })),
-      deps,
-    );
-    expect(result.status).toBe(400);
-    expect(github.requests).toHaveLength(0);
-  });
-
-  it("dispatches only the validated edit, whatever else the caller sends", async () => {
-    const { deps, github } = setup();
-    github.on(RUNS, { json: { workflow_runs: [] } });
-    github.on(DISPATCH, { json: { workflow_run_id: 1 } });
-    const hostile = JSON.stringify({
-      ref: "evil",
-      inputs: { mode: "weekly" },
-      op: { op: "source.remove", id: "openai-blog", extra: "x" },
-    });
-    await handleConfig(input(hostile), deps);
-    const dispatch = github.requests.find((request) => request.method === "POST");
-    expect(dispatch?.body).toEqual({
-      ref: "main",
-      inputs: { op: '{"op":"source.remove","id":"openai-blog"}' },
-      return_run_details: true,
-    });
-  });
-
-  describe("schedule.set", () => {
-    const schedule: ConfigOp = { op: "schedule.set", hour: 9, cadence_days: 2 };
-    const VARIABLE = "PATCH /actions/variables/RUN_CRON";
-    const CREATE = "POST /actions/variables";
-    const variableCalls = (github: ReturnType<typeof setup>["github"]) =>
-      github.requests.filter((request) => request.path.startsWith("/actions/variables"));
-
-    it("dispatches the edit, then sets RUN_CRON to the chosen hour", async () => {
-      const { deps, github } = setup();
-      github.on(RUNS, { json: { workflow_runs: [] } });
-      github.on(DISPATCH, { json: { workflow_run_id: 31 } });
-      github.on(VARIABLE, { status: 204 });
-      const result = await handleConfig(input(body(schedule)), deps);
-      expect(result).toEqual({
-        status: 202,
-        body: { status: 202, run_id: 31, time_changed: true },
-      });
-      const calls = variableCalls(github);
-      expect(calls).toHaveLength(1);
-      expect(calls[0]).toMatchObject({
-        method: "PATCH",
-        path: "/actions/variables/RUN_CRON",
-        body: { name: "RUN_CRON", value: "13 9 * * *" },
-      });
-    });
-
-    it("creates the variable when it does not exist yet", async () => {
-      const { deps, github } = setup();
-      github.on(RUNS, { json: { workflow_runs: [] } });
-      github.on(DISPATCH, { json: { workflow_run_id: 31 } });
-      github.on(CREATE, { status: 201 });
-      const result = await handleConfig(input(body([upsert, schedule])), deps);
-      expect(result).toMatchObject({ status: 202, body: { time_changed: true } });
-      expect(variableCalls(github).map((request) => request.method)).toEqual(["PATCH", "POST"]);
-      expect(variableCalls(github)[1]?.body).toEqual({ name: "RUN_CRON", value: "13 9 * * *" });
-    });
-
-    it("still answers 202 and says the time was not changed when GitHub refuses", async () => {
-      const { deps, github, logs } = setup();
-      github.on(RUNS, { json: { workflow_runs: [] } });
-      github.on(DISPATCH, { json: { workflow_run_id: 31 } });
-      github.on(VARIABLE, { status: 403 });
-      const result = await handleConfig(input(body(schedule)), deps);
-      expect(result).toEqual({
-        status: 202,
-        body: { status: 202, run_id: 31, time_changed: false },
-      });
-      expect(logs.join(" ")).toContain("403");
-      expect(JSON.stringify([result, logs])).not.toContain(TOKEN);
-    });
-
-    // RUN_CRON is Stockholm time: a New York 09:00 written as 09 would run six hours early.
-    it.each([
-      ["a new hour in the stored zone", { op: "schedule.set", hour: 9 }, "13 15 * * *"],
-      [
-        "a new zone at the stored hour",
-        { op: "schedule.set", timezone: "Asia/Tokyo" },
-        "13 0 * * *",
-      ],
-    ])("sets RUN_CRON to the Stockholm hour for %s", async (_name, op, value) => {
-      const { deps, github } = setup();
-      github.on(RUNS, { json: { workflow_runs: [] } });
-      github.on(DISPATCH, { json: { workflow_run_id: 31 } });
-      github.on(VARIABLE, { status: 204 });
-      github.on("GET /contents/config/schedule.json", {
-        text: JSON.stringify({
-          version: 1,
-          timezone: "America/New_York",
-          hour: 7,
-          cadence_days: 2,
-        }),
-      });
-      await handleConfig(input(body(op)), deps);
-      expect(variableCalls(github)[0]?.body).toEqual({ name: "RUN_CRON", value });
-    });
-
-    it("leaves the variable alone for an edit without a schedule", async () => {
-      const { deps, github } = setup();
-      github.on(RUNS, { json: { workflow_runs: [] } });
-      github.on(DISPATCH, { json: { workflow_run_id: 31 } });
-      const result = await handleConfig(input(body(upsert)), deps);
-      expect(result).toEqual({ status: 202, body: { status: 202, run_id: 31 } });
-      expect(variableCalls(github)).toHaveLength(0);
-    });
-
-    it("does not touch the variable while the cooldown holds", async () => {
-      const { deps, github } = setup();
-      github.on(RUNS, { json: { workflow_runs: [runJson({ created_at: secondsAgo(3) })] } });
-      expect((await handleConfig(input(body(schedule)), deps)).status).toBe(429);
-      expect(variableCalls(github)).toHaveLength(0);
-    });
-  });
-
-  it("never touches run.yml", async () => {
-    const { deps, github } = setup();
-    github.on(RUNS, { json: { workflow_runs: [] } });
-    github.on(DISPATCH, { json: { workflow_run_id: 1 } });
-    await handleConfig(input(body(upsert)), deps);
-    expect(github.requests.every((request) => !request.path.includes("run.yml"))).toBe(true);
-  });
-
-  it("answers 429 with the seconds left when an edit ran a moment ago", async () => {
-    const { deps, github } = setup();
-    github.on(RUNS, { json: { workflow_runs: [runJson({ created_at: secondsAgo(4) })] } });
-    const result = await handleConfig(input(body(upsert)), deps);
-    expect(result).toEqual({
-      status: 429,
-      headers: { "Retry-After": "6" },
-      body: { status: 429, error: "cooldown", retry_after_s: 6 },
-    });
-    expect(github.requests.some((request) => request.method === "POST")).toBe(false);
-  });
-
-  it("allows an edit once the cooldown has passed", async () => {
-    const { deps, github } = setup();
-    github.on(RUNS, { json: { workflow_runs: [runJson({ created_at: secondsAgo(11) })] } });
-    github.on(DISPATCH, { json: { workflow_run_id: 9 } });
-    expect((await handleConfig(input(body(upsert)), deps)).status).toBe(202);
-  });
-
-  it("finds the run by listing when GitHub dispatches without naming it", async () => {
-    const { deps, github, delays } = setup();
-    let listings = 0;
-    github.on(RUNS, () => {
-      listings += 1;
-      return {
-        json: {
-          workflow_runs:
-            listings === 1
-              ? []
-              : [runJson({ id: 777, created_at: new Date(NOW + 1000).toISOString() })],
-        },
-      };
-    });
-    github.on(DISPATCH, { status: 204 });
-    const result = await handleConfig(input(body(upsert)), deps);
-    expect(result).toMatchObject({ status: 202, body: { run_id: 777 } });
-    expect(delays.length).toBeGreaterThan(0);
-  });
-
-  it("answers 202 even when GitHub 204 dispatches without any run listed yet", async () => {
-    const { deps, github } = setup();
-    github.on(RUNS, { json: { workflow_runs: [] } });
-    github.on(DISPATCH, { status: 204 });
-    const result = await handleConfig(input(body(upsert)), deps);
-    expect(result).toEqual({ status: 202, body: { status: 202 } });
-  });
-
-  it("answers 503 when GitHub fails, with a generic body and a log of the status only", async () => {
+  // The bug it prevents: with the store off, an edit once went to a workflow that saved nothing
+  // (D296, D300), so the page showed it as pending and it was lost.
+  it("answers 503 and calls nothing when the config store is not set", async () => {
     const { deps, github, logs } = setup();
-    github.on(RUNS, { status: 404, json: { message: "Not Found" } });
     const result = await handleConfig(input(body(upsert)), deps);
     expect(result).toEqual({ status: 503, body: { status: 503, error: "unavailable" } });
-    expect(JSON.stringify(result)).not.toContain("Not Found");
-    expect(logs).toEqual(["config failed: GitHubError: GitHub answered 404"]);
-  });
-
-  it("never puts the token in any response or log", async () => {
-    const throwing = async () => {
-      throw new Error(`network down while using ${TOKEN}`);
-    };
-    const { deps, logs } = setup({ fetch: throwing });
-    const result = await handleConfig(input(body(upsert)), deps);
-    const everything = JSON.stringify(result) + logs.join("\n");
-    expect(everything).not.toContain(TOKEN);
-    expect(logs[0]).toContain("[redacted]");
+    expect(github.requests).toHaveLength(0);
+    expect(logs).toHaveLength(1);
   });
 });
 
@@ -768,7 +505,10 @@ describe("handleConfig", () => {
  * An in-memory config_documents table that answers the statements the store sends, with the same
  * version rule as the SQL: a write lands only if every document is still at the version read.
  */
-function fakeStore(rows: { path: string; content: string; version: number }[]) {
+function fakeStore(
+  rows: { path: string; content: string; version: number }[],
+  lastWriteAt: number | null = null,
+) {
   let afterRead = () => {};
   const sql: SqlClient = {
     async query(text, params = []) {
@@ -780,7 +520,7 @@ function fakeStore(rows: { path: string; content: string; version: number }[]) {
         afterRead();
         return copy;
       }
-      if (text.includes("max(updated_at)")) return [{ at: null }];
+      if (text.includes("max(updated_at)")) return [{ at: lastWriteAt }];
       const [paths, contents, versions] = params as [string[], string[], (number | null)[]];
       const fine = paths.every((path, index) => {
         const row = rows.find((entry) => entry.path === path);
@@ -931,5 +671,117 @@ describe("handleConfig with the config store on (D149)", () => {
     });
     const later = setup(storeDeps(busy));
     expect((await handleConfig(input(body(block)), later.deps)).status).toBe(409);
+  });
+  describe("schedule.set", () => {
+    const schedule: ConfigOp = { op: "schedule.set", hour: 9, cadence_days: 2 };
+    const CRON = "PATCH /actions/variables/RUN_CRON";
+    const COPY = "PATCH /actions/variables/RUN_SCHEDULE";
+    const NEW_YORK = JSON.stringify({
+      version: 1,
+      timezone: "America/New_York",
+      hour: 7,
+      cadence_days: 2,
+    });
+    const cronCalls = (github: ReturnType<typeof setup>["github"]) =>
+      github.requests.filter((request) => request.path === "/actions/variables/RUN_CRON");
+
+    it("sets RUN_CRON to the chosen hour", async () => {
+      const store = fakeStore([
+        { path: "config/preferences.json", content: PREFERENCES, version: 1 },
+      ]);
+      const { deps, github } = setup(storeDeps(store));
+      github.on(CRON, { status: 204 });
+      github.on(COPY, { status: 204 });
+      const result = await handleConfig(input(body(schedule)), deps);
+      expect(result).toMatchObject({ status: 202, body: { time_changed: true } });
+      expect(cronCalls(github)[0]?.body).toEqual({ name: "RUN_CRON", value: "13 9 * * *" });
+    });
+
+    it("creates the variable when it does not exist yet", async () => {
+      const store = fakeStore([
+        { path: "config/preferences.json", content: PREFERENCES, version: 1 },
+      ]);
+      const { deps, github } = setup(storeDeps(store));
+      github.on("POST /actions/variables", { status: 201 });
+      github.on(COPY, { status: 204 });
+      const result = await handleConfig(input(body(schedule)), deps);
+      expect(result).toMatchObject({ status: 202, body: { time_changed: true } });
+      expect(cronCalls(github).map((request) => request.method)).toEqual(["PATCH"]);
+      expect(
+        github.requests.find(
+          (r) => r.method === "POST" && (r.body as { name?: string })?.name === "RUN_CRON",
+        )?.body,
+      ).toEqual({ name: "RUN_CRON", value: "13 9 * * *" });
+    });
+
+    it("still answers 202 and says the time was not changed when GitHub refuses", async () => {
+      const store = fakeStore([
+        { path: "config/preferences.json", content: PREFERENCES, version: 1 },
+      ]);
+      const { deps, github, logs } = setup(storeDeps(store));
+      github.on(CRON, { status: 403 });
+      github.on(COPY, { status: 204 });
+      const result = await handleConfig(input(body(schedule)), deps);
+      expect(result).toMatchObject({ status: 202, body: { time_changed: false } });
+      expect(logs.join(" ")).toContain("403");
+      expect(JSON.stringify([result, logs])).not.toContain(TOKEN);
+    });
+
+    // RUN_CRON is Stockholm time: a New York 09:00 written as 09 would run six hours early.
+    it.each([
+      ["a new hour in the stored zone", { op: "schedule.set", hour: 9 }, "13 15 * * *"],
+      [
+        "a new zone at the stored hour",
+        { op: "schedule.set", timezone: "Asia/Tokyo" },
+        "13 0 * * *",
+      ],
+    ])("sets RUN_CRON to the Stockholm hour for %s", async (_name, op, value) => {
+      const store = fakeStore([
+        { path: "config/preferences.json", content: PREFERENCES, version: 1 },
+        { path: "config/schedule.json", content: NEW_YORK, version: 1 },
+      ]);
+      const { deps, github } = setup(storeDeps(store));
+      github.on(CRON, { status: 204 });
+      github.on(COPY, { status: 204 });
+      await handleConfig(input(body(op)), deps);
+      expect(cronCalls(github)[0]?.body).toEqual({ name: "RUN_CRON", value });
+    });
+
+    it("leaves the variable alone for an edit without a schedule", async () => {
+      const store = fakeStore([
+        { path: "config/preferences.json", content: PREFERENCES, version: 1 },
+      ]);
+      const { deps, github } = setup(storeDeps(store));
+      expect((await handleConfig(input(body(block)), deps)).status).toBe(202);
+      expect(cronCalls(github)).toHaveLength(0);
+    });
+
+    it("answers 429 with the seconds left, and touches nothing, while the cooldown holds", async () => {
+      const store = fakeStore(
+        [{ path: "config/preferences.json", content: PREFERENCES, version: 1 }],
+        NOW - 4000,
+      );
+      const { deps, github } = setup(storeDeps(store));
+      const result = await handleConfig(input(body(schedule)), deps);
+      expect(result).toEqual({
+        status: 429,
+        headers: { "Retry-After": "6" },
+        body: { status: 429, error: "cooldown", retry_after_s: 6 },
+      });
+      expect(github.requests).toHaveLength(0);
+    });
+  });
+
+  it("never puts the token in any response or log", async () => {
+    const { deps, logs } = setup({
+      ...storeDeps(fakeStore([])),
+      connectConfigStore: async () => {
+        throw new Error(`network down while using ${TOKEN}`);
+      },
+    });
+    const result = await handleConfig(input(body(block)), deps);
+    const everything = JSON.stringify(result) + logs.join("\n");
+    expect(everything).not.toContain(TOKEN);
+    expect(logs[0]).toContain("[redacted]");
   });
 });

@@ -79,7 +79,6 @@ describe("topic.upsert", () => {
       op: "topic.upsert",
       topic_id: "quantum_computing",
       new_topic: true,
-      commit_message: "chore(config): add topic Quantum computing",
     });
     expect(report.files.sort()).toEqual(["config/queries.json", "config/topics.json"]);
 
@@ -696,7 +695,6 @@ describe("source ops", () => {
     expect(renamed.report).toMatchObject({
       op: "source.update",
       summary: "rename source new.example to New Weekly",
-      commit_message: "chore(config): rename source new.example to New Weekly",
       files: ["config/sources.user.json"],
     });
     let user = await loadUserSources(repo.root);

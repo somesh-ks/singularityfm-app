@@ -27,7 +27,7 @@ const builtStructure = Object.values(structureFile)[0];
 // The site is static; this route alone runs on demand, as a Vercel Function.
 export const prerender = false;
 
-// Edits wait 10 s for each other, counted from GitHub's run list or the store, either of which can
+// Edits wait 10 s for each other, counted from the store's newest write, which can
 // lag a burst; this shared per-minute cap bounds it, and the calls a flood would spend, across
 // instances.
 const EDITS_PER_MINUTE = 12;

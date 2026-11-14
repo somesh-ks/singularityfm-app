@@ -88,7 +88,6 @@ set up, or a push service down, warns and exits 0: it never fails the workflow.`
                                                       mix.set, topic.mix, schedule.set, topic.scope,
                                                       structure.set, profile.block, profile.unblock,
                                                       profile.vote
-  singularity config commit --message <text> [--no-push] Commit what apply wrote as chore(config): <text>
 
 Writes config/topics.json, config/sources.user.json, config/queries.json, config/preferences.json,
 config/schedule.json, config/structure.json, config/profiles/owner.json and

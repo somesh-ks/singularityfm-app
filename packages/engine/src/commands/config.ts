@@ -7,12 +7,10 @@ import {
   type ConfigBundle,
   ConfigOpError,
   type OpOutcome,
-  tidy,
 } from "../config/applyOp.js";
 import { type CommandContext, type CommandRun, redact, secretsFromEnv } from "../context.js";
 import { loadPreferences } from "../curate/inputs.js";
 import { loadQueries, QUERIES_PATH } from "../fetch/queries.js";
-import { saveRunState } from "../git/commit.js";
 import { createHttpClient, type HttpClient } from "../http.js";
 import {
   createFileProfileStore,
@@ -49,9 +47,6 @@ const USAGE = `Usage: singularity config <command>
                                      The op is one object or an array of 1 to 8; an array is checked
                                      whole, applied in order and lands all or nothing. Network only
                                      for source.add (feed lookup).
-  commit --message <text> [--no-push]
-                                     Commit the files apply may change as chore(config): <text>
-                                     and push. The write guard refuses anything else.
   pull [--strict]                    Fill config/ for a build or a fresh checkout (D296): with the
                                      store on, each stored document is copied over its file and a
                                      document the store lacks takes config/examples; with it off,
@@ -161,9 +156,8 @@ export function renderBundle(bundle: ConfigBundle): Record<string, string> {
 }
 
 /**
- * `singularity config apply|commit`. `apply` validates one op, applies it in memory, and writes
- * only the files whose content changed. `commit` commits those files through the write guard,
- * whose allowlist for this command names exactly them. Exit codes: 0 done, 1 failure, 2 usage.
+ * `singularity config apply|seed|pull|snapshot|restore`. `apply` validates one op, applies it in
+ * memory, and writes only the files whose content changed. Exit codes: 0 done, 1 failure, 2 usage.
  */
 export function makeConfigCommand(deps: ConfigDeps = {}): CommandRun {
   return async (argv: string[], ctx: CommandContext): Promise<number> => {
@@ -172,8 +166,6 @@ export function makeConfigCommand(deps: ConfigDeps = {}): CommandRun {
       switch (subcommand) {
         case "apply":
           return await runApply(rest, ctx, deps);
-        case "commit":
-          return await runCommit(rest, ctx);
         case "seed":
           return await runSeed(rest, ctx, deps);
         case "pull":
@@ -269,13 +261,11 @@ async function runApply(argv: string[], ctx: CommandContext, deps: ConfigDeps): 
     for (const path of changed) await writeFileAtomic(join(ctx.root, path), now[path] as string);
   }
 
-  const commitMessage = `chore(config): ${tidy(outcome.summary, 56)}`;
   const report = {
     ok: true,
     op: parsed.data.length === 1 ? (parsed.data[0]?.op ?? "batch") : "batch",
     ops: parsed.data.length,
     summary: outcome.summary,
-    commit_message: commitMessage,
     ...(outcome.topic_id ? { topic_id: outcome.topic_id } : {}),
     new_topic: outcome.new_topic === true,
     files: changed,
@@ -290,7 +280,7 @@ async function runApply(argv: string[], ctx: CommandContext, deps: ConfigDeps): 
 }
 
 /**
- * One outcome for a batch, for the report and the commit subject. A single op keeps its own
+ * One outcome for a batch, for the report. A single op keeps its own
  * summary. Several name the topic when one was created (the usual case: a topic and its sources),
  * and otherwise count the changes. The topic id is the first one an op touched, and a new topic
  * anywhere in the batch counts as new so the workflow still looks for suggestions.
@@ -316,36 +306,6 @@ export function combineOutcomes(outcomes: readonly OpOutcome[]): OpOutcome {
     ...(touched?.topic_id ? { topic_id: touched.topic_id } : {}),
     ...(created ? { new_topic: true } : {}),
   };
-}
-
-async function runCommit(argv: string[], ctx: CommandContext): Promise<number> {
-  const { values } = parseArgs({
-    args: argv,
-    options: { message: { type: "string" }, "no-push": { type: "boolean" } },
-    strict: true,
-  });
-  if (!values.message) {
-    print(USAGE);
-    return 2;
-  }
-  const outcome = await saveRunState({
-    root: ctx.root,
-    command: "config",
-    push: !values["no-push"],
-  });
-  switch (outcome.status) {
-    case "nothing_to_commit":
-    case "saved":
-      print(ctx.json ? JSON.stringify({ status: outcome.status }) : "Nothing to commit.");
-      return 0;
-    case "save_failed":
-      ctx.log.error(outcome.detail);
-      return 1;
-    default: {
-      const unreachable: never = outcome;
-      throw new Error(`Unhandled commit outcome ${JSON.stringify(unreachable)}`);
-    }
-  }
 }
 
 /**

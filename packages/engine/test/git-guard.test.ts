@@ -2,32 +2,6 @@ import { describe, expect, it } from "vitest";
 import { ALLOWLISTS, isPathAllowed } from "../src/git/guard.js";
 
 describe("ALLOWLISTS", () => {
-  it("names the commands and their paths", () => {
-    expect(ALLOWLISTS).toEqual({
-      run: ["Digests/", "state/"],
-      publish: [
-        "Digests/**/*.audio.json",
-        "Digests/**/*.md",
-        "state/usage.json",
-        "state/costs-*.json",
-      ],
-      costs: ["state/costs-*.json", "state/video-text.json"],
-      learn: ["config/preferences.json"],
-      podcast: ["Podcasts/", "state/costs-*.json", "state/podcast-timings.json"],
-      config: [
-        "config/topics.json",
-        "config/sources.user.json",
-        "config/queries.json",
-        "config/preferences.json",
-        "config/schedule.json",
-        "config/structure.json",
-        "config/writer.json",
-        "config/profiles/*.json",
-        "state/source-candidates.json",
-      ],
-    });
-  });
-
   // The bug it prevents: a dry run's ledger commit also taking a digest or usage change that was in
   // the tree (D228), which `publish` would have allowed.
   it("lets a dry run's ledger commit take the ledger and nothing else", () => {
@@ -36,25 +10,6 @@ describe("ALLOWLISTS", () => {
     expect(isPathAllowed("state/video-text.json", ALLOWLISTS.costs)).toBe(true);
     expect(isPathAllowed("state/usage.json", ALLOWLISTS.costs)).toBe(false);
     expect(isPathAllowed("Digests/2026/10/2026-10-29.md", ALLOWLISTS.costs)).toBe(false);
-  });
-
-  it.each([
-    ["config/topics.json", true],
-    ["config/sources.user.json", true],
-    ["config/queries.json", true],
-    ["config/preferences.json", true],
-    ["config/schedule.json", true],
-    ["config/writer.json", true],
-    ["state/source-candidates.json", true],
-    ["config/sources.json", false],
-    ["config/sources.md", false],
-    ["config/voice.md", false],
-    ["state/seen.json", false],
-    ["Digests/2026/10/2026-10-07.md", false],
-    ["package.json", false],
-    [".github/workflows/config.yml", false],
-  ])("config: %s -> %s", (path, expected) => {
-    expect(isPathAllowed(path, ALLOWLISTS.config)).toBe(expected);
   });
 });
 
@@ -91,16 +46,6 @@ describe("isPathAllowed", () => {
     [".github/workflows/run.yml", false],
   ])("publish: %s -> %s", (path, expected) => {
     expect(isPathAllowed(path, ALLOWLISTS.publish)).toBe(expected);
-  });
-
-  it.each([
-    ["config/preferences.json", true],
-    ["config/sources.json", false],
-    ["config/voice.md", false],
-    ["Digests/2026/10/2026-10-07.md", false],
-    ["state/usage.json", false],
-  ])("learn: %s -> %s", (path, expected) => {
-    expect(isPathAllowed(path, ALLOWLISTS.learn)).toBe(expected);
   });
 
   it("matches ** across directories and * within one segment", () => {

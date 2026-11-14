@@ -27,21 +27,15 @@ import { missingSettings, readServerConfig, type ServerConfig, secretsOf } from 
 import { fallbackCronHour } from "./cron";
 import { type GenerateDeps, isSameOrigin } from "./generate";
 import type { FetchLike } from "./github";
-import {
-  CONFIG_WORKFLOW_FILE,
-  createGitHubClient,
-  createVariableWriter,
-  createWorkflowDispatcher,
-  RUN_CRON_VARIABLE,
-} from "./github";
+import { createVariableWriter, RUN_CRON_VARIABLE } from "./github";
 import type { ApiResult } from "./http";
 import { cooldownRefusal } from "./rateLimit";
 import { describeError } from "./redact";
 import type { Resolver } from "./sourcePreview";
 
 /**
- * POST /api/config: check the edit, check the cooldown against GitHub, singularity config.yml with
- * the edit as its one input. Built like handleGenerate, and for the same reason: everything with a
+ * POST /api/config: check the edit, check the cooldown against the newest stored write, and save the
+ * edit to the config store (D149). Built like handleGenerate, and for the same reason: everything with a
  * side effect is a parameter, so the whole flow is tested with fakes and no network.
  *
  * The edit is validated by hand and rebuilt from the validated parts, so a field the contract does
@@ -50,11 +44,8 @@ import type { Resolver } from "./sourcePreview";
 
 /** Edits are small. */
 export const MAX_CONFIG_BODY_CHARS = 8192;
-/** Two edits closer together than this are refused, so one person cannot flood the repository. */
+/** Two edits closer together than this are refused, so one person cannot flood the store. */
 export const CONFIG_COOLDOWN_MS = 10_000;
-
-const RUN_LOOKUP_ATTEMPTS = 1;
-const RUN_LOOKUP_DELAY_MS = 500;
 
 export interface ConfigDeps extends GenerateDeps {
   /** Opens the config store (D149). Tests pass a fake; left out, the Neon driver is used. */
@@ -621,66 +612,21 @@ export async function handleConfig(input: ConfigInput, deps: ConfigDeps): Promis
     };
   }
 
+  // The edit has nowhere to go without the store: the config workflow that once applied it to the
+  // repository saved nothing since the files left git (D296, D300), so an edit it took would be lost
+  // silently. Refused before the burst cap, so it does not use up the quota.
+  const storeUrl = configStoreUrl(deps.env);
+  if (storeUrl === null) {
+    log("config unavailable: the config store is not set");
+    return unavailable;
+  }
+
   // The shared burst cap (D150), taken only by a request that passed the checks above.
   const burstWait = (await deps.burst?.()) ?? 0;
   if (burstWait > 0) return cooldownRefusal(burstWait);
 
-  const storeUrl = configStoreUrl(deps.env);
-  if (storeUrl !== null) {
-    // Loaded only with the store on. The driver itself also loads for the rate-limit counter
-    // whenever DATABASE_URL is set (D150), store on or off.
-    const { saveToStore } = await import("./configStore");
-    return saveToStore(request, storeUrl, config, deps);
-  }
-
-  const github = createWorkflowDispatcher(config, deps.fetch, CONFIG_WORKFLOW_FILE);
-  try {
-    const runs = await github.listDispatchRuns();
-    const started = runs.map((run) => Date.parse(run.createdAt)).filter(Number.isFinite);
-    const wait = configCooldownSeconds(started, deps.now());
-    if (wait > 0) {
-      return {
-        status: 429,
-        headers: { "Retry-After": String(wait) },
-        body: { status: 429, error: "cooldown", retry_after_s: wait },
-      };
-    }
-
-    const startedAt = deps.now();
-    // One edit goes as it always did, an object; several go as an array in the same input.
-    const edit = Array.isArray(request.op) && request.op.length === 1 ? request.op[0] : request.op;
-    let runId = await github.dispatch({ op: JSON.stringify(edit) });
-    for (let attempt = 0; runId === null && attempt < RUN_LOOKUP_ATTEMPTS; attempt += 1) {
-      // GitHub started the run but did not name it. The newest run created since the request is it.
-      await deps.delay(RUN_LOOKUP_DELAY_MS);
-      const after = await github.listDispatchRuns();
-      runId =
-        after.find((run) => Date.parse(run.createdAt) >= startedAt - 5000 && run.status !== "")
-          ?.id ?? null;
-    }
-
-    // The hour lives in a repository variable, which run.yml compares against its schedule. A
-    // token without "Variables: write" is refused; the rest of the edit is already on its way.
-    const time = scheduledTime(request.op);
-    if (time === null) {
-      return {
-        status: 202,
-        body: { status: 202, ...(runId !== null ? { run_id: runId } : {}) },
-      };
-    }
-    const timeChanged = await updateRunTime(config, deps, time, () =>
-      createGitHubClient(config, deps.fetch).readFile("config/schedule.json", "main"),
-    );
-    return {
-      status: 202,
-      body: {
-        status: 202,
-        ...(runId !== null ? { run_id: runId } : {}),
-        time_changed: timeChanged,
-      },
-    };
-  } catch (error) {
-    log(`config failed: ${describeError(error, secretsOf(config))}`);
-    return unavailable;
-  }
+  // Loaded only now. The driver itself also loads for the rate-limit counter whenever DATABASE_URL
+  // is set (D150).
+  const { saveToStore } = await import("./configStore");
+  return saveToStore(request, storeUrl, config, deps);
 }

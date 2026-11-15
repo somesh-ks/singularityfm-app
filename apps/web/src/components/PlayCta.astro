@@ -9,7 +9,8 @@ import type { AudioMode } from "../lib/digests";
 import { AUDIO_UNAVAILABLE_COPY } from "../lib/digestView";
 import type { HeroShare } from "../lib/share";
 import { type ChipNoun, idleBriefingChip } from "../player/core/readerMath";
-import type HeroMenu from "./HeroMenu.astro";
+// biome-ignore lint/style/useImportType: the template draws it; the frontmatter reads only its type.
+import HeroMenu from "./HeroMenu.astro";
 
 interface Props {
   digestId: string;

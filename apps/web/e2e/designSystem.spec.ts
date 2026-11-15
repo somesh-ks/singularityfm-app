@@ -726,12 +726,10 @@ async function sizeMismatches(page: Page): Promise<string[]> {
         return glyph ? [[shape, glyph.getBoundingClientRect().width] as const] : [];
       });
       if (new Set(glyphs.map(([, width]) => Math.round(width * 2) / 2)).size > 1)
-        found.push(
-          `${name(row)} glyphs: ${glyphs.map(([s, w]) => `${name(s)} ${w}`).join(", ")}`,
-        );
+        found.push(`${name(row)} glyphs: ${glyphs.map(([s, w]) => `${name(s)} ${w}`).join(", ")}`);
       for (const shape of shapes) {
         const glyph = glyphOf(shape);
-        if (!glyph || (shape as HTMLElement).innerText.trim()) continue;
+        if (!glyph || shape.textContent?.trim()) continue;
         const ratio = glyph.getBoundingClientRect().width / shape.getBoundingClientRect().height;
         if (ratio < 0.4 || ratio > 0.6)
           found.push(`${name(shape)}: glyph ${ratio.toFixed(2)} of its circle`);

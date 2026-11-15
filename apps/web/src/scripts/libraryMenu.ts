@@ -22,6 +22,8 @@ import { shareItem } from "./shareLink";
 const ROOT = "[data-library-menu]";
 /** A Library row's menu, or the More menu of a page: the roots Download and Add to queue act from. */
 const ITEM_ROOT = `${ROOT}, [data-page-menu]`;
+/** A sheet's items, and the page header's Download button (PlayCta.astro), which acts as its item. */
+const ITEM = "[data-menu], [data-page-download]";
 
 /** Where the downloaded state is kept: the row's card, or the menu itself on a page. */
 const holderOf = (root: HTMLElement): HTMLElement =>
@@ -48,7 +50,9 @@ function setDownloaded(root: HTMLElement, on: boolean): void {
   if (holderOf(root) === root) markHero(on);
   // A page has two: the header row's button, named by aria-label, and the sheet's item, by its words.
   const name = on ? "Remove download" : "Download";
-  for (const item of root.querySelectorAll<HTMLElement>('[data-menu="download"]')) {
+  for (const item of root.querySelectorAll<HTMLElement>(
+    '[data-menu="download"], [data-page-download]',
+  )) {
     const label = item.querySelector("[data-menu-label]");
     if (label) label.textContent = name;
     else item.setAttribute("aria-label", name);
@@ -123,7 +127,7 @@ async function onPick(item: HTMLElement): Promise<void> {
   const root = item.closest<HTMLElement>(ITEM_ROOT);
   if (!root) return;
   const { id = "", path = "", title = "" } = root.dataset;
-  switch (item.dataset.menu) {
+  switch (item.dataset.menu ?? "download") {
     case "download":
       await toggleDownload(root);
       return;
@@ -194,7 +198,7 @@ export function installLibraryMenu(): void {
   );
 
   document.addEventListener("click", (event) => {
-    const item = (event.target as Element).closest?.<HTMLElement>(`:is(${ITEM_ROOT}) [data-menu]`);
+    const item = (event.target as Element).closest?.<HTMLElement>(`:is(${ITEM_ROOT}) :is(${ITEM})`);
     if (item && item.getAttribute("aria-disabled") !== "true") void onPick(item);
   });
 
@@ -204,7 +208,7 @@ export function installLibraryMenu(): void {
     // Download and Add to queue are served dimmed (aria-disabled) until their handler exists.
     for (const menu of document.querySelectorAll("[data-page-menu]")) {
       menu.setAttribute("data-menus-ready", "");
-      for (const item of menu.querySelectorAll('[data-menu][aria-disabled="true"]'))
+      for (const item of menu.querySelectorAll(`:is(${ITEM})[aria-disabled="true"]`))
         item.removeAttribute("aria-disabled");
     }
     syncFavorites();

@@ -9,7 +9,7 @@ import type { AudioMode } from "../lib/digests";
 import { AUDIO_UNAVAILABLE_COPY } from "../lib/digestView";
 import type { HeroShare } from "../lib/share";
 import { type ChipNoun, idleBriefingChip } from "../player/core/readerMath";
-import HeroMenu from "./HeroMenu.astro";
+import type HeroMenu from "./HeroMenu.astro";
 
 interface Props {
   digestId: string;
@@ -64,8 +64,8 @@ const unavailable = mode === "expired" ? AUDIO_UNAVAILABLE_COPY.expired : null;
      a large Play in the middle, Share and More. The side buttons are equal circles; Play is the
      player's own Play size, so the page's main action reads as the one in the full player. */}
 <div class="hero-actions scroll-fade-inline" {...root}>
-  {/* Download is the sheet's own item (data-menu="download"), wired by scripts/libraryMenu.ts and
-       served dimmed until then; the row's data-downloaded swaps it to the bin and its name to Remove
+  {/* Download acts as the sheet's own Download item, wired by scripts/libraryMenu.ts and served
+       dimmed until then; the row's data-downloaded swaps it to the bin and its name to Remove
        download, as on every sheet (owner, 2026-11-04). */}
   {
     menu?.page.audio && (
@@ -73,7 +73,7 @@ const unavailable = mode === "expired" ? AUDIO_UNAVAILABLE_COPY.expired : null;
         variant="tonal"
         className="hero-download"
         label="Download"
-        data-menu="download"
+        data-page-download
         aria-disabled="true"
       >
         <Icon name="download" className="dl-add" /><Icon name="trash" className="dl-remove" />

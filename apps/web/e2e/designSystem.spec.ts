@@ -679,3 +679,82 @@ test("a half-heard bar stays inside its cover's rounded corners in every mood", 
   }
   expect(outside).toEqual([]);
 });
+
+/**
+ * Buttons in one row, compared to each other and to their own glyphs, never to a pinned size. The
+ * podcast page's More was a 44px target beside 36px circles, and an icon button drew a 24px glyph in
+ * a 36px circle, which read as too thick (owner, 2026-11-13 and 11-15: "check for other
+ * inconsistencies in sizes"). Only buttons that draw a shape count: a bare glyph's box is its target,
+ * not what is seen. In each row those shapes are one height, save one larger main action (the
+ * page's Play), their glyphs are one size, and an icon-only shape's glyph is about half of it.
+ */
+async function sizeMismatches(page: Page): Promise<string[]> {
+  return page.evaluate(() => {
+    const found: string[] = [];
+    const name = (element: Element) =>
+      `${element.tagName.toLowerCase()}${[...element.classList].map((c) => `.${c}`).join("")}`;
+    const drawn = (element: Element) => {
+      const style = getComputedStyle(element);
+      const fill = style.backgroundColor.match(/[\d.]+/g)?.map(Number) ?? [];
+      return fill.length === 4 ? fill[3] > 0 : fill.length === 3;
+    };
+    const glyphOf = (element: Element) =>
+      [...element.querySelectorAll<SVGElement>("svg")].find((svg) => svg.checkVisibility());
+    const rows = new Set<Element>();
+    for (const button of document.querySelectorAll("main button, main [role='button']")) {
+      const parent = button.parentElement;
+      if (parent && getComputedStyle(parent).display.endsWith("flex")) rows.add(parent);
+    }
+    for (const row of rows) {
+      if (getComputedStyle(row).flexDirection !== "row") continue;
+      const shapes = [...row.children].filter(
+        (child) =>
+          child.matches("button, [role='button']") &&
+          child.checkVisibility({ visibilityProperty: true }) &&
+          drawn(child),
+      );
+      if (shapes.length < 2) continue;
+      const height = (element: Element) =>
+        Math.round(element.getBoundingClientRect().height * 2) / 2;
+      const sizes = [...new Set(shapes.map(height))].sort((a, b) => a - b);
+      const main = sizes.length === 2 ? shapes.filter((s) => height(s) === sizes[1]) : [];
+      if (sizes.length > 2 || main.length > 1)
+        found.push(`${name(row)}: ${shapes.map((s) => `${name(s)} ${height(s)}`).join(", ")}`);
+      const rest = shapes.filter((shape) => !main.includes(shape));
+      const glyphs = rest.flatMap((shape) => {
+        const glyph = glyphOf(shape);
+        return glyph ? [[shape, glyph.getBoundingClientRect().width] as const] : [];
+      });
+      if (new Set(glyphs.map(([, width]) => Math.round(width * 2) / 2)).size > 1)
+        found.push(
+          `${name(row)} glyphs: ${glyphs.map(([s, w]) => `${name(s)} ${w}`).join(", ")}`,
+        );
+      for (const shape of shapes) {
+        const glyph = glyphOf(shape);
+        if (!glyph || (shape as HTMLElement).innerText.trim()) continue;
+        const ratio = glyph.getBoundingClientRect().width / shape.getBoundingClientRect().height;
+        if (ratio < 0.4 || ratio > 0.6)
+          found.push(`${name(shape)}: glyph ${ratio.toFixed(2)} of its circle`);
+      }
+    }
+    return found;
+  });
+}
+
+test("buttons side by side are one size, save the main one, and a glyph fits its circle", {
+  tag: "@both",
+}, async ({ page }) => {
+  test.setTimeout(120_000);
+  for (const path of PAGES) {
+    await page.goto(path);
+    await page.waitForLoadState("networkidle");
+    // Expressive grows the controls and the targets; Halloween keeps the default's sizes.
+    for (const mood of ["default", "expressive"]) {
+      await page.evaluate((m) => {
+        if (m === "default") delete document.documentElement.dataset.mood;
+        else document.documentElement.dataset.mood = m;
+      }, mood);
+      expect.soft(await sizeMismatches(page), `${path} ${mood}`).toEqual([]);
+    }
+  }
+});

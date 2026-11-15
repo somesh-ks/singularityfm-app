@@ -18,6 +18,12 @@ export interface Release {
 
 export const CHANGELOG: readonly Release[] = [
   {
+    version: "0.24.0",
+    date: "2026-11-15",
+    description:
+      "A podcast's header is centred: the cover, the title, its facts, the Catch up picker, and one row of buttons with Download, the heart, a large Play in the middle, Share and More.",
+  },
+  {
     version: "0.23.5",
     date: "2026-11-13",
     description:

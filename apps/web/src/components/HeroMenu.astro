@@ -30,64 +30,41 @@ interface Props {
   };
 }
 
-const {
-  episodeId,
-  briefingId,
-  minutes,
-  stories,
-  deletable = true,
-  regenerations,
-  page,
-} = Astro.props;
+const { episodeId, deletable = true, regenerations, page } = Astro.props;
 ---
 
-{/* One More button beside the title and the sheet it opens: the podcast's one sheet, the same a
-     Library card's hold opens (PodcastMenuItems.astro, D369), headed by its name and facts. The menu
-     is a native popover, so light dismiss and Escape are the browser's; scripts/heroMenu.ts adds the
-     arrow keys and focus. On an episode Regenerate opens the rewrite panel
-     (scripts/episodeActionsEntry.ts); on a briefing it opens the Generate sheet, which sends this
-     digest's id so the new one replaces it. Delete opens the confirm on both. The items wait, with a
-     reason, while a run for this episode is going. */}
-<div
-  class="hero-menu"
-  data-share-host
-  data-episode-actions=""
-  data-episode={episodeId}
-  data-briefing={briefingId}
-  data-minutes={minutes}
-  data-stories={stories}
-  data-page-menu=""
-  data-id={page.id}
-  data-path={page.path}
-  data-title={page.title}
-  data-audio={page.audio}
+{/* The More button, last in the header's row of buttons (PlayCta.astro, which holds the page's
+     menu data), and the sheet it opens: the podcast's one sheet, the same a Library card's hold opens
+     (PodcastMenuItems.astro, D369), headed by its name and facts. The menu is a native popover, so
+     light dismiss and Escape are the browser's; scripts/heroMenu.ts adds the arrow keys and focus. On
+     an episode Regenerate opens the rewrite panel (scripts/episodeActionsEntry.ts); on a briefing it
+     opens the Generate sheet, which sends this digest's id so the new one replaces it. Delete opens the
+     confirm on both. The items wait, with a reason, while a run for this episode is going. */}
+<IconButton
+  variant="tonal"
+  className="hero-more"
+  label="More actions"
+  aria-haspopup="menu"
+  popoverTarget="hero-menu"
+  data-hero-more
 >
-  <IconButton
-    className="hero-more"
-    label="More actions"
-    aria-haspopup="menu"
-    popoverTarget="hero-menu"
-    data-hero-more
-  >
-    <Icon name="moreVert" className="more-icon" />
-    <Icon name="check" className="more-done" />
-  </IconButton>
-  <Menu id="hero-menu" title={page.title} subtitle={page.subtitle}>
-    <PodcastMenuItems
-      id={page.id}
-      kind={episodeId ? "episode" : "briefing"}
-      pending
-      audio={page.audio}
-      deletable={deletable}
-      regenerations={regenerations}
-    />
-  </Menu>
-  <span class="sr-only" role="status" data-share-status></span>
-  {
-    episodeId && (
-      <span class="sr-only" id="episode-actions-busy" hidden>
-        Unavailable while this episode is being updated.
-      </span>
-    )
-  }
-</div>
+  <Icon name="moreVert" className="more-icon" />
+  <Icon name="check" className="more-done" />
+</IconButton>
+<Menu id="hero-menu" title={page.title} subtitle={page.subtitle}>
+  <PodcastMenuItems
+    id={page.id}
+    kind={episodeId ? "episode" : "briefing"}
+    pending
+    audio={page.audio}
+    deletable={deletable}
+    regenerations={regenerations}
+  />
+</Menu>
+{
+  episodeId && (
+    <span class="sr-only" id="episode-actions-busy" hidden>
+      Unavailable while this episode is being updated.
+    </span>
+  )
+}

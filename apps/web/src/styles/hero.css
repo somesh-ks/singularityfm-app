@@ -111,7 +111,8 @@
   --icon-size: var(--size-icon-lg);
   --hero-side: min(
     var(--size-touch-comfortable),
-    (100cqi - var(--control-size-lg) - 4 * var(--space-2)) / 4
+    (100cqi - var(--control-size-lg) - 4 * var(--space-2)) /
+    4
   );
   min-width: var(--hero-side);
   min-height: var(--hero-side);

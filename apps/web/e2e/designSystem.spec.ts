@@ -689,7 +689,7 @@ async function sizeMismatches(page: Page): Promise<string[]> {
     const drawn = (element: Element) => {
       const style = getComputedStyle(element);
       const fill = style.backgroundColor.match(/[\d.]+/g)?.map(Number) ?? [];
-      return fill.length === 4 ? fill[3] > 0 : fill.length === 3;
+      return fill.length === 4 ? (fill[3] ?? 0) > 0 : fill.length === 3;
     };
     const glyphOf = (element: Element) =>
       [...element.querySelectorAll<SVGElement>("svg")].find((svg) => svg.checkVisibility());

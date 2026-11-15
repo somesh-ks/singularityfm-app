@@ -1,11 +1,8 @@
 /*
- * The briefing and episode header. One layout for any title, so a long episode title and a short
- * date sit the same way:
- * - a phone: the cover, then the title across the column, its facts under it, the Catch up select,
- *   and the row of buttons spread across the column;
- * - from 40rem: a larger cover with the title, its facts, the select and the row beside it, the row
- *   on the cover's foot line (or under the text, where a long title runs past the cover).
- * Every left edge is the column's or the text column's, never a few pixels off either.
+ * The briefing and episode header: one centred stack on every screen (owner, 2026-11-15: "center
+ * align the header stuff on both desktop and mobile"): the cover, the title, its facts, the Catch up
+ * select and the row of buttons, each centred on the column, so a long episode title and a short
+ * date sit the same way.
  */
 
 .hero {
@@ -13,23 +10,22 @@
   --hero-title-leading: var(--text-display-leading);
   --hero-cover: var(--cover-size-hero);
   display: grid;
-  grid-template-columns: var(--hero-cover) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   grid-template-areas:
-    "cover ."
-    "text text"
-    "album album"
-    "actions actions"
-    "hint hint";
-  align-items: start;
-  column-gap: var(--space-4);
+    "cover"
+    "text"
+    "album"
+    "actions"
+    "hint";
+  justify-items: center;
+  text-align: center;
   padding-block: var(--page-top) var(--space-4);
 }
 
 /* Flat, like every surface here: the cover keeps its hairline outline and loses its shadow. */
 .hero .cover {
   grid-area: cover;
-  align-self: start;
-  width: 100%;
+  width: var(--hero-cover);
   box-shadow: none;
 }
 
@@ -39,6 +35,7 @@
   display: grid;
   gap: var(--space-1);
   min-width: 0;
+  max-width: var(--layout-measure);
   margin-block-start: var(--space-6);
 }
 
@@ -53,6 +50,7 @@
 }
 
 .hero-facts {
+  justify-content: center;
   font-size: var(--text-meta-size);
 }
 
@@ -63,6 +61,9 @@
    the row stands where it did. It is the container the side circles measure. */
 .hero-actions {
   grid-area: actions;
+  /* The whole column wide: the side circles measure it, and a phone spreads the row across it. */
+  justify-self: stretch;
+  justify-content: center;
   container-type: inline-size;
   display: flex;
   align-items: center;
@@ -91,7 +92,6 @@
  */
 .hero-album {
   grid-area: album;
-  justify-self: start;
   margin-block-start: var(--space-4);
 }
 
@@ -195,29 +195,8 @@
   display: block;
 }
 
+/* Beside a wider screen's larger gaps the row stays one centred group. */
 @media (width >= 40rem) {
-  /* The cover grows to 10rem, room for a two-line title, its facts and Play beside it. */
-  .hero {
-    --hero-cover: var(--cover-size-hero-wide);
-    grid-template-areas:
-      "cover text"
-      "cover album"
-      "cover actions"
-      "cover hint";
-    /* The row sits on the cover's foot line when the text is short, and flows under it when not. */
-    grid-template-rows: auto 1fr auto auto;
-    column-gap: var(--space-6);
-  }
-
-  .hero-text {
-    margin-block-start: 0;
-  }
-
-  .hero-album {
-    align-self: end;
-  }
-
-  /* Beside the cover the row starts on the text's edge, as the title does. */
   .hero-actions {
     gap: var(--space-4);
   }

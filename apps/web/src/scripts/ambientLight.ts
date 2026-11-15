@@ -9,8 +9,9 @@ import {
 
 /**
  * The ambient cover light: one full-screen triangle and a fragment shader that draws three round,
- * soft lights in the cover's colors: the main one behind the cover, the other two drifting beside it
- * toward the title. Slow warped noise bends their edges, so no light reads as a drawn circle. The
+ * soft lights in the cover's colors: the main one behind the cover, the other two drifting on either
+ * side of it and a little lower, toward the title, so the glow sits centred on the centred header
+ * (owner, 2026-11-15). Slow warped noise bends their edges, so no light reads as a drawn circle. The
  * canvas is tiny and CSS scales it up, which is the blur. It draws only while the header is on
  * screen and the tab is visible, and it leaves the CSS layer underneath in place whenever WebGL, the
  * context or the shader is missing.
@@ -35,9 +36,9 @@ void main(){
 float s=o.z;vec2 p=(gl_FragCoord.xy-o.xy)/s;
 vec2 d=vec2(cos(t),sin(t));
 p+=(vec2(n(p*1.4+d*1.2),n(p*1.4+5.2-d.yx*1.2))-.5)*.6;
-float a=g(p,vec2(.12*cos(t),.1*sin(2.*t)),.8);
-float b=g(p,vec2(1.05+.3*cos(t+2.1),.1+.2*sin(2.*t+1.)),.6);
-float e=g(p,vec2(2.+.35*cos(t+4.2),.2*sin(3.*t+2.)),.55);
+float a=g(p,vec2(.12*cos(t),-.15+.1*sin(2.*t)),.95);
+float b=g(p,vec2(-1.05+.3*cos(t+2.1),-.4+.2*sin(2.*t+1.)),.75);
+float e=g(p,vec2(1.05+.3*cos(t+4.2),-.4+.2*sin(2.*t+3.)),.75);
 float m=a+b+e;
 vec3 k=(c[0]*a+c[1]*b+c[2]*e)/max(m,1e-4);
 float w=1.-exp(-1.6*m);

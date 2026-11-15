@@ -1,6 +1,6 @@
 /*
  * Ambient cover light: soft round lights in the cover's colors behind the briefing and episode
- * header, as if the sleeve were lit. They gather at the cover, spill toward the end side, and are
+ * header, as if the sleeve were lit. They gather at the cover, spread to either side of it, and are
  * gone before the first section. The whole layer is one opacity, the peak tint, so the
  * colors inside can be full strength and the contrast proof (ambientPalette.test.ts) is a single
  * blend. The still CSS layer is what shows before script and where WebGL is missing; the canvas
@@ -39,12 +39,12 @@
   /* Zero at all four edges of the layer, so no line anywhere. The lights inside are round; this
      fade, not an ellipse, decides where they end. */
   mask-image:
-    linear-gradient(to right, transparent, black 8%, black 50%, transparent),
-    linear-gradient(to bottom, transparent, black 25%, black 75%, transparent);
+    linear-gradient(to right, transparent, black 25%, black 75%, transparent),
+    linear-gradient(to bottom, transparent, black 15%, black 55%, transparent);
   mask-composite: intersect;
   -webkit-mask-image:
-    linear-gradient(to right, transparent, black 8%, black 50%, transparent),
-    linear-gradient(to bottom, transparent, black 25%, black 75%, transparent);
+    linear-gradient(to right, transparent, black 25%, black 75%, transparent),
+    linear-gradient(to bottom, transparent, black 15%, black 55%, transparent);
   -webkit-mask-composite: source-in;
 }
 
@@ -73,20 +73,22 @@
 }
 
 /* The shader's three lights at rest, round: the cover's main colour behind the cover, the other two
-   beside it toward the title. Placed from the cover's own size and position in the header. */
+   on either side of it and a little lower, toward the title. Placed from the cover's own size and
+   position in the header, which centres it (hero.css). */
 .ambient-still {
   --s: var(--hero-cover);
-  --x: calc(min(var(--space-12), var(--page-gutter-start)) + var(--s) / 2);
+  --x: 50%;
   --y: calc(var(--page-top) + var(--s) / 2);
   background:
     radial-gradient(
-      circle calc(var(--s) * 1.1) at calc(var(--x) + var(--s) * 2.2) var(--y),
+      circle calc(var(--s) * 1.4) at calc(var(--x) + var(--s) * 1.05)
+        calc(var(--y) + var(--s) * 0.4),
       var(--ambient-c),
       transparent
     ),
     radial-gradient(
-      circle calc(var(--s) * 1.2) at calc(var(--x) + var(--s) * 1.1)
-        calc(var(--y) - var(--s) * 0.15),
+      circle calc(var(--s) * 1.4) at calc(var(--x) - var(--s) * 1.05)
+        calc(var(--y) + var(--s) * 0.4),
       var(--ambient-b),
       transparent
     ),

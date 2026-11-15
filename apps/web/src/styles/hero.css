@@ -1,10 +1,10 @@
 /*
  * The briefing and episode header. One layout for any title, so a long episode title and a short
  * date sit the same way:
- * - a phone: the cover with the More button at the far end of its row, then the title across the
- *   column, its facts under it, and Play;
- * - from 40rem: a larger cover with the title, its facts and the More button beside it, and Play on
- *   the cover's foot line (or under the text, where a long title runs past the cover).
+ * - a phone: the cover, then the title across the column, its facts under it, the Catch up select,
+ *   and the row of buttons spread across the column;
+ * - from 40rem: a larger cover with the title, its facts, the select and the row beside it, the row
+ *   on the cover's foot line (or under the text, where a long title runs past the cover).
  * Every left edge is the column's or the text column's, never a few pixels off either.
  */
 
@@ -13,12 +13,13 @@
   --hero-title-leading: var(--text-display-leading);
   --hero-cover: var(--cover-size-hero);
   display: grid;
-  grid-template-columns: var(--hero-cover) minmax(0, 1fr) auto;
+  grid-template-columns: var(--hero-cover) minmax(0, 1fr);
   grid-template-areas:
-    "cover . menu"
-    "text text text"
-    "actions actions actions"
-    "hint hint hint";
+    "cover ."
+    "text text"
+    "album album"
+    "actions actions"
+    "hint hint";
   align-items: start;
   column-gap: var(--space-4);
   padding-block: var(--page-top) var(--space-4);
@@ -55,14 +56,10 @@
   font-size: var(--text-meta-size);
 }
 
-.hero > .hero-menu {
-  grid-area: menu;
-}
-
-/* The day's Catch up select (D219), Play, and Share beside it (PlayCta.astro). The row scrolls
-   sideways when they do not fit (a phone with the longest names: owner, 2026-10-29), and its padding
-   holds the focus rings the scroll box would clip; the negative margins take the padding back, so
-   the row stands where it did. 8px each, on the grid (owner, 2026-11-05; 4px before). Nothing in it shrinks: Play and the select keep their width. */
+/* The row of buttons (PlayCta.astro, owner 2026-11-15 after a reference): Download, Favorite, a large
+   Play, Share and More. The row scrolls sideways when they do not fit (the narrowest phone in
+   Expressive), and its padding holds the focus rings the scroll box would clip; the negative margins
+   take the padding back, so the row stands where it did. Nothing in it shrinks. */
 .hero-actions {
   grid-area: actions;
   display: flex;
@@ -86,31 +83,41 @@
 }
 
 /*
- * The select of a day's Catch ups (D219) is the tonal Select (select.css) at the chip height Play,
- * Share and Favorite take, so the row reads as one. A select is as wide as its longest option
- * whichever is chosen, and the names are one width (lib/catchUps.ts), so switching moves nothing.
+ * The select of a day's Catch ups (D219), the tonal Select (select.css), on its own line above the
+ * row. A select is as wide as its longest option whichever is chosen, and the names are one width
+ * (lib/catchUps.ts), so switching moves nothing.
  */
+.hero-album {
+  grid-area: album;
+  justify-self: start;
+  margin-block-start: var(--space-4);
+}
+
 .hero-album > select {
   font-variant-numeric: tabular-nums;
 }
 
 /*
- * Share (D153): the secondary icon button (.icon-btn-tonal, buttons.css) after Play, a circle on the
- * select's fill (owner, 2026-10-29). It is as tall as the chip and the select beside it, and its
- * 44px target reaches past the circle as the chip's does.
+ * The side buttons are one size, tonal circles (.icon-btn-tonal, buttons.css) a comfortable touch
+ * wide, so their box is their target, with the large glyph: half the circle, as Play's is.
+ * shortcut: the page sizes the DS buttons by their custom properties; a size prop on IconButton and
+ * PlayChip replaces these two rules once the design system has its size scale.
  */
+.hero-download,
+.hero-favorite,
 .hero-share,
-.hero-favorite {
-  position: relative;
-  min-width: var(--chip-height);
-  min-height: var(--chip-height);
+.hero-more {
+  --icon-size: var(--size-icon-lg);
+  min-width: var(--size-touch-comfortable);
+  min-height: var(--size-touch-comfortable);
 }
 
-.hero-share::after,
-.hero-favorite::after {
-  content: "";
-  position: absolute;
-  inset: calc((var(--size-touch) - var(--chip-height)) / -2);
+/* Play is the full player's Play (player.css): the large control and its glyph. The page's primary
+   PlayChip, so the design system draws the accent fill, its press and the pause glyph while it plays. */
+.hero .hero-play {
+  --chip-height: var(--control-size-lg);
+  --chip-glyph: var(--player-play-glyph);
+  --chip-icon: var(--player-play-glyph);
 }
 
 /* The heart fills while the page's item is in Favorites. */
@@ -122,9 +129,6 @@
 .hero-favorite[aria-pressed="true"] .fav-remove {
   display: block;
 }
-
-/* The hero's chip is the page's primary button: PlayChip primary (the design system draws the
-   accent fill, its press and the pause glyph while it plays). */
 
 /* Played and Downloaded, after the facts (owner, 2026-11-03): the Library card's own marks (a green check,
    a blue download arrow; library.css) and the word. cardProgress.ts and libraryMenu.ts put them in the
@@ -154,13 +158,9 @@
 
 /* ------------------------------------------------------------------ the More menu */
 
-/* The More button: an .icon-btn at the end of the header's first row. Its glyph, not its 44px
-   target, lines up with the column's edge; on a phone the glyph's top is level with the cover's
-   top, and from 40rem its middle with the middle of the title's first line. */
+/* The More button, last in the row: its menu hangs from it (heroMenu.ts). */
 .hero-more {
   anchor-name: --hero-more;
-  margin-inline-end: calc(var(--space-2) * -1);
-  margin-block-start: calc((var(--size-icon) - var(--size-touch)) / 2);
 }
 
 /* Share shows a check on the button for a moment after the link is copied. */
@@ -195,11 +195,12 @@
   .hero {
     --hero-cover: var(--cover-size-hero-wide);
     grid-template-areas:
-      "cover text menu"
-      "cover actions actions"
-      "cover hint hint";
-    /* Play sits on the cover's foot line when the text is short, and flows under it when not. */
-    grid-template-rows: auto 1fr auto;
+      "cover text"
+      "cover album"
+      "cover actions"
+      "cover hint";
+    /* The row sits on the cover's foot line when the text is short, and flows under it when not. */
+    grid-template-rows: auto 1fr auto auto;
     column-gap: var(--space-6);
   }
 
@@ -207,15 +208,13 @@
     margin-block-start: 0;
   }
 
-  .hero-more {
-    margin-block-start: calc(
-      (var(--hero-title-size) * var(--hero-title-leading) - var(--size-touch)) /
-      2
-    );
+  .hero-album {
+    align-self: end;
   }
 
+  /* Beside the cover the row starts on the text's edge, as the title does. */
   .hero-actions {
-    align-self: end;
+    gap: var(--space-4);
   }
 }
 
@@ -226,6 +225,19 @@
     margin-inline: calc(var(--page-gutter-start) * -1) calc(var(--page-gutter-end) * -1);
     padding-inline: var(--page-gutter-start) var(--page-gutter-end);
     scroll-padding-inline: var(--page-gutter-start);
+  }
+
+  /* Spread across the column with equal space round each button, as in the owner's reference. Auto
+     margins, not space-evenly: when the row overflows they fall to zero and it scrolls from its
+     start, where space-evenly would centre it and cut off the first button. The empty ::after is the
+     last space. */
+  .hero-actions > *,
+  .hero-actions::after {
+    margin-inline-start: auto;
+  }
+
+  .hero-actions::after {
+    content: "";
   }
 }
 

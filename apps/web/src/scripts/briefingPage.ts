@@ -329,8 +329,8 @@ new MutationObserver(() => {
 }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-bar-hidden"] });
 
 /**
- * The More menu's Download and Add to queue (HeroMenu.astro) are the Library row's, wired by
- * libraryMenu.ts; its code loads at idle, not with the page. Offline the idle load is skipped and
+ * The header row's Download and the More menu's items (PlayCta.astro, HeroMenu.astro) are the
+ * Library row's, wired by libraryMenu.ts; its code loads at idle, not with the page. Offline the idle load is skipped and
  * an early press can beat it, so the first touch of the menu loads it too (it installs once).
  */
 function wirePageMenu(): void {

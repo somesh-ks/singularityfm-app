@@ -3,11 +3,13 @@ import Icon from "@singularityfm/design-system/Icon";
 import IconButton from "@singularityfm/design-system/IconButton";
 import PlayChip from "@singularityfm/design-system/PlayChip";
 import Select from "@singularityfm/design-system/Select";
+import type { ComponentProps } from "astro/types";
 import type { AlbumOption } from "../lib/catchUps";
 import type { AudioMode } from "../lib/digests";
 import { AUDIO_UNAVAILABLE_COPY } from "../lib/digestView";
 import type { HeroShare } from "../lib/share";
 import { type ChipNoun, idleBriefingChip } from "../player/core/readerMath";
+import HeroMenu from "./HeroMenu.astro";
 
 interface Props {
   digestId: string;
@@ -17,50 +19,69 @@ interface Props {
   /** What the chip plays, in its accessible name. */
   noun?: ChipNoun;
   share?: HeroShare;
-  /** The day's Catch ups, earliest first, when it has two or more (D219): a select before Play. */
+  /** The day's Catch ups, earliest first, when it has two or more (D219): a select above the row. */
   album?: readonly AlbumOption[];
   /** The item the heart adds to Favorites; absent on a shared page, which has no Favorites. */
   favorite?: string | undefined;
+  /** The page's More menu, and Download when it has audio; absent on a shared page. */
+  menu?: ComponentProps<typeof HeroMenu> | undefined;
 }
 
-const { digestId, mode, length, noun = "podcast", share, album, favorite } = Astro.props;
+const { digestId, mode, length, noun = "podcast", share, album, favorite, menu } = Astro.props;
+// The row is the page menu's root: Download and the sheet's items read the podcast from it
+// (scripts/libraryMenu.ts, episodeActions.ts), and its data-downloaded and data-saved swap their glyphs.
+const root = menu && {
+  "data-page-menu": "",
+  "data-episode-actions": "",
+  "data-episode": menu.episodeId,
+  "data-briefing": menu.briefingId,
+  "data-minutes": menu.minutes,
+  "data-stories": menu.stories,
+  "data-id": menu.page.id,
+  "data-path": menu.page.path,
+  "data-title": menu.page.title,
+  "data-audio": menu.page.audio,
+};
 const chip = idleBriefingChip(length, noun);
 const unavailable = mode === "expired" ? AUDIO_UNAVAILABLE_COPY.expired : null;
 ---
 
-<div class="hero-actions scroll-fade-inline">
-  {/* A day's other Catch up (D219): the same select chip as the Library's sort. Choosing one opens
-       its page (scripts/catchUpAlbum.ts). Every name stays in the select, so its width is the
-       longest name's whichever is shown, and Play beside it never moves. */}
+{/* A day's other Catch up (D219): the same select chip as the Library's sort. Choosing one opens
+     its page (scripts/catchUpAlbum.ts). Every name stays in the select, so its width is the
+     longest name's whichever is shown. It stands on its own line above the row. */}
+{
+  album && album.length > 1 && (
+    <Select variant="tonal" label="Catch up" className="hero-album" data-album-pick data-current={digestId}>
+      {album.map((option) => (
+        <option value={option.id} selected={option.id === digestId}>
+          {option.label}
+        </option>
+      ))}
+    </Select>
+  )
+}
+{/* The header's buttons, as one row (owner, 2026-11-15, after a reference): Download, the heart,
+     a large Play in the middle, Share and More. The side buttons are equal circles; Play is the
+     player's own Play size, so the page's main action reads as the one in the full player. */}
+<div class="hero-actions scroll-fade-inline" {...root}>
+  {/* Download is the sheet's own item (data-menu="download"), wired by scripts/libraryMenu.ts and
+       served dimmed until then; the row's data-downloaded swaps it to the bin and its name to Remove
+       download, as on every sheet (owner, 2026-11-04). */}
   {
-    album && album.length > 1 && (
-      <Select variant="tonal" label="Catch up" className="hero-album" data-album-pick data-current={digestId}>
-        {album.map((option) => (
-          <option value={option.id} selected={option.id === digestId}>
-            {option.label}
-          </option>
-        ))}
-      </Select>
+    menu?.page.audio && (
+      <IconButton
+        variant="tonal"
+        className="hero-download"
+        label="Download"
+        data-menu="download"
+        aria-disabled="true"
+      >
+        <Icon name="download" className="dl-add" /><Icon name="trash" className="dl-remove" />
+      </IconButton>
     )
   }
-  {/* The page's main action: the hero's Play is the primary PlayChip, its glyph alone (owner,
-       2026-11-13: "the play button in the hero should be just the icon button"; DS-13), so it never
-       changes size. The player owns it once it hydrates (readerSync writes its state and its name,
-       which carries the words: "Pause the podcast, 1 min left"). Without audio the chip still works:
-       pressing it makes the audio first (narration on Play). Only audio that has expired gets a
-       line under it, which the floating Play button below 64rem (PlayFab.astro) points to as well.
-       data-minutes is the length as a number, from which a page without audio counts the time left
-       where the device left it, as its card does. */}
-  <PlayChip
-    primary
-    state="idle"
-    aria-label={chip.name}
-    aria-describedby={unavailable ? "play-hint" : undefined}
-    data-play-digest={digestId}
-    data-noun={noun}
-    data-minutes={Number.parseInt(length, 10)}
-  />
-  {/* Favorites (owner, 2026-11-04): a heart right after Play, the same tonal icon button as Share.
+  {/* Favorites (owner, 2026-11-04): a heart, the same tonal icon button as Share,
+       before Play (owner, 2026-11-15).
        scripts/briefingPage.ts sets aria-pressed from this device's Favorites and toggles it with a
        toast; the filled heart follows aria-pressed (hero.css). */}
   {
@@ -76,7 +97,26 @@ const unavailable = mode === "expired" ? AUDIO_UNAVAILABLE_COPY.expired : null;
       </IconButton>
     )
   }
-  {/* Share, the page's second action (D153), a secondary icon button after the filled Play (.hero-share in hero.css).
+  {/* The page's main action: the hero's Play is the primary PlayChip, its glyph alone (owner,
+       2026-11-13: "the play button in the hero should be just the icon button"; DS-13), so it never
+       changes size. The player owns it once it hydrates (readerSync writes its state and its name,
+       which carries the words: "Pause the podcast, 1 min left"). Without audio the chip still works:
+       pressing it makes the audio first (narration on Play). Only audio that has expired gets a
+       line under it, which the floating Play button below 64rem (PlayFab.astro) points to as well.
+       data-minutes is the length as a number, from which a page without audio counts the time left
+       where the device left it, as its card does. */}
+  <PlayChip
+    primary
+    className="hero-play"
+    state="idle"
+    aria-label={chip.name}
+    aria-describedby={unavailable ? "play-hint" : undefined}
+    data-play-digest={digestId}
+    data-noun={noun}
+    data-minutes={Number.parseInt(length, 10)}
+  />
+  {/* Share, the page's second action (D153), a secondary icon button after the
+       filled Play (.hero-share in hero.css).
        scripts/briefingPage.ts handles the press; the link is asked for once the page is idle
        (data-share-early, scripts/shareLink.ts), so the share sheet opens inside the first tap. */}
   {
@@ -95,5 +135,6 @@ const unavailable = mode === "expired" ? AUDIO_UNAVAILABLE_COPY.expired : null;
       </IconButton>
     )
   }
+  {menu && <HeroMenu {...menu} />}
 </div>
 {unavailable && <p class="hero-hint" id="play-hint">{unavailable.label}</p>}

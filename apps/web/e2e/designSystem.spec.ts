@@ -39,7 +39,6 @@ const EXEMPT = [
   ".sheet-head > .icon-btn",
   ".chip-bars",
   ".story-menu",
-  ".hero-more",
   ".scrubber-track",
   ".player-dock",
   // A 44px target around an 18px box, reaching past it so the box meets a card's edge (topics.css).
@@ -322,17 +321,11 @@ test.describe("one page gutter", () => {
     tag: "@both",
   }, async ({ page }) => {
     test.setTimeout(120_000);
-    // Latest's desktop hero is centred in its own layout, so it joins on the phone only.
+    // Latest's header is centred on every screen (owner, 2026-11-15), so its title is not compared.
     const width = page.viewportSize()?.width ?? 0;
-    const wide = width >= 1024;
     // From 80rem the Library is as wide as the column and a contents list together, centred (D229), so
     // its title is not the column's.
-    const paths = [
-      ...(wide ? [] : ["/"]),
-      ...(width >= 1280 ? [] : ["/library"]),
-      "/settings",
-      "/settings/preferences",
-    ];
+    const paths = [...(width >= 1280 ? [] : ["/library"]), "/settings", "/settings/preferences"];
     const titles: number[] = [];
     for (const path of paths) {
       await page.goto(path);

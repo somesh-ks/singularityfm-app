@@ -62,21 +62,21 @@ async function mock(page: Page, states: unknown[]): Promise<Array<Record<string,
 }
 
 test.describe("regenerate and delete an episode", () => {
-  test("one More button holds the far end of the title row and opens the podcast's sheet", async ({
+  test("one More button ends the header's row of buttons and opens the podcast's sheet", async ({
     page,
   }) => {
     await open(page);
     const button = more(page);
     await expect(button).toHaveAttribute("aria-haspopup", "menu");
     await expect(menu(page)).toBeHidden();
-    // The button is a 44px target at the header's far end, level with the title. Its sheet is the
-    // Library card's (D369; libraryMenu.spec.ts checks the two match).
+    // The button is a 44px target that ends the header's row of buttons (owner, 2026-11-15). Its
+    // sheet is the Library card's (D369; libraryMenu.spec.ts checks the two match).
     const a = await button.boundingBox();
-    const title = await page.locator(".hero h1").boundingBox();
-    const row = await page.locator(".hero").boundingBox();
+    const ends = await page
+      .locator(".hero-actions > button")
+      .evaluateAll((buttons) => buttons.map((b) => b.getBoundingClientRect().right));
     expect(a?.width).toBeGreaterThanOrEqual(44);
-    expect(a?.y).toBeLessThanOrEqual((title?.y ?? 0) + 4);
-    expect((a?.x ?? 0) + (a?.width ?? 0)).toBeGreaterThan((row?.x ?? 0) + (row?.width ?? 0) - 12);
+    expect((a?.x ?? 0) + (a?.width ?? 0)).toBeCloseTo(Math.max(...ends), 0);
     await button.click();
     await expect(menu(page)).toBeVisible();
     const items = menu(page).getByRole("menuitem");

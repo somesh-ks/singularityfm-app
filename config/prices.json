@@ -14,6 +14,14 @@
           "usd": 10,
           "per": 1000000
         },
+        "cache_write_input_tokens": {
+          "usd": 2.5,
+          "per": 1000000
+        },
+        "cache_read_input_tokens": {
+          "usd": 0.1,
+          "per": 1000000
+        },
         "batch_input_tokens": {
           "usd": 1,
           "per": 1000000
@@ -21,11 +29,19 @@
         "batch_output_tokens": {
           "usd": 5,
           "per": 1000000
+        },
+        "batch_cache_write_input_tokens": {
+          "usd": 1.25,
+          "per": 1000000
+        },
+        "batch_cache_read_input_tokens": {
+          "usd": 0.05,
+          "per": 1000000
         }
       },
-      "as_of": "2026-11-01",
+      "as_of": "2026-11-14",
       "confirmed": false,
-      "note": "2 and 10 USD per million tokens, as found 2026-11-01 (the 3 and 15 here were assumed). Batches are half. Output includes thinking tokens. Check Anthropic's pricing page."
+      "note": "2 and 10 USD per million tokens, as found 2026-11-01 (the 3 and 15 here were assumed). Batches are half. Output includes thinking tokens. Check Anthropic's pricing page. Cache: a 5 minute write is 1.25x the input price, a read is $0.10 per million (Anthropic's Sonnet 5.5 price); batch halves both."
     },
     {
       "provider": "anthropic",
@@ -39,6 +55,14 @@
           "usd": 0.5,
           "per": 1000000
         },
+        "cache_write_input_tokens": {
+          "usd": 0.125,
+          "per": 1000000
+        },
+        "cache_read_input_tokens": {
+          "usd": 0.01,
+          "per": 1000000
+        },
         "batch_input_tokens": {
           "usd": 0.05,
           "per": 1000000
@@ -46,11 +70,19 @@
         "batch_output_tokens": {
           "usd": 0.25,
           "per": 1000000
+        },
+        "batch_cache_write_input_tokens": {
+          "usd": 0.0625,
+          "per": 1000000
+        },
+        "batch_cache_read_input_tokens": {
+          "usd": 0.005,
+          "per": 1000000
         }
       },
-      "as_of": "2026-11-01",
+      "as_of": "2026-11-14",
       "confirmed": false,
-      "note": "0.10 and 0.50 USD per million tokens, as found 2026-11-01. Batches are half. Output includes thinking tokens. Check Anthropic's pricing page."
+      "note": "0.10 and 0.50 USD per million tokens, as found 2026-11-01. Batches are half. Output includes thinking tokens. Check Anthropic's pricing page. Cache: a 5 minute write is 1.25x the input price; the read price (0.1x, 0.01 USD per million) is assumed, not found on the pricing page."
     },
     {
       "provider": "anthropic",
@@ -64,6 +96,14 @@
           "usd": 15,
           "per": 1000000
         },
+        "cache_write_input_tokens": {
+          "usd": 3.75,
+          "per": 1000000
+        },
+        "cache_read_input_tokens": {
+          "usd": 0.3,
+          "per": 1000000
+        },
         "batch_input_tokens": {
           "usd": 1.5,
           "per": 1000000
@@ -71,11 +111,19 @@
         "batch_output_tokens": {
           "usd": 7.5,
           "per": 1000000
+        },
+        "batch_cache_write_input_tokens": {
+          "usd": 1.875,
+          "per": 1000000
+        },
+        "batch_cache_read_input_tokens": {
+          "usd": 0.15,
+          "per": 1000000
         }
       },
       "as_of": "2026-10-21",
       "confirmed": false,
-      "note": "Any other Anthropic model priced as Sonnet class."
+      "note": "Any other Anthropic model priced as Sonnet class. Cache writes 1.25x, reads 0.1x of input."
     },
     {
       "provider": "speechify",

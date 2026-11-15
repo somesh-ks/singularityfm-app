@@ -112,22 +112,7 @@ export function createApiRuntime(
     log,
     onRequest: spend ? (provider) => spend.meter.add(provider) : undefined,
     onUsage: spend
-      ? (usage) => {
-          // Batch tokens are priced at the Message Batches rate (half), so they are their own unit.
-          const prefix = usage.batch ? "batch_" : "";
-          spend.meter.addUnits(
-            usage.provider,
-            usage.model,
-            `${prefix}input_tokens`,
-            usage.inputTokens,
-          );
-          spend.meter.addUnits(
-            usage.provider,
-            usage.model,
-            `${prefix}output_tokens`,
-            usage.outputTokens,
-          );
-        }
+      ? (usage) => spend.meter.addTokens(usage.provider, usage.model, usage, usage.batch)
       : undefined,
     onFallback: spend ? () => spend.meter.add("model_fallback") : undefined,
     ...(openBatches ? { openBatches } : {}),
@@ -243,8 +228,7 @@ export function createApiRuntime(
         onUsage: spend
           ? (usage) => {
               spend.meter.add("gemini");
-              spend.meter.addUnits("gemini", usage.model, "input_tokens", usage.inputTokens);
-              spend.meter.addUnits("gemini", usage.model, "output_tokens", usage.outputTokens);
+              spend.meter.addTokens("gemini", usage.model, usage);
             }
           : undefined,
       }),

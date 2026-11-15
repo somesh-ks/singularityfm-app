@@ -26,7 +26,13 @@ export interface JsonLlmOptions {
   retry?: Partial<RetryOptions>;
   log?: Logger;
   /** Reported token counts of each answered request, for the cost ledger. */
-  onUsage?: (usage: { model: string; inputTokens: number; outputTokens: number }) => void;
+  onUsage?: (usage: {
+    model: string;
+    inputTokens: number;
+    outputTokens: number;
+    cacheWriteTokens?: number;
+    cacheReadTokens?: number;
+  }) => void;
   now?: () => number;
 }
 
@@ -169,6 +175,8 @@ export function createJsonLlm(options: JsonLlmOptions): LlmClient {
           model: options.model,
           inputTokens: reply.inputTokens,
           outputTokens: reply.outputTokens,
+          cacheWriteTokens: reply.cacheWriteTokens,
+          cacheReadTokens: reply.cacheReadTokens,
         });
         // A refusal after text began must not reach the next model: it would stream into the same
         // listener, after turns that may be heard already.

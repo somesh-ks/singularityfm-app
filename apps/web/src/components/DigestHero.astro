@@ -6,7 +6,6 @@ import { sharedTarget } from "../lib/share";
 import AmbientLight from "./AmbientLight.astro";
 import Cover from "./Cover.astro";
 import HeroMarks from "./HeroMarks.astro";
-import HeroMenu from "./HeroMenu.astro";
 import PlayCta from "./PlayCta.astro";
 
 interface Props {
@@ -22,8 +21,8 @@ const { entry, hero, shareToken } = Astro.props;
 const title = hero.title.replace(/(\d+) /, "$1 ");
 ---
 
-{/* The briefing header (hero.css): the cover and the More menu, the date with its facts under it,
-     then Play and Share. */}
+{/* The briefing header (hero.css): the cover, the date with its facts under it,
+     then the row of buttons: Download, Favorite, Play, Share and More. */}
 <header class="hero">
   <AmbientLight cover={entry.digest} />
   <Cover
@@ -36,29 +35,27 @@ const title = hero.title.replace(/(\d+) /, "$1 ");
     <h1 class="page-title text-display" id="page-title" tabindex="-1">{title}</h1>
     <p class="meta hero-facts" data-played-id={entry.id}>{hero.meta.map((part) => <span>{part}</span>)}<HeroMarks /></p>
   </div>
-  {
-    !shareToken && (
-      <HeroMenu
-        briefingId={entry.id}
-        minutes={airedMinutes(entry)}
-        stories={entry.digest.items.length}
-        deletable={entry.digest.kind === "on-demand"}
-        regenerations={entry.digest.regenerations}
-        page={{
-          id: entry.id,
-          title,
-          subtitle: cardFacts(entry).line,
-          path: `/d/${entry.id}`,
-          audio: entry.audioMode === "ready" ? entry.player.audio?.url : undefined,
-        }}
-      />
-    )
-  }
   <PlayCta
     digestId={entry.id}
     mode={entry.audioMode}
     length={hero.length}
     share={sharedTarget(entry.id, "briefing", shareToken)}
     favorite={shareToken ? undefined : entry.id}
+    menu={shareToken
+      ? undefined
+      : {
+          briefingId: entry.id,
+          minutes: airedMinutes(entry),
+          stories: entry.digest.items.length,
+          deletable: entry.digest.kind === "on-demand",
+          regenerations: entry.digest.regenerations,
+          page: {
+            id: entry.id,
+            title,
+            subtitle: cardFacts(entry).line,
+            path: `/d/${entry.id}`,
+            audio: entry.audioMode === "ready" ? entry.player.audio?.url : undefined,
+          },
+        }}
   />
 </header>

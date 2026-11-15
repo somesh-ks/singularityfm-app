@@ -19,8 +19,12 @@ export interface ApiReply {
   text: string;
   /** "refusal" and "max_tokens" are checked before the text is read. */
   stopReason: "end" | "refusal" | "max_tokens" | "other";
+  /** The whole prompt, cached or not: what the budget checks. */
   inputTokens: number;
   outputTokens: number;
+  /** Claude only: the part of the prompt written to cache (billed above plain input) and the part read from it (billed far below it); config/prices.json holds both prices. */
+  cacheWriteTokens?: number;
+  cacheReadTokens?: number;
 }
 
 export interface ModelApi {
@@ -98,8 +102,8 @@ export interface AnthropicBody {
 
 /**
  * The whole prompt: `input_tokens` is only its uncached part. The budget checks a request by its
- * whole prompt, so it records the same; the cost ledger then prices a cache read as a full input
- * token, an overstatement on a hit and never an undercount.
+ * whole prompt, so it records the same; the cost ledger splits it again into uncached, cache-write
+ * and cache-read tokens (RequestMeter.addTokens), each at its own price.
  */
 function promptTokens(usage: AnthropicBody["usage"]): number {
   return (
@@ -150,6 +154,8 @@ export function readAnthropicReply(json: AnthropicBody): ApiReply {
     stopReason,
     inputTokens: promptTokens(json.usage),
     outputTokens: json.usage?.output_tokens ?? 0,
+    cacheWriteTokens: json.usage?.cache_creation_input_tokens ?? 0,
+    cacheReadTokens: json.usage?.cache_read_input_tokens ?? 0,
   };
 }
 

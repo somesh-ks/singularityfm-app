@@ -2,6 +2,7 @@ import { execFileSync } from "node:child_process";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import vercel from "../apps/web/vercel.json" with { type: "json" };
 import site from "../site.json" with { type: "json" };
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -32,5 +33,17 @@ describe("the site's address", () => {
     });
     expect(offenders).toEqual([]);
     expect(site.retired).not.toContain(new URL(site.url).hostname);
+  });
+
+  // D397: the reader's /admin and /design links redirect to the subdomains; a move that updates
+  // site.json but not vercel.json sends every old link to a dead host.
+  it("redirects only to the hosts site.json names", () => {
+    const hosts = [site.url, site.admin, site.design].map((url) => new URL(url).host);
+    const targets = vercel.redirects
+      .map((rule) => rule.destination)
+      .filter((destination) => destination.startsWith("https://"))
+      .map((destination) => new URL(destination).host);
+    expect(targets.length).toBeGreaterThan(0);
+    expect(targets.filter((host) => !hosts.includes(host))).toEqual([]);
   });
 });

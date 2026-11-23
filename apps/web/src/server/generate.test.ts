@@ -13,7 +13,7 @@ import {
 
 const NOW = Date.parse("2026-10-07T12:00:00Z");
 const TOKEN = "github_pat_secret_value_123456";
-const ORIGIN = "https://news.someshks.com";
+const ORIGIN = "https://singularityfm.app";
 const hoursAgo = (hours: number) => new Date(NOW - hours * 3600 * 1000).toISOString();
 
 function setup(overrides: Partial<GenerateDeps> = {}) {
@@ -71,7 +71,7 @@ describe("isSameOrigin", () => {
   it("accepts the site's own origin and rejects every other", () => {
     expect(isSameOrigin(ORIGIN, ORIGIN)).toBe(true);
     expect(isSameOrigin("https://evil.example", ORIGIN)).toBe(false);
-    expect(isSameOrigin("http://news.someshks.com", ORIGIN)).toBe(false);
+    expect(isSameOrigin("http://singularityfm.app", ORIGIN)).toBe(false);
     expect(isSameOrigin("null", ORIGIN)).toBe(false);
   });
 });

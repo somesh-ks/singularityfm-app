@@ -1,4 +1,6 @@
 {
-  "url": "https://news.someshks.com",
-  "retired": ["news.someshks.work"]
+  "url": "https://singularityfm.app",
+  "admin": "https://admin.singularityfm.app",
+  "design": "https://design.singularityfm.app",
+  "retired": ["news.someshks.work", "news.someshks.com"]
 }

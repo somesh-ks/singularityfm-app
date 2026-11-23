@@ -16,7 +16,7 @@ import { resetVoicesCache, SPEECHIFY_VOICES_URL } from "./voices";
 
 const NOW = Date.parse("2026-10-07T12:00:00Z");
 const TOKEN = "github_pat_secret_value_123456";
-const ORIGIN = "https://news.someshks.com";
+const ORIGIN = "https://singularityfm.app";
 const minutesAgo = (minutes: number) => new Date(NOW - minutes * 60_000).toISOString();
 const RUNS = "GET /actions/workflows/podcast.yml/runs";
 const DISPATCH = "POST /actions/workflows/podcast.yml/dispatches";

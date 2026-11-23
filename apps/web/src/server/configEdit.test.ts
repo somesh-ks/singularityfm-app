@@ -17,7 +17,7 @@ import { type ConfigReadBody, handleConfigRead } from "./configStore";
 
 const NOW = Date.parse("2026-10-07T12:00:00Z");
 const TOKEN = "github_pat_secret_value_123456";
-const ORIGIN = "https://news.someshks.com";
+const ORIGIN = "https://singularityfm.app";
 
 function setup(overrides: Partial<ConfigDeps> = {}) {
   const github = createFakeGitHub();

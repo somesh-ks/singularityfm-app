@@ -18,7 +18,7 @@ import {
 // An in-process Postgres takes over 5 s to start when several store files start theirs at once.
 vi.setConfig({ testTimeout: 30_000 });
 
-const ORIGIN = "https://news.someshks.com";
+const ORIGIN = "https://singularityfm.app";
 const BLOB = "https://s.public.blob.vercel-storage.com";
 
 /** The narration lookup naming these files, each where the store would keep it. */

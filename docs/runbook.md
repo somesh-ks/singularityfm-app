@@ -4,7 +4,7 @@ Operations for the owner. Short, imperative, in the order you need it.
 
 Status: commands and repository visibility checked 2026-11-10. Correct a step here when it turns out wrong. `pnpm run singularity <command>` runs the engine CLI; `--help` on any command lists its flags.
 
-Repository: `somesh-ks/singularityfm-app` (public, D298; renamed from `knowledge-hub`, D382). Site: `news.someshks.com`.
+Repository: `somesh-ks/singularityfm-app` (public, D298; renamed from `knowledge-hub`, D382). Site: `singularityfm.app`.
 
 ---
 
@@ -68,9 +68,9 @@ Vercel deploys through its GitHub integration (D25). No Vercel token is needed i
 
 ### 1.4a Create the admin project (D224)
 
-The command center is a second Vercel project, `singularity-admin`, built from its own private repository, `somesh-ks/singularityfm-admin` (D382), with Root Directory empty. Production Deployment Protection off (the app gates itself; Vercel protection cannot guard a project reached through a rewrite). The reader's `apps/web/vercel.json` rewrites `/admin` to its `singularity-admin-psi.vercel.app` address. Set `ADMIN_PASSWORD` (a long random password) and `ADMIN_SESSION_SECRET` (a random string of 32 or more characters) in `.env`; `pnpm run secrets:push` sends them to this project once a checkout of the admin repository is linked (`pnpm exec vercel link` inside it; the script looks in `../singularityfm-admin` or `SINGULARITY_ADMIN_DIR`), or add them by hand under the project's Environment Variables (Production). Until both exist the app answers 503 to everyone. The Experiments switches (D249) also need `DATABASE_URL` and `SINGULARITY_CONFIG_STORE=postgres` on this project, the same values the reader has (Production); without them the page shows the last deploy and its switches stay still.
+The command center is a second Vercel project, `singularity-admin`, built from its own private repository, `somesh-ks/singularityfm-admin` (D382), with Root Directory empty. Production Deployment Protection off (the app gates itself). It answers at `admin.singularityfm.app` (D397); its own `vercel.json` proxies `/api/health` and `/api/costs` to the reader, and the reader's `apps/web/vercel.json` redirects old `/admin` links there. Set `ADMIN_PASSWORD` (a long random password) and `ADMIN_SESSION_SECRET` (a random string of 32 or more characters) in `.env`; `pnpm run secrets:push` sends them to this project once a checkout of the admin repository is linked (`pnpm exec vercel link` inside it; the script looks in `../singularityfm-admin` or `SINGULARITY_ADMIN_DIR`), or add them by hand under the project's Environment Variables (Production). Until both exist the app answers 503 to everyone. The Experiments switches (D249) also need `DATABASE_URL` and `SINGULARITY_CONFIG_STORE=postgres` on this project, the same values the reader has (Production); without them the page shows the last deploy and its switches stay still.
 
-The design guide is a third project, `singularity-design-system`, built from the design system repo (Root Directory `apps/design`, D382). The reader's `apps/web/vercel.json` rewrites `/design` to its `singularity-design.vercel.app` address.
+The design guide is a third project, `singularity-design-system`, built from the design system repo (Root Directory `apps/design`, D382). It answers at `design.singularityfm.app` (D397); the reader redirects old `/design` links there.
 
 ### 1.4b The contracts package's trusted publisher (D382)
 
@@ -96,14 +96,13 @@ Nothing to create. The `snapshot` workflow copies the config store into the `con
 2. To restore, `.env` needs `DATABASE_URL` and `SINGULARITY_CONFIG_STORE=postgres`. Run `pnpm run singularity config restore --latest --force`. It overwrites newer edits, so run it only when the store has lost its rows.
 3. The table lives in the same database, so it does not help if the database itself is lost. For that, `pnpm run singularity config snapshot --out <file>` makes a copy on your machine; restore it with `--file <file>`.
 
-### 1.6 Add the domain and the DNS record
+### 1.6 Add the domains
 
-1. In the project's Domains settings, add `news.someshks.com`.
-2. Note the CNAME target Vercel shows. It is also in the project's Domains settings.
-3. In Cloudflare, open DNS for `someshks.com` and add one record: type CNAME, name `news`, target the value from Vercel, proxy status DNS only (grey cloud).
-4. Wait until Vercel marks the domain valid. Vercel issues the certificate.
+`singularityfm.app` is registered with Vercel and uses Vercel's nameservers, so adding a domain to a project needs no DNS record.
 
-Do not add `www.news.someshks.com`. Do not turn the Cloudflare proxy on.
+1. Project `singularityfm-app`, Domains: add `singularityfm.app`, and `www.singularityfm.app` redirecting to it.
+2. Project `singularity-admin`, Domains: add `admin.singularityfm.app`. Project `singularity-design-system`: add `design.singularityfm.app`.
+3. Wait until Vercel marks each domain valid. Vercel issues the certificates.
 
 ### 1.7 Create the GitHub token
 
@@ -141,7 +140,7 @@ Run `pnpm run singularity doctor --online`. It checks Node, git, config, state a
 1. Push the code: `git push origin main`. The workflows must be on the default branch before `gh workflow run` can start them.
 2. The push starts a Vercel build and deploy; `ci.yml` ran on the pull request (D148). Vercel does not wait for `ci.yml`, so a failing check does not stop a deploy. To audio-process by hand, run `gh workflow run audio.yml -R somesh-ks/singularityfm-app`.
 3. Watch the checks: `gh run watch -R somesh-ks/singularityfm-app`. Watch the deploy in the Vercel dashboard. This is the first live build of the `apps/web` workspace through the Git integration, so read any build error there.
-4. Open `https://news.someshks.com`. With no digest yet it shows "No briefings yet".
+4. Open `https://singularityfm.app`. With no digest yet it shows "No briefings yet".
 
 ### 1.12 First manual run
 
@@ -175,7 +174,7 @@ Nothing to do on most days.
 - The trigger needs `CRON_SECRET` on Vercel: a random value of 16 or more characters in `.env` (for example `openssl rand -hex 24`), sent with `pnpm run secrets:push --only vercel`. Vercel sends it with every cron call, and the route refuses calls while it is missing. To check, open the project's Cron Jobs page in the Vercel dashboard: each call's log line says whether it dispatched.
 - The digest lands as a `chore(digest): <id>` commit, and the site updates within minutes.
 - GitHub emails you when a scheduled run fails. That is the only notification (D11).
-- Read the briefing at `news.someshks.com`, installed to the iPhone home screen.
+- Read the briefing at `singularityfm.app`, installed to the iPhone home screen.
 - Once a week, run `/learn` with one sentence about what the last digests got wrong (section 9).
 
 Monthly:
@@ -340,7 +339,7 @@ Models are resolved at run start from the providers' lists. Symptoms: the run lo
 2. No deployment appeared, or it says blocked: check that the GitHub login connected to Vercel is the account that owns the team, and that the merge's author is that account.
 3. A deployment shows as skipped (Canceled by Ignored Build Step): the push touched nothing the site reads, which is expected for `state`, `config`, docs and `.github`. A push that did touch code is also skipped while it waits for the batch: five merges, three hours, or `[deploy]` in a commit since the last deploy (D375, `scripts/deploy-batch.sh`). The three hours are judged on a push and by `deploy-due.yml` every hour, which starts the Deploy Hook in `VERCEL_DEPLOY_HOOK_WEB` once per due commit (D389); with that secret unset, a lone merge waits for the next push or a `[deploy]`; `site_behind` warns only after six hours. To ship a merge at once, merge with `[deploy]` at the end of the PR title; for one already made, ask any session to merge a one-line docs change titled `docs: deploy now [deploy]`. If a code push stayed skipped past the batch, check the `ignoreCommand` in `apps/web/vercel.json`; `singularity health` warns `site_behind` when this happens, and faults (the `health` issue) once the oldest commit the site lacks is a day old (D159). Vercel refuses an `ignoreCommand` over 256 characters (the whole deploy fails), so keep it short. `health` warns `deploy_rate` at 70 deployments in 24 hours and faults at 80 (D247, D360): on Pro a finished build can bill minutes, so find the project that builds more than merges explain.
 4. A build error about missing packages or paths: check Root Directory is `apps/web`, "Include source files outside of the Root Directory" is on, and the `installCommand` in `apps/web/vercel.json` runs `pnpm install --frozen-lockfile` from the repository root.
-5. `news.someshks.com` shows an old page but the deploy succeeded: wait a minute, then hard refresh. Check that the DNS record is DNS only. A proxied record (orange cloud) breaks certificate issuance.
+5. `singularityfm.app` shows an old page but the deploy succeeded: wait a minute, then hard refresh. The domain uses Vercel's nameservers, so check its status under the project's Domains.
 
 ### 8.6 The Generate button fails
 
@@ -413,7 +412,7 @@ The owner's config (sources, topics, queries, preferences, schedule, structure, 
 6. GitHub variable: Settings → Secrets and variables → Actions → Variables → `SINGULARITY_CONFIG_STORE` = `postgres`.
 7. Vercel: Project → Settings → Environment Variables → `SINGULARITY_CONFIG_STORE` = `postgres` for Production. Check that `DATABASE_URL` is set for Production too. On 2026-10-23 it was not: the Neon integration was connected with the `NEON_` prefix (`NEON_DATABASE_URL` and friends), which nothing reads, so the store and the shared rate counter (D150) have never run in production. Either set the integration's prefix to none (Storage → the Neon database → Settings) or add `DATABASE_URL` by hand with the pooled connection string.
 8. Redeploy (Deployments → the latest → Redeploy): the pages read the switch when they are built.
-9. Check: `https://news.someshks.com/api/config` answers 200 with `"ops":[]`; change a weight on the phone and reload the same page on the laptop: it shows the new weight. The next run's log says `config store: files current` or names the files it copied.
+9. Check: `https://singularityfm.app/api/config` answers 200 with `"ops":[]`; change a weight on the phone and reload the same page on the laptop: it shows the new weight. The next run's log says `config store: files current` or names the files it copied.
 
 ### 11.2 Fork or local checkout
 

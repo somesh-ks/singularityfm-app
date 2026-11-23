@@ -259,7 +259,7 @@ describe("variants", () => {
   // The first monthly weeklies read as one more daily in a grid; the fix then set dark dailies beside
   // paper weeklies, and the grid stopped reading as one set. Each series keeps its own tint of one
   // paper: close together, in order, in both themes.
-  it("keeps the daily, on-demand and weekly grounds of a month close together and in order", () => {
+  it("keeps dailies on the weekly's paper and on-demand covers a step deeper, close together", () => {
     const groundL = (kind: CoverKind, month: string, mode: "light" | "dark", seed: number) => {
       const meta: CoverMeta = { date: `${month}-14`, kind, id: `${month}-${seed}`, mode };
       const s: CoverSpec = { template: "band", palette: "ultramarine", seed };
@@ -273,9 +273,10 @@ describe("variants", () => {
           (kind) => seeds.map((s) => groundL(kind, month, mode, s)),
         ) as [number[], number[], number[]];
         const label = `${mode} ${month}`;
-        expect(Math.min(...onDemand) - Math.max(...daily), label).toBeGreaterThanOrEqual(0.04);
-        expect(Math.min(...weekly) - Math.max(...onDemand), label).toBeGreaterThanOrEqual(0.04);
-        expect(Math.max(...weekly) - Math.min(...daily), label).toBeLessThanOrEqual(0.15);
+        // Owner, 23 Nov: a daily never reads darker than the weekly beside it.
+        expect(Math.abs(Math.min(...daily) - Math.min(...weekly)), label).toBeLessThanOrEqual(0.01);
+        expect(Math.min(...daily) - Math.max(...onDemand), label).toBeGreaterThanOrEqual(0.04);
+        expect(Math.max(...weekly) - Math.min(...onDemand), label).toBeLessThanOrEqual(0.15);
       }
     }
   });

@@ -29,13 +29,14 @@ const most = (xs: string[]): string => {
 
 /**
  * The paper's lightness for each series and theme: one family of soft, bright stocks, a step darker
- * on a dark page. Weeklies take the palest, on-demand covers a step deeper and dailies a step deeper
- * again, close enough to read as one set and far enough to tell apart in a grid.
+ * on a dark page. Dailies and weeklies share the palest (owner, 23 Nov: the daily read darker than
+ * the weekly beside it; lighten the daily, never darken the weekly), told apart by their date line;
+ * on-demand covers sit a step deeper.
  */
 export const SERIES_L = {
   weekly: { light: 0.88, dark: 0.85 },
   "on-demand": { light: 0.81, dark: 0.79 },
-  daily: { light: 0.74, dark: 0.73 },
+  daily: { light: 0.88, dark: 0.85 },
 } as const satisfies Record<string, Record<CoverMode, number>>;
 export type PaperSeries = keyof typeof SERIES_L;
 

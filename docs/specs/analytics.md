@@ -1,6 +1,6 @@
 # Analytics
 
-Cookieless counts of visits and a few named events on singularityfm.app, through Simple Analytics (D154), so the owner can see which loops turn visitors into listeners and listeners into sharers. Nothing identifies a reader: no cookie, no storage, no IP, no user id. What a visitor is told is at `/settings/privacy`.
+Cookieless counts of visits and a few named events on singularityfm.app, through Simple Analytics (D154) and PostHog (D400), so the owner can see which loops turn visitors into listeners and listeners into sharers. Nothing identifies a reader unless they opt in: no cookie, no storage, no IP, no user id. What a visitor is told is at `/settings/privacy`.
 
 ## Loading
 
@@ -9,6 +9,12 @@ Cookieless counts of visits and a few named events on singularityfm.app, through
 - The script follows the client router's `pushState` moves as page views. Every page view carries `installed` (the app opened from the Home Screen).
 - `track()` queues an event until the script loads, does nothing off production or blocked, never throws.
 - The page policy (`apps/web/astro.config.mjs`) allows the script host in `script-src` and the queue host in `connect-src` and `img-src`; the header policy in `apps/web/vercel.json` repeats the last two (`apps/web/src/lib/analytics.test.ts` fails if it drops them). No inline script and no `'unsafe-inline'`: automated events and the `noscript` pixel are not used.
+
+## PostHog (D400)
+
+- `apps/web/src/scripts/productAnalytics.ts`, imported at idle by `app.ts` under `counted()` while `POSTHOG_TOKEN` (`lib/analytics.ts`) is set; `track()` sends each event to both tools, queued until PostHog loads.
+- Cookieless (`cookieless_mode: on_reject`, opted out by default): events carry `$posthog_cookieless`, nothing is stored. "Help improve Singularity" on `/settings/privacy` (`singularity:improve`) opts in: a stored id, replay with inputs masked, heatmaps. Off again returns to cookieless and drops the id.
+- It talks to `/api/ph`, rewritten in `apps/web/vercel.json` to PostHog's EU hosts.
 
 ## Events
 
@@ -21,16 +27,18 @@ Cookieless counts of visits and a few named events on singularityfm.app, through
 | `download` | a Library item is saved for offline listening | `kind` |
 | `install` | the browser reports the app installed (`appinstalled`, Chromium only) | none |
 | `create_episode` | Catch up got an answer | `outcome` started, limited (429) or failed |
+| `mute` | a source is blocked | `kind` source |
+| `read_end` | a briefing's end comes fully into view, once per page per session | `kind`, `item` |
 
 A session that opens on a shared page ([sharing.md](sharing.md)) reports it as the path `/s` (`data-path-overwriter`, `lib/listenAnalytics.ts`): no token is sent.
 
-A shared link carries `?ref=share`, which Simple Analytics reports as the referrer `share` (messaging apps send none). Pasted, a briefing or episode link draws a card (D153, `apps/web/src/lib/linkCard.ts`); `robots.txt` lets previewers fetch `/d/`, `/e/` and `/covers/`, `noindex` keeps them out of search, and `checkBundle` fails a page without a card.
+A shared link carries `?ref=share`, reported as the referrer `share`. Pasted, a briefing or episode link draws a card (D153, `lib/linkCard.ts`); `checkBundle` fails a page without one.
 
 ## The loops and their numbers
 
 North star: **listens a week**, the count of `listen_half`. A start counts accidental taps; a completion undercounts listeners who stop at the sign-off.
 
-1. **Share loop** (acquisition). Share, a visit from `ref=share`, a listen, another share. Shares per visitor = `share` / unique visits; visits per share = visits with referrer `share` / `share`. Their product is the loop's coefficient: above 1 it grows on its own. Visits per share well under 1 means the link lands badly where it is pasted (see Opportunities, 1).
+1. **Share loop** (acquisition). Share, a visit from `ref=share`, a listen, another share. Shares per visitor = `share` / unique visits; visits per share = visits with referrer `share` / `share`. Their product is the loop's coefficient: above 1 it grows on its own.
 2. **Habit loop** (retention). A new briefing every second day brings the reader back. Without an identifier, retention is read from proxies: the share of page views with `installed` true, `install` counts, and visits with no referrer in the two days after a briefing is published.
 3. **Taste loop** (quality). Listen, vote or open a story, the judge learns (D118), a better briefing. Listen-through = `listen_half` / `listen_start` by kind; completion = `listen_complete` / `listen_start`; `story_open` and `vote` by topic, up to down.
 4. **Create loop** (activation). A visitor asks for an episode, gets one, shares it. `create_episode` limited / all is the share of demand the caps (D150) turn away.
@@ -42,10 +50,7 @@ What would change a decision:
 
 ## Opportunities not built
 
-1. A first visit from `ref=share` that says in one line what Singularity is, next to Play.
-2. Share at a moment: a link to a story or a time in the episode, from the player.
-3. A podcast feed, which brings readers back through their own podcast app (its plays are not counted here: the audio comes from Blob).
-4. A share prompt when "Episode ready" shows.
+A one-line "what this is" on a first visit from `ref=share`; sharing a story or a moment from the player; a podcast feed; a share prompt when "Episode ready" shows.
 
 ## Field Web Vitals
 
@@ -56,19 +61,17 @@ Real visits' LCP, INP and CLS (D156), first-party like the fault reports, so a p
 - Faults (D158, not behind `counted()`) are also kept 7 days in Neon's `client_faults`: kind, route template, the message's start, CSP directive, blocked and source origins, build. A 5xx is kind `server`, or `platform` from Vercel.
 - `singularity health` reads each metric's 7-day p75 per device class daily: `field_vitals` warns past Google's "needs improvement" line and faults past "poor"; `field_unmeasured` warns when phones gave a metric under 20 samples, `DATABASE_URL` is unset or the vitals read alone fails; a store that does not connect is the fault `store_degraded`.
 
-Scenario: a reader opens a briefing in the installed app, taps Play and switches app. One report goes then; presses after returning are not sent.
-
 ## Limits
 
-- Ad blockers block the script host: counts are a floor (a custom domain proxy would recover them).
-- Every page sends `Referrer-Policy: no-referrer`, so a reload or a full page load inside the site arrives with no referrer and counts as a unique visit; moves through the client router do not.
+- Ad blockers block Simple Analytics' host, so its counts are a floor; PostHog's go through `/api/ph`.
+- `Referrer-Policy: no-referrer`: a reload or full page load counts as a new unique visit; router moves do not.
 - A listen offline (a download) sends nothing.
-- The owner's own visits count unless excluded ("Block your visits" extension or IP exclusion).
-- An event sent from the page a shared link opened carries that page's query (`ref=share`, seen in a local check of the real script), so a listen from a shared visit can be told apart; one after a move inside the site cannot.
+- The owner's own visits count unless excluded.
+- An event from the page a shared link opened carries `ref=share`; one after a move inside the site does not.
 
 ## Code
 
-- `apps/web/src/lib/analytics.ts`, `apps/web/src/player/core/listenEvents.ts`, `apps/web/src/scripts/shareLink.ts`
+- `apps/web/src/lib/analytics.ts`, `apps/web/src/scripts/productAnalytics.ts`, `apps/web/src/player/core/listenEvents.ts`, `apps/web/src/scripts/shareLink.ts`
 - `apps/web/astro.config.mjs` and `apps/web/vercel.json` (the policies)
 - `apps/web/src/pages/settings/privacy.astro`
 - Field Web Vitals: `apps/web/src/scripts/vitals.ts`, `apps/web/src/server/vitals.ts`, `packages/core/src/vitals.ts`, `packages/engine/src/store/vitalsStore.ts`, `checkFieldVitals` in `packages/engine/src/ops/healthChecks.ts`

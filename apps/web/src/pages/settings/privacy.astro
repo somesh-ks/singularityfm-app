@@ -1,13 +1,14 @@
 ---
 import Link from "@singularityfm/design-system/Link";
+import Switch from "@singularityfm/design-system/Switch";
 import SettingsHead from "../../components/SettingsHead.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import "../../styles/settings.css";
 
 const title = "Privacy";
-// What this says is the inventory behind docs/specs/analytics.md, D154 and D156: change them together,
+// What this says is the inventory behind docs/specs/analytics.md, D154, D156 and D400: change them together,
 // and the date with them.
-const updated = "1 November 2026";
+const updated = "23 November 2026";
 ---
 
 <BaseLayout title={title} view="settings" skipLabel="Skip to the privacy page">
@@ -18,7 +19,7 @@ const updated = "1 November 2026";
         <h2 class="section-head text-heading">In short</h2>
         <div class="rows card-group">
           <p class="settings-about">
-            Singularity has no accounts, no cookies, no ads and no tracking across sites. It counts visits without knowing who you are, keeps your settings in this browser, and sends a few things you choose to send. Nothing is sold.
+            Singularity has no accounts, no cookies, no ads and no tracking across sites. It counts visits without knowing who you are (unless you choose to help improve it, below), keeps your settings in this browser, and sends a few things you choose to send. Nothing is sold.
           </p>
         </div>
       </section>
@@ -30,7 +31,23 @@ const updated = "1 November 2026";
             Visits are counted by Simple Analytics, a service based in the Netherlands that sets no cookie, stores nothing on your device and does not keep your IP address. It records the page, where you came from (a link shared from here says so), your country from your time zone, your browser and device type, screen size, language, and time and scroll on a page.
           </p>
           <p class="settings-about">
-            It also counts a few actions, with no detail about you: sharing, starting, passing halfway and finishing a recording, opening a story, voting, downloading, installing the app and asking for an episode. If your browser sends Do Not Track or Global Privacy Control, the counting script is never loaded.
+            It also counts a few actions, with no detail about you: sharing, starting, passing halfway and finishing a recording, reading a podcast to the end, opening a story, voting, blocking a source, downloading, installing the app and asking for an episode. If your browser sends Do Not Track or Global Privacy Control, the counting script is never loaded.
+          </p>
+          <p class="settings-about">
+            The same visits and actions also go to <Link href="https://posthog.com/privacy" target="_blank" rel="noopener">PostHog</Link>, on its servers in the European Union, through this site's own address. It too sets no cookie and stores nothing on your device: it tells one visit from another with a code its server makes from your IP address and browser and a secret that changes every day, so your visits on two days cannot be joined.
+          </p>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="section-head text-heading">Help improve Singularity</h2>
+        <div class="rows card-group">
+          <div class="settings-row">
+            <label class="settings-label" for="settings-improve">Share how I use the app</label>
+            <Switch id="settings-improve" name="improve" />
+          </div>
+          <p class="settings-about">
+            Off unless you turn it on. When on, this browser keeps a random code so PostHog can tell your visits apart over days, and it records how you move through the pages (taps, scrolls and what was on screen) to replay as a video. Anything you type is hidden from the recording. Turning it off stops the recording and removes the code.
           </p>
         </div>
       </section>
@@ -95,3 +112,34 @@ const updated = "1 November 2026";
     </div>
   </main>
 </BaseLayout>
+
+<script>
+  import { IMPROVE_KEY, improving, POSTHOG_TOKEN } from "../../lib/analytics";
+
+  // The switch is kept in this browser; PostHog (loaded at idle by app.ts) is told at once if it has
+  // loaded, and reads the choice when it loads otherwise.
+  document.addEventListener("astro:page-load", () => {
+    const input = document.querySelector<HTMLInputElement>('input[name="improve"]');
+    if (!input || input.dataset.wired) return;
+    input.dataset.wired = "1";
+    input.checked = improving();
+    // A browser that asks not to be tracked loads none of it, so the switch would do nothing.
+    const nav = navigator as Navigator & { globalPrivacyControl?: boolean };
+    if (nav.doNotTrack === "1" || nav.globalPrivacyControl === true) {
+      input.checked = false;
+      input.disabled = true;
+    }
+    // The settings rows hide a switch's thumb until its state is known (settings-rows.css).
+    input.closest(".settings-view")?.setAttribute("data-ready", "true");
+    input.addEventListener("change", () => {
+      try {
+        if (input.checked) localStorage.setItem(IMPROVE_KEY, "1");
+        else localStorage.removeItem(IMPROVE_KEY);
+      } catch {
+        // Storage blocked: the choice cannot be kept, so nothing changes.
+      }
+      if (POSTHOG_TOKEN)
+        void import("../../scripts/productAnalytics").then((each) => each.setImproving(input.checked));
+    });
+  });
+</script>

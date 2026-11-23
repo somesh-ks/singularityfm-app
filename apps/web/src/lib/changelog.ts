@@ -18,10 +18,10 @@ export interface Release {
 
 export const CHANGELOG: readonly Release[] = [
   {
-    version: "0.24.1",
+    version: "0.25.0",
     date: "2026-11-23",
     description:
-      "Singularity now lives at singularityfm.app; the old addresses forward there. Shared links use the new address.",
+      "Singularity now lives at singularityfm.app; the old addresses forward there. Shared links use the new address. Settings, Privacy has a new switch, Help improve Singularity: off unless you turn it on, it lets the app tell your visits apart and record how you use it, with anything you type hidden.",
   },
   {
     version: "0.24.0",

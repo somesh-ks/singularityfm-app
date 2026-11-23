@@ -26,7 +26,38 @@ export type AnalyticsEvent =
   | "install"
   | "create_episode"
   | "vote"
-  | "story_open";
+  | "story_open"
+  | "mute"
+  | "read_end";
+
+/**
+ * PostHog's project token (D400). Public by design: it can only send events, and it ships in every
+ * page. Empty means PostHog stays off.
+ */
+export const POSTHOG_TOKEN = "";
+/** Our own address for PostHog, rewritten to its EU servers in vercel.json (no new policy host). */
+export const POSTHOG_PROXY = "/api/ph";
+/** "Help improve Singularity" on /settings/privacy: "1" while the reader has opted in. */
+export const IMPROVE_KEY = "singularity:improve";
+
+/** Whether this reader opted in to a stored id, replay and heatmaps. */
+export function improving(): boolean {
+  try {
+    return localStorage.getItem(IMPROVE_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+type ProductSink = (name: string, properties?: AnalyticsMetadata) => void;
+let productSink: ProductSink | null = null;
+const productQueue: [string, AnalyticsMetadata | undefined][] = [];
+
+/** PostHog's capture, once it has loaded at idle; the events queued before it go first. */
+export function connectProductSink(sink: ProductSink): void {
+  productSink = sink;
+  for (const [name, properties] of productQueue.splice(0)) sink(name, properties);
+}
 
 /** Simple Analytics takes flat text, numbers and booleans; nothing here may name a person. */
 export type AnalyticsMetadata = Record<string, string | number | boolean>;
@@ -90,6 +121,10 @@ export function track(name: AnalyticsEvent, metadata?: AnalyticsMetadata): void 
     metadata && Object.fromEntries(Object.entries(metadata).filter(([, v]) => v !== ""));
   try {
     (window as unknown as AnalyticsWindow).sa_event?.(name, fields);
+    if (!POSTHOG_TOKEN) return;
+    if (productSink) productSink(name, fields);
+    // Bounded: a reader whose PostHog never loads (blocked) keeps the first few, not a growing list.
+    else if (productQueue.length < 50) productQueue.push([name, fields]);
   } catch {
     // The count is not worth a broken Share or Play.
   }

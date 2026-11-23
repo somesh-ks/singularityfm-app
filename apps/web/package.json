@@ -14,8 +14,8 @@
     "e2e:player": "node --import tsx node_modules/@playwright/test/cli.js test -c src/player/e2e/playwright.config.ts"
   },
   "dependencies": {
-    "@astrojs/react": "^7.1.2",
-    "@astrojs/vercel": "11.0.17",
+    "@astrojs/react": "^7.1.9",
+    "@astrojs/vercel": "11.0.22",
     "@base-ui/react": "^1.9.0",
     "@singularityfm/contracts": "workspace:*",
     "@singularityfm/core": "workspace:*",
@@ -23,9 +23,9 @@
     "@singularityfm/design-system": "0.13.0",
     "@singularityfm/engine": "workspace:*",
     "@singularityfm/sound": "workspace:*",
-    "@vercel/blob": "^2.8.2",
-    "@vercel/functions": "^3.10.5",
-    "astro": "^7.4.4",
+    "@vercel/blob": "^2.9.0",
+    "@vercel/functions": "^3.11.3",
+    "astro": "^7.4.12",
     "react": "^19.3.0",
     "react-dom": "^19.3.1",
     "sharp": "^0.35.5",
@@ -35,13 +35,15 @@
   "devDependencies": {
     "@astrojs/check": "^0.9.12",
     "@axe-core/playwright": "^4.14.0",
-    "@electric-sql/pglite": "^0.5.14",
-    "@playwright/test": "^1.65.0",
+    "@electric-sql/pglite": "^0.5.16",
+    "@emnapi/core": "1.11.3",
+    "@emnapi/runtime": "1.11.3",
+    "@playwright/test": "^1.65.1",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "agentation": "^3.1.2",
-    "linkedom": "^0.18.14",
+    "linkedom": "^0.18.15",
     "typescript": "~6.0.3",
-    "vercel": "65.14.0"
+    "vercel": "65.16.0"
   }
 }

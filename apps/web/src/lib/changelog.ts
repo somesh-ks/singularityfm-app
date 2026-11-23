@@ -18,6 +18,12 @@ export interface Release {
 
 export const CHANGELOG: readonly Release[] = [
   {
+    version: "0.24.1",
+    date: "2026-11-23",
+    description:
+      "The weekly podcast no longer fails when the first writing model runs out of room: another model takes over sooner, and a run has more room before it stops.",
+  },
+  {
     version: "0.24.0",
     date: "2026-11-15",
     description:

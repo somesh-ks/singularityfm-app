@@ -240,10 +240,19 @@ export function createModelRouter(options: ModelRouterOptions): ModelRouter {
         lastError = error;
         const reason = failureReason(error);
         failed.push({ family: entry.family, model, kind: reason.kind });
-        // The next model that will actually be tried: resolved, and its provider has a key.
+        // The next model that will actually be tried: resolved, its provider has a key, and not a
+        // model the chain now skips (so a cut-off Haiku reports Hydrogen, not Haiku high).
+        const skipped = (id: string | undefined) =>
+          failed.some((f) => f.model === id && MODEL_WIDE_FAILURES.has(f.kind));
         const next = chain.slice(chain.indexOf(entry) + 1).find((e) => {
           const provider = providerOf(e.family);
-          return e.family !== "jev" && resolved[e.family] && provider && apiFor(provider);
+          return (
+            e.family !== "jev" &&
+            resolved[e.family] &&
+            !skipped(resolved[e.family]?.id) &&
+            provider &&
+            apiFor(provider)
+          );
         });
         log.warn("A model failed; falling back to the next one in the chain", {
           step,

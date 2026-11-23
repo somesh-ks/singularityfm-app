@@ -156,6 +156,8 @@ export function parseCues(text: string): TranscriptSegment[] {
     const speaker = /<v(?:\.[^ >]*)?\s+([^>]+)>/.exec(raw)?.[1]?.trim() ?? null;
     const body = raw
       .replace(/<[^>]*>/g, "")
+      // A stray or split tag leaves a bracket; a cue is text, never markup.
+      .replace(/[<>]/g, "")
       .replace(/\s+/g, " ")
       .trim();
     const start = clockSeconds(from);

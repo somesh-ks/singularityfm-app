@@ -94,6 +94,9 @@ export function plainText(html: string, max = DESCRIPTION_MAX): string {
       }
       return ENTITIES[name.toLowerCase()] ?? whole;
     })
+    // Plain text never carries an angle bracket: a split tag (`<scr<b>ipt>`) or an escaped one
+    // (`&lt;script&gt;`) would otherwise come out as markup for a page that sets it as HTML.
+    .replace(/[<>]/g, "")
     .replace(/[ \t\f\v\r]+/g, " ")
     .replace(/ *\n */g, "\n")
     .replace(/\n{3,}/g, "\n\n")

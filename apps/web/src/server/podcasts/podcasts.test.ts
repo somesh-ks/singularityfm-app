@@ -8,7 +8,7 @@ import {
   searchShows,
   trendingShows,
 } from "./routes";
-import { episodeFromIndex } from "./shapes";
+import { episodeFromIndex, plainText } from "./shapes";
 import { createSigner } from "./signing";
 
 const sign = createSigner("test-secret");
@@ -121,6 +121,14 @@ describe("podcast routes", () => {
         },
       ]);
     }
+  });
+
+  it("never hands back markup from show notes or cues, even a split or escaped tag", () => {
+    for (const notes of ["<scr<b>ipt>alert(1)</script>", "&lt;script&gt;alert(1)&lt;/script&gt;"]) {
+      expect(plainText(notes)).not.toMatch(/[<>]/);
+    }
+    const [cue] = parseCues("00:00.000 --> 00:01.000\n<<i>script>alert(1)\n");
+    expect(cue?.text).not.toMatch(/[<>]/);
   });
 
   it("asks the edge one question per search and per show list, however it was typed", () => {

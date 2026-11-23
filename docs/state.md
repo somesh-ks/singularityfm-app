@@ -90,7 +90,7 @@ Unit (CI): 367 files, 5,573 tests, 2 min. Site e2e: 468, 14 min. Player: 81, 7 m
    - Settings > General: tick "Automatically delete head branches". closed when: the repo API shows `delete_branch_on_merge` true.
    - Deploy Hook secret `VERCEL_DEPLOY_HOOK_WEB`, hourly deploy check (D375 amendment). closed when: it exists and `deploy-due.yml` ran green once.
    - Unknown if done: revoke the old Vercel token; delete store `store_JmrDq8MB5Kwn3ejW`; PWA calls (10-16); spend cap; clear Claude project instructions; CodeRabbit leftovers; "go" on the lock system. closed when: he confirms each.
-   - Domain (D395, D397): [runbook 16](runbook.md#16-domain-move) steps 3, 4. closed when: he confirms each.
+   - Domain (D398): [runbook 16](runbook.md#16-domain-move) steps 3, 4. closed when: he confirms each.
    - Design system: [its Next](https://github.com/somesh-ks/singularityfm-design-system/blob/main/docs/state.md#next). closed when: done there.
 3. Firecrawl: owner prunes from the yield report. The free change check (D342) skips unchanged listings. closed when: a run skips one, then scrapes a changed one.
 4. `topic` to `category` (plan 14, [start](history/2026-10-25-owner-feedback-pass.md#left-out-for-a-later-session)), only with no other PR open. closed when: no code or data says `topic`.

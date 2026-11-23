@@ -1,0 +1,43 @@
+---
+// The landing page (D398): what singularityfm.app shows at its root. index.astro rewrites "/" on that
+// host to this page, and vercel.json sends every other path there to the player's host. It draws
+// none of the app's shell: no player, no service worker, no scripts. Rendered on request, as the
+// rewrite comes from a page rendered on request.
+import BrandMark from "@singularityfm/design-system/BrandMark";
+import Button from "@singularityfm/design-system/Button";
+import site from "../../../../site.json" with { type: "json" };
+import "@singularityfm/design-system/styles/tokens.css";
+import "@singularityfm/design-system/styles/foundations.css";
+import "@singularityfm/design-system/styles/fonts.css";
+import "@singularityfm/design-system/styles/buttons.css";
+import "../styles/landing.css";
+
+export const prerender = false;
+
+const player = new URL("/", site.url).href;
+const description =
+  "Tech and design engineering news every second day, read in three minutes or heard in eight.";
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Singularity</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={new URL("/", site.home).href} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  </head>
+  <body class="landing">
+    <main class="landing-main">
+      <BrandMark className="landing-mark" />
+      <h1 class="landing-title text-display">Singularity</h1>
+      <p class="landing-lead text-lead">{description}</p>
+      <div class="landing-actions">
+        <Button variant="filled" href={player}>Open Singularity</Button>
+      </div>
+    </main>
+  </body>
+</html>

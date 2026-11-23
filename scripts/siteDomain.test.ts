@@ -38,7 +38,7 @@ describe("the site's address", () => {
   // D397: the reader's /admin and /design links redirect to the subdomains; a move that updates
   // site.json but not vercel.json sends every old link to a dead host.
   it("redirects only to the hosts site.json names", () => {
-    const hosts = [site.url, site.admin, site.design].map((url) => new URL(url).host);
+    const hosts = [site.url, site.home, site.admin, site.design].map((url) => new URL(url).host);
     const targets = vercel.redirects
       .map((rule) => rule.destination)
       .filter((destination) => destination.startsWith("https://"))

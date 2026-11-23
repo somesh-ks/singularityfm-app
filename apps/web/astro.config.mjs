@@ -14,6 +14,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import react from "@astrojs/react";
 import vercel from "@astrojs/vercel";
 import { defineConfig } from "astro/config";
+import siteJson from "../../site.json" with { type: "json" };
 import { ANALYTICS_QUEUE_ORIGIN, ANALYTICS_SCRIPT_ORIGIN } from "./src/lib/analytics.ts";
 import {
   importGraph,
@@ -204,7 +205,7 @@ const FILES_PAGES_READ = [
 ];
 
 export default defineConfig({
-  site: "https://news.someshks.work",
+  site: siteJson.url,
   // Static output. Only the routes that export `prerender = false` run on demand.
   output: "static",
   // Skew protection stays off whatever the Vercel project says. It writes `?dpl=<deployment>` into

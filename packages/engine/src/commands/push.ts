@@ -1,4 +1,5 @@
 import { parseArgs } from "node:util";
+import site from "../../../../site.json" with { type: "json" };
 import type { CommandRun } from "../context.js";
 import { describeError } from "../llm/errors.js";
 import { connectConfigStore, databaseSecrets, type SqlClient } from "../store/configPaths.js";
@@ -62,7 +63,7 @@ export interface PushDeps {
 const TTL_SECONDS = 3600;
 
 /** Who the push services see as the sender: a contact for the site's operator. */
-const VAPID_SUBJECT = "https://news.someshks.work";
+const VAPID_SUBJECT = site.url;
 
 async function webPushSender(keys: { publicKey: string; privateKey: string }): Promise<PushSender> {
   const webpush = (await import("web-push")).default;

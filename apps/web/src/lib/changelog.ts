@@ -18,10 +18,16 @@ export interface Release {
 
 export const CHANGELOG: readonly Release[] = [
   {
-    version: "0.24.1",
+    version: "0.24.2",
     date: "2026-11-23",
     description:
       "Groundwork for playing any public podcast: the app can now look up shows, their episodes and covers behind the scenes. Nothing you see changes yet.",
+  },
+  {
+    version: "0.24.1",
+    date: "2026-11-23",
+    description:
+      "Singularity now lives at news.someshks.com; the old address forwards there. Shared links use the new address.",
   },
   {
     version: "0.24.0",

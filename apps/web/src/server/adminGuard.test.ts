@@ -8,7 +8,7 @@ import { adminOnly } from "./adminGuard";
 const SECRET = "x".repeat(40);
 const NOW = Date.UTC(2026, 9, 30, 12);
 const ask = (cookie?: string) =>
-  new Request("https://news.someshks.work/api/costs", { headers: cookie ? { cookie } : {} });
+  new Request("https://news.someshks.com/api/costs", { headers: cookie ? { cookie } : {} });
 
 // The bug it prevents: spend and health readable by anyone with the URL.
 describe("the report routes' admin guard", () => {
@@ -56,7 +56,7 @@ describe("the report routes", () => {
   ])("%s refuses a request without the session before any report work", async (path, route) => {
     vi.stubEnv("DEV", false);
     vi.stubEnv("ADMIN_SESSION_SECRET", SECRET);
-    const request = new Request(`https://news.someshks.work${path}`);
+    const request = new Request(`https://news.someshks.com${path}`);
     const answer = await route({ request, url: new URL(request.url) } as APIContext);
     expect((answer as Response).status).toBe(401);
   });

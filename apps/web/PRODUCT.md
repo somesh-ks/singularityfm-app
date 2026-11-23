@@ -24,7 +24,7 @@ The briefing is filtered by a taste model the owner tunes in one sentence, never
 - Read or heard: the same stories in the same order, with lock-screen controls and resume.
 - An archive of earlier briefings.
 - Owner tools: a control that generates a briefing on demand, and settings (theme, sounds, default speed). There is no passphrase (D160): the daily caps and the monthly narration budget are the only limits.
-- Published at news.someshks.work, public but unlisted and not indexed.
+- Published at news.someshks.com, public but unlisted and not indexed.
 
 ## Capabilities and Constraints
 

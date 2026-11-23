@@ -6,10 +6,9 @@
 import BrandMark from "@singularityfm/design-system/BrandMark";
 import Button from "@singularityfm/design-system/Button";
 import site from "../../../../site.json" with { type: "json" };
-import "@singularityfm/design-system/styles/tokens.css";
-import "@singularityfm/design-system/styles/foundations.css";
-import "@singularityfm/design-system/styles/fonts.css";
-import "@singularityfm/design-system/styles/buttons.css";
+// landing.css pulls in the system's stylesheets itself: importing them here, as BaseLayout does,
+// splits them into a chunk shared by both, which loads after player.css on the app's pages and lets
+// .icon-btn draw the queue's ⋮ on a phone (firstPlay.spec.ts).
 import "../styles/landing.css";
 
 export const prerender = false;

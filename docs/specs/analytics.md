@@ -1,10 +1,10 @@
 # Analytics
 
-Cookieless counts of visits and a few named events on news.someshks.work, through Simple Analytics (D154), so the owner can see which loops turn visitors into listeners and listeners into sharers. Nothing identifies a reader: no cookie, no storage, no IP, no user id. What a visitor is told is at `/settings/privacy`.
+Cookieless counts of visits and a few named events on singularityfm.app, through Simple Analytics (D154), so the owner can see which loops turn visitors into listeners and listeners into sharers. Nothing identifies a reader: no cookie, no storage, no IP, no user id. What a visitor is told is at `/settings/privacy`.
 
 ## Loading
 
-- `apps/web/src/lib/analytics.ts` loads `https://scripts.simpleanalyticscdn.com/latest.js` once per session from `apps/web/src/scripts/app.ts`, on `news.someshks.work` alone: a preview, a local build and the browser suites load nothing.
+- `apps/web/src/lib/analytics.ts` loads `https://scripts.simpleanalyticscdn.com/latest.js` once per session from `apps/web/src/scripts/app.ts`, on `singularityfm.app` alone: a preview, a local build and the browser suites load nothing.
 - A browser that sends Do Not Track or Global Privacy Control never loads it.
 - The script follows the client router's `pushState` moves as page views. Every page view carries `installed` (the app opened from the Home Screen).
 - `track()` queues an event until the script loads, does nothing off production or blocked, never throws.

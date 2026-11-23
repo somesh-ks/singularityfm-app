@@ -2,7 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "installCommand": "cd ../.. && npx --yes pnpm@10.34.9 install --frozen-lockfile --ignore-scripts",
   "buildCommand": "pnpm run build",
-  "ignoreCommand": "sh ../../scripts/deploy-batch.sh -- . ../../packages ../../scripts ../../package.json ../../pnpm-lock.yaml",
+  "ignoreCommand": "sh ../../scripts/deploy-batch.sh -- . ../../packages ../../scripts ../../package.json ../../pnpm-lock.yaml ../../site.json",
   "git": {
     "deploymentEnabled": {
       "*": false,
@@ -113,23 +113,23 @@
   "redirects": [
     {
       "source": "/analytics",
-      "destination": "/admin/costs",
+      "destination": "https://admin.singularityfm.app/costs",
       "permanent": false
     },
     {
       "source": "/settings/health",
-      "destination": "/admin/health",
+      "destination": "https://admin.singularityfm.app/health",
       "permanent": false
-    }
-  ],
-  "rewrites": [
+    },
     {
       "source": "/admin/:path*",
-      "destination": "https://singularity-admin-psi.vercel.app/:path*"
+      "destination": "https://admin.singularityfm.app/:path*",
+      "permanent": false
     },
     {
       "source": "/design/:path*",
-      "destination": "https://singularity-design.vercel.app/:path*"
+      "destination": "https://design.singularityfm.app/:path*",
+      "permanent": false
     }
   ],
   "headers": [

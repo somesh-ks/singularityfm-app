@@ -13,7 +13,7 @@
  *   node scripts/smokeLive.mjs --create-body smoke-body.json --apply    does it against production
  *
  * Options:
- *   --site <url>         the site (default https://news.someshks.work)
+ *   --site <url>         the site (default: url in site.json)
  *   --create-body <file> JSON for the create request: the same body the Create sheet posts to
  *                        /api/podcast for a short Catch up episode on a throwaway topic
  *   --apply              really send the requests; without it the plan is only printed
@@ -29,7 +29,10 @@ const value = (name, fallback) => {
   const at = args.indexOf(name);
   return at >= 0 && args[at + 1] ? args[at + 1] : fallback;
 };
-const SITE = value("--site", "https://news.someshks.work").replace(/\/$/, "");
+const SITE = value(
+  "--site",
+  JSON.parse(readFileSync(new URL("../site.json", import.meta.url), "utf8")).url,
+).replace(/\/$/, "");
 const APPLY = flag("--apply");
 const WAIT_MS = Number(value("--wait", "600")) * 1000;
 const bodyFile = value("--create-body", "");

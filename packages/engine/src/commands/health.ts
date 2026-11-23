@@ -1,5 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { parseArgs } from "node:util";
+import site from "../../../../site.json" with { type: "json" };
 import { type CommandRun, redact, secretsFromEnv } from "../context.js";
 import { DAILY_CEILING_USD } from "../cost/ceiling.js";
 import { freeKeyChecks } from "../ops/doctorOnline.js";
@@ -30,7 +31,7 @@ const isRun = (value: unknown): value is WorkflowRun => {
 
 const USAGE =
   "Usage: singularity health [--offline] [--site <origin>] [--ceiling-usd <n>] [--runs <gh-run-list.json>] [--side-runs <json>] [--perf <perf.json>] [--save] [--json]";
-const DEFAULT_SITE = "https://news.someshks.work";
+const DEFAULT_SITE = site.url;
 /** Each key check's request, as long as doctor's online checks wait. */
 const KEY_TIMEOUT_MS = 12_000;
 /** About three full runs a day: more in 24 hours is a loop or a runaway retry. */

@@ -1,5 +1,7 @@
+import site from "../../../site.json" with { type: "json" };
+
 /** Descriptive User-Agent so site owners can tell what is calling and why. Carries no personal data. */
-export const USER_AGENT = "Singularity/0.1 (personal news briefing; +https://news.someshks.work)";
+export const USER_AGENT = `Singularity/0.1 (personal news briefing; +${site.url})`;
 
 export type FetchImpl = (input: string, init?: RequestInit) => Promise<Response>;
 

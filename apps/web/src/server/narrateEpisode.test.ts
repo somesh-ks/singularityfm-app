@@ -25,7 +25,7 @@ import { usageKey } from "./narrationState";
  */
 
 const NOW = Date.parse("2026-10-07T12:00:00Z");
-const ORIGIN = "https://news.someshks.work";
+const ORIGIN = "https://singularityfm.app";
 const MONTH = "2026-10";
 const TODAY = "2026-10-07";
 const ID = "ep-20261007-1930";

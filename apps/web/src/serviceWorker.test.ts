@@ -9,7 +9,7 @@ import { describe, expect, it, vi } from "vitest";
  * rules are checked: above all that audio never goes through the cache.
  */
 
-const ORIGIN = "https://news.someshks.work";
+const ORIGIN = "https://singularityfm.app";
 const SOURCE = readFileSync(join(import.meta.dirname, "..", "public", "sw.js"), "utf8");
 /** The worker's own cache version, so a bump of VERSION in sw.js does not fail this file. */
 const CURRENT_VERSION = /const VERSION = "(v\d+)"/.exec(SOURCE)?.[1];

@@ -48,7 +48,7 @@ import { burstCap, createSharedLimiter } from "./rateLimit";
 
 const NOW = Date.parse("2026-10-07T12:00:00Z");
 const HOUR = 3_600_000;
-const ORIGIN = "https://news.someshks.work";
+const ORIGIN = "https://singularityfm.app";
 const versionOf = (audio: Uint8Array): string =>
   createHash("sha256").update(audio).digest("hex").slice(0, 12);
 const ID = "2026-10-07";

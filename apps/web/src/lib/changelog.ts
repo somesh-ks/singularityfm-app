@@ -21,7 +21,7 @@ export const CHANGELOG: readonly Release[] = [
     version: "0.24.1",
     date: "2026-11-23",
     description:
-      "The weekly podcast no longer fails when the first writing model runs out of room: another model takes over sooner, and a run has more room before it stops.",
+      "Singularity now lives at singularityfm.app; the old addresses forward there. Shared links use the new address. The weekly podcast no longer fails when the first writing model runs out of room: another model takes over sooner, and a run has more room before it stops.",
   },
   {
     version: "0.24.0",

@@ -22,7 +22,7 @@ class FakeLink {
     if (current) this.attributes.set("aria-current", "page");
   }
   get href(): string {
-    return `https://news.someshks.work${this.attributes.get("href")}`;
+    return `https://singularityfm.app${this.attributes.get("href")}`;
   }
   getAttribute(name: string): string | null {
     return this.attributes.get(name) ?? null;
@@ -99,21 +99,21 @@ describe("markCurrent", () => {
   it("moves the current mark to the pressed item and leaves exactly one", () => {
     const { items, root } = nav("/");
     markCurrent(asElement(items[2] as FakeLink), root);
-    expect(currentHrefs(items)).toEqual(["https://news.someshks.work/settings"]);
+    expect(currentHrefs(items)).toEqual(["https://singularityfm.app/settings"]);
   });
 
   it("marks an item when none was current, as on the Create page", () => {
     const { items, root } = nav(null);
     markCurrent(asElement(items[1] as FakeLink), root);
-    expect(currentHrefs(items)).toEqual(["https://news.someshks.work/library"]);
+    expect(currentHrefs(items)).toEqual(["https://singularityfm.app/library"]);
   });
 });
 
 describe("destinationsToWarm", () => {
   it("is every destination except the one on screen", () => {
     expect(destinationsToWarm(nav("/library").root)).toEqual([
-      "https://news.someshks.work/",
-      "https://news.someshks.work/settings",
+      "https://singularityfm.app/",
+      "https://singularityfm.app/settings",
     ]);
   });
 

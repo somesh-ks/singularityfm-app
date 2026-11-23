@@ -269,7 +269,7 @@ metric needs three runs before it is judged. With --json prints the same as data
 Checks the last run's outcome and the next due date, narration for the last week, that every digest
 and state file parses, a thin or unverified newest briefing, model fallbacks in the last run, the
 cost ledger's last 24 hours against --ceiling-usd (default 5) and the Speechify allowance. Online
-(the default; --offline skips it) it asks the live site (default https://news.someshks.work) for its
+(the default; --offline skips it) it asks the live site (default: site.json) for its
 pages, headers, /api/podcast, /latest.json against the newest digest, and the newest narration
 file. With --json prints { version: 1, now, ok, findings: [{ code, aspect, severity, message }],
 passed }. Exits 1 when any finding is a fault.`,

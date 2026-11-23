@@ -131,6 +131,18 @@ describe("podcast routes", () => {
     expect(cue?.text).not.toMatch(/[<>]/);
   });
 
+  it("keeps a show note's link addresses and an episode's kind, so the page can link and Play latest skips a trailer", () => {
+    const notes = plainText(
+      '<p>Sponsor: <a href="https://acme.example/pod?a=1&amp;b=2">Acme</a></p><a href="https://x.example">https://x.example</a>',
+    );
+    expect(notes).toContain("Acme (https://acme.example/pod?a=1&b=2)");
+    expect(notes).toContain("https://x.example");
+    expect(notes).not.toContain("(https://x.example)");
+    const base = { feedId: 42, guid: "g", enclosureUrl: "https://cdn.example/one.mp3" };
+    expect(episodeFromIndex({ ...base, episodeType: "Trailer" }, sign)?.kind).toBe("trailer");
+    expect(episodeFromIndex(base, sign)?.kind).toBe("full");
+  });
+
   it("asks the edge one question per search and per show list, however it was typed", () => {
     expect(canonicalSearch(new URLSearchParams({ q: "  Latent   SPACE " }))).toEqual(
       canonicalSearch(new URLSearchParams({ q: "latent space" })),

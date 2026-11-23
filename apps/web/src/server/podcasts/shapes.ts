@@ -27,6 +27,8 @@ export interface ShowDetail extends ShowRow {
   link: string | null;
   language: string | null;
   explicit: boolean;
+  /** itunes:type. A serial show plays from its first episode; an episodic one from its newest. */
+  order: "episodic" | "serial";
 }
 
 export interface EpisodeRow {
@@ -48,11 +50,16 @@ export interface EpisodeRow {
   link: string | null;
   season: number | null;
   episode: number | null;
+  /** itunes:episodeType. Play latest skips a trailer or a bonus. */
+  kind: "full" | "trailer" | "bonus";
   transcript: string | null;
   chapters: string | null;
 }
 
+/** Notes in a list: enough for a row's preview and a search. */
 export const DESCRIPTION_MAX = 4000;
+/** One show's newest page: whole notes, whose chapter times often come last. */
+export const NOTES_MAX = 16000;
 
 type Raw = Record<string, unknown>;
 
@@ -88,9 +95,20 @@ export function stripTags(html: string): string {
     .join("");
 }
 
-/** Show notes as plain text: paragraphs kept as blank lines, tags dropped, entities decoded. */
+/**
+ * Show notes as plain text: paragraphs kept as blank lines, tags dropped, entities decoded. A link
+ * keeps its address after its words, `words (https://…)`, so the page can make it tappable again
+ * from text it sets as text; an address that is its own words stands alone.
+ */
 export function plainText(html: string, max = DESCRIPTION_MAX): string {
-  const text = stripTags(html.replace(/<\s*(br|\/p|\/div|\/li|\/h\d)\b[^>]*>/gi, "\n"))
+  const linked = html.replace(
+    /<a\b[^>]*?\bhref\s*=\s*["']?(https?:\/\/[^"'\s<>]+)["']?[^>]*>([\s\S]*?)<\/a\s*>/gi,
+    (_whole, url: string, inner: string) => {
+      const words = stripTags(inner).trim();
+      return !words || words === url ? ` ${url} ` : `${inner} (${url})`;
+    },
+  );
+  const text = stripTags(linked.replace(/<\s*(br|\/p|\/div|\/li|\/h\d)\b[^>]*>/gi, "\n"))
     .replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (whole, name: string) => {
       if (name[0] === "#") {
         const code =
@@ -151,6 +169,7 @@ export function showDetailFromIndex(feed: Raw, sign: Signer): ShowDetail | null 
     link: httpUrl(feed.link),
     language: str(feed.language) || null,
     explicit: feed.explicit === true,
+    order: str(feed.itunesType).toLowerCase() === "serial" ? "serial" : "episodic",
   };
 }
 
@@ -197,8 +216,14 @@ function transcriptOf(item: Raw, sign: Signer): string | null {
     : null;
 }
 
+const EPISODE_KINDS = ["full", "trailer", "bonus"] as const;
+
 /** A Podcast Index episode as a row. Null without audio: nothing to play. */
-export function episodeFromIndex(item: Raw, sign: Signer): EpisodeRow | null {
+export function episodeFromIndex(
+  item: Raw,
+  sign: Signer,
+  notesMax = DESCRIPTION_MAX,
+): EpisodeRow | null {
   const showId = num(item.feedId);
   const audio = httpUrl(item.enclosureUrl);
   if (showId === null || audio === null) return null;
@@ -218,10 +243,11 @@ export function episodeFromIndex(item: Raw, sign: Signer): EpisodeRow | null {
     audio_type: str(item.enclosureType) || null,
     audio_bytes: num(item.enclosureLength),
     cover: coverAddress(sign, httpUrl(item.image) ?? httpUrl(item.feedImage)),
-    description: plainText(str(item.description)),
+    description: plainText(str(item.description), notesMax),
     link: httpUrl(item.link),
     season: num(item.season),
     episode: num(item.episode),
+    kind: EPISODE_KINDS.find((kind) => kind === str(item.episodeType).toLowerCase()) ?? "full",
     transcript: transcriptOf(item, sign),
     chapters: chapters ? extrasAddress(sign, "chapters", chapters) : null,
   };

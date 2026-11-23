@@ -2,8 +2,10 @@ import type { ApiResult } from "../http";
 import { APPLE_PER_MINUTE, type AppleSearch } from "./apple";
 import { IndexError, type IndexGet } from "./podcastIndex";
 import {
+  DESCRIPTION_MAX,
   type EpisodeRow,
   episodeFromIndex,
+  NOTES_MAX,
   type ShowDetail,
   type ShowRow,
   showDetailFromIndex,
@@ -269,9 +271,9 @@ export interface ShowBody {
   episodes: EpisodeRow[];
 }
 
-const episodesOf = (body: unknown, sign: Signer): EpisodeRow[] =>
+const episodesOf = (body: unknown, sign: Signer, notesMax?: number): EpisodeRow[] =>
   listOf(body, "items")
-    .map((item) => episodeFromIndex(item, sign))
+    .map((item) => episodeFromIndex(item, sign, notesMax))
     .filter((row): row is EpisodeRow => row !== null)
     .sort((a, b) => (b.published_at ?? "").localeCompare(a.published_at ?? ""));
 
@@ -294,14 +296,17 @@ export async function showWithEpisodes(
         ? showDetailFromIndex(feed as Raw, deps.sign)
         : null;
     if (!show || show.id === null) return failure(404, "not_found", "No such show.");
+    const max = params.get("max") ?? String(SHOW_PAGE_SIZES[0]);
     const episodes = await deps.index("/episodes/byfeedid", {
       id: String(show.id),
-      max: params.get("max") ?? String(SHOW_PAGE_SIZES[0]),
+      max,
       fulltext: "",
     });
+    // The newest page is what an episode's page reads, so its notes come whole; the long page is a list.
+    const notesMax = max === String(SHOW_PAGE_SIZES[0]) ? NOTES_MAX : DESCRIPTION_MAX;
     return {
       status: 200,
-      body: { show, episodes: episodesOf(episodes, deps.sign) },
+      body: { show, episodes: episodesOf(episodes, deps.sign, notesMax) },
       // Tagged by show, so a later refresher can drop one show's copies at once.
       headers: { ...edgeHeaders(EDGE_SECONDS.show), "Vercel-Cache-Tag": `podcast-show-${show.id}` },
     };

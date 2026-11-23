@@ -77,11 +77,20 @@ const ENTITIES: Record<string, string> = {
   nbsp: " ",
 };
 
+/**
+ * Markup out of a string: everything from each `<` to its `>` goes, and an unclosed `<` takes the rest
+ * of the string with it, so a split tag (`<scr<b>ipt>`) never closes into a whole one.
+ */
+export function stripTags(html: string): string {
+  return html
+    .split("<")
+    .map((part, index) => (index === 0 ? part : part.slice(part.indexOf(">") + 1 || part.length)))
+    .join("");
+}
+
 /** Show notes as plain text: paragraphs kept as blank lines, tags dropped, entities decoded. */
 export function plainText(html: string, max = DESCRIPTION_MAX): string {
-  const text = html
-    .replace(/<\s*(br|\/p|\/div|\/li|\/h\d)\b[^>]*>/gi, "\n")
-    .replace(/<[^>]*>/g, "")
+  const text = stripTags(html.replace(/<\s*(br|\/p|\/div|\/li|\/h\d)\b[^>]*>/gi, "\n"))
     .replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (whole, name: string) => {
       if (name[0] === "#") {
         const code =

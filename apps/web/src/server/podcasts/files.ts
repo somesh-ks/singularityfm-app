@@ -3,6 +3,7 @@ import { readCapped } from "../siteIcon";
 import { type FetchImpl, guardedFetch, type Resolver, resolveAll } from "../sourcePreview";
 import { USER_AGENT } from "./podcastIndex";
 import { failure, NEVER_KEPT } from "./routes";
+import { stripTags } from "./shapes";
 import { type SignedKind, type Signer, verifySigned } from "./signing";
 
 /**
@@ -154,12 +155,8 @@ export function parseCues(text: string): TranscriptSegment[] {
     const [, from = "", to = ""] = CUE.exec(lines[at] ?? "") ?? [];
     const raw = lines.slice(at + 1).join(" ");
     const speaker = /<v(?:\.[^ >]*)?\s+([^>]+)>/.exec(raw)?.[1]?.trim() ?? null;
-    const body = raw
-      .replace(/<[^>]*>/g, "")
-      // A stray or split tag leaves a bracket; a cue is text, never markup.
-      .replace(/[<>]/g, "")
-      .replace(/\s+/g, " ")
-      .trim();
+    // A cue is text, never markup: tags go, and a stray `>` with them.
+    const body = stripTags(raw).replace(/>/g, "").replace(/\s+/g, " ").trim();
     const start = clockSeconds(from);
     const end = clockSeconds(to);
     if (!body || !Number.isFinite(start) || !Number.isFinite(end) || end < start) continue;

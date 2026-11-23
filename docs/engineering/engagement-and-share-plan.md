@@ -31,7 +31,7 @@ Consent is D154's: nothing stored on the device, no identifier, no script for Do
 
 ## 3. The User engagement page
 
-Stage 1 is a row under Settings, Analytics, beside Costs, that opens the Simple Analytics dashboard for news.someshks.work. It needs no route, no key and no copy of the data, and the dashboard already shows the loops of [specs/analytics.md](../specs/analytics.md): visits, referrer `share`, and the events with their metadata.
+Stage 1 is a row under Settings, Analytics, beside Costs, that opens the Simple Analytics dashboard for news.someshks.com. It needs no route, no key and no copy of the data, and the dashboard already shows the loops of [specs/analytics.md](../specs/analytics.md): visits, referrer `share`, and the events with their metadata.
 
 Numbers inside the app (listens a week, listen-through by kind, visits per share, shares per visitor, generations reached) need the Stats API, read by a server route and cached. Two ways, the owner's choice:
 
@@ -87,7 +87,7 @@ Play asks `POST /api/share-play` (built as `share-play`: the static test build c
 | Blob transfer | Hobby includes 10 GB a month; past it Blob is locked for 30 days, which stops the owner's own playback. A 15 minute episode at 128 kbps is about 14 MB, so about 700 full plays | Shared plays stop at 4 GB a month (play starts times item size, counted in Neon) and 100 plays a link; the page says the limit is reached. Stage 4 adds a 64 kbps rendition, half the bytes |
 | Narration spend | A stranger's Play narrating missing segments | Never from the listen page: stored audio only, links only for fully stored items. The app itself narrates for anyone, inside the daily cap and the monthly budget, until OAuth (D160) |
 | Functions and Neon | Scanners, bursts | Token shape check before the database, CDN cache, D150 buckets on every new route |
-| The app behind the domain | The page names news.someshks.work | Open to anyone until OAuth (D160): the owner will hide actions from logged-out users. The listen page links nowhere into the app meanwhile |
+| The app behind the domain | The page names news.someshks.com | Open to anyone until OAuth (D160): the owner will hide actions from logged-out users. The listen page links nowhere into the app meanwhile |
 | Leaked links | A public dashboard lists paths | The token never reaches Simple Analytics (section 4) |
 | Undercounting | Ad blockers stop the script; an offline listen sends nothing | Counts are a floor (D154); the play count in Neon is exact for shared plays |
 | Copyright | Episodes are narrated summaries of others' reporting; a public link publishes them past D9's "one reader" | Every story credited and linked, no article text, unlisted, expiring links. The owner accepts this or keeps sharing to friends. Not legal advice |

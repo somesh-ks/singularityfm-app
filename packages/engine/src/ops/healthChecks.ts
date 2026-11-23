@@ -708,11 +708,9 @@ export async function readStore(
   };
 }
 
-/** Hobby stops every deploy at this many in a rolling 24 hours, cancelled builds counted (D247). */
-export const DEPLOYS_PER_DAY_CAP = 100;
-/** Seventy a day leaves a day of headroom to find what is building too often. */
+/** Seventy a day is more than merges explain: something builds too often, and on Pro each build bills minutes. */
 export const DEPLOYS_WARN_PER_DAY = 70;
-/** Eighty is a fault (D360): a warning reaches the owner on Mondays, after the cap has struck. */
+/** Eighty is a fault (D360): a warning reaches the owner on Mondays, days into the waste. */
 export const DEPLOYS_FAULT_PER_DAY = 80;
 const DEPLOY_PAGE_SIZE = 100;
 const DEPLOY_MAX_PAGES = 5;
@@ -726,9 +724,9 @@ type DeploymentFetch = (
 ) => Promise<{ status: number; json: () => Promise<unknown> }>;
 
 /**
- * Counts the account's deployments in the last 24 hours (D247): Hobby's cap is a rolling window over
- * every project, cancelled and ignored builds included, and GitHub's deployments list does not
- * mirror it. Without a token nothing is read. Never throws; a failure is a reading that says why,
+ * Counts the account's deployments in the last 24 hours (D247) over every project, cancelled and
+ * ignored builds included; GitHub's deployments list does not mirror it. The team is on Pro since
+ * 2026-11-13, so the count watches for runaway builds (cost), not Hobby's old cap of 100. Without a token nothing is read. Never throws; a failure is a reading that says why,
  * with the token taken out of it.
  */
 export async function readDeploymentCount(
@@ -773,17 +771,17 @@ export function checkDeploymentRate(reading: DeploymentReading, sink: Sink): voi
     sink.warn(
       "deploy_rate_unread",
       "reliability",
-      `Vercel's deployment count did not read: ${reading.error}. The ${DEPLOYS_PER_DAY_CAP} a day cap goes unwatched.`,
+      `Vercel's deployment count did not read: ${reading.error}. Runaway builds go unwatched.`,
     );
   } else if (reading.count >= DEPLOYS_WARN_PER_DAY) {
     (reading.count >= DEPLOYS_FAULT_PER_DAY ? sink.fault : sink.warn)(
       "deploy_rate",
       "reliability",
-      `${reading.count} Vercel deployments in 24 hours; Hobby stops every deploy at ${DEPLOYS_PER_DAY_CAP}, cancelled builds included. Find the project that builds more than merges explain.`,
+      `${reading.count} Vercel deployments in 24 hours, more than merges explain; each one bills Pro build minutes. Find the project that builds too often.`,
     );
   } else {
     sink.passed.push(
-      `${reading.count} Vercel deployments in 24 hours, under the ${DEPLOYS_PER_DAY_CAP} cap`,
+      `${reading.count} Vercel deployments in 24 hours, under ${DEPLOYS_WARN_PER_DAY}`,
     );
   }
 }

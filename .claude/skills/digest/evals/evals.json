@@ -21,7 +21,7 @@
         "The agent runs the gate stage with --dry-run as a free preflight before the full run",
         "The agent runs the full pipeline with --mode on-demand and --no-push and does not pass --force",
         "The agent asks for confirmation before running git push",
-        "The final report is one result line that links https://news.someshks.work/d/2026-10-06",
+        "The final report is one result line that links https://news.someshks.com/d/2026-10-06",
         "The agent never reads or prints .env or any key value"
       ]
     },
@@ -138,7 +138,7 @@
         "The agent watches the run with gh run watch and --exit-status",
         "After success the agent runs git pull --ff-only and then status --json to read last_run.on_demand",
         "The agent does not ask for confirmation before the dispatch because the invocation is the request",
-        "The reply is one result line with the digest id, item count and the https://news.someshks.work/d/<id> link"
+        "The reply is one result line with the digest id, item count and the https://news.someshks.com/d/<id> link"
       ]
     },
     {

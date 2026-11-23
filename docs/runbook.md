@@ -4,7 +4,7 @@ Operations for the owner. Short, imperative, in the order you need it.
 
 Status: commands and repository visibility checked 2026-11-10. Correct a step here when it turns out wrong. `pnpm run singularity <command>` runs the engine CLI; `--help` on any command lists its flags.
 
-Repository: `somesh-ks/singularityfm-app` (public, D298; renamed from `knowledge-hub`, D382). Site: `news.someshks.work`.
+Repository: `somesh-ks/singularityfm-app` (public, D298; renamed from `knowledge-hub`, D382). Site: `news.someshks.com`.
 
 ---
 
@@ -98,12 +98,12 @@ Nothing to create. The `snapshot` workflow copies the config store into the `con
 
 ### 1.6 Add the domain and the DNS record
 
-1. In the project's Domains settings, add `news.someshks.work`.
+1. In the project's Domains settings, add `news.someshks.com`.
 2. Note the CNAME target Vercel shows. It is also in the project's Domains settings.
-3. In Cloudflare, open DNS for `someshks.work` and add one record: type CNAME, name `news`, target the value from Vercel, proxy status DNS only (grey cloud).
+3. In Cloudflare, open DNS for `someshks.com` and add one record: type CNAME, name `news`, target the value from Vercel, proxy status DNS only (grey cloud).
 4. Wait until Vercel marks the domain valid. Vercel issues the certificate.
 
-Do not add `www.news.someshks.work`. Do not turn the Cloudflare proxy on.
+Do not add `www.news.someshks.com`. Do not turn the Cloudflare proxy on.
 
 ### 1.7 Create the GitHub token
 
@@ -141,7 +141,7 @@ Run `pnpm run singularity doctor --online`. It checks Node, git, config, state a
 1. Push the code: `git push origin main`. The workflows must be on the default branch before `gh workflow run` can start them.
 2. The push starts a Vercel build and deploy; `ci.yml` ran on the pull request (D148). Vercel does not wait for `ci.yml`, so a failing check does not stop a deploy. To audio-process by hand, run `gh workflow run audio.yml -R somesh-ks/singularityfm-app`.
 3. Watch the checks: `gh run watch -R somesh-ks/singularityfm-app`. Watch the deploy in the Vercel dashboard. This is the first live build of the `apps/web` workspace through the Git integration, so read any build error there.
-4. Open `https://news.someshks.work`. With no digest yet it shows "No briefings yet".
+4. Open `https://news.someshks.com`. With no digest yet it shows "No briefings yet".
 
 ### 1.12 First manual run
 
@@ -175,7 +175,7 @@ Nothing to do on most days.
 - The trigger needs `CRON_SECRET` on Vercel: a random value of 16 or more characters in `.env` (for example `openssl rand -hex 24`), sent with `pnpm run secrets:push --only vercel`. Vercel sends it with every cron call, and the route refuses calls while it is missing. To check, open the project's Cron Jobs page in the Vercel dashboard: each call's log line says whether it dispatched.
 - The digest lands as a `chore(digest): <id>` commit, and the site updates within minutes.
 - GitHub emails you when a scheduled run fails. That is the only notification (D11).
-- Read the briefing at `news.someshks.work`, installed to the iPhone home screen.
+- Read the briefing at `news.someshks.com`, installed to the iPhone home screen.
 - Once a week, run `/learn` with one sentence about what the last digests got wrong (section 9).
 
 Monthly:
@@ -340,7 +340,7 @@ Models are resolved at run start from the providers' lists. Symptoms: the run lo
 2. No deployment appeared, or it says blocked: check that the GitHub login connected to Vercel is the account that owns the team, and that the merge's author is that account.
 3. A deployment shows as skipped (Canceled by Ignored Build Step): the push touched nothing the site reads, which is expected for `state`, `config`, docs and `.github`. A push that did touch code is also skipped while it waits for the batch: five merges, three hours, or `[deploy]` in a commit since the last deploy (D375, `scripts/deploy-batch.sh`). The three hours are judged on a push and by `deploy-due.yml` every hour, which starts the Deploy Hook in `VERCEL_DEPLOY_HOOK_WEB` once per due commit (D389); with that secret unset, a lone merge waits for the next push or a `[deploy]`; `site_behind` warns only after six hours. To ship a merge at once, merge with `[deploy]` at the end of the PR title; for one already made, ask any session to merge a one-line docs change titled `docs: deploy now [deploy]`. If a code push stayed skipped past the batch, check the `ignoreCommand` in `apps/web/vercel.json`; `singularity health` warns `site_behind` when this happens, and faults (the `health` issue) once the oldest commit the site lacks is a day old (D159). Vercel refuses an `ignoreCommand` over 256 characters (the whole deploy fails), so keep it short. Hobby also refuses every deploy at 100 in a rolling 24 hours, cancelled builds included ("Deployment rate limited"); `health` warns `deploy_rate` at 70 (D247), and the cure is to find the project that builds more than merges explain.
 4. A build error about missing packages or paths: check Root Directory is `apps/web`, "Include source files outside of the Root Directory" is on, and the `installCommand` in `apps/web/vercel.json` runs `pnpm install --frozen-lockfile` from the repository root.
-5. `news.someshks.work` shows an old page but the deploy succeeded: wait a minute, then hard refresh. Check that the DNS record is DNS only. A proxied record (orange cloud) breaks certificate issuance.
+5. `news.someshks.com` shows an old page but the deploy succeeded: wait a minute, then hard refresh. Check that the DNS record is DNS only. A proxied record (orange cloud) breaks certificate issuance.
 
 ### 8.6 The Generate button fails
 
@@ -413,7 +413,7 @@ The owner's config (sources, topics, queries, preferences, schedule, structure, 
 6. GitHub variable: Settings → Secrets and variables → Actions → Variables → `SINGULARITY_CONFIG_STORE` = `postgres`.
 7. Vercel: Project → Settings → Environment Variables → `SINGULARITY_CONFIG_STORE` = `postgres` for Production. Check that `DATABASE_URL` is set for Production too. On 2026-10-23 it was not: the Neon integration was connected with the `NEON_` prefix (`NEON_DATABASE_URL` and friends), which nothing reads, so the store and the shared rate counter (D150) have never run in production. Either set the integration's prefix to none (Storage → the Neon database → Settings) or add `DATABASE_URL` by hand with the pooled connection string.
 8. Redeploy (Deployments → the latest → Redeploy): the pages read the switch when they are built.
-9. Check: `https://news.someshks.work/api/config` answers 200 with `"ops":[]`; change a weight on the phone and reload the same page on the laptop: it shows the new weight. The next run's log says `config store: files current` or names the files it copied.
+9. Check: `https://news.someshks.com/api/config` answers 200 with `"ops":[]`; change a weight on the phone and reload the same page on the laptop: it shows the new weight. The next run's log says `config store: files current` or names the files it copied.
 
 ### 11.2 Fork or local checkout
 
@@ -491,3 +491,15 @@ Do these in order. GitHub redirects the old address for git, the web pages and t
 6. Check: GitHub → Settings → Developer settings → the site's fine-grained token still lists `singularityfm-app`; one Regenerate from the site starts a run.
 
 Never create a new repository called `knowledge-hub`: it ends the redirect for every old link.
+
+## 16. Domain move
+
+The site's address has one home: `url` in `site.json`. The site (`astro.config.mjs` site, canonical and sitemap; the analytics host), the engine (`health` default, push VAPID subject, User-Agent), `scripts/smokeLive.mjs` and the `smoke`, `health` and `deploy-due` workflows read it. `retired` lists old hosts; `scripts/siteDomain.test.ts` fails while any tracked file outside `docs/history/` and `docs/decisions/` names one. The design-system and admin repos name the host in their `astro.config.mjs` and docs (their AGENTS.md, Domain).
+
+To move again:
+
+1. Vercel, project `singularityfm-app`, Domains: add the new host, then set the old one to redirect (308) to it. Keep the redirect while old installs exist.
+2. In one PR: set `url` in `site.json`, add the old host to `retired`, and fix what the test names. Then the same change in the design-system and admin repos.
+3. Outside git: Simple Analytics site setting, Google OAuth redirect URIs (admin sign-in), Vercel Blob CORS allowed origins if set, the GitHub repo website field, and any `SINGULARITY_*` Actions variable or Vercel env that names the host.
+4. Per-origin browser state does not follow a redirect: favorites, queue, position, the service worker, the installed app and push subscriptions start empty on the new host. Reinstall the app and turn notifications on again there.
+5. After the next production deploy, the `smoke` and `health` runs go green and close their issues.

@@ -86,11 +86,11 @@ Read `references/agent-mode.md` now and follow it. It ends at the same remote-mo
 
 ## 4. Result line
 
-One line per run, nothing more unless asked. The site is `https://news.someshks.work`.
+One line per run, nothing more unless asked. The site is `https://news.someshks.com`.
 
 | Outcome | Line |
 | :--- | :--- |
-| published | `published (<mode>): <id>, <n> items, https://news.someshks.work/d/<id>`, plus `, unverified` for agent mode |
+| published | `published (<mode>): <id>, <n> items, https://news.someshks.com/d/<id>`, plus `, unverified` for agent mode |
 | nothing | `nothing cleared the bar (<mode>)` |
 | dry run | `dry run (<mode>): <n> items, preview <path>`; remote: `dry run (remote): finished, nothing written, <run url>` |
 | failed | `failed at <stage>: <first line of error>`, plus the run URL when remote. A `save_failed` commit status means the run state did not reach the store: say so. |

@@ -46,7 +46,7 @@ Causes that reach that line on main (all confirmed by the new test, `scripts/sto
 
 ### Reproduction
 
-Production (`news.someshks.work`) is not reachable from this container (proxy refuses the host),
+Production (`news.someshks.com`) is not reachable from this container (proxy refuses the host),
 so the reproduction runs the real sender and the real `/api/config` handler in Node with only
 GitHub faked (`apps/web/src/scripts/storyVotes.test.ts`):
 

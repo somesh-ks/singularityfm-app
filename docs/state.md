@@ -12,7 +12,7 @@ Updated 2026-11-13. Rewrite, never append.
 - Live content: creates, deletes (tombstones) and regenerates show without a deploy (D199). Regenerate and Catch up queue with Cancel; ended runs stay a day (D204, D231).
 - Saved copies, offline, downloads, PWA: [navigation and offline](specs/navigation-and-offline.md).
 - Vercel deploys `main`. CI: checks, audit, browser shards by path (D393). CodeRabbit reviews a ready PR once, by tier (D192, D292).
-- Styles (D306, D310, D314, D315, D319): Halloween and Expressive, a Hue slider, live covers. closed when: Somesh OKs the stills ([ghost states](https://claude.ai/artifact/MVNhZmVMk4kYNu2tJbHRPp), [disabled](https://claude.ai/artifact/Kc7RaKbskg5UeGULwwKtU8)) and a style change on his phone recolours every page with no flash and survives a restart, and a press on the Library view toggle and a toast action beats hover.
+- Styles (D306, D310, D314, D315, D319): Halloween and Expressive, a Hue slider, live covers. closed when: he OKs the stills ([ghost states](https://claude.ai/artifact/MVNhZmVMk4kYNu2tJbHRPp), [disabled](https://claude.ai/artifact/Kc7RaKbskg5UeGULwwKtU8)) and a style change on his phone recolours every page with no flash and survives a restart, and a press on the Library view toggle and a toast action beats hover.
 
 - Avatar, Settings (D335, D344), Mood (D327), taps (D353): merged. closed when: his phone's shows come home.
 
@@ -44,7 +44,7 @@ Unit (CI): 367 files, 5,573 tests, 2 min. Site e2e: 468, 14 min. Player: 81, 7 m
 - Two Catch ups in 24 h (D213). closed when: a third is refused; a regenerate or delete uses none.
 - Three regenerations per podcast, counted in its own file (D212). closed when: the page shows "2 of 3 regenerations left".
 - Short podcasts (D204, D216 to D225). 11-05: dailies 1.04 and 1.02, metrics 7 of 10 runs at 1.02. closed when: two dailies in a row air within 10% of length, and `singularity metrics` shows ten runs at `length_share` 0.9+, `failure_rate` 0.1 or less.
-- Every Claude step starts at Haiku medium, then Haiku high, then Sonnet medium (D308, D333, D334). 11-03 daily: share 1.04, 11 cents. closed when: two scheduled runs drop no more voice or grounding (`lost_reasons`) than the last Sonnet-only runs, and a podcast script holds `length_share` 0.9+ (else tell the owner).
+- Every Claude step starts at Haiku medium, then Haiku high, then Sonnet medium (D308, D333, D334). closed when: two scheduled runs drop no more voice or grounding (`lost_reasons`) than the last Sonnet-only runs, and a podcast script holds `length_share` 0.9+ (else tell the owner).
 - Ingest in shadow (D233, D251). 11-05: held 50%, read 93%, not met. closed when: 7 days at 90% held and 90% read (`ingest --coverage`).
 - Weekly switch (D386). closed when: a switched-off Weekly faults on the Saturday health run and its Settings row reads Off.
 - One Speechify count in Blob, a weekly Exa stop (D339). closed when: health shows the shared count after a narration and 450 Exa requests in a week warn.
@@ -84,12 +84,13 @@ Unit (CI): 367 files, 5,573 tests, 2 min. Site e2e: 468, 14 min. Player: 81, 7 m
 
 ## Next
 
-1. Free the lane in the hold ([D209](decisions/engine.md)): step 1 is built (#399); steps 2, 4 and 5 are not. Step 3 shipped as D294. Run.yml's "Settle batches" step settles a batch left open. closed when: a scheduled run's write stage logs "Writer first pass by batch" with `back` above 0, and a run that gave up on a batch logs "Settled a batch the run had left open".
+1. Free the lane in the hold (D209): step 1 is built (#399); steps 2, 4 and 5 are not. Run.yml's "Settle batches" step settles a batch left open. closed when: a scheduled run's write stage logs "Writer first pass by batch" with `back` above 0, and a run that gave up on a batch logs "Settled a batch the run had left open".
 2. Owner, only he can do these (closed when: each line closes):
    - `secrets:push` (Guardrails). closed when: those Unverified lines close.
    - Settings > General: tick "Automatically delete head branches". closed when: the repo API shows `delete_branch_on_merge` true.
    - Deploy Hook secret `VERCEL_DEPLOY_HOOK_WEB`, hourly deploy check (D375 amendment). closed when: it exists and `deploy-due.yml` ran green once.
-   - Unknown if done: revoke the old Vercel token; delete store `store_JmrDq8MB5Kwn3ejW`; [PWA calls](history/2026-10-16-pwa-launch-and-one-model-select.md); spend cap; clear Claude project instructions; CodeRabbit leftovers; "go" on the lock system. closed when: he confirms each done or dropped.
+   - Unknown if done: revoke the old Vercel token; delete store `store_JmrDq8MB5Kwn3ejW`; PWA calls (10-16); spend cap; clear Claude project instructions; CodeRabbit leftovers; "go" on the lock system. closed when: he confirms each.
+   - Domain (D395): [runbook 16](runbook.md#16-domain-move) steps 3, 4. closed when: he confirms each.
    - Design system: [its Next](https://github.com/somesh-ks/singularityfm-design-system/blob/main/docs/state.md#next). closed when: done there.
 3. Firecrawl: owner prunes from the yield report. The free change check (D342) skips unchanged listings. closed when: a run skips one, then scrapes a changed one.
 4. `topic` to `category` (plan 14, [start](history/2026-10-25-owner-feedback-pass.md#left-out-for-a-later-session)), only with no other PR open. closed when: no code or data says `topic`.

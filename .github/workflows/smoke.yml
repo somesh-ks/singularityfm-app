@@ -18,6 +18,7 @@ on:
 
 permissions:
   actions: read
+  contents: read
   issues: write
 
 # One check of the live site at a time, never cancelled, so a failing one always files its issue; a
@@ -40,9 +41,17 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     env:
-      SITE: https://news.someshks.work
       GH_TOKEN: ${{ github.token }}
     steps:
+      # The site's address has one home, site.json (AGENTS.md, Domain); the probe reads nothing else.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: site.json
+          sparse-checkout-cone-mode: false
+      - name: Which site?
+        shell: bash
+        run: echo "SITE=$(jq -er .url site.json)" >> "$GITHUB_ENV"
       - name: Ask the live site
         shell: bash
         run: |

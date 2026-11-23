@@ -105,7 +105,7 @@ jobs:
         timeout-minutes: 15
         run: |
           pnpm exec playwright install --with-deps chromium
-          pnpm exec tsx scripts/perfProbe.ts https://news.someshks.work --out "$RUNNER_TEMP/perf.json"
+          pnpm exec tsx scripts/perfProbe.ts "$(jq -er .url site.json)" --out "$RUNNER_TEMP/perf.json"
 
       # The ingest shadow's reading (D233, D251): how many of the dailies' stories the store held and
       # how many pages it read. It reads the dailies Load content pulled and Neon, and calls no model.

@@ -52,7 +52,8 @@ export function podcastRoute(name: string, options: PodcastRouteOptions): APIRou
     if (options.canonical) {
       const canonical = options.canonical(url.searchParams, Date.now());
       if ("error" in canonical) return toResponse(canonical.error);
-      if (canonical.query !== url.search.replace(/^\?/, "")) {
+      // Compared as parsed, so a proxy that re-encodes a comma never loops the redirect.
+      if (canonical.query !== new URLSearchParams(url.search).toString()) {
         const seconds = options.redirectSeconds ?? 86_400;
         return new Response(null, {
           status: 308,

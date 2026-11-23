@@ -39,7 +39,10 @@ describe("podcast routes", () => {
   it("refuses a file address our answers did not sign, so the file routes are no open proxy", async () => {
     let fetched = 0;
     const fileDeps = {
-      fetch: async () => (fetched++, new Response("x")),
+      fetch: async () => {
+        fetched++;
+        return new Response("x");
+      },
       sign,
       resolve: PUBLIC,
     };

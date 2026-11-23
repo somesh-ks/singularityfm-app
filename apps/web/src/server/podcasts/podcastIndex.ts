@@ -74,7 +74,10 @@ export function createIndexClient(deps: IndexClientDeps): IndexGet {
     const authorization = createHash("sha1")
       .update(deps.keys.key + deps.keys.secret + date)
       .digest("hex");
-    const query = new URLSearchParams(params).toString();
+    // A flag the index reads by its presence (`fulltext`) goes without a value, as its documents ask.
+    const query = Object.entries(params)
+      .map(([name, value]) => (value === "" ? name : `${name}=${encodeURIComponent(value)}`))
+      .join("&");
     let response: Response;
     try {
       response = await deps.fetch(`${INDEX_BASE}${path}${query ? `?${query}` : ""}`, {

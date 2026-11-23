@@ -44,7 +44,7 @@ Unit (CI): 367 files, 5,573 tests, 2 min. Site e2e: 468, 14 min. Player: 81, 7 m
 - Two Catch ups in 24 h (D213). closed when: a third is refused; a regenerate or delete uses none.
 - Three regenerations per podcast, counted in its own file (D212). closed when: the page shows "2 of 3 regenerations left".
 - Short podcasts (D204, D216 to D225). 11-05: dailies 1.04 and 1.02, metrics 7 of 10 runs at 1.02. closed when: two dailies in a row air within 10% of length, and `singularity metrics` shows ten runs at `length_share` 0.9+, `failure_rate` 0.1 or less.
-- Every Claude step starts at Haiku medium, then Haiku high, then Sonnet medium (D308, D333, D334). 11-03 daily: share 1.04, 11 cents. closed when: two scheduled runs drop no more voice or grounding (`lost_reasons`) than the last Sonnet-only runs, and a podcast script holds `length_share` 0.9+ (else tell the owner).
+- Claude steps: Haiku, Haiku high, Hydrogen, Sonnet (D334, D395); cap 500k. closed when: two scheduled runs lose no more voice or grounding (`lost_reasons`) than Sonnet-only ones, a script holds `length_share` 0.9+, and Hydrogen serves a call with no 400 or 404.
 - Ingest in shadow (D233, D251). 11-05: held 50%, read 93%, not met. closed when: 7 days at 90% held and 90% read (`ingest --coverage`).
 - Weekly switch (D386). closed when: a switched-off Weekly faults on the Saturday health run and its Settings row reads Off.
 - One Speechify count in Blob, a weekly Exa stop (D339). closed when: health shows the shared count after a narration and 450 Exa requests in a week warn.

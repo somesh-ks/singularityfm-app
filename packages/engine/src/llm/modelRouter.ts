@@ -6,6 +6,8 @@ import {
   BudgetExceededError,
   DeadlineExceededError,
   errorStatus,
+  LlmOutputError,
+  LlmTruncatedError,
   StreamInterruptedError,
 } from "./errors.js";
 import { createJsonLlm, jsonPrompt, jsonSchemaOf } from "./jsonLlm.js";
@@ -21,11 +23,15 @@ import type { RetryOptions } from "./retry.js";
 import { estimateTokens, estimateTokensForChars, type TokenBudget } from "./tokenBudget.js";
 import type { BatchLlm, JsonRequest, JsonResult, LlmClient } from "./types.js";
 
-/** Why a model failed, safe to log: status, error class and a short kind. Never the provider's message. */
+/**
+ * Why a model failed, safe to log: status, error class, a short kind and, for invalid output, our
+ * own words on what was wrong (which rule failed, or the token limit). Never the provider's message.
+ */
 export function failureReason(error: unknown): {
   status: number | null;
   error_class: string;
   kind: string;
+  detail?: string;
 } {
   const status = errorStatus(error) ?? null;
   const errorClass = error instanceof Error ? error.name : typeof error;
@@ -38,15 +44,24 @@ export function failureReason(error: unknown): {
   else if (status !== null && status >= 400) kind = "rejected_request";
   else if (/timeout/i.test(errorClass)) kind = "timeout";
   else if (/connection/i.test(errorClass)) kind = "connection";
+  else if (error instanceof LlmTruncatedError) kind = "truncated";
   else if (errorClass === "LlmOutputError") kind = "invalid_output";
+  // The 22 Nov weekly logged only "invalid_output", so which rule Haiku broke was lost.
+  if (error instanceof LlmOutputError) {
+    return { status, error_class: errorClass, kind, detail: error.message.slice(0, 300) };
+  }
   return { status, error_class: errorClass, kind };
 }
 
 /**
- * Failures of the model itself or its provider: the same model at another effort fails the same
- * way, so the chain skips its later entries (D333). A refusal or invalid output can differ by effort.
+ * Failures the same model at another effort repeats, so the chain skips its later entries (D333):
+ * the model or its provider failed, or its reply was cut off or broke the schema twice (the 22 Nov
+ * weekly spent two Haiku attempts per batch on the same truncation before Sonnet wrote it). Only a
+ * refusal can differ by effort.
  */
 const MODEL_WIDE_FAILURES = new Set([
+  "invalid_output",
+  "truncated",
   "timeout",
   "connection",
   "server_error",
@@ -234,6 +249,7 @@ export function createModelRouter(options: ModelRouterOptions): ModelRouter {
           step,
           from: model,
           to: next ? (resolved[next.family]?.id ?? null) : null,
+          budget_left: options.budget.remaining,
           ...reason,
         });
         if (next) {

@@ -192,6 +192,23 @@
     },
     {
       "provider": "gemini",
+      "product": "gemini-4-hydrogen",
+      "units": {
+        "input_tokens": {
+          "usd": 1.5,
+          "per": 1000000
+        },
+        "output_tokens": {
+          "usd": 7.5,
+          "per": 1000000
+        }
+      },
+      "as_of": "2026-11-23",
+      "confirmed": false,
+      "note": "1.50 and 7.50 USD per million tokens from third-party listings (Vercel AI Gateway, APIYI), 2026-11-23; output includes thinking. Check Google's pricing page."
+    },
+    {
+      "provider": "gemini",
       "product": "*",
       "units": {
         "input_tokens": {

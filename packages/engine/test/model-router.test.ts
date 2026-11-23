@@ -149,6 +149,17 @@ describe("the model chain", () => {
     expect(calls).toHaveLength(1);
   });
 
+  // The 22 Nov weekly: Haiku's reply was cut off at the token limit, Haiku at high effort was cut off
+  // the same way, each attempt billed in full, and the run hit its token cap. The log said only
+  // "invalid_output", so nobody could tell it was the token limit.
+  it("moves past a model whose reply was cut off, without its other efforts, and logs why", async () => {
+    const { router, calls, lines } = setup(() => claude("max_tokens", '{"ok":'));
+    await expect(router.callModel("story_rewrite", request)).rejects.toThrow(/truncated/);
+    expect(calls).toHaveLength(1);
+    const warn = lines.find((l) => /falling back/i.test(l.message));
+    expect(warn?.data).toMatchObject({ kind: "truncated", detail: expect.any(String) });
+  });
+
   // The Anthropic request sends max_tokens plus the thinking headroom, billed as output: a budget
   // that fits the bare allowance but not the request must stop the call before it is paid for.
   it("checks the token budget against the Claude request's real size", async () => {

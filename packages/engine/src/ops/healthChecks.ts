@@ -708,7 +708,7 @@ export async function readStore(
   };
 }
 
-/** Seventy a day is more than merges explain: something builds too often, and on Pro each build bills minutes. */
+/** Seventy a day is more than merges explain: something builds too often, and on Pro a finished build bills minutes. */
 export const DEPLOYS_WARN_PER_DAY = 70;
 /** Eighty is a fault (D360): a warning reaches the owner on Mondays, days into the waste. */
 export const DEPLOYS_FAULT_PER_DAY = 80;
@@ -777,7 +777,7 @@ export function checkDeploymentRate(reading: DeploymentReading, sink: Sink): voi
     (reading.count >= DEPLOYS_FAULT_PER_DAY ? sink.fault : sink.warn)(
       "deploy_rate",
       "reliability",
-      `${reading.count} Vercel deployments in 24 hours, more than merges explain; each one bills Pro build minutes. Find the project that builds too often.`,
+      `${reading.count} Vercel deployments in 24 hours, more than merges explain. Find the project that builds too often: a finished build bills Pro build minutes.`,
     );
   } else {
     sink.passed.push(

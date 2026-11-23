@@ -20,8 +20,10 @@ describe("the site's address", () => {
           cwd: ROOT,
           encoding: "utf8",
         });
-      } catch {
-        return [];
+      } catch (error) {
+        // Exit 1 is "no match"; anything else is a scan that did not run, never a pass.
+        if ((error as { status?: number }).status === 1) return [];
+        throw error;
       }
       return found
         .split("\n")

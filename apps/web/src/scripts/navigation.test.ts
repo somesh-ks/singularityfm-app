@@ -21,7 +21,7 @@ import {
   UPDATE_CHECK_MS,
 } from "./serviceWorker";
 
-const url = (path: string) => new URL(path, "https://news.someshks.work");
+const url = (path: string) => new URL(path, "https://news.someshks.com");
 
 const navigate = vi.hoisted(() => vi.fn());
 vi.mock("astro:transitions/client", () => ({ navigate }));
@@ -78,15 +78,15 @@ function fakeRoot(initial: Record<string, string> = {}): HTMLElement {
 }
 
 describe("isSamePage", () => {
-  const here = new URL("https://news.someshks.work/library");
+  const here = new URL("https://news.someshks.com/library");
 
   it("matches the page on screen, a trailing slash or a query aside", () => {
-    expect(isSamePage(new URL("https://news.someshks.work/library/"), here)).toBe(true);
-    expect(isSamePage(new URL("https://news.someshks.work/library?q=x"), here)).toBe(true);
+    expect(isSamePage(new URL("https://news.someshks.com/library/"), here)).toBe(true);
+    expect(isSamePage(new URL("https://news.someshks.com/library?q=x"), here)).toBe(true);
   });
 
   it("does not match another page or another site", () => {
-    expect(isSamePage(new URL("https://news.someshks.work/"), here)).toBe(false);
+    expect(isSamePage(new URL("https://news.someshks.com/"), here)).toBe(false);
     expect(isSamePage(new URL("https://example.com/library"), here)).toBe(false);
   });
 });

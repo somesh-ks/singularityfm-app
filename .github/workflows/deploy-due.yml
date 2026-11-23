@@ -30,7 +30,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     env:
-      SITE: https://news.someshks.work
       HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK_WEB }}
     steps:
       # A build reads the content store before anything else (scripts/pullContent.ts). While the store
@@ -75,6 +74,7 @@ jobs:
         shell: bash
         run: |
           set -uo pipefail
+          SITE=$(jq -er .url site.json) || exit 1
           # BUILD_ID is the first 12 characters of the deployed commit (apps/web/src/lib/buildId.ts).
           build=$(curl -fsS --max-time 20 "$SITE/build.json" | jq -er '.build | strings | select(test("^[0-9a-f]{7,40}$"))') || {
             echo "No commit in /build.json: nothing to judge."

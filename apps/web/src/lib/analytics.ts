@@ -1,3 +1,4 @@
+import site from "../../../../site.json" with { type: "json" };
 import { analyticsPath, isSharedPath } from "./listenAnalytics";
 
 /**
@@ -10,7 +11,7 @@ import { analyticsPath, isSharedPath } from "./listenAnalytics";
  */
 
 /** Only this host is counted: a preview, a local build and the browser suites load nothing. */
-export const ANALYTICS_HOST = "news.someshks.work";
+export const ANALYTICS_HOST = new URL(site.url).hostname;
 /** Where the script comes from (the policy's script-src). */
 export const ANALYTICS_SCRIPT_ORIGIN = "https://scripts.simpleanalyticscdn.com";
 /** Where it sends page views and events, by beacon or, without one, an image (connect-src, img-src). */

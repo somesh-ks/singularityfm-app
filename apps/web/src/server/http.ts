@@ -158,6 +158,8 @@ const SECRET_SETTINGS = [
   "VERCEL_OIDC_TOKEN",
   "CRON_SECRET",
   "DATABASE_URL",
+  "PODCAST_INDEX_API_KEY",
+  "PODCAST_INDEX_API_SECRET",
 ];
 
 /** Six hex characters: short enough to read out, enough to find one request in a day of logs. */

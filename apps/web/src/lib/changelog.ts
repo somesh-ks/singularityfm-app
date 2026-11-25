@@ -18,6 +18,12 @@ export interface Release {
 
 export const CHANGELOG: readonly Release[] = [
   {
+    version: "0.24.2",
+    date: "2026-11-25",
+    description:
+      "On a phone, Up next no longer shows a ⋮ beside each row after you visit Settings or Create. A podcast's story cards have the same room above and below as at the sides.",
+  },
+  {
     version: "0.24.1",
     date: "2026-11-23",
     description:

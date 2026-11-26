@@ -18,10 +18,16 @@ export interface Release {
 
 export const CHANGELOG: readonly Release[] = [
   {
+    version: "0.24.3",
+    date: "2026-11-26",
+    description:
+      "On a phone, Up next no longer shows a ⋮ beside each row after you visit Settings or Create. A podcast's story cards have the same room above and below as at the sides, and a menu's subtitle no longer sits indented under its title.",
+  },
+  {
     version: "0.24.2",
     date: "2026-11-26",
     description:
-      "Groundwork for playing any public podcast: the app can now look up shows, their episodes and covers behind the scenes. Daily covers are now as light as weekly ones.",
+      "Singularity now plays at play.singularityfm.app, and singularityfm.app says what it is with a way in; old addresses and links forward to the player. Groundwork for playing any public podcast: the app can now look up shows, their episodes and covers behind the scenes. Daily covers are now as light as weekly ones.",
   },
   {
     version: "0.24.1",

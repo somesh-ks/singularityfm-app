@@ -187,6 +187,29 @@ export function carryNavigationKind(from: HTMLElement, to: HTMLElement): void {
   if (kind !== null) to.setAttribute(NAV_ATTRIBUTE, kind);
 }
 
+const STYLESHEET = 'link[rel="stylesheet"]';
+
+/**
+ * Puts the stylesheets a swap added where the new page has them. Astro's swap keeps the sheets
+ * already in the head and appends the new ones last, so a page reached from Settings or Create (a
+ * different layout chunk) got the design system's base rules after the player's, and a page rule
+ * that overrides a system rule by order alone lost: the queue's ⋮ showed on phones (owner, five
+ * times by 2026-11-25). Only the added sheets move; a kept one is already applied and stays put.
+ */
+export function orderStylesheets(
+  head: HTMLHeadElement,
+  order: readonly string[],
+  added: ReadonlySet<Element>,
+): void {
+  const links = [...head.querySelectorAll<HTMLLinkElement>(STYLESHEET)];
+  const rank = (link: Element): number => order.indexOf(link.getAttribute("href") ?? "");
+  for (const link of links) {
+    if (!added.has(link) || rank(link) < 0) continue;
+    const before = links.find((kept) => !added.has(kept) && rank(kept) > rank(link));
+    if (before) head.insertBefore(link, before);
+  }
+}
+
 export function installNavigation(): void {
   // A reload of a briefing keeps the tab it was opened under.
   const here = normalize(location.pathname);
@@ -231,6 +254,14 @@ export function installNavigation(): void {
   });
 
   document.addEventListener("astro:before-swap", (event) => {
+    const incoming = [...event.newDocument.head.querySelectorAll(STYLESHEET)];
+    const order = incoming.map((link) => link.getAttribute("href") ?? "");
+    const swap = event.swap;
+    event.swap = () => {
+      swap();
+      // The swap moved the new page's own nodes into this head: those are the added ones.
+      orderStylesheets(document.head, order, new Set(incoming));
+    };
     carryRootAttributes(document.documentElement, event.newDocument.documentElement);
     carryNavigationKind(document.documentElement, event.newDocument.documentElement);
     const path = normalize(event.to.pathname);

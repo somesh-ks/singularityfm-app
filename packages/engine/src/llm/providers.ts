@@ -6,7 +6,7 @@ export interface ApiRequest {
   system?: string;
   messages: ReadonlyArray<{ role: "user" | "assistant"; content: string }>;
   maxTokens: number;
-  /** Claude only (`output_config.effort`). Never a temperature or top_p: current Claude models answer 400. */
+  /** Claude `output_config.effort`, Gemini `thinkingLevel`. Never a temperature or top_p: current Claude models answer 400. */
   effort?: Effort | undefined;
   /** JSON Schema for structured output; null asks for JSON in the prompt alone. */
   schema: Record<string, unknown> | null;
@@ -349,9 +349,12 @@ export function createGeminiApi(options: {
           role: message.role === "assistant" ? "model" : "user",
           parts: [{ text: message.content }],
         })),
+        // An entry with an effort (Hydrogen) thinks, and thinking counts against maxOutputTokens as
+        // on Claude, so it gets the same headroom; an entry without one keeps its own cap (emoji: 64).
         generationConfig: {
           responseMimeType: "application/json",
-          maxOutputTokens: request.maxTokens,
+          maxOutputTokens: request.maxTokens + (request.effort ? THINKING_HEADROOM : 0),
+          ...(request.effort ? { thinkingConfig: { thinkingLevel: request.effort } } : {}),
         },
       };
       options.onRequest?.();

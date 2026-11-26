@@ -36,7 +36,7 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",
-    "@biomejs/biome": "^2.6.7",
+    "@biomejs/biome": "^2.6.8",
     "@playwright/test": "^1.65.1",
     "@resvg/resvg-js": "^2.6.2",
     "@singularityfm/core": "workspace:*",
@@ -48,7 +48,7 @@
     "playwright": "^1.65.1",
     "tsx": "^4.23.15",
     "typescript": "~6.0.3",
-    "vitest": "^5.1.0",
+    "vitest": "^5.1.1",
     "zod": "^4.6.7"
   }
 }

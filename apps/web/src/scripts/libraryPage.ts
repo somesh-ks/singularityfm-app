@@ -85,6 +85,8 @@ function install(): void {
   const emptyMessage = root.querySelector<HTMLElement>("[data-library-empty-message]");
   const emptyButton = root.querySelector<HTMLButtonElement>("[data-library-clear]");
   let emptyReset: "search" | "everything" = "search";
+  // The Search tab: the same list, nothing on show until something is typed, always the list view.
+  const searchOnly = root.hasAttribute("data-search-only");
   if (!grid) return;
   installSearchClear();
   // Whether the order is offered here (library.css hides it on a phone). getComputedStyle, not
@@ -181,6 +183,7 @@ function install(): void {
     set("show", filter, "all");
     set("sort", sort, "newest");
     if (url.href !== location.href) history.replaceState(history.state, "", url);
+    if (searchOnly) return;
     // Where the Library was left, for a move that comes back to it (a delete from an episode).
     try {
       sessionStorage.setItem(LIBRARY_URL_KEY, url.pathname + url.search);
@@ -203,7 +206,7 @@ function install(): void {
     const live = cards.filter((card) => card.element.isConnected);
     let shown = 0;
     for (const card of live) {
-      const passes = matchesFilter(card.data, filter);
+      const passes = matchesFilter(card.data, filter) && (searching || !searchOnly);
       const detail = passes ? matchDetail(card.data, query) : { meta: 0, stories: 0 };
       let matches = detail.meta + detail.stories;
       // A word that only the script or a story's text holds: the card is there, for another reason.
@@ -244,9 +247,10 @@ function install(): void {
         if (place === 0) head.setAttribute("data-first", "");
       }
     }
-    if (status) status.textContent = resultSummary(shown, live.length);
+    const waiting = searchOnly && !searching;
+    if (status) status.textContent = waiting ? "" : resultSummary(shown, live.length);
     if (empty) {
-      empty.hidden = shown > 0;
+      empty.hidden = shown > 0 || waiting;
       // A search with no result puts the floating New episode away (library.css), said on the root
       // so a key restyles only the button, not the whole page (D147).
       document.documentElement.toggleAttribute("data-search-empty", shown === 0 && query !== "");
@@ -322,7 +326,7 @@ function install(): void {
     if (root) applyView(root, view);
     requestAnimationFrame(markTruncated);
   }
-  showView(storedView());
+  showView(searchOnly ? "list" : storedView());
   for (const button of viewButtons) {
     button.addEventListener("click", () => {
       const view = button.dataset.libraryView === "gallery" ? "gallery" : "list";

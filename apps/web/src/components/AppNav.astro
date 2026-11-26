@@ -7,7 +7,7 @@ import { buildDay } from "../lib/buildDay";
 import { getSite } from "../lib/site";
 import QueueRing from "./QueueRing.astro";
 
-export type Destination = "today" | "library" | "settings";
+export type Destination = "today" | "search" | "library";
 
 interface Props {
   /** The destination this page belongs to, or null when it belongs to none of them. */
@@ -28,21 +28,17 @@ const destinations: Array<{
   icon: IconName;
   iconCurrent: IconName;
 }> = [
-  // A bolt, not a flame (owner, 2026-10-23): Latest is what is new now.
-  { id: "today", href: "/", label: "Latest", icon: "lightning", iconCurrent: "lightningFill" },
+  // Home, Search, Library (owner, 2026-11-26). Settings sits inside the profile, under the avatar.
+  // Home is today's Latest page until the podcast Home replaces it; Search searches the Library.
+  { id: "today", href: "/", label: "Home", icon: "house", iconCurrent: "houseFill" },
+  // The system has no filled magnifier: the pill alone says Search is current.
+  { id: "search", href: "/search", label: "Search", icon: "search", iconCurrent: "search" },
   {
     id: "library",
     href: "/library",
     label: "Library",
     icon: "library",
     iconCurrent: "libraryFill",
-  },
-  {
-    id: "settings",
-    href: "/settings",
-    label: "Settings",
-    icon: "settings",
-    iconCurrent: "settingsFill",
   },
 ];
 ---
@@ -87,7 +83,7 @@ const destinations: Array<{
       })
     }
   </ul>
-  {/* The foot of the side column; a phone shows the build's day on Settings instead, and the queue as
+  {/* The foot of the side column; a phone shows the build's day on Settings instead (inside the profile), and the queue as
        a dock above the bar (Queue.astro). The row shows once something has been made today, above the
        build's day (owner, 2026-11-04), and opens the podcast queue beside the column: "Podcast queue"
        with a ring while it goes, a check once it is done. */}

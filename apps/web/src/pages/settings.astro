@@ -2,6 +2,7 @@
 import Button from "@singularityfm/design-system/Button";
 import Icon from "@singularityfm/design-system/Icon";
 import ManageChrome from "../components/ManageChrome.astro";
+import SettingsHead from "../components/SettingsHead.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { buildDayShort } from "../lib/buildDay";
 import { loadManage } from "../lib/manage";
@@ -82,7 +83,8 @@ const updated = buildDayShort();
          that knows it (this device's preferences, the browser's notifications), so no build-time word
          ever paints first. */}
     <div class="settings-view" data-settings>
-      <h1 class="text-display" id="page-title" tabindex="-1">Settings</h1>
+      {/* Settings is inside the profile (owner, 2026-11-26), so it says so as Downloads does. */}
+      <SettingsHead crumb up={{ href: "/profile", label: "Profile" }} title="Settings" />
       <noscript>
         <p class="settings-note">These settings need JavaScript, which is turned off in this browser.</p>
       </noscript>

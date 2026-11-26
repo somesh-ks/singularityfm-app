@@ -25,9 +25,14 @@ export function applyView(root: HTMLElement, view: LibraryView): void {
   }
 }
 
-/** The Library's root on the page now, not Settings' rows, which wear the same attribute. */
+/**
+ * The Library's root on the page now (or Search's Catchups), not Settings' rows or Search's show
+ * lists, which wear the same attribute for the same rows.
+ */
 export function libraryRoot(): HTMLElement | null {
-  return document.querySelector<HTMLElement>("#main.library [data-library]");
+  return document.querySelector<HTMLElement>(
+    "#main.library [data-library]:not([data-podcast-list])",
+  );
 }
 
 /**

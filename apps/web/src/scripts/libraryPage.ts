@@ -76,8 +76,13 @@ function install(): void {
   if (!root || root.dataset.ready !== undefined) return;
   root.dataset.ready = "";
 
+  // Search's Catchups: the same cards, driven by the page's own field (pages/search.astro), nothing on
+  // show until it holds words, always the list view.
+  const searchOnly = root.hasAttribute("data-search-only");
   const grid = root.querySelector<HTMLElement>("[data-library-grid]");
-  const input = root.querySelector<HTMLInputElement>("[data-library-search]");
+  const input = (searchOnly ? document : root).querySelector<HTMLInputElement>(
+    "[data-library-search]",
+  );
   const select = root.querySelector<HTMLSelectElement>("[data-library-sort]");
   const status = root.querySelector<HTMLElement>("[data-library-status]");
   const empty = root.querySelector<HTMLElement>("[data-library-empty]");
@@ -85,8 +90,6 @@ function install(): void {
   const emptyMessage = root.querySelector<HTMLElement>("[data-library-empty-message]");
   const emptyButton = root.querySelector<HTMLButtonElement>("[data-library-clear]");
   let emptyReset: "search" | "everything" = "search";
-  // The Search tab: the same list, nothing on show until something is typed, always the list view.
-  const searchOnly = root.hasAttribute("data-search-only");
   if (!grid) return;
   installSearchClear();
   // Whether the order is offered here (library.css hides it on a phone). getComputedStyle, not

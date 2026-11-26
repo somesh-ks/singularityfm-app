@@ -145,9 +145,17 @@ const fab = fabFor({ path, playable: Boolean(audio && digestId) });
 // in the app bar: to where the person came from when that was in the app, else to its list.
 // The latest briefing at its dated address is Today, a top-level destination: no Back there, unless a
 // tab other than Today led to it (the Library's card for it): the page keeps its Back, hidden, and
-// navigation.ts shows it then. The profile leads back to Today; Settings, Downloads and Favorites
-// back to the profile (D335).
+// navigation.ts shows it then. The profile leads back to Today; Settings, Downloads, Favorites,
+// About, Privacy and Change log back to the profile (D335).
 const briefing = /^\/(d|e)\//.test(path);
+// The pages the profile holds, beside Settings itself (owner, 12 Nov canvas).
+const PROFILE_PAGES = new Set([
+  "/settings/downloads",
+  "/settings/saved",
+  "/settings/about",
+  "/settings/privacy",
+  "/settings/changelog",
+]);
 const back =
   destination === "today" && !briefing
     ? undefined
@@ -155,11 +163,13 @@ const back =
       ? { href: "/library", label: "Back", hidden: destination === "today" }
       : path === "/profile"
         ? { href: "/", label: "Back", hidden: false }
-        : path === "/settings" || path === "/settings/downloads" || path === "/settings/saved"
-          ? { href: "/profile", label: "Back", hidden: false }
-          : /^\/settings\/./.test(path)
-            ? { href: path.replace(/\/[^/]+$/, ""), label: "Back", hidden: false }
-            : undefined;
+        : path === "/topic"
+          ? { href: "/search", label: "Back", hidden: false }
+          : path === "/settings" || PROFILE_PAGES.has(path)
+            ? { href: "/profile", label: "Back", hidden: false }
+            : /^\/settings\/./.test(path)
+              ? { href: path.replace(/\/[^/]+$/, ""), label: "Back", hidden: false }
+              : undefined;
 ---
 
 <!doctype html>

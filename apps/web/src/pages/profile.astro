@@ -6,9 +6,12 @@ import IconButton from "@singularityfm/design-system/IconButton";
 import { menuBodyClass, menuListClass } from "@singularityfm/design-system/menu";
 import SheetHeader from "@singularityfm/design-system/SheetHeader";
 import BaseLayout from "../layouts/BaseLayout.astro";
+import { buildDayShort } from "../lib/buildDay";
 // Linked before the layout's stylesheet, as the Settings pages do (settings.css).
 import "../styles/settings.css";
 import "../styles/profile.css";
+
+const updated = buildDayShort();
 ---
 
 <BaseLayout title="Profile" view="settings" nav={null} skipLabel="Skip to your profile">
@@ -93,6 +96,33 @@ import "../styles/profile.css";
             <Icon name="chevronRight" />
           </a>
         </div>
+      </section>
+
+      {/* About, Privacy and Change log moved here from Settings (owner, 12 Nov canvas). No heading:
+           three rows say what they are. The date under them is the build's, small and centred; from
+           64rem the side column carries it (settings.css). */}
+      <section aria-label="About">
+        <div class="rows card-group">
+          <a class="row-action" href="/settings/about">
+            <span class="settings-text">
+              <span class="settings-label">About</span>
+            </span>
+            <Icon name="chevronRight" />
+          </a>
+          <a class="row-action" href="/settings/privacy">
+            <span class="settings-text">
+              <span class="settings-label">Privacy</span>
+            </span>
+            <Icon name="chevronRight" />
+          </a>
+          <a class="row-action" href="/settings/changelog">
+            <span class="settings-text">
+              <span class="settings-label">Change log</span>
+            </span>
+            <Icon name="chevronRight" />
+          </a>
+        </div>
+        <p class="settings-updated">Last updated on {updated}</p>
       </section>
     </div>
   </main>

@@ -18,24 +18,36 @@ import EpisodeCard from "./EpisodeCard.astro";
 interface Props {
   items: LibraryItem[];
   /**
-   * The Search tab (owner, 2026-11-26): the same list and search as the Library, with only the
-   * field, and no card on show until something is typed. The podcast Search page replaces it.
+   * Search's Catchups (owner, 12 Nov canvas): the same cards and search as the Library, without its
+   * title, tools or empty state; the page's own field drives it, and no card shows until it holds words.
    */
   search?: boolean;
 }
 
 const { items, search = false } = Astro.props;
-const title = search ? "Search" : "Library";
 const dateOf = (item: LibraryItem): string =>
   item.kind === "episode" ? item.entry.episode.date : item.entry.digest.date;
 ---
 
+{
+  search ? (
+    items.length > 0 && (
+      <div data-library data-view="list" data-search-only>
+        <p class="sr-only" role="status" data-library-status></p>
+        <ul class="library-grid" role="list" data-library-grid>
+          {items.map((item) =>
+            item.kind === "episode" ? <EpisodeCard entry={item.entry} /> : <BriefingCard entry={item.entry} menu />,
+          )}
+        </ul>
+      </div>
+    )
+  ) : (
 <main id="main" class="library" tabindex="-1">
   {
     items.length === 0 ? (
       <section class="library-none" aria-labelledby="page-title">
         <h1 class="page-title text-display library-title" id="page-title" tabindex="-1">
-          {title}
+          Library
         </h1>
         {/* The page keeps its title; under it, the scene, what is true and the one thing to do. */}
         <div class="empty">
@@ -50,13 +62,13 @@ const dateOf = (item: LibraryItem): string =>
         </div>
       </section>
     ) : (
-      <div data-library data-view="list" data-search-only={search ? "" : undefined}>
+      <div data-library data-view="list">
         <h1 class="page-title text-display library-title" id="page-title" tabindex="-1">
-          {title}
+          Library
         </h1>
         {/* Search, then what to show, then the order. Every briefing is already in the page, so
              all three work without a round trip, and the page is whole with scripts off. */}
-        <form class="library-tools" role="search" aria-label={title}>
+        <form class="library-tools" role="search" aria-label="Library">
           <SearchField
             clearable
             label="Search your library"
@@ -66,7 +78,6 @@ const dateOf = (item: LibraryItem): string =>
             enterKeyHint="search"
             data-library-search
           />
-          {!search && (
           <div class="library-bar">
             {/* What to show: one kind at a time, or everything while none is ticked. Each chip is
                  a checkbox (Tab and Space); the script unticks the others. */}
@@ -92,12 +103,11 @@ const dateOf = (item: LibraryItem): string =>
               </button>
             </div>
           </div>
-          )}
         </form>
         {/* After the view switch and before the first card: a saved Gallery view is set here. */}
-        {!search && <script is:inline set:html={libraryViewInit.trim()} />}
+        <script is:inline set:html={libraryViewInit.trim()} />
         <p class="sr-only" role="status" data-library-status>
-          {search ? "" : resultSummary(items.length, items.length)}
+          {resultSummary(items.length, items.length)}
         </p>
         <ul class="library-grid" role="list" data-library-grid>
           {/* A month's heading before its first card, newest first as the cards come. Only the list
@@ -138,6 +148,8 @@ const dateOf = (item: LibraryItem): string =>
     )
   }
 </main>
+  )
+}
 {/* The dialogs Regenerate and Delete open, once for every row's menu (scripts/episodeActions.ts). */}
 {items.length > 0 && <EpisodeActions id="library" />}
 <script>

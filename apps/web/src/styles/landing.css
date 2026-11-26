@@ -1,0 +1,44 @@
+@import "@singularityfm/design-system/styles/tokens.css";
+@import "@singularityfm/design-system/styles/foundations.css";
+@import "@singularityfm/design-system/styles/fonts.css";
+@import "@singularityfm/design-system/styles/buttons.css";
+
+/* ------------------------------------------------------------------ landing page */
+
+/* singularityfm.app's root (about.astro, D398): the mark, the name, one line and one way in,
+   centred a little over the middle of the screen, the empty state's rhythm at the display size. */
+.landing {
+  margin: 0;
+  background: var(--color-surface);
+  color: var(--color-on-surface);
+}
+
+.landing-main {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  min-block-size: 100svh;
+  padding: var(--space-8) var(--space-6) var(--space-16);
+  text-align: center;
+}
+
+.landing-mark {
+  inline-size: 3rem;
+  block-size: 3rem;
+  color: var(--color-accent);
+}
+
+.landing-title {
+  margin-block: var(--space-6) 0;
+}
+
+.landing-lead {
+  max-inline-size: 36ch;
+  margin-block: var(--space-2) 0;
+  color: var(--color-on-surface-muted);
+  text-wrap: balance;
+}
+
+.landing-actions {
+  margin-block-start: var(--space-6);
+}

@@ -136,3 +136,40 @@ test("offline after one visit online, the player's lazy half comes from the serv
   }
   await context.setOffline(false);
 });
+
+// A move between pages kept the sheets it had and appended the new page's last, so from Settings
+// the design system's base button rule landed after the player's and the queue's ⋮ showed on a
+// phone (owner, five times by 2026-11-25). A fresh load never showed it. In production the pages
+// rendered on request and the built ones (Settings) carry different layout chunks; this build has
+// one, so Settings is served here with its own address for it, as production does.
+test("a page reached from Settings keeps the queue's ⋮ off a phone", async ({
+  player,
+  page,
+  hasTouch,
+}) => {
+  test.skip(!hasTouch, "the ⋮ is a mouse's; a phone never draws it");
+  await page.route(/\/settings\/?$/, async (route) => {
+    const original = await route.fetch();
+    const html = (await original.text()).replace(/(\/BaseLayout\.[^"]+\.css)"/, '$1?built-page"');
+    await route.fulfill({ response: original, body: html });
+  });
+  await player.open("/settings");
+  await page.evaluate((path) => {
+    const link = Object.assign(document.createElement("a"), { href: path, textContent: "go" });
+    document.body.append(link);
+    link.click();
+  }, SITE.path);
+  await expect(page).toHaveURL(new RegExp(`${SITE.path}$`));
+  await expect(player.cta).toBeVisible();
+  await page.evaluate(() =>
+    document.dispatchEvent(
+      new CustomEvent("singularity:queue-add", { detail: { id: "ep-20261006-0900" } }),
+    ),
+  );
+  await player.play();
+  await player.openPlayer();
+  await player.dialog.getByRole("tab", { name: "Up next" }).click();
+  const row = player.dialog.locator('[data-queue-id="ep-20261006-0900"]');
+  await expect(row.locator(".player-queue-grip")).toBeVisible();
+  await expect(row.locator(".player-queue-more")).toBeHidden();
+});

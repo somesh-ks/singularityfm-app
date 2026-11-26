@@ -1,4 +1,5 @@
 ---
+import siteJson from "../../../../site.json" with { type: "json" };
 import DigestView from "../components/DigestView.astro";
 import EmptyState from "../components/EmptyState.astro";
 import EpisodeView from "../components/EpisodeView.astro";
@@ -14,6 +15,12 @@ import { keepAtEdge, readFromContentRepo } from "../server/contentRepo";
 
 // Rendered on request from the content repository (D173); the static test build prerenders it.
 export const prerender = false;
+
+// singularityfm.app shows the landing page at its root (D398); vercel.json sends its other paths to
+// the player's host. Before the content read, so the landing page never waits on the store.
+if (!Astro.isPrerendered && Astro.url.host === new URL(siteJson.home).host) {
+  return Astro.rewrite("/about");
+}
 
 if (!Astro.isPrerendered) {
   const unavailable = await readFromContentRepo("home", Astro.url);

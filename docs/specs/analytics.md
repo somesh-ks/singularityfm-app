@@ -1,6 +1,6 @@
 # Analytics
 
-Cookieless counts of visits and a few named events on singularityfm.app, through Simple Analytics (D154) and PostHog (D400), so the owner can see which loops turn visitors into listeners and listeners into sharers. Nothing identifies a reader unless they opt in: no cookie, no storage, no IP, no user id. What a visitor is told is at `/settings/privacy`.
+Cookieless counts of visits and a few named events on play.singularityfm.app, through Simple Analytics (D154) and PostHog (D400), so the owner can see which loops turn visitors into listeners and listeners into sharers. Nothing identifies a reader unless they opt in: no cookie, no storage, no IP, no user id. What a visitor is told is at `/settings/privacy`.
 
 ## Loading
 

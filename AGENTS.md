@@ -1,6 +1,6 @@
 # Singularity
 
-Private design-engineering news briefing. A GitHub Actions engine writes a digest every second day, saves it to the content store, not git (D300), and Vercel deploys the reader at singularityfm.app. Repo: somesh-ks/singularityfm-app. Code reads its address from `site.json` (D395, D397).
+Private design-engineering news briefing. A GitHub Actions engine writes a digest every second day, saves it to the content store, not git (D300), and Vercel deploys the reader at play.singularityfm.app. Repo: somesh-ks/singularityfm-app. Code reads its address from `site.json` (D398).
 
 ## Read first
 

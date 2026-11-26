@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { coverFile, extrasFile, parseCues } from "./files";
+import { coverFile, extrasFile, parseChapters, parseCues, parseJsonTranscript } from "./files";
 import { BREAKER_FAILURES, createIndexClient, newBreaker } from "./podcastIndex";
 import {
   canonicalNew,
@@ -8,7 +8,7 @@ import {
   searchShows,
   trendingShows,
 } from "./routes";
-import { episodeFromIndex, plainText } from "./shapes";
+import { episodeFromIndex, plainText, type ShowRow, uniqueShows } from "./shapes";
 import { createSigner } from "./signing";
 
 const sign = createSigner("test-secret");
@@ -151,5 +151,37 @@ describe("podcast routes", () => {
     const a = canonicalNew(new URLSearchParams({ ids: "9,3,9", since: "1789999990" }), now);
     const b = canonicalNew(new URLSearchParams({ ids: "3,9", since: "1789999500" }), now);
     expect(a).toEqual(b);
+  });
+  it("keeps no empty search at the edge when Apple was busy or down, so a later search can find it", async () => {
+    const empty = { index: async () => ({ feeds: [] }) };
+    const busy = await searchShows("only on apple", deps({ ...empty, limit: async () => false }));
+    const down = await searchShows(
+      "only on apple",
+      deps({
+        ...empty,
+        apple: async () => {
+          throw new Error("down");
+        },
+      }),
+    );
+    for (const answer of [busy, down]) {
+      expect(answer.status).toBeGreaterThanOrEqual(500);
+      expect(answer.headers?.["Vercel-CDN-Cache-Control"]).toBe("no-store");
+    }
+  });
+
+  it("drops a broken transcript or chapter entry and keeps the good ones beside it", () => {
+    const good = { startTime: 0, endTime: 1, body: "Hello" };
+    expect(parseJsonTranscript({ segments: [null, 7, [], good] })).toHaveLength(1);
+    expect(parseChapters({ chapters: [null, { startTime: 0, title: "Intro" }] })).toHaveLength(1);
+  });
+
+  it("keeps two feeds whose addresses differ only in the path's case", () => {
+    const row = (feed_url: string) => ({ feed_url, apple_id: null }) as unknown as ShowRow;
+    const rows = [row("https://Feeds.example/Show.xml"), row("https://feeds.example/show.xml")];
+    expect(uniqueShows(rows)).toHaveLength(2);
+    expect(
+      uniqueShows([row("https://Feeds.example/a/"), row("http://feeds.example/a")]),
+    ).toHaveLength(1);
   });
 });

@@ -253,16 +253,21 @@ export function episodeFromIndex(
   };
 }
 
+/** A feed address with its scheme and trailing slashes dropped and only the host lower-cased: a path
+   and a query are case-sensitive, so /Show.xml and /show.xml stay two feeds. */
+function feedKey(address: string): string {
+  const bare = address.replace(/^https?:\/\//i, "").replace(/\/+$/, "");
+  const cut = bare.search(/[/?#]/);
+  return cut === -1 ? bare.toLowerCase() : bare.slice(0, cut).toLowerCase() + bare.slice(cut);
+}
+
 /** Rows without repeats, by feed address then Apple id; the first one stands. */
 export function uniqueShows(rows: readonly ShowRow[]): ShowRow[] {
   const seen = new Set<string>();
   const out: ShowRow[] = [];
   for (const row of rows) {
     const keys = [
-      `u:${row.feed_url
-        .replace(/^https?:\/\//i, "")
-        .replace(/\/+$/, "")
-        .toLowerCase()}`,
+      `u:${feedKey(row.feed_url)}`,
       ...(row.apple_id === null ? [] : [`a:${row.apple_id}`]),
     ];
     if (keys.some((key) => seen.has(key))) continue;

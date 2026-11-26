@@ -22,10 +22,12 @@ export const COVER_MAX_PIXELS = 25_000_000;
 export const EXTRAS_MAX_BYTES = 5 * 1024 * 1024;
 export const FILE_TIMEOUT_MS = 5000;
 
-const YEAR = 31_536_000;
-const KEPT_FOR_GOOD = {
-  "Cache-Control": `public, max-age=${YEAR}, immutable`,
-  "Vercel-CDN-Cache-Control": `max-age=${YEAR}`,
+const DAY = 86_400;
+/** Bounded, not immutable: a publisher can replace a cover or fix a transcript at the same address,
+   and the signature vouches for the address, not the bytes. */
+const KEPT_A_MONTH = {
+  "Cache-Control": `public, max-age=${DAY}, stale-while-revalidate=${7 * DAY}`,
+  "Vercel-CDN-Cache-Control": `max-age=${30 * DAY}, stale-while-revalidate=${7 * DAY}`,
 };
 
 export interface FileDeps {
@@ -104,7 +106,7 @@ export async function coverFile(params: URLSearchParams, deps: FileDeps): Promis
       headers: {
         "Content-Type": "image/webp",
         "X-Content-Type-Options": "nosniff",
-        ...KEPT_FOR_GOOD,
+        ...KEPT_A_MONTH,
       },
     });
   } catch {
@@ -167,6 +169,9 @@ export function parseCues(text: string): TranscriptSegment[] {
 }
 
 type Raw = Record<string, unknown>;
+/** A list entry that is an object; null, a number or an array is skipped, not read. */
+const isRaw = (value: unknown): value is Raw =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
 const finite = (value: unknown): number | null =>
   typeof value === "number" && Number.isFinite(value) && value >= 0 ? value : null;
 
@@ -175,7 +180,7 @@ export function parseJsonTranscript(body: unknown): TranscriptSegment[] {
   const list = (body as Raw | null)?.segments;
   if (!Array.isArray(list)) return [];
   const segments: TranscriptSegment[] = [];
-  for (const entry of list as Raw[]) {
+  for (const entry of list.filter(isRaw)) {
     const start = finite(entry.startTime);
     const end = finite(entry.endTime);
     const text = typeof entry.body === "string" ? entry.body.trim() : "";
@@ -192,7 +197,8 @@ export function parseJsonTranscript(body: unknown): TranscriptSegment[] {
 export function parseChapters(body: unknown): Chapter[] {
   const list = (body as Raw | null)?.chapters;
   if (!Array.isArray(list)) return [];
-  return (list as Raw[])
+  return list
+    .filter(isRaw)
     .filter((entry) => entry.toc !== false)
     .map((entry) => ({
       start_s: finite(entry.startTime) ?? Number.NaN,
@@ -230,7 +236,7 @@ export async function extrasFile(params: URLSearchParams, deps: FileDeps): Promi
   } catch {
     return json(failure(502, "upstream", "The publisher's file is not readable."));
   }
-  return json({ status: 200, body, headers: KEPT_FOR_GOOD });
+  return json({ status: 200, body, headers: KEPT_A_MONTH });
 }
 
 const json = (result: ApiResult<unknown>): Response =>

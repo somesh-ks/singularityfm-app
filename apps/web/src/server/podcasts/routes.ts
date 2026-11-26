@@ -190,7 +190,6 @@ export async function searchShows(
   term: string,
   deps: PodcastDeps,
 ): Promise<ApiResult<SearchBody | ErrorBody>> {
-  let indexFailed = false;
   try {
     const body = await deps.index("/search/byterm", { q: term, max: String(SEARCH_MAX) });
     const shows = uniqueShows(
@@ -207,16 +206,11 @@ export async function searchShows(
       };
     }
   } catch {
-    indexFailed = true;
+    // A failing index falls through to Apple, as an empty one does.
   }
+  // Apple not asked or not answering is an unfinished search, never a kept "no results".
   if (!(await deps.limit("podcasts:apple", APPLE_PER_MINUTE))) {
-    return indexFailed
-      ? failure(503, "rate_limited", "Search is busy. Try again in a minute.")
-      : {
-          status: 200,
-          body: { shows: [], source: "none" },
-          headers: edgeHeaders(EDGE_SECONDS.search),
-        };
+    return failure(503, "rate_limited", "Search is busy. Try again in a minute.");
   }
   try {
     const results = await deps.apple(term, SEARCH_MAX);
@@ -231,13 +225,7 @@ export async function searchShows(
       headers: edgeHeaders(EDGE_SECONDS.search_apple),
     };
   } catch {
-    return indexFailed
-      ? failure(502, "upstream", "Search did not answer.")
-      : {
-          status: 200,
-          body: { shows: [], source: "none" },
-          headers: edgeHeaders(EDGE_SECONDS.search),
-        };
+    return failure(502, "upstream", "Search did not answer.");
   }
 }
 

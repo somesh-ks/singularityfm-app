@@ -10,10 +10,12 @@ import { whenIdle } from "@singularityfm/design-system/idle";
 import { isOnline } from "../lib/connectivity";
 import { SAVED_KEY_PREFIX } from "../player/core/saved";
 
-/** Pages every reader has: Latest, the Library and each Settings page that has no id in its address. */
+/** Pages every reader has: Home, Search, the Library, the profile and each Settings page that has no id in its address. */
 export const CORE_PAGES = [
   "/",
+  "/search",
   "/library",
+  "/profile",
   "/settings",
   "/settings/saved",
   "/settings/downloads",

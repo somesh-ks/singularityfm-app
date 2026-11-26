@@ -164,3 +164,4 @@ One line each: symptom, cause, fix. Search before debugging; older gotchas are i
 - 2026-11-03: a step summary is not in the job log or API; `tee -a` what you must read.
 - 2026-11-06: a script-built DS part (`codeSnippetHtml`) needs its sheet imported by a page component; unstyled, it passed.
 - 2026-11-13: a bare `role="status"` line stayed 12 days, cached past the outage: a status has one home (D394).
+- 2026-11-23: a merge chained into `git commit -a` shipped conflict markers (DS #98); run `git diff --check` first.

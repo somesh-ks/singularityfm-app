@@ -43,7 +43,7 @@ const publisher = publisherOf(item.source, host);
   <button
     class:list={[buttonClass("text"), "story-time"]}
     type="button"
-    aria-label={chip.name}
+    aria-label={at ? `${at}, ${chip.name}` : chip.name}
     data-play-item={index}
     data-state="idle"
     hidden={!hasAudio}

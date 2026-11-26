@@ -402,7 +402,7 @@ html[data-has-tabs] {
 
 /* Audio needs a connection, so while offline the story chips step out of the way. The briefing's
    own chip stays, disabled, under the banner that says why. */
-html[data-offline] .story-actions > .chip {
+html[data-offline] :is(.story-actions > .chip, .story-time) {
   display: none;
 }
 

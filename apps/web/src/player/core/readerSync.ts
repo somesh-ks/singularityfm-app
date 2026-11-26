@@ -100,9 +100,14 @@ function writeChip(chip: HTMLElement, view: ChipView, blocked = false): void {
   // Every Play is its glyph alone now (the floating one, the hero's, a story's; DS-13), so its name is
   // all that says where it stands.
   const fab = chip.classList.contains("play-fab");
+  // A story's time shows its figures, so its name starts with them: what a voice user reads is what
+  // they say (Item.astro).
+  const shown = chip.classList.contains("story-time") ? chip.textContent : "";
   const name = fab
     ? fabName(view, chip.dataset.noun === "episode" ? "episode" : "podcast")
-    : view.name;
+    : shown
+      ? `${shown}, ${view.name}`
+      : view.name;
   if (chip.getAttribute("aria-label") !== name) chip.setAttribute("aria-label", name);
   if (blocked) chip.setAttribute("aria-disabled", "true");
   else chip.removeAttribute("aria-disabled");

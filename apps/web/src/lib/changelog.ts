@@ -19,9 +19,15 @@ export interface Release {
 export const CHANGELOG: readonly Release[] = [
   {
     version: "0.25.0",
+    date: "2026-11-26",
+    description:
+      "Settings, Privacy has a new switch, Help improve Singularity: off unless you turn it on, it lets the app tell your visits apart and record how you use it, with anything you type hidden.",
+  },
+  {
+    version: "0.24.1",
     date: "2026-11-23",
     description:
-      "Singularity now lives at singularityfm.app; the old addresses forward there. Shared links use the new address. Settings, Privacy has a new switch, Help improve Singularity: off unless you turn it on, it lets the app tell your visits apart and record how you use it, with anything you type hidden.",
+      "Singularity now lives at singularityfm.app; the old addresses forward there. Shared links use the new address. The weekly podcast no longer fails when the first writing model runs out of room: another model takes over sooner, and a run has more room before it stops.",
   },
   {
     version: "0.24.0",

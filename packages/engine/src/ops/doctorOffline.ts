@@ -266,7 +266,7 @@ function keyChecks(env: Env, root: string): Check[] {
       fail(
         "models.routing",
         error instanceof Error ? error.message.slice(0, 200) : "config/models.json cannot be read",
-        "Fix config/models.json: only jev, claude-sonnet, claude-haiku, gemini-flash and gemini-flash-lite are allowed.",
+        "Fix config/models.json: only jev, claude-sonnet, claude-haiku, gemini-flash, gemini-flash-lite and gemini-hydrogen are allowed.",
       ),
     );
   }

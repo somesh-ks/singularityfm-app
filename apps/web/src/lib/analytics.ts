@@ -34,7 +34,7 @@ export type AnalyticsEvent =
  * PostHog's project token (D400). Public by design: it can only send events, and it ships in every
  * page. Empty means PostHog stays off.
  */
-export const POSTHOG_TOKEN = "";
+export const POSTHOG_TOKEN = "phc_pJydW8UkA6wLgCTFUaVgz3BxLMxKPdjhWLhC6xBLE8oy";
 /** Our own address for PostHog, rewritten to its EU servers in vercel.json (no new policy host). */
 export const POSTHOG_PROXY = "/api/ph";
 /** "Help improve Singularity" on /settings/privacy: "1" while the reader has opted in. */

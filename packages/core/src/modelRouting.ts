@@ -4,9 +4,10 @@ import { z } from "zod";
 
 /**
  * The model families a step may use (owner decision, 2026-10-21): Jev, Gemini Flash and
- * Flash-Lite, and Claude Sonnet and Haiku. Nothing else is allowed in config/models.json: no Opus
- * (cost), no Fable, no Gemini Pro, no Nebius (removed). A new model of an allowed family is picked
- * up by the engine's resolver without a config change.
+ * Flash-Lite, and Claude Sonnet and Haiku; Gemini Hydrogen joined as the Claude steps' fallback
+ * (owner, 2026-11-23). Nothing else is allowed in config/models.json: no Opus (cost), no Fable, no
+ * Gemini Pro, no Nebius (removed). A new model of a versioned family is picked up by the engine's
+ * resolver without a config change; Hydrogen has no version in its id, so it uses its config id.
  */
 export const MODEL_FAMILIES = [
   "jev",
@@ -14,6 +15,7 @@ export const MODEL_FAMILIES = [
   "claude-haiku",
   "gemini-flash",
   "gemini-flash-lite",
+  "gemini-hydrogen",
 ] as const;
 export type ModelFamily = (typeof MODEL_FAMILIES)[number];
 

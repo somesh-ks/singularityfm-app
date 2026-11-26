@@ -5,6 +5,7 @@ import {
   DeadlineExceededError,
   errorStatus,
   LlmOutputError,
+  LlmTruncatedError,
   ModelRefusalError,
   StreamInterruptedError,
 } from "./errors.js";
@@ -111,8 +112,10 @@ export function createJsonLlm(options: JsonLlmOptions): LlmClient {
       request.deadlineAt ?? Number.POSITIVE_INFINITY,
       now() + RETRY_WINDOW_TIMEOUTS * options.timeoutMs,
     );
-    // The Anthropic request adds the thinking headroom to max_tokens, and that is billed as output.
-    const requested = maxTokens + (options.api.provider === "anthropic" ? THINKING_HEADROOM : 0);
+    // Claude's request, and a Gemini request with an effort, add the thinking headroom to the reply
+    // allowance, billed as output.
+    const thinks = options.api.provider === "anthropic" || options.effort !== undefined;
+    const requested = maxTokens + (thinks ? THINKING_HEADROOM : 0);
     for (;;) {
       const promptChars = totalChars(messages) + system.length;
       options.budget.check(estimateTokensForChars(promptChars) + requested);
@@ -190,7 +193,7 @@ export function createJsonLlm(options: JsonLlmOptions): LlmClient {
             ? new StreamInterruptedError(
                 `${request.label}: the reply was cut off at the token limit`,
               )
-            : new LlmOutputError("The reply was cut off at the token limit.");
+            : new LlmTruncatedError();
         }
         return {
           content: reply.text,

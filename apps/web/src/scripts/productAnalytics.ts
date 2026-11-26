@@ -31,6 +31,8 @@ export function startProductAnalytics(): void {
     // Heatmaps and replay need the stored id, so only an opted-in reader sends them.
     enable_heatmaps: optedIn,
     session_recording: { maskAllInputs: true, maskTextSelector: "input, textarea" },
+    // Console output can carry addresses or typed text; the Privacy page promises neither.
+    enable_recording_console_log: false,
     // The installed app is a reader who came back (docs/specs/analytics.md).
     loaded(instance) {
       instance.register({ installed: matchMedia("(display-mode: standalone)").matches });

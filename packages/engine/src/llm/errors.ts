@@ -45,6 +45,16 @@ export class LlmOutputError extends Error {
   }
 }
 
+/**
+ * The reply hit its token limit before it ended: thinking and text count against one allowance.
+ * The same model at a higher effort thinks more, so the chain moves to another model.
+ */
+export class LlmTruncatedError extends LlmOutputError {
+  constructor(message = "The reply was cut off at the token limit.") {
+    super(message);
+  }
+}
+
 /** HTTP status carried by an SDK error, if any. Both SDKs expose it as `status`. */
 export function errorStatus(error: unknown): number | undefined {
   if (typeof error !== "object" || error === null) return undefined;

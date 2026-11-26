@@ -9,7 +9,7 @@ import { sendToast } from "@singularityfm/design-system/toastEvent";
 import { whenIdle } from "../narration/prewarmPage";
 import { safeLocalStorage, setPlayed } from "../player/core/resume";
 import { heardOnDevice } from "../podcasts/after";
-import { setShowFavorite } from "../podcasts/deviceStore";
+import { getEpisode, setEpisodeFavorite, setShowFavorite } from "../podcasts/deviceStore";
 import { coverAt } from "../podcasts/episodeDigest";
 import { loadPlayer, nowPlaying, onPlayerChange, pressPlay, queueEpisode } from "../podcasts/play";
 import {
@@ -370,6 +370,16 @@ function install(): void {
       setPlayed(storage, episode.id, !heardOf(episode.id).played);
       return;
     }
+    if (action === "favorite") {
+      const next = !(await getEpisode(episode.id))?.favorite_at;
+      await setEpisodeFavorite(episode.id, next);
+      sendToast({ message: next ? "Added to favorites" : "Removed from favorites" });
+      return;
+    }
+    if (action === "share") {
+      await shareLink(episode.title, new URL(showEpisodeUrl(episode.id), location.origin).href);
+      return;
+    }
     const where = action === "next" ? "next" : "last";
     const added = await queueEpisode(episode, where);
     sendToast({
@@ -396,11 +406,9 @@ function install(): void {
     });
   }
 
-  async function shareShow(): Promise<void> {
-    if (!view) return;
-    const url = location.href;
+  async function shareLink(title: string, url: string): Promise<void> {
     try {
-      if (navigator.share) await navigator.share({ title: view.show.title, url });
+      if (navigator.share) await navigator.share({ title, url });
       else {
         await navigator.clipboard.writeText(url);
         sendToast({ message: "Link copied" });
@@ -408,6 +416,10 @@ function install(): void {
     } catch {
       // Closed without sharing: nothing to say.
     }
+  }
+
+  async function shareShow(): Promise<void> {
+    if (view) await shareLink(view.show.title, location.href);
   }
 
   async function toggleFavorite(): Promise<void> {
@@ -423,6 +435,23 @@ function install(): void {
         : { message: "Couldn't change favorites on this device", kind: "error" },
     );
   }
+
+  // A row's sheet says whether its episode is a favorite once it opens: the list does not hold it.
+  root.addEventListener(
+    "toggle",
+    (event) => {
+      const row = (event.target as Element).closest<HTMLElement>("[data-episode]");
+      const id = row?.dataset.episode;
+      if (!row || !id || (event as ToggleEvent).newState !== "open") return;
+      void getEpisode(id).then((stored) => {
+        const saved = Boolean(stored?.favorite_at);
+        row.toggleAttribute("data-saved", saved);
+        const label = row.querySelector('[data-pick="favorite"] [data-menu-label]');
+        if (label) label.textContent = saved ? "Unfavorite" : "Favorite";
+      });
+    },
+    { capture: true, signal: life.signal },
+  );
 
   root.addEventListener(
     "click",

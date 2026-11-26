@@ -211,3 +211,13 @@
 .episode-notes p {
   margin: 0;
 }
+
+/* The sheet's Favorite fills its heart with the header's, as a podcast's sheet does (hero.css). */
+.episode-page-menu .fav-remove,
+.hero[data-saved] .episode-page-menu .fav-add {
+  display: none;
+}
+
+.hero[data-saved] .episode-page-menu .fav-remove {
+  display: block;
+}

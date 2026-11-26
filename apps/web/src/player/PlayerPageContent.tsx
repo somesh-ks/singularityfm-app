@@ -47,7 +47,9 @@ export default function PlayerPageContent() {
   // stays, holding one tab, so nothing below it moves and a focused Up next tab keeps its focus.
   // Playing again brings Stories back, on the view the listener last chose.
   const ended = status === "ended" && offered;
-  const view = ended
+  // A public show's episode has no stories to list: Up next is its one view.
+  const only = ended || Boolean(digest?.show);
+  const view = only
     ? "upnext"
     : choice && (choice.id === id || choice.view === "upnext")
       ? choice.view
@@ -84,7 +86,7 @@ export default function PlayerPageContent() {
         <PlayerTabs
           label="Show"
           idBase={idBase}
-          tabs={ended ? UP_NEXT_ONLY : LIST_VIEWS}
+          tabs={only ? UP_NEXT_ONLY : LIST_VIEWS}
           value={view}
           onChange={choose}
         />

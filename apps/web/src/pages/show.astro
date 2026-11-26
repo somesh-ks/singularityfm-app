@@ -6,6 +6,7 @@ import Icon from "@singularityfm/design-system/Icon";
 import IconButton from "@singularityfm/design-system/IconButton";
 import Menu from "@singularityfm/design-system/Menu";
 import MenuItem from "@singularityfm/design-system/MenuItem";
+import { menuTilesClass } from "@singularityfm/design-system/menu";
 import PlayChip from "@singularityfm/design-system/PlayChip";
 import SearchField from "@singularityfm/design-system/SearchField";
 import Select from "@singularityfm/design-system/Select";
@@ -47,21 +48,22 @@ import "../styles/show.css";
           <IconButton variant="tonal" className="hero-share" label="Share" data-show-share>
             <Icon name="shareFat" />
           </IconButton>
-          <IconButton
-            variant="tonal"
-            className="hero-more"
-            label="More actions"
-            aria-haspopup="menu"
-            popoverTarget="show-menu"
-            data-hero-more
-          >
-            <Icon name="moreVert" />
-          </IconButton>
-          <Menu id="show-menu" title="Show">
-            <MenuItem data-show-action="mark-all"><Icon name="check" />Mark all as played</MenuItem>
-            <MenuItem data-show-action="site"><Icon name="openInNew" />Open the show's website</MenuItem>
-          </Menu>
         </div>
+        {/* More stands alone at the header's top corner (hero.css; owner, 2026-11-26). */}
+        <IconButton
+          variant="tonal"
+          className="hero-more"
+          label="More actions"
+          aria-haspopup="menu"
+          popoverTarget="show-menu"
+          data-hero-more
+        >
+          <Icon name="moreVert" />
+        </IconButton>
+        <Menu id="show-menu" title="Show">
+          <MenuItem data-show-action="mark-all"><Icon name="check" />Mark all as played</MenuItem>
+          <MenuItem data-show-action="site"><Icon name="openInNew" />Open the show's website</MenuItem>
+        </Menu>
       </header>
 
       {/* What the show says of itself: three lines, and the rest behind More. */}
@@ -142,8 +144,16 @@ import "../styles/show.css";
             <Icon name="moreVert" />
           </IconButton>
           <Menu id="episode-menu" title="Episode" className="card-menu-list">
+            {/* The quick actions every podcast's sheet leads with (PodcastMenuItems.astro): tiles on a
+                 phone's sheet, rows from 40rem (menu.css). */}
+            <div class={menuTilesClass()} data-fold role="presentation">
+              <MenuItem data-pick="favorite">
+                <Icon name="heartOutline" className="fav-add" /><Icon name="heart" className="fav-remove" /><span data-menu-label>Favorite</span>
+              </MenuItem>
+              <MenuItem data-pick="queue"><Icon name="queueAdd" />Add to queue</MenuItem>
+              <MenuItem data-pick="share"><Icon name="shareFat" />Share</MenuItem>
+            </div>
             <MenuItem data-pick="next"><Icon name="play" />Play next</MenuItem>
-            <MenuItem data-pick="queue"><Icon name="queueAdd" />Add to queue</MenuItem>
             <MenuItem data-pick="played">
               <Icon name="check" /><span data-menu-label>Mark as played</span>
             </MenuItem>

@@ -64,7 +64,10 @@ test("an episode played from its show's page is followed by the show's next one,
   await serveShow(page);
   await player.open(`/show?id=${SHOW_ID}`);
   const row = (title: string) =>
-    page.locator("[data-show-episodes] li").filter({ hasText: title }).locator("[data-episode-play]");
+    page
+      .locator("[data-show-episodes] li")
+      .filter({ hasText: title })
+      .locator("[data-episode-play]");
   await player.finger.press(row("First"));
   await expect(player.root).toHaveAttribute("data-player-state", "playing");
   await expect(row("First")).toHaveAccessibleName("Pause First");

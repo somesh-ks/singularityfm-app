@@ -131,6 +131,10 @@ function install(): void {
       cover.hidden = false;
     }
     heart?.setAttribute("aria-pressed", String(favorite));
+    // The sheet's Favorite says the same as the heart (show.css swaps its glyph).
+    heart?.closest(".hero")?.toggleAttribute("data-saved", favorite);
+    const favoriteLabel = root.querySelector('[data-pick="favorite"] [data-menu-label]');
+    if (favoriteLabel) favoriteLabel.textContent = favorite ? "Unfavorite" : "Favorite";
     const notes = part("notes");
     if (notes && notes.dataset.for !== episode.description) {
       notes.dataset.for = episode.description;
@@ -199,7 +203,7 @@ function install(): void {
           sendToast({ message: "This episode can't be played here", kind: "error" });
         return;
       }
-      if (target.closest("[data-episode-favorite]")) {
+      if (target.closest('[data-episode-favorite], [data-pick="favorite"]')) {
         const next = !favorite;
         void setEpisodeFavorite(current.id, next)
           .then(read)
@@ -212,7 +216,7 @@ function install(): void {
           );
         return;
       }
-      if (target.closest("[data-episode-share]")) {
+      if (target.closest('[data-episode-share], [data-pick="share"]')) {
         const url = location.href;
         void (async () => {
           try {

@@ -6,6 +6,7 @@
 import { glowFavorite } from "@singularityfm/design-system/glow";
 import { warmWhenIdle } from "@singularityfm/design-system/idle";
 import { sendToast } from "@singularityfm/design-system/toastEvent";
+import { sharedItem, track } from "../lib/analytics";
 import { deviceStorage, isSaved, setSaved } from "../player/core/saved";
 import { installHeroMenu } from "./heroMenu";
 import { prepareEarly, shareItem, shareLink } from "./shareLink";
@@ -174,8 +175,10 @@ function watchSections({ keepHeld = false } = {}): void {
   endObserver = new IntersectionObserver(
     (entries) => {
       for (const entry of entries) {
-        if (entry.intersectionRatio >= 1) whole.add(entry.target);
-        else whole.delete(entry.target);
+        if (entry.intersectionRatio >= 1) {
+          whole.add(entry.target);
+          if (entry.target === end) readEnd();
+        } else whole.delete(entry.target);
       }
       follow();
     },
@@ -184,6 +187,15 @@ function watchSections({ keepHeld = false } = {}): void {
   for (const section of sections) observer.observe(section);
   endObserver.observe(first);
   if (end) endObserver.observe(end);
+}
+
+/** Pages read to the end in this session: one `read_end` each, the text side of listen-through. */
+const readToEnd = new Set<string>();
+
+function readEnd(): void {
+  if (readToEnd.has(location.pathname)) return;
+  readToEnd.add(location.pathname);
+  track("read_end", sharedItem(location.href));
 }
 
 async function share(button: HTMLElement): Promise<void> {

@@ -7,6 +7,7 @@
  * build (lib/savedOverlay.ts).
  */
 import { installSearchClear, syncSearchClear } from "@singularityfm/design-system/searchField";
+import { track } from "../lib/analytics";
 import { filterBlocked, outletsSummary, savedBlocked } from "../lib/blockedOutlets";
 import { hasSaved, SAVED_KEY, storeOn } from "../lib/savedKey";
 import { parseSaved, withStore } from "../lib/savedOverlay";
@@ -132,6 +133,7 @@ function mount(root: HTMLElement): void {
       // A row whose removal was saved keeps data-removing (settle adds data-gone): both go.
       made.removeAttribute("data-gone");
       made.removeAttribute("data-removing");
+      track("mute", { kind: "source" });
       changes.set(`block:${domain}`, {
         op: { op: "profile.block", domain },
         el: made.querySelector<HTMLElement>(".settings-label") as HTMLElement,

@@ -20,7 +20,7 @@
     "@singularityfm/contracts": "workspace:*",
     "@singularityfm/core": "workspace:*",
     "@singularityfm/cover": "workspace:*",
-    "@singularityfm/design-system": "0.15.0",
+    "@singularityfm/design-system": "0.0.0-canary-b757928c9a963dfbd1f4ec0e707dc243c75bb981",
     "@singularityfm/engine": "workspace:*",
     "@singularityfm/sound": "workspace:*",
     "@vercel/blob": "^2.9.0",

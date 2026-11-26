@@ -74,26 +74,22 @@ function installShows(root: HTMLElement): void {
   let suggested: ShowRow[] = [];
   let asked = 0;
 
-  const toggle = async (id: number, title: string, heart: HTMLButtonElement): Promise<void> => {
-    const on = !favorites.has(id);
-    // The heart fills at once; a show that cannot be read gives it back.
-    heart.setAttribute("aria-pressed", String(on));
-    if (!on) {
+  const toggle = async (id: number, title: string, box: HTMLInputElement): Promise<void> => {
+    // The ring shows at once; a show that cannot be read takes it back.
+    if (!box.checked) {
       favorites.delete(id);
       await setShowFavorite(id, false, null);
-      status.textContent = `Removed ${title}`;
       return;
     }
     favorites.add(id);
     const answer = await fetchShow(id);
     if (typeof answer === "string") {
       favorites.delete(id);
-      heart.setAttribute("aria-pressed", "false");
+      box.checked = false;
       status.textContent = `Couldn't add ${title}. Try again.`;
       return;
     }
     await follow(answer);
-    status.textContent = `Added ${title}`;
   };
 
   const draw = (rows: readonly ShowRow[]): void => {
@@ -105,14 +101,12 @@ function installShows(root: HTMLElement): void {
       const image = card.querySelector<HTMLImageElement>("img") as HTMLImageElement;
       if (show.cover) image.src = coverAt(show.cover, 256);
       else image.remove();
-      (card.querySelector("[data-row-title]") as HTMLElement).textContent = show.title;
-      (card.querySelector("[data-row-facts]") as HTMLElement).textContent = show.author;
-      const heart = card.querySelector<HTMLButtonElement>(
-        "[data-first-run-heart]",
-      ) as HTMLButtonElement;
-      heart.setAttribute("aria-label", `Favorite ${show.title}`);
-      heart.setAttribute("aria-pressed", String(favorites.has(id)));
-      heart.addEventListener("click", () => void toggle(id, show.title, heart));
+      (card.querySelector("[data-show-pick-title]") as HTMLElement).textContent = show.title;
+      (card.querySelector("[data-show-pick-facts]") as HTMLElement).textContent = show.author;
+      const box = card.querySelector<HTMLInputElement>("[data-first-run-pick]") as HTMLInputElement;
+      box.value = String(id);
+      box.checked = favorites.has(id);
+      box.addEventListener("change", () => void toggle(id, show.title, box));
       cards.push(card);
     }
     list.replaceChildren(...cards);

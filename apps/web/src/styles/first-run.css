@@ -1,6 +1,6 @@
 /*
  * First run (Nov 12 canvas, boards "First run 1 to 3") and the Add a show page: a step's stack, its
- * actions centred under it, and the heart on a show's card. Tokens only.
+ * actions centred under it,. Tokens only.
  */
 
 /* A settings view (page-frame.css) for its top and the rows' look, stacked a step apart. */
@@ -33,25 +33,6 @@
 .first-run-import {
   display: grid;
   gap: var(--space-4);
-}
-
-/* Step 2: the heart sits on the cover's top end corner, as a card's own control. */
-.first-run-show {
-  position: relative;
-}
-
-.first-run-heart {
-  position: absolute;
-  inset: var(--space-2) var(--space-2) auto auto;
-}
-
-.first-run-heart .fav-remove,
-.first-run-heart[aria-pressed="true"] .fav-add {
-  display: none;
-}
-
-.first-run-heart[aria-pressed="true"] .fav-remove {
-  display: block;
 }
 
 .import-missing > ul {

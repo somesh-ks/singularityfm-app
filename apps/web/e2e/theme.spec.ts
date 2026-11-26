@@ -40,7 +40,7 @@ test.describe("theme", () => {
         );
       }
       await recordThemeAtBodyStart(page);
-      await page.goto("/");
+      await page.goto("/latest");
       expect(
         await page.evaluate(
           () => (window as unknown as { __themeAtBody: string | null }).__themeAtBody,
@@ -62,7 +62,7 @@ test.describe("theme", () => {
     await page.addInitScript(() =>
       localStorage.setItem("singularity:preferences", JSON.stringify({ theme: "dark" })),
     );
-    await page.goto("/");
+    await page.goto("/latest");
     await page.getByRole("link", { name: "See all" }).click();
     await expect(page).toHaveURL(/\/library$/);
     await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");

@@ -6,11 +6,14 @@
  * Nothing here may import build-time code: this file ships to the browser with the page script.
  */
 
-export type LibraryFilter = "all" | "daily" | "weekly" | "custom";
+export type LibraryFilter = "all" | "favorites" | "shows" | "daily" | "weekly" | "custom";
 export type LibrarySort = "newest" | "oldest" | "longest";
 
 export const LIBRARY_FILTERS: ReadonlyArray<{ id: LibraryFilter; label: string }> = [
   { id: "all", label: "All" },
+  // Favorites moved here from the profile; Shows lists the shows favorited (12 Nov canvas, Library).
+  { id: "favorites", label: "Favorites" },
+  { id: "shows", label: "Shows" },
   { id: "daily", label: "Daily" },
   { id: "weekly", label: "Weekly" },
   { id: "custom", label: "Catch up" },
@@ -39,6 +42,10 @@ export const LIBRARY_SORTS: ReadonlyArray<{ id: LibrarySort; label: string }> = 
 
 /** The `kind` a podcast episode's card carries, beside the kinds of briefing. */
 export const EPISODE_KIND = "episode";
+/** A favorite show's row, under the Shows chip only. */
+export const SHOW_KIND = "show";
+/** A hearted episode of a public show, under the Favorites chip only. */
+export const SHOW_EPISODE_KIND = "show-episode";
 
 /** What search, sort and filter need to know about one card. Read from its data attributes. */
 export interface CardData {
@@ -94,7 +101,11 @@ export function normalize(text: string): string {
     .trim();
 }
 
-export function matchesFilter(card: CardData, filter: LibraryFilter): boolean {
+export function matchesFilter(card: CardData, filter: LibraryFilter, favorite = false): boolean {
+  if (filter === "shows") return card.kind === SHOW_KIND;
+  if (filter === "favorites") return favorite && card.kind !== SHOW_KIND;
+  // A show's rows are the device's own: each lives under its chip, never among the Catchups.
+  if (card.kind === SHOW_KIND || card.kind === SHOW_EPISODE_KIND) return false;
   // Custom is everything made on request: podcast episodes and briefings from the Generate button.
   const custom = card.kind === EPISODE_KIND || card.kind === ON_DEMAND_KIND;
   if (filter === "weekly") return card.kind === "weekly";
@@ -261,6 +272,8 @@ export interface EmptyCopy {
 }
 
 const FILTER_NOUNS: Record<Exclude<LibraryFilter, "all">, string> = {
+  favorites: "favorites",
+  shows: "favorite shows",
   daily: "daily podcasts",
   weekly: "weekly podcasts",
   custom: "episodes",

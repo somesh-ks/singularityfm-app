@@ -21,7 +21,7 @@ test.describe("story controls", () => {
   }) => {
     await page.clock.install();
     const server = await routeConfigServer(page);
-    await page.goto("/");
+    await page.goto("/latest");
     // An open alone never makes a request (every save is a commit); it waits for the like.
     const popup = page.waitForEvent("popup");
     await page.locator("article.story").nth(1).locator("a.story-link").click();
@@ -50,7 +50,7 @@ test.describe("story controls", () => {
     expect(op.opens).toHaveLength(1);
 
     // After a reload the story is still pressed, and having been sent it is not sent again.
-    await page.goto("/");
+    await page.goto("/latest");
     await expect(page.locator("[data-story-controls] [data-vote=up]").first()).toHaveAttribute(
       "aria-pressed",
       "true",
@@ -64,7 +64,7 @@ test.describe("story controls", () => {
   }) => {
     await page.clock.install();
     const server = await routeConfigServer(page);
-    await page.goto("/");
+    await page.goto("/latest");
     await stop(page.locator("[data-story-controls]").first());
     const toast = page.locator(".toast");
     await expect(toast).toBeVisible();
@@ -98,7 +98,7 @@ test.describe("story controls", () => {
   test("stopping an outlet waits for Undo, and an Undo sends nothing", async ({ page }) => {
     await page.clock.install();
     const server = await routeConfigServer(page);
-    await page.goto("/");
+    await page.goto("/latest");
     const story = page.locator("[data-story-controls]").first();
 
     await stop(story);
@@ -127,7 +127,7 @@ test.describe("story controls", () => {
   test("two outlets stopped in a row are both stopped", async ({ page }) => {
     await page.clock.install();
     const server = await routeConfigServer(page);
-    await page.goto("/");
+    await page.goto("/latest");
     // Every fixture story is on example.com: the second is moved to an outlet of its own.
     const stories = page.locator("[data-story-controls][data-outlet]");
     await stories.nth(1).evaluate((el) => {
@@ -165,7 +165,7 @@ test.describe("story controls", () => {
   }) => {
     await page.clock.install();
     const server = await routeConfigServer(page);
-    await page.goto("/");
+    await page.goto("/latest");
     await page.locator("[data-story-controls] [data-vote=up]").first().click();
     await stop(page.locator("[data-story-controls][data-outlet]").first());
     // Leaving inside the Undo wait sends the stop at once, with the vote.

@@ -11,7 +11,7 @@ import { closePlayer, expect, hydrated, SILENT_DIGEST, test } from "./fixtures";
 
 test.beforeEach(async ({ page }) => {
   await page.emulateMedia({ colorScheme: "light", reducedMotion: "reduce" });
-  await page.goto("/");
+  await page.goto("/latest");
 });
 
 const face = (chip: Locator) =>
@@ -120,10 +120,9 @@ test.describe("what the player writes on a real page", () => {
     await expect(page.locator("html")).toHaveAttribute("data-player-state", "playing");
 
     // Back on the briefing that is playing, the fresh markup takes the live state at once.
-    // The wordmark, not the Today tab: on a phone the docked player of this build still sits over
-    // the bottom navigation until the rebuilt player docks above it.
-    await page.locator('a[href="/"]:visible').first().click();
-    await expect(page).toHaveURL(/\/$/);
+    // Back, a move on the client: the wordmark now opens Home, which has no hero.
+    await page.goBack();
+    await expect(page).toHaveURL(/\/latest$/);
     await expect(page.locator(".hero [data-play-digest]")).toHaveAttribute("data-state", "current");
     await expect(page.locator(".hero [data-play-digest]")).toHaveAccessibleName(/min left$/);
     await expect(page.locator('.story[data-state="current"]')).toHaveCount(1);

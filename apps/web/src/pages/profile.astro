@@ -62,17 +62,12 @@ const updated = buildDayShort();
 
       <Button variant="filled" className="profile-login" data-login>Log in</Button>
 
-      <section aria-label="Downloads and favorites">
+      {/* Favorites live in the Library now, its Favorites chip (12 Nov canvas, Profile board). */}
+      <section aria-label="Downloads">
         <div class="rows card-group">
           <a class="row-action" href="/settings/downloads">
             <span class="settings-text">
               <span class="settings-label">Downloads</span>
-            </span>
-            <Icon name="chevronRight" />
-          </a>
-          <a class="row-action" href="/settings/saved">
-            <span class="settings-text">
-              <span class="settings-label">Favorites</span>
             </span>
             <Icon name="chevronRight" />
           </a>

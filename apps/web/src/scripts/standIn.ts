@@ -45,7 +45,7 @@ export function targetOf(location: Pick<Location, "pathname" | "search" | "hash"
 
 /** The tab the page belongs to, from its address; the stand-in cannot say it itself (nav is server-drawn). The profile and Settings belong to none. */
 export function destinationOf(pathname: string): "today" | "search" | "library" | null {
-  if (pathname === "/" || pathname === "") return "today";
+  if (pathname === "/" || pathname === "" || pathname === "/latest") return "today";
   if (pathname === "/search") return "search";
   if (pathname === "/profile" || pathname === "/settings" || pathname.startsWith("/settings/"))
     return null;

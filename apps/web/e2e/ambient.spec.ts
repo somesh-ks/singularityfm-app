@@ -71,7 +71,7 @@ const headerBoxes = (page: Page) =>
 
 test.describe("ambient light", () => {
   test("sits on Today and on an episode, not on Library or Settings", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/latest");
     await expect(page.locator(".ambient")).toHaveCount(1);
     await page.goto(EPISODE);
     await expect(page.locator(".ambient")).toHaveCount(1);
@@ -82,7 +82,7 @@ test.describe("ambient light", () => {
   });
 
   test("is hidden from assistive tech, inert, and takes no room", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/latest");
     const ambient = page.locator(".ambient");
     await expect(ambient).toHaveAttribute("aria-hidden", "true");
     const before = await headerBoxes(page);
@@ -103,7 +103,7 @@ test.describe("ambient light", () => {
     page,
   }) => {
     await watchWebGL(page);
-    await page.goto("/");
+    await page.goto("/latest");
     await expect.poll(() => decided(page)).toBe(true);
     test.skip(await hasFastWebGL(page), "this browser has a GPU");
     await expect(page.locator(".ambient-still")).toBeVisible();
@@ -116,7 +116,7 @@ test.describe("ambient light", () => {
   // 390px phone: the page scrolled sideways, the bottom navigation stretched off the screen and
   // could not be tapped, and every move away from Today aborted its transition with "Viewport size
   // changed". A decorative layer must never change how wide a page is.
-  for (const path of ["/", EPISODE]) {
+  for (const path of ["/latest", EPISODE]) {
     test(`never makes ${path} wider than the screen`, async ({ page }) => {
       await page.goto(path);
       await expect(page.locator(".ambient")).toHaveCount(1);
@@ -139,7 +139,7 @@ test.describe("ambient light", () => {
   }
 
   test("leaves exactly one canvas and no errors across client navigations", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/latest");
     await expect(page.locator(".ambient")).toHaveCount(1);
     // A real press on the navigation, as a person makes it, and no error is excused: the fixture
     // fails this test on any page error.

@@ -37,6 +37,26 @@ const MAX_REOPENS = 2;
  */
 export const HOLD_UNTIL = "data-hold-until";
 
+/**
+ * Other things a finger holds for a sheet the page fills first: Home's speed dial tiles and
+ * Continue listening cards (12 Nov canvas, Long press menus). `sheet` fills the sheet for what was
+ * held and returns it, or null when there is none; the hold then opens it as it opens a card's.
+ */
+const others: Array<{ held: string; sheet: (held: HTMLElement) => HTMLElement | null }> = [];
+
+export function holdOpens(
+  held: string,
+  sheet: (held: HTMLElement) => HTMLElement | null,
+): () => void {
+  const entry = { held, sheet };
+  others.push(entry);
+  // The page goes on a client move: its entry goes with it.
+  return () => {
+    const at = others.indexOf(entry);
+    if (at >= 0) others.splice(at, 1);
+  };
+}
+
 let installed = false;
 
 export function installCardHold(): void {
@@ -75,20 +95,31 @@ export function installCardHold(): void {
       held = false;
       release();
       if (event.pointerType !== "touch" || !event.isPrimary || !matchMedia(TOUCH).matches) return;
-      const row = (event.target as Element).closest<HTMLElement>(HELD);
-      const list = row?.matches(".player-queue-row")
+      const target = event.target as Element;
+      let row = target.closest<HTMLElement>(HELD);
+      let list = row?.matches(".player-queue-row")
         ? row.parentElement?.querySelector<HTMLElement>(MENU_SELECTORS.list)
         : row
             ?.closest("[data-card]")
             ?.querySelector<HTMLElement>(
               `:is([data-library-menu], [data-row-menu]) ${MENU_SELECTORS.list}`,
             );
-      if (!row || !list) return;
+      // Filled when the hold fires, not at the touch: a scroll that starts on it fills nothing.
+      let fill: (() => HTMLElement | null) | null = null;
+      if (!row || !list) {
+        const other = others.find((entry) => target.closest(entry.held));
+        const held = other ? target.closest<HTMLElement>(other.held) : null;
+        if (!other || !held) return;
+        row = held;
+        list = null;
+        fill = () => other.sheet(held);
+      }
       start = { x: event.clientX, y: event.clientY, id: event.pointerId };
       const pointerId = event.pointerId;
       timer = window.setTimeout(() => {
         start = null;
-        if (list.matches(":popover-open")) return;
+        list = list ?? fill?.() ?? null;
+        if (!list || list.matches(":popover-open")) return;
         // As after a tap on the button: focus is on it first, so the sheet's first row, which the menu
         // focuses on open, takes no keyboard ring. Its own ring is the keyboard's (library.css).
         list.parentElement?.querySelector<HTMLElement>(OPENER)?.focus({ preventScroll: true });
@@ -172,7 +203,11 @@ export function installCardHold(): void {
   // has its own menu now. A mouse's right click keeps the browser's (copy link).
   document.addEventListener("contextmenu", (event) => {
     if (!matchMedia(TOUCH).matches) return;
-    if ((event.target as Element).closest?.("[data-card] .card-link, .player-queue-row"))
+    const target = event.target as Element;
+    if (
+      target.closest?.("[data-card] .card-link, .player-queue-row") ||
+      others.some((entry) => target.closest?.(entry.held))
+    )
       event.preventDefault();
   });
 }

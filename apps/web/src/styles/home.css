@@ -1,0 +1,94 @@
+/*
+ * Home (components/HomeView.astro, 12 Nov canvas, boards Home and Desktop: Home). Only how the page
+ * places the system's parts: the Dial, PageDots and PageArrows, ResumeCard, Band, the Library's chips
+ * and cards. Each part draws itself.
+ */
+
+/* Search is a bar at the top on desktop; the phone has the Search tab. */
+.home-search {
+  display: none;
+  padding-block-start: var(--space-4);
+}
+
+@media (width >= 64rem) {
+  .home-search {
+    display: block;
+  }
+}
+
+.home-filters {
+  padding-block-start: var(--space-4);
+}
+
+@media (width >= 64rem) {
+  .home-search + .home-filters {
+    padding-block-start: var(--space-6);
+  }
+}
+
+/* What a chip leaves out, and a section it leaves empty. */
+.home [data-home-out] {
+  display: none;
+}
+
+/* The phone's dial: pages of nine side by side, one in view, swiped a page at a time. */
+.home-dial-pages {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 100%;
+  gap: var(--page-gutter-end);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.home-dial-pages::-webkit-scrollbar {
+  display: none;
+}
+
+.home-dial-pages > .home-dial-page {
+  scroll-snap-align: start;
+  align-content: start;
+}
+
+/* On desktop the one row scrolls itself (dial-grid-wide), so the host only holds it. */
+@media (width >= 64rem) {
+  .home-dial-pages {
+    display: block;
+    overflow: visible;
+  }
+}
+
+/* Each card is the system's own width; the list item only holds its place in the row. */
+.home-resume > li {
+  display: contents;
+}
+
+.home-resume > li[hidden] {
+  display: none;
+}
+
+.home-band {
+  margin-block-start: var(--space-12);
+}
+
+/* The arrows move the one sideways row; the phone's pages are swiped. */
+@media (width < 64rem) {
+  .home-dial-arrows {
+    display: none;
+  }
+}
+
+/* The dial's and Continue listening's sheets hang under the tile or card held, as a card's menu
+   hangs under its dots (library.css); a phone's sheet keeps its place at the bottom. */
+@supports (top: anchor(bottom)) {
+  .home [data-home-held] {
+    anchor-name: --home-held;
+  }
+
+  #home-dial-menu,
+  #home-resume-menu {
+    position-anchor: --home-held;
+  }
+}

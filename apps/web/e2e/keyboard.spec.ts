@@ -15,7 +15,7 @@ test.describe("keyboard", { tag: "@desktop" }, () => {
   test("the skip link is the first thing Tab reaches and jumps to the podcast", async ({
     page,
   }) => {
-    await page.goto("/");
+    await page.goto("/latest");
     await page.keyboard.press("Tab");
     expect(await focused(page)).toBe("a: Skip to the podcast");
     await expect(page.locator(".skip-link")).toBeInViewport();
@@ -26,7 +26,7 @@ test.describe("keyboard", { tag: "@desktop" }, () => {
   test("tab order follows the page: navigation, header, then each story's chip and source", async ({
     page,
   }) => {
-    await page.goto("/");
+    await page.goto("/latest");
     const seen: string[] = [];
     for (let step = 0; step < 18; step += 1) {
       await page.keyboard.press("Tab");
@@ -34,7 +34,7 @@ test.describe("keyboard", { tag: "@desktop" }, () => {
     }
     expect(seen).toEqual([
       "a: Skip to the podcast",
-      "a: Singularity, latest podcast",
+      "a: Singularity, Home",
       // Create is first in the side column.
       "a: Catch up",
       "a: Latest",
@@ -62,7 +62,7 @@ test.describe("keyboard", { tag: "@desktop" }, () => {
   });
 
   test("every interactive control shows a focus ring", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/latest");
     // A control taken out of the tab order (the hero cover's pointer-only play button, a story's
     // publisher link) is never reached by keyboard, so it has no ring to show.
     const controls = await page
@@ -93,7 +93,7 @@ test.describe("keyboard", { tag: "@desktop" }, () => {
   test("a chip plays with Enter and pauses with Space, and a link follows with Enter", async ({
     page,
   }) => {
-    await page.goto("/");
+    await page.goto("/latest");
     await hydrated(page);
     const chip = page.locator(".hero [data-play-digest]");
     await chip.focus();

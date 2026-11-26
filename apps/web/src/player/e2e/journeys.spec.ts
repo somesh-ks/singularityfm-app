@@ -47,7 +47,7 @@ test("a listening journey across pages: A on Today, B from the Library, back to 
   page,
 }) => {
   // Briefing A is Today's, with its recording; B is the earlier one, narrated when asked.
-  await player.open("/");
+  await player.open("/latest");
   await serveNarration(page, 300, `/d/${SITE.earlier}`);
   await player.play();
   // Hear A's first story out, so it is the one story marked played.

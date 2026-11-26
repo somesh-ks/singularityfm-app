@@ -23,7 +23,7 @@ for (const scheme of ["light", "dark"] as const) {
 test("axe, home with each theme chosen against the system", async ({ page }) => {
   for (const theme of ["light", "dark"] as const) {
     await page.emulateMedia({ colorScheme: theme === "light" ? "dark" : "light" });
-    await page.goto("/");
+    await page.goto("/latest");
     await page.evaluate(
       (value) => localStorage.setItem("singularity:preferences", JSON.stringify({ theme: value })),
       theme,
@@ -36,7 +36,7 @@ test("axe, home with each theme chosen against the system", async ({ page }) => 
 
 test.describe("axe, banners and live states", () => {
   test("the offline banner has no violations", async ({ page, context }) => {
-    await page.goto("/");
+    await page.goto("/latest");
     // Let the islands finish hydrating before the network goes away.
     await page.waitForLoadState("networkidle");
     await hydrated(page);
@@ -76,7 +76,7 @@ test.describe("axe, banners and live states", () => {
     page,
   }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
-    await page.goto("/");
+    await page.goto("/latest");
     await hydrated(page);
     await page.evaluate(() => {
       const root = document.documentElement;
@@ -101,7 +101,7 @@ test.describe("axe, banners and live states", () => {
   });
 
   test("the section in view is announced as current on the tabs", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/latest");
     await page.evaluate(() => {
       document.querySelector("#c-research")?.scrollIntoView({ block: "start" });
     });

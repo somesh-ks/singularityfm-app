@@ -1,3 +1,4 @@
+import { noteContinue } from "../../podcasts/continueListening";
 import { finishedTailSeconds } from "../../podcasts/rules";
 import type { PlayerDigestData } from "../../types/contracts";
 import { isFiniteNumber } from "./mathUtils";
@@ -150,6 +151,8 @@ export function saveResumePosition(
       storage.setItem(resumeKey(digestId), String(Math.floor(seconds)));
       storage.removeItem(playedKey(digestId));
       rememberRecording(storage, digestId, recording);
+      // Home's Continue listening shows the ones heard last first (podcasts/continueListening.ts).
+      noteContinue(storage, digestId);
       announce(digestId);
     }
   } catch {

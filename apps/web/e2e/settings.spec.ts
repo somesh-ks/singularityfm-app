@@ -169,7 +169,7 @@ test.describe("settings page", () => {
       PREFERENCES_KEY,
       JSON.stringify({ theme: "dark", rate: 1.25, sounds: false, volume: 0.35 }),
     ] as const);
-    await page.goto("/");
+    await page.goto("/latest");
     // A mark on the window survives only if the router swaps the page instead of loading a new one.
     await page.evaluate(() => {
       (window as unknown as { __sameDocument?: boolean }).__sameDocument = true;

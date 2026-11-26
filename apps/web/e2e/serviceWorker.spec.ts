@@ -2,7 +2,7 @@ import { expect, test } from "./fixtures";
 
 test.describe("service worker", () => {
   test("registers after load and controls the page", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/latest");
     const registration = await page.evaluate(async () => {
       const ready = await navigator.serviceWorker.ready;
       const worker = ready.active;
@@ -23,7 +23,7 @@ test.describe("service worker", () => {
   });
 
   test("precaches the shell and the offline page", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/latest");
     await page.evaluate(() => navigator.serviceWorker.ready);
     const cached = await page.evaluate(async () => {
       const names = await caches.keys();
@@ -48,7 +48,7 @@ test.describe("service worker", () => {
   test("saves a file the page fetches at run time, so it is there offline later", async ({
     page,
   }) => {
-    await page.goto("/");
+    await page.goto("/latest");
     await page.evaluate(() => navigator.serviceWorker.ready);
     await page.reload();
     expect(await page.evaluate(() => navigator.serviceWorker.controller !== null)).toBe(true);
@@ -74,7 +74,7 @@ test.describe("service worker", () => {
   test("keeps every script a settings page loads, so its editor works in a later session offline", async ({
     page,
   }) => {
-    await page.goto("/");
+    await page.goto("/latest");
     await page.evaluate(() => navigator.serviceWorker.ready);
     await page.goto("/settings/daily");
     await page.waitForLoadState("networkidle");
@@ -93,7 +93,7 @@ test.describe("service worker", () => {
   });
 
   test("never caches audio, even when the page streams it", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/latest");
     await page.evaluate(() => navigator.serviceWorker.ready);
     await page.reload();
     await page.evaluate(async () => {
@@ -121,13 +121,13 @@ test.describe("service worker", () => {
   });
 
   test("keeps the reading experience available offline", async ({ page, context }) => {
-    await page.goto("/");
+    await page.goto("/latest");
     await page.evaluate(() => navigator.serviceWorker.ready);
     // A second visit lets the worker store this page and its covers.
     await page.reload();
     await page.waitForLoadState("networkidle");
     await context.setOffline(true);
-    await page.goto("/");
+    await page.goto("/latest");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Wednesday 7 October");
     await expect(page.locator(".story")).toHaveCount(12);
     await expect(page.locator('[data-banner="offline"]')).toBeVisible();
@@ -139,7 +139,7 @@ test.describe("service worker", () => {
 
     /** Opens the site once so the worker is in charge and its first fetches have landed. */
     async function warm(page: import("@playwright/test").Page): Promise<void> {
-      await page.goto("/");
+      await page.goto("/latest");
       await page.evaluate(() => navigator.serviceWorker.ready);
       // The worker stores the islands' stylesheets as the page fetches them at idle: going offline
       // before that left the offline page unable to preload one (a race seen on a slow runner).
@@ -270,7 +270,7 @@ test.describe("service worker", () => {
           document.querySelector('meta[name="singularity-build"]')?.getAttribute("content") ?? "",
       );
     await ship();
-    await page.goto("/");
+    await page.goto("/latest");
     await page.goto("/d/2026-10-05");
     expect(await build()).toBe(deploy);
     // An installed app comes back to the front with the page it left, a build behind the site.
@@ -324,7 +324,7 @@ test.describe("service worker", () => {
     page,
     context,
   }) => {
-    await page.goto("/");
+    await page.goto("/latest");
     await page.waitForLoadState("networkidle");
     const build = () =>
       page.evaluate(
@@ -412,7 +412,7 @@ test.describe("service worker", () => {
   });
 
   test("serves the manifest with its icons", async ({ page, request }) => {
-    await page.goto("/");
+    await page.goto("/latest");
     const response = await request.get("/manifest.webmanifest");
     expect(response.headers()["content-type"]).toContain("application/manifest+json");
     const manifest = await response.json();

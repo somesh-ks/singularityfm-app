@@ -4,7 +4,6 @@ import Icon from "@singularityfm/design-system/Icon";
 import type { IconName } from "@singularityfm/design-system/icons";
 import Ripple from "@singularityfm/design-system/Ripple";
 import { buildDay } from "../lib/buildDay";
-import { getSite } from "../lib/site";
 import QueueRing from "./QueueRing.astro";
 
 export type Destination = "today" | "search" | "library";
@@ -15,9 +14,8 @@ interface Props {
 }
 
 const { current } = Astro.props;
-// The wordmark goes to Today: it names the briefing only when there is one.
-const homeLabel =
-  (await getSite()).entries.length > 0 ? "Singularity, latest podcast" : "Singularity, Latest";
+// The wordmark goes Home (the root, 12 Nov canvas).
+const homeLabel = "Singularity, Home";
 // On the Create page the New episode button is the place you are on, not an action to take.
 const onCreate = Astro.url.pathname.replace(/\/$/, "") === "/create";
 
@@ -27,13 +25,21 @@ const destinations: Array<{
   label: string;
   icon: IconName;
   iconCurrent: IconName;
+  barOnly?: boolean;
 }> = [
   // Home, Search, Library (owner, 2026-11-26). Settings sits inside the profile, under the avatar.
-  // Home is today's Latest page until the podcast Home replaces it; Search is where shows are found.
+  // Home (/) holds today's Latest (/latest) under it; Search is where shows are found.
   { id: "today", href: "/", label: "Home", icon: "house", iconCurrent: "houseFill" },
-  // shortcut: the 12 Nov canvas moves Search to a bar at the top of Home from 64rem; until that Home
-  // ships, the side column keeps Search as a row so it can be reached there.
-  { id: "search", href: "/search", label: "Search", icon: "search", iconCurrent: "searchFill" },
+  // The side column leaves Search out from 64rem: there it is the bar at the top of Home (12 Nov
+  // canvas, Desktop: Home), and the bottom bar keeps it as a tab.
+  {
+    id: "search",
+    href: "/search",
+    label: "Search",
+    icon: "search",
+    iconCurrent: "searchFill",
+    barOnly: true,
+  },
   {
     id: "library",
     href: "/library",
@@ -69,6 +75,7 @@ const destinations: Array<{
               aria-current={isCurrent ? "page" : undefined}
               data-astro-prefetch="hover"
               data-ripple
+              data-nav-bar-only={destination.barOnly ? "" : undefined}
             >
               <Ripple />
               {/* Both drawings are in the page, so the item can light up on the press, before its page arrives.

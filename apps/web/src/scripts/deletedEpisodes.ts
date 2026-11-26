@@ -70,11 +70,11 @@ function hideIn(doc: Document): void {
 }
 
 /**
- * A page for a deleted episode has nothing to show: go to the Library as it was left. Latest (/)
+ * A page for a deleted episode has nothing to show: go to the Library as it was left. Latest (/latest)
  * is the exception: it shows the newest item, so it moves to the next newest one the server listed.
  */
 function leaveIfDeleted(): void {
-  if (location.pathname === "/") {
+  if (location.pathname === "/latest") {
     const root = document.documentElement.dataset;
     const gone = new Set(load().map((entry) => entry.id));
     if (!root.digestId || !gone.has(root.digestId)) return;

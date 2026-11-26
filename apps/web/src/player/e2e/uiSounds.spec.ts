@@ -130,7 +130,7 @@ test.describe("interface cues by kind of action", () => {
 
   // Escape and a press outside close a menu with no control to press; the cue must still sound.
   test("a menu opens with a cue, and Escape closes it with one", async ({ player, page }) => {
-    await player.open("/");
+    await player.open("/latest");
     await prime(page);
     const more = page.getByRole("button", { name: "More actions" });
     await more.click();
@@ -159,7 +159,7 @@ test.describe("interface cues by kind of action", () => {
     player,
     page,
   }) => {
-    await player.open("/");
+    await player.open("/latest");
     await prime(page);
     await page.getByRole("button", { name: "More actions" }).click();
     await expect.poll(() => heard(page)).toEqual(["sheetOpen"]);

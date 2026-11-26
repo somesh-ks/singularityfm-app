@@ -52,7 +52,7 @@ for (const size of SIZES) {
     });
 
     test("a sub-page puts its title where the destinations start", async ({ page }) => {
-      await page.goto("/");
+      await page.goto("/latest");
       const reference = await firstBlockTop(page, "main .hero .cover, main h1");
       for (const path of SUBPAGES) {
         await page.goto(path);

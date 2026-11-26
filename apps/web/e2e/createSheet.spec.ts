@@ -93,7 +93,7 @@ test.describe("Create as the primary action", () => {
   );
 
   test("browser Back closes the sheet and stays on the page", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/latest");
     await page.locator(".app-nav-item", { hasText: "Library" }).click();
     await expect(page).toHaveURL(/\/library$/);
     await hydrated(page);
@@ -106,7 +106,7 @@ test.describe("Create as the primary action", () => {
   });
 
   test("the floating button never overlaps the player bar's controls", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/latest");
     // Until the player has hydrated, a press on the play chip is lost.
     await hydrated(page);
     await page.locator(".hero [data-play-digest]").click();

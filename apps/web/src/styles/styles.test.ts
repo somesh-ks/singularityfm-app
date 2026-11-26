@@ -238,6 +238,10 @@ const BESPOKE_CONTROLS: [name: string, reason: string][] = [
     "dial-hit",
     "a Dial tile's press area (design system 0.15): the whole square cover, not a control face",
   ],
+  [
+    "resume-card-hit",
+    "a Continue listening card's press area (design system): the whole card resumes, not a control face",
+  ],
 ];
 
 /** The field family, whose outline is its form (D54): the Field and Select components, and the

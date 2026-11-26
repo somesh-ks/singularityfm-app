@@ -71,6 +71,9 @@ const VERCEL_ENV = [
   "SINGULARITY_CONFIG_STORE",
   "SINGULARITY_STATE_STORE",
   "SPEECHIFY_VOICE_ID_B",
+  // The public podcast routes (D396) sign their Podcast Index calls with these; unset, they answer 503.
+  "PODCAST_INDEX_API_KEY",
+  "PODCAST_INDEX_API_SECRET",
 ];
 
 /**

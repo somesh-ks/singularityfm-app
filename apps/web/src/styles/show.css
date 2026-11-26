@@ -1,0 +1,206 @@
+/*
+ * A public show's page and an episode's page (pages/show.astro, pages/episode.astro; flow spec,
+ * 23 Nov 2026). The header is the briefing's own (hero.css) and every control is the design
+ * system's; this sheet only places them and draws the episode row, which follows the Library's
+ * list row (library.css): the same inset, the same fill past the gutters on hover and press.
+ */
+
+/* A publisher's cover is a picture, and not every one is square: it fills the cover's frame. */
+.show-cover > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.show-cover > img[hidden] {
+  display: none;
+}
+
+/* The show's own words, under the header and centred with it: three lines, the rest behind More. */
+.show-about {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2);
+  max-width: var(--layout-measure);
+  margin-inline: auto;
+  padding-block-start: var(--space-2);
+  text-align: center;
+}
+
+.show-description {
+  color: var(--color-on-surface-reading);
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+
+.show-description[data-clamped] {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+}
+
+/* Search, then the filter and the sort on one line, as the Library's tools are. */
+.show-tools {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-2);
+  padding-block-end: var(--space-2);
+}
+
+.show-filters {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+/* ------------------------------------------------------------------ an episode's row */
+
+.show-episodes {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* A hairline parts the rows, so a long list reads as rows and not as one block of words (owner,
+   2026-11-26: "quite crowded"). */
+.show-episode + .show-episode {
+  border-block-start: var(--stroke-hairline) solid var(--color-border-hairline);
+}
+
+/* The name and facts are the link; Play, and a mouse's dots, stand after it and never inside it. */
+.show-episode {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.show-episode-link {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+  padding-block: var(--space-4);
+  color: inherit;
+  text-decoration: none;
+}
+
+/* A hover or a press fills the whole row past the gutters, as a Library row's does. */
+.show-episode-link::after {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline: calc(var(--page-gutter-start) * -1) calc(var(--page-gutter-end) * -1);
+  z-index: var(--z-beneath);
+  border-radius: var(--row-radius);
+  background: var(--ghost-hover);
+  opacity: 0;
+  transition: opacity var(--duration-hover) var(--ease-hover);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .show-episode:hover .show-episode-link::after {
+    opacity: 1;
+  }
+}
+
+.show-episode-link:active::after {
+  background: var(--ghost-pressed);
+  opacity: 1;
+}
+
+.show-episode-title {
+  display: -webkit-box;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+/* Heard to the end: the name steps back, so what is left to hear leads the list. */
+.show-episode[data-played] .show-episode-title {
+  color: var(--color-on-surface-muted);
+}
+
+/* New, before the day: the accent's own word, no pill, so a list of them stays quiet. */
+.show-episode-new {
+  color: var(--color-accent);
+}
+
+/* A mouse sees the dots while the row is pointed at, a key is inside it or its menu is open
+   (library.css draws and hides the button itself; a finger holds the row instead). */
+@media (hover: hover) and (pointer: fine) {
+  .show-episode:hover .card-more,
+  .show-episode:focus-within .card-more,
+  .show-episode-menu:has(:popover-open) .card-more {
+    opacity: 1;
+  }
+}
+
+/* A finger holds the row for its menu, so the hold is not a text selection or a link drag. */
+@media not ((hover: hover) and (pointer: fine)) {
+  /* Out of the row's columns there, and over the end of the words, never over Play: it shows
+     only to a key press (library.css). */
+  .show-episode-menu {
+    position: absolute;
+    inset-inline-end: calc(var(--size-touch) + var(--space-2));
+  }
+
+  .show-episode-link,
+  .show-episode-link * {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-user-drag: none;
+  }
+}
+
+.show-none,
+.show-more {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2);
+  padding-block: var(--space-6);
+  color: var(--color-on-surface-muted);
+}
+
+.show-none[hidden],
+.show-more[hidden] {
+  display: none;
+}
+
+/* ------------------------------------------------------------------ an episode's page */
+
+/* The show's name over the episode's title: the way back to the show. */
+.episode-show {
+  justify-self: center;
+}
+
+.episode-notes {
+  display: grid;
+  gap: var(--space-4);
+  max-width: var(--layout-measure);
+  margin-inline: auto;
+  color: var(--color-on-surface-reading);
+  overflow-wrap: anywhere;
+}
+
+.episode-notes p {
+  margin: 0;
+}
+
+/* The sheet's Favorite fills its heart with the header's, as a podcast's sheet does (hero.css). */
+.episode-page-menu .fav-remove,
+.hero[data-saved] .episode-page-menu .fav-add {
+  display: none;
+}
+
+.hero[data-saved] .episode-page-menu .fav-remove {
+  display: block;
+}

@@ -1,3 +1,4 @@
+import { isShowEpisodeId, showEpisodeUrl } from "../../podcasts/rules";
 import type { StorageLike } from "./resume";
 
 /**
@@ -29,8 +30,9 @@ export const QUEUE_CHANGED_EVENT = "singularity:queue-changed";
 /** A briefing or episode id: letters, digits and dashes, as the pages' addresses use them. */
 const ID_PATTERN = /^[a-z0-9][a-z0-9-]{0,63}$/i;
 
+/** A Catchup's id, or a public show episode's (podcasts/rules.ts). */
 export function isQueueId(value: unknown): value is string {
-  return typeof value === "string" && ID_PATTERN.test(value);
+  return typeof value === "string" && (ID_PATTERN.test(value) || isShowEpisodeId(value));
 }
 
 /** The removed ids, newest last; anything unreadable is nothing removed. */
@@ -93,6 +95,7 @@ export function takeNext(
 
 /** Where an item's page lives. */
 export function queueItemUrl(id: string): string {
+  if (isShowEpisodeId(id)) return showEpisodeUrl(id);
   return id.startsWith("ep-") ? `/e/${id}` : `/d/${id}`;
 }
 

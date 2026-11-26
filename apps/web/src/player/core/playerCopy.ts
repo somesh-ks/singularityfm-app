@@ -13,6 +13,8 @@ export function recordingCaption(
   durationSec = 0,
 ): string {
   if (!digest) return "";
+  // A show episode's line is its own title: the title above it is the show's name.
+  if (digest.show) return digest.show.episode_title;
   const kind = recordingKind(digest);
   const ms = durationSec > 0 ? durationSec * 1000 : (digest.audio?.duration_ms ?? 0);
   return ms > 0 ? `${kind} \u00b7 ${briefingLengthLabel(ms)}` : kind;

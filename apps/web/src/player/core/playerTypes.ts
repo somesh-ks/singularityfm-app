@@ -142,6 +142,8 @@ export interface AudioLike {
   /** Safari before 17 only knows the prefixed name. */
   webkitPreservesPitch?: boolean;
   preload: string;
+  /** The element's CORS mode; a test's fake has none. */
+  crossOrigin?: string | null;
   play(): Promise<void>;
   pause(): void;
   load(): void;

@@ -73,6 +73,11 @@ export interface PlayerDigestData {
   /** English long date, "Wednesday 7 October". */
   title: string;
   kind: DigestKind;
+  /**
+   * Set on a public show's episode (podcasts/episodeDigest.ts): its show and its own title. Such an
+   * item has no stories, and `title` is the show's name.
+   */
+  show?: { id: number; title: string; episode_title: string };
   audio: { url: string; duration_ms: number; m4a_url?: string } | null;
   /** How the item times were derived, or null when there is no audio. */
   timeline: "marks" | "estimated" | null;

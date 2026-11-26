@@ -143,6 +143,13 @@ export function createSwitchableAudio(element: AudioLike): SwitchableAudio {
     set preload(value: string) {
       target.preload = value;
     },
+    // The real element's own: a narration adapter in its place fetches for itself.
+    get crossOrigin() {
+      return element.crossOrigin;
+    },
+    set crossOrigin(value: string | null | undefined) {
+      if ("crossOrigin" in element) element.crossOrigin = value ?? null;
+    },
     play() {
       return target.play();
     },

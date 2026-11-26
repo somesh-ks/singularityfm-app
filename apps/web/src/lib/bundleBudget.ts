@@ -33,9 +33,12 @@ export const FIRST_LOAD_BUDGET_BYTES = 130 * 1024;
  * 2026-11-03 every page went from 35 to 75 KB (the select's sheet with every glyph; the
  * avatar's show). A change that adds more than a step loads it lazily, or raises the record here
  * and says why in its pull request. Recorded 2026-11-04, once the select's sheet loaded at idle:
- * /settings/downloads, 59.0 KB (it was 79.9 KB before).
+ * /settings/downloads, 59.0 KB (it was 79.9 KB before). Recorded again 2026-11-26 with a public
+ * show's page: /show, 66.1 KB. It is one static shell that draws the show in the browser, from the
+ * device and then the route, so its renderer is first-load by nature (the heaviest page before it,
+ * a category's settings, stood at 63.8 KB); its menus' keys and the row hold load at idle.
  */
-export const FIRST_LOAD_RECORD_BYTES = 59 * 1024;
+export const FIRST_LOAD_RECORD_BYTES = 66 * 1024;
 export const FIRST_LOAD_STEP_BYTES = 5 * 1024;
 /** Self-hosted fonts, build plan 8.8: subset, one preloaded, 80 KB or less in total. */
 export const FONT_BUDGET_BYTES = 80 * 1024;

@@ -75,7 +75,7 @@ export interface PlayerStoreOptions {
   createAudio: () => AudioLike;
   storage: StorageLike | null;
   /** The default-speed preference, read when a digest loads. */
-  getPreferredRate?: () => number;
+  getPreferredRate?: (digestId?: string) => number;
   /** Persists a rate the listener chose in the player. */
   onRateChange?: (rate: number) => void;
   requestFrame?: (callback: () => void) => number;
@@ -644,6 +644,10 @@ export function createPlayerStore(options: PlayerStoreOptions): PlayerStore {
     if (attachedUrl === url) return;
     attachedUrl = url;
     expectPause();
+    // Our own files are read in CORS mode (playerRuntime.ts, getPlayerAudio). A publisher's host
+    // owes us no CORS headers, and a file asked for in that mode without them does not load at
+    // all: a show's episode is asked for plainly, as any page plays any audio.
+    element.crossOrigin = track?.digest.show ? null : "anonymous";
     element.src = url;
     element.preload = "metadata";
     applyRate();
@@ -688,7 +692,9 @@ export function createPlayerStore(options: PlayerStoreOptions): PlayerStore {
     time = restored;
     pendingStart = restored > 0 ? restored : null;
     track = { digest, timeline };
-    rate = isPlaybackRate(getPreferredRate()) ? getPreferredRate() : 1;
+    // By the item: a public show keeps its own speed (podcasts/showSpeed.ts).
+    const preferred = getPreferredRate(digest.id);
+    rate = isPlaybackRate(preferred) ? preferred : 1;
 
     // No audio is fetched until the listener presses play (2026-10-26: the weekly MP3, 7.6 MiB,
     // downloaded on every page view and woke download managers). The duration comes from the

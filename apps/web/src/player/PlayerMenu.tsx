@@ -27,6 +27,7 @@ import {
 import "@singularityfm/design-system/styles/slider.css";
 import { glowFavorite } from "@singularityfm/design-system/glow";
 import { downloadFailure } from "../lib/downloadCopy";
+import { isShowEpisodeId, showUrl } from "../podcasts/rules";
 import { longDateFromDigestId } from "./core/formatTime";
 import { recordingCaption } from "./core/playerCopy";
 import { getPlayerStore } from "./core/playerRuntime";
@@ -92,6 +93,15 @@ function useDeviceMarks(id: string | undefined, open: boolean) {
   useEffect(() => {
     if (!id || !open) return;
     let live = true;
+    if (isShowEpisodeId(id)) {
+      void import("../podcasts/deviceStore").then(async (store) => {
+        const favorite = Boolean((await store.getEpisode(id))?.favorite_at);
+        if (live) setSavedState(favorite);
+      });
+      return () => {
+        live = false;
+      };
+    }
     setSavedState(isSaved(deviceStorage(), id));
     void import("../scripts/libraryDownloads").then(async (library) => {
       const ids = (await library.readDownloads()).map((entry) => entry.id);
@@ -122,6 +132,7 @@ export default function PlayerMenu() {
   const wide = useWide();
   const menuId = PLAYER_MENU_ID;
   const id = digest?.id ?? "";
+  const show = digest?.show;
   const title = digest ? digest.title || longDateFromDigestId(digest.id) : "Podcast";
   const rate = state.rate;
   const hide = (): void => document.getElementById(menuId)?.hidePopover();
@@ -220,6 +231,20 @@ export default function PlayerMenu() {
 
   const share = async (): Promise<void> => {
     hide();
+    // A show's episode has a public page of its own: its address is the link.
+    if (show) {
+      const url = new URL(queueItemUrl(id), location.origin).href;
+      try {
+        if (navigator.share) await navigator.share({ title: show.episode_title, url });
+        else {
+          await navigator.clipboard.writeText(url);
+          toast("Link copied");
+        }
+      } catch {
+        // Closed without sharing: nothing to say.
+      }
+      return;
+    }
     const { shareItem } = await import("../scripts/shareLink");
     const outcome = await shareItem({
       id,
@@ -233,6 +258,18 @@ export default function PlayerMenu() {
   const save = (event: MouseEvent<HTMLElement>): void => {
     const next = !marks.saved;
     const tile = event.currentTarget;
+    // A show's episode is a favorite in the device's show store, as its page's heart is.
+    if (show) {
+      void import("../podcasts/deviceStore").then(async (store) => {
+        await store.setEpisodeFavorite(id, next);
+        // The device's own answer: a private window keeps nothing.
+        const kept = Boolean((await store.getEpisode(id))?.favorite_at);
+        marks.setSaved(kept);
+        if (kept && next) glowFavorite(tile);
+        else if (kept !== next) toast("Couldn't change favorites on this device", "error");
+      });
+      return;
+    }
     // The tile says Saved or Save; a toast would cover the sheet. Only a refusal speaks.
     if (setSaved(deviceStorage(), id, next)) {
       marks.setSaved(next);
@@ -259,6 +296,15 @@ export default function PlayerMenu() {
     const { playerSheet } = await import("./core/playerSheet");
     await playerSheet.collapse();
     void navigateTo(queueItemUrl(id));
+  };
+
+  const goToShow = async (showId: number | undefined): Promise<void> => {
+    if (showId === undefined) return;
+    hide();
+    const { navigateTo } = await import("./core/navigation");
+    const { playerSheet } = await import("./core/playerSheet");
+    await playerSheet.collapse();
+    void navigateTo(showUrl(showId));
   };
 
   const head = (name: string, subtitle: string | null, back: boolean) => (
@@ -310,18 +356,22 @@ export default function PlayerMenu() {
           <>
             {head(title, digest ? recordingCaption(digest) : null, false)}
             <div className={menuBodyClass()} role="menu" aria-label={title} onKeyDown={onKeyDown}>
+              {/* A public show's episode has Share and Favorite; saving a publisher's file for
+                  offline is not built yet, so it has no Download. */}
               {wide ? (
                 <>
-                  <button
-                    className={menuItemClass()}
-                    type="button"
-                    role="menuitem"
-                    aria-disabled={marks.downloaded || !digest?.audio || undefined}
-                    onClick={() => void download()}
-                  >
-                    <Icon name="download" />
-                    {marks.downloaded ? "Downloaded" : "Download"}
-                  </button>
+                  {show ? null : (
+                    <button
+                      className={menuItemClass()}
+                      type="button"
+                      role="menuitem"
+                      aria-disabled={marks.downloaded || !digest?.audio || undefined}
+                      onClick={() => void download()}
+                    >
+                      <Icon name="download" />
+                      {marks.downloaded ? "Downloaded" : "Download"}
+                    </button>
+                  )}
                   <button
                     className={menuItemClass()}
                     type="button"
@@ -344,17 +394,19 @@ export default function PlayerMenu() {
                 </>
               ) : (
                 <div className={menuTilesClass()} role="presentation">
-                  <button
-                    className={menuTileClass()}
-                    type="button"
-                    role="menuitem"
-                    data-on={marks.downloaded ? "" : undefined}
-                    aria-disabled={marks.downloaded || !digest?.audio || undefined}
-                    onClick={() => void download()}
-                  >
-                    <Icon name="download" />
-                    {marks.downloaded ? "Downloaded" : "Download"}
-                  </button>
+                  {show ? null : (
+                    <button
+                      className={menuTileClass()}
+                      type="button"
+                      role="menuitem"
+                      data-on={marks.downloaded ? "" : undefined}
+                      aria-disabled={marks.downloaded || !digest?.audio || undefined}
+                      onClick={() => void download()}
+                    >
+                      <Icon name="download" />
+                      {marks.downloaded ? "Downloaded" : "Download"}
+                    </button>
+                  )}
                   <button
                     className={menuTileClass()}
                     type="button"
@@ -396,9 +448,20 @@ export default function PlayerMenu() {
                 role="menuitem"
                 onClick={() => void goToPodcast()}
               >
-                <Icon name="library" />
-                Go to podcast
+                <Icon name={show ? "info" : "library"} />
+                {show ? "Go to episode" : "Go to podcast"}
               </button>
+              {digest?.show ? (
+                <button
+                  className={menuItemClass()}
+                  type="button"
+                  role="menuitem"
+                  onClick={() => void goToShow(digest.show?.id)}
+                >
+                  <Icon name="library" />
+                  Go to show
+                </button>
+              ) : null}
               {marks.downloaded ? (
                 <button
                   className={menuItemClass("danger")}

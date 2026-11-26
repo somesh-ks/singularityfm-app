@@ -1,6 +1,6 @@
+import { skipSeconds } from "../podcasts/rules";
 import { isPlayingStatus, toggleLabel } from "./core/playerCopy";
 import { getPlayerStore } from "./core/playerRuntime";
-import { SKIP_BACK_SECONDS, SKIP_FORWARD_SECONDS } from "./core/playerTypes";
 import { usePlayerState } from "./hooks/usePlayer";
 import { useStoryStep } from "./hooks/useStoryStep";
 import { openSpeed, PLAYER_MENU_ID } from "./PlayerMenu";
@@ -20,6 +20,8 @@ export default function TransportControls() {
   const store = getPlayerStore();
   const step = useStoryStep();
   const playing = isPlayingStatus(state.status);
+  // Ten seconds either way on a Catchup; 15 back and 30 on in a public show (owner, 2026-11-23).
+  const skips = skipSeconds(state.digestId);
 
   return (
     <div className="transport">
@@ -35,12 +37,12 @@ export default function TransportControls() {
       <button
         className="transport-btn transport-skip press"
         type="button"
-        aria-label={`Back ${SKIP_BACK_SECONDS} seconds`}
-        onClick={() => store.skip(-SKIP_BACK_SECONDS)}
+        aria-label={`Back ${skips.back} seconds`}
+        onClick={() => store.skip(-skips.back)}
       >
         <Icon name="replay10" />
         <span className="transport-skip-num num" aria-hidden="true">
-          {SKIP_BACK_SECONDS}
+          {skips.back}
         </span>
       </button>
       <button
@@ -69,12 +71,12 @@ export default function TransportControls() {
       <button
         className="transport-btn transport-skip press"
         type="button"
-        aria-label={`Forward ${SKIP_FORWARD_SECONDS} seconds`}
-        onClick={() => store.skip(SKIP_FORWARD_SECONDS)}
+        aria-label={`Forward ${skips.forward} seconds`}
+        onClick={() => store.skip(skips.forward)}
       >
         <Icon name="forward10" />
         <span className="transport-skip-num num" aria-hidden="true">
-          {SKIP_FORWARD_SECONDS}
+          {skips.forward}
         </span>
       </button>
       <button

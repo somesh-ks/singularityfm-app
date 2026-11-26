@@ -307,7 +307,10 @@ export default defineConfig({
         "default-src 'self'",
         `img-src 'self' data: ${ANALYTICS_QUEUE_ORIGIN}`,
         "font-src 'self'",
-        "media-src 'self' https://*.public.blob.vercel-storage.com",
+        // Public podcasts play from any secure host: publishers send audio through tracking hops
+        // (up to six redirects measured), so no host list can hold them (D396). The blob host stays
+        // named because Catchups' own audio depends on it.
+        "media-src 'self' https://*.public.blob.vercel-storage.com https:",
         // The blob host too, so a download can read the audio file it saves (CORS on the host).
         `connect-src 'self' https://*.public.blob.vercel-storage.com ${ANALYTICS_QUEUE_ORIGIN}`,
         "manifest-src 'self'",

@@ -1,6 +1,6 @@
 # State
 
-Updated 2026-11-13. Rewrite, never append.
+Updated 2026-11-23. Rewrite, never append.
 
 ## Working
 
@@ -18,10 +18,11 @@ Updated 2026-11-13. Rewrite, never append.
 
 ## Tests
 
-Unit (CI): 367 files, 5,573 tests, 2 min. Site e2e: 468, 14 min. Player: 81, 7 min.
+Unit (CI): 368 files, 5,579 tests, 2 min. Site e2e: 468, 14 min. Player: 81, 7 min.
 
 ## Not working or unverified
 
+- D396 routes on fixtures. closed when: 200s with his keys.
 - D391: Play is the glyph alone. closed when: on his Android, Play keeps one size as it loads and plays.
 - D318 edge cache. closed when: a week of his loads is mostly HIT or STALE.
 - Guardrails (D360): #673 merged; `secrets:push` waits. closed when: Health's Budgets are fresh.
@@ -50,7 +51,6 @@ Unit (CI): 367 files, 5,573 tests, 2 min. Site e2e: 468, 14 min. Player: 81, 7 m
 - One Speechify count in Blob, a weekly Exa stop (D339). closed when: health shows the shared count after a narration and 450 Exa requests in a week warn.
 - Trusted publishers (D234) and community lift (D240), shipped off. closed when: both on and a daily airs a lab story and a community-voted one, no source over 30%.
 - Run names (D217), Neon run log (D221). closed when: a scheduled daily is named `daily <date>`, is off the queue, and has its row.
-- `podcast.yml` no longer installs ffmpeg; its first stage starts 9 s in (29 s before). closed when: 9 s is accepted.
 - Regenerate (D207, D323, D337, D340): a 10-minute one airs within 10%; the comment is required; Length and Categories show as words reach for them; full sheet (#589). closed when: signed off on his phone.
 - Catch up script at medium effort (D324). closed when: two Catch ups air within 10% of length, faster; else high again.
 - Podcast queue (D231, D242, #704): fakes only. closed when: a Catch up is cancelled, a failed run's Details read, and on his Android a head drag leaves the page still, the shimmer never restarts and a played-out run's ring completes.
@@ -72,7 +72,7 @@ Unit (CI): 367 files, 5,573 tests, 2 min. Site e2e: 468, 14 min. Player: 81, 7 m
 - Owner config out of git (D296, merged). The 11-02 dry run's gate log said `config store:` and it published. closed when: the Vercel build log says `store on; from the store:`, audio publishing keeps the owner's voice, and the cron answers 200.
 - Config store (D149, D296): Vercel has `SINGULARITY_CONFIG_STORE` and `DATABASE_URL` (checked 11-01); the Actions variable is unreadable, so `health` faults `config_store_split` when the site and runs disagree. closed when: a phone's edit shows on a laptop and health passes the config-store line.
 - Live `SINGULARITY_GH_TOKEN` write access untested. closed when: Generate dispatches.
-- 45 older items are parked in history (`#parked`; [2026-10-31 trim](history/2026-10-31-state-trim.md)). closed when: each closes.
+- 46 older items are parked in history (`#parked`; [2026-10-31 trim](history/2026-10-31-state-trim.md), [11-23](history/2026-11-23-podcast-routes.md)). closed when: each closes.
 
 ## Known risks
 

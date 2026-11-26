@@ -1,7 +1,8 @@
 ---
 import type { DigestItem } from "@singularityfm/core";
+import { buttonClass } from "@singularityfm/design-system/button";
+import Icon from "@singularityfm/design-system/Icon";
 import Link from "@singularityfm/design-system/Link";
-import PlayChip from "@singularityfm/design-system/PlayChip";
 import { publisherOf } from "../lib/episodeHighlights";
 import { headlineParts } from "../lib/format";
 import { sourceHost } from "../lib/sourceLabel";
@@ -14,10 +15,12 @@ interface Props {
   index: number;
   /** The story's length as "m:ss", or "" while the briefing has no audio. */
   length: string;
+  /** Where the story starts in the recording as "m:ss", or "" while the briefing has no audio. */
+  at: string;
   hasAudio: boolean;
 }
 
-const { item, index, length, hasAudio } = Astro.props;
+const { item, index, length, at, hasAudio } = Astro.props;
 const titleId = `t-${item.id}`;
 // Hyphenated words stay whole when the balanced headline wraps (briefing.css).
 const words = headlineParts(item.headline);
@@ -28,60 +31,59 @@ const host = sourceHost(item.url);
 const publisher = publisherOf(item.source, host);
 ---
 
-<article
-  class="story"
-  data-item-id={item.id}
-  data-index={index}
-  aria-labelledby={host ? `${titleId}-text` : titleId}
->
-  {/* The publisher, above the headline as a news list puts it: a quiet link to the page the
-       headline opens. It is a second way to one place, so it stays out of the tab order and the
-       accessibility tree, and the headline is the link a keyboard or a screen reader meets. */}
-  {
-    host && (
-      <Link
-        variant="source"
-        className="story-source"
-        href={item.url}
-        target="_blank"
-        rel="noopener noreferrer"
-        tabIndex={-1}
-        aria-hidden="true"
-        title={publisher ?? undefined}
-      >{publisher}</Link>
-    )
-  }
-  {/* The headline is the way to the story, as in any news list: a link to the source in a new tab.
-       Its name starts with the words it shows, so a reader using voice control can say them; the
-       new tab is said, not shown. The story is named by the headline's words alone. A story whose
-       address must not become a link keeps a plain headline. */}
-  <h3 class="story-title text-title" id={titleId}>
-    {
-      host ? (
-        <a class="story-link" href={item.url} target="_blank" rel="noopener noreferrer">
-          {/* One line: a break inside the span would read as a space before the words. */}
-          <span id={`${titleId}-text`}>{words.map((part) => (part.nowrap ? <span class="no-break">{part.text}</span> : part.text))}</span>
-          <span class="sr-only">(opens in a new tab)</span>
-        </a>
-      ) : (
-        words.map((part) => (part.nowrap ? <span class="no-break">{part.text}</span> : part.text))
-      )
-    }
-  </h3>
-  <p class="story-summary">{item.summary}</p>
-  <div class="story-actions">
-    {/* Always in the page. Hidden while the briefing has no audio timeline, so audio that arrives
-         later only has to reveal it. */}
-    {/* The glyph alone, its length and state in its name (owner, 2026-11-13: "the same in chapters"; DS-13). */}
-    <PlayChip aria-label={chip.name} data-play-item={index} hidden={!hasAudio} />
-    <StoryControls
-      id={item.id}
-      url={item.url}
-      headline={item.headline}
-      topic={item.category}
-      source={item.source}
-      outlet={publisher}
-      canBlock={host !== null}
-    />
-  </div>
+{/* A story is one line to scan (owner, 2026-11-26: "a lot of text to read ... just show the
+     headlines ... with good timestamps ... remove the play buttons for each story"): when it starts
+     in the recording, its headline and who published it. The headline opens the summary, the way to
+     the source and the votes under it. */}
+<article class="story" data-item-id={item.id} data-index={index} aria-labelledby={titleId}>
+  {/* The time is the way to hear the story from its start: the player's listener takes it by
+       data-play-item and writes its state and name (readerSync.ts), as it did the play mark's.
+       Always in the page, hidden while the briefing has no audio timeline, so audio that arrives
+       later only has to reveal it and write its time. */}
+  <button
+    class:list={[buttonClass("text"), "story-time"]}
+    type="button"
+    aria-label={chip.name}
+    data-play-item={index}
+    data-state="idle"
+    hidden={!hasAudio}
+  >{at}</button>
+  <details class="story-details">
+    <summary class="story-head">
+      <h3 class="story-title text-title" id={titleId}>
+        {words.map((part) => (part.nowrap ? <span class="no-break">{part.text}</span> : part.text))}
+      </h3>
+      {publisher && <span class="meta story-publisher">{publisher}</span>}
+      <Icon name="chevronDown" className="story-chevron" />
+    </summary>
+    <p class="story-summary">{item.summary}</p>
+    <div class="story-actions">
+      {/* The way to the story itself, in a new tab: the publisher's name, underlined. The new tab
+           is said, not shown. A story whose address must not become a link gets none. */}
+      {
+        host && (
+          <Link
+            variant="source"
+            className="story-source"
+            href={item.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            title={publisher ?? undefined}
+          >
+            Read at {publisher}
+            <span class="sr-only">(opens in a new tab)</span>
+          </Link>
+        )
+      }
+      <StoryControls
+        id={item.id}
+        url={item.url}
+        headline={item.headline}
+        topic={item.category}
+        source={item.source}
+        outlet={publisher}
+        canBlock={host !== null}
+      />
+    </div>
+  </details>
 </article>

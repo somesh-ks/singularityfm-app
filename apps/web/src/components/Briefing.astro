@@ -1,26 +1,40 @@
 ---
-import SectionTabs from "@singularityfm/design-system/SectionTabs";
+import type { CoverSource } from "../lib/covers";
 import type { SectionView } from "../lib/digestView";
 import Chapter from "./Chapter.astro";
+import Cover from "./Cover.astro";
 import Item from "./Item.astro";
 
 interface Props {
   sections: SectionView[];
   hasAudio: boolean;
+  /** What the strip over the stories names: the podcast's id, title and cover. */
+  podcast: { id: string; title: string; cover: CoverSource; weekly: boolean };
 }
 
-const { sections, hasAudio } = Astro.props;
+const { sections, hasAudio, podcast } = Astro.props;
 ---
 
-{/* The tabs live inside this wrapper so they stay stuck for the sections and let go after the last
-     one (SectionTabs.astro). */}
+{/* The strip lives inside this wrapper so it stays stuck for the sections and lets go after the last
+     one, as the section tabs did. It took their place (owner, 2026-11-26: "the scrollable tabs are a
+     bit annoying ... not very easy to go to the top ... the name of the podcast is visible, or it
+     morphs into some small strip on top"): the podcast's cover and name, shown once the stories
+     reach the top chrome (briefingPage.ts marks it stuck), and a press takes the reader to the top.
+     Play stays the floating button (owner, same day). */}
 <div class="briefing" id="briefing">
-  <SectionTabs sections={sections} />
+  <div class="tabs-bar briefing-strip-bar" data-tabs-bar data-page-strip>
+    <a class="briefing-strip" href="#main" data-page-top aria-label={`${podcast.title}: back to the top`}>
+      <span class="briefing-strip-cover">
+        <Cover digestId={podcast.id} size="thumb" source={podcast.cover} weekly={podcast.weekly} />
+      </span>
+      <span class="briefing-strip-title">{podcast.title}</span>
+    </a>
+  </div>
   {
     sections.map((section) => (
       <Chapter section={section}>
-        {section.items.map(({ item, index: itemIndex, length }) => (
-          <Item item={item} index={itemIndex} length={length} hasAudio={hasAudio} />
+        {section.items.map(({ item, index: itemIndex, length, at }) => (
+          <Item item={item} index={itemIndex} length={length} at={at} hasAudio={hasAudio} />
         ))}
       </Chapter>
     ))

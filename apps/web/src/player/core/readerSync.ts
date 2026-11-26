@@ -33,6 +33,7 @@ import { narratedOrPage } from "../../narration/narrationRegistry";
 import type { PlayerDigestData } from "../../types/contracts";
 import { showCardProgress } from "./cardProgress";
 import { readDigestData } from "./digestData";
+import { formatClock } from "./formatTime";
 import { openPlayerOnPhone } from "./openOnPhone";
 import { playPageChapter, togglePageDigest, togglePageItem } from "./pageActions";
 import type { PlayerStore } from "./playerTypes";
@@ -297,6 +298,9 @@ export function createReaderSync(
       );
       const item = page.items.find((entry) => entry.id === id);
       if (!item) continue;
+      // A story's time, for audio that arrived after the page was built without one (Item.astro).
+      if (chip.matches(".story-time") && !chip.textContent && item.start_ms !== null)
+        chip.textContent = formatClock(item.start_ms / 1000);
       writeChip(
         chip,
         storyChipView(

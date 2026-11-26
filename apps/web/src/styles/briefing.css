@@ -95,6 +95,61 @@ html[data-has-tabs] {
   }
 }
 
+/* A podcast's name strip (Briefing.astro) stands where the tabs stood and takes their bar: the same
+   stuck edge, surface and line. It takes no room in the page (its own height is given back below
+   it) and shows only while stuck, so the stories start where they did and the name arrives as the
+   header leaves. */
+.briefing > .briefing-strip-bar {
+  margin-block-end: calc(var(--tabs-height) * -1);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity var(--duration-state) var(--ease-hover),
+    visibility 0s var(--duration-state);
+}
+
+.briefing > .briefing-strip-bar[data-stuck] {
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0s;
+}
+
+.briefing-strip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: var(--tabs-height);
+  padding-inline: var(--page-gutter-start) var(--page-gutter-end);
+  color: var(--color-on-surface);
+  font-size: var(--text-label-size);
+  font-weight: var(--text-label-weight);
+  line-height: var(--text-label-leading);
+  text-decoration: none;
+}
+
+.briefing-strip:focus-visible {
+  outline: var(--stroke-ring) solid var(--color-focus-ring);
+  outline-offset: calc(var(--stroke-ring) * -1);
+}
+
+.briefing-strip-cover {
+  flex: none;
+  width: calc(var(--space-6) + var(--space-2));
+  --cover-radius: var(--shape-xs);
+}
+
+.briefing-strip-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (40rem <= width < 80rem) {
+  .briefing-strip {
+    padding-inline: var(--space-2);
+  }
+}
+
 /* The edge fades say "more this way", so a strip whose tabs all fit has none (briefingPage.ts
    marks it). */
 .briefing .tabs[data-fits] {
@@ -128,6 +183,82 @@ html[data-has-tabs] {
    20px that took it back is gone. */
 .story {
   padding-block: calc(var(--item-gap) / 2);
+}
+
+/* A story is a row to scan (owner, 2026-11-26): its time in a column of its own, then the headline
+   and the publisher. Without audio the time is hidden and the words take the row. */
+.story {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+}
+
+.story-details {
+  grid-column: 2;
+  min-width: 0;
+}
+
+/* The time is the text button, kept quiet: the muted ink and tabular figures, so a column of them
+   reads as a rail of times and not as a row of calls to act. Its target is the button's own; its
+   figures start on the card's edge and sit on the headline's first line. */
+.story-time {
+  min-width: calc(var(--space-12) + var(--space-2));
+  justify-content: start;
+  margin-block: calc((var(--size-touch) - var(--text-title-size) * var(--text-title-leading)) / -2);
+  margin-inline: calc(var(--space-4) * -1) 0;
+  color: var(--color-on-surface-muted);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-regular);
+}
+
+/* The story being read says so on its time, in the accent. */
+.story-time[data-state="current"],
+.story-time[data-state="preparing"] {
+  color: var(--color-accent);
+  font-weight: var(--font-weight-medium);
+}
+
+/* The headline row opens the summary under it: no marker of the browser's, a chevron at its end. */
+.story-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: var(--space-2);
+  align-items: start;
+  list-style: none;
+  cursor: pointer;
+  border-radius: var(--shape-sm);
+}
+
+.story-head::-webkit-details-marker {
+  display: none;
+}
+
+.story-head:focus-visible {
+  outline: var(--stroke-ring) solid var(--color-focus-ring);
+  outline-offset: var(--space-1);
+}
+
+.story-publisher {
+  grid-column: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.story-chevron {
+  grid-area: 1 / 2;
+  color: var(--color-on-surface-muted);
+  transition: rotate var(--duration-state) var(--ease-hover);
+}
+
+.story-details[open] .story-chevron {
+  rotate: 180deg;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .story-head:hover .story-title {
+    color: var(--color-accent);
+  }
 }
 
 .story-title {
@@ -237,6 +368,13 @@ html[data-has-tabs] {
   margin-block: calc(var(--space-2) * -1);
   color: var(--color-on-surface-muted);
   font-weight: var(--font-weight-regular);
+}
+
+/* In the opened story the link stands on the action line, before the votes: no hang there. */
+.story-actions > .story-source {
+  flex: 0 1 auto;
+  margin-block: 0;
+  min-width: 0;
 }
 
 /* Underlined words say it opens the source, with no glyph after them (owner, 2026-10-24). */

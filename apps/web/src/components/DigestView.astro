@@ -45,7 +45,16 @@ const hasAudio = entry.audioMode === "ready";
       />
     )
   }
-  <Briefing sections={sections} hasAudio={hasAudio} />
+  <Briefing
+    sections={sections}
+    hasAudio={hasAudio}
+    podcast={{
+      id: entry.id,
+      title: hero.title,
+      cover: entry.digest,
+      weekly: entry.digest.kind === "weekly",
+    }}
+  />
   <p class="meta page-made"><time datetime={entry.digest.generated_at}>{madeAt(entry.digest.generated_at)}</time></p>
   {/* Not on a shared page: its cards lead to the owner's own pages, where a stranger's presses count. */}
   {!shareToken && <EarlierList entries={earlier} />}

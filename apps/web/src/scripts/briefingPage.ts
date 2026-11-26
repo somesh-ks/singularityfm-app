@@ -113,6 +113,9 @@ function watchHeroPlay(): void {
   heroObserver.observe(actions);
 }
 
+/** What sticks over the sections: an episode's section tabs, or a podcast's name strip (Briefing.astro). */
+const STRIP = "[data-section-tabs], [data-page-strip]";
+
 function watchSections({ keepHeld = false } = {}): void {
   observer?.disconnect();
   endObserver?.disconnect();
@@ -124,7 +127,7 @@ function watchSections({ keepHeld = false } = {}): void {
   if (!first || !last) return;
   // An empty element after everything else on the page (DigestView.astro).
   const end = document.querySelector<HTMLElement>("[data-page-end]");
-  const strip = document.querySelector<HTMLElement>("[data-section-tabs]");
+  const strip = document.querySelector<HTMLElement>(STRIP);
   // The reading line: a heading's padding under the sticky strip (or the top, where the strip is
   // not shown), which is where a jump to a section puts its heading's words. A jump made while the
   // app bar shows can leave the heading lower once the bar slides away, still within this line.
@@ -246,6 +249,13 @@ document.addEventListener("click", (event) => {
     mark(tab.dataset.section);
     return;
   }
+  // The name strip takes the reader to the top of the page, above the header's own scroll padding.
+  if (event.target.closest("[data-page-top]")) {
+    event.preventDefault();
+    scrollTo({ top: 0, behavior: reducedMotion() ? "auto" : "smooth" });
+    document.getElementById("page-title")?.focus({ preventScroll: true });
+    return;
+  }
   const button = event.target.closest<HTMLElement>("[data-share]");
   if (button) void share(button);
   const heart = event.target.closest<HTMLElement>("[data-favorite]");
@@ -325,7 +335,7 @@ window.addEventListener("resize", () => requestAnimationFrame(measure), { passiv
 // The app bar hiding or coming back moves the strip, and with it the reading line and the edge it
 // sticks at: measure again from where they now are. A tapped tab keeps its mark through the move.
 new MutationObserver(() => {
-  if (document.querySelector("[data-section-tabs]")) watchSections({ keepHeld: true });
+  if (document.querySelector(STRIP)) watchSections({ keepHeld: true });
 }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-bar-hidden"] });
 
 /**

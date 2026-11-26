@@ -66,6 +66,12 @@
   list-style: none;
 }
 
+/* A hairline parts the rows, so a long list reads as rows and not as one block of words (owner,
+   2026-11-26: "quite crowded"). */
+.show-episode + .show-episode {
+  border-block-start: var(--stroke-hairline) solid var(--color-border-hairline);
+}
+
 /* The name and facts are the link; Play, and a mouse's dots, stand after it and never inside it. */
 .show-episode {
   position: relative;
@@ -126,29 +132,6 @@
 /* New, before the day: the accent's own word, no pill, so a list of them stays quiet. */
 .show-episode-new {
   color: var(--color-accent);
-}
-
-/* Half heard: a thin bar under the facts, a third of the row at most. */
-.show-episode-progress {
-  display: block;
-  width: min(100%, calc(var(--space-8) * 4));
-  height: var(--space-1);
-  overflow: hidden;
-  border-radius: var(--shape-round);
-  background: var(--color-surface-container);
-}
-
-.show-episode-progress::before {
-  content: "";
-  display: block;
-  width: var(--progress, 0%);
-  height: 100%;
-  border-radius: inherit;
-  background: var(--color-accent);
-}
-
-.show-episode-progress[hidden] {
-  display: none;
 }
 
 /* A mouse sees the dots while the row is pointed at, a key is inside it or its menu is open

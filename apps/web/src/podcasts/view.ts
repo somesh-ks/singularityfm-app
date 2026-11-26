@@ -42,13 +42,6 @@ export function timeFact(durationSeconds: number | null, heard: Heard): string {
   return lengthLabel(total);
 }
 
-/** How far the row's bar goes, 0 to 1; 0 hides it. */
-export function heardShare(durationSeconds: number | null, heard: Heard): number {
-  const total = durationSeconds ?? 0;
-  if (!(total > 0) || heard.played) return 0;
-  return Math.min(Math.max(heard.seconds / total, 0), 1);
-}
-
 /** Whether every word typed is in the episode's title or notes, in any order and any case. */
 export function matchesSearch(
   episode: Pick<EpisodeRow, "title" | "description">,

@@ -21,7 +21,7 @@ import {
   showIdOf,
 } from "../podcasts/rules";
 import { fetchShow, storedShow } from "../podcasts/shows";
-import { dayLabel, heardShare, matchesSearch, timeFact } from "../podcasts/view";
+import { dayLabel, matchesSearch, timeFact } from "../podcasts/view";
 import type { EpisodeRow, ShowDetail } from "../server/podcasts/shapes";
 
 /** How many rows one draw adds: a show can hold a thousand episodes, and a page that many menus. */
@@ -196,7 +196,6 @@ function install(): void {
         dayLabel(episode.published_at, new Date()),
         timeFact(episode.duration_s, heard),
         episode.kind === "trailer" ? "Trailer" : episode.kind === "bonus" ? "Bonus" : "",
-        heard.played ? "Played" : "",
       ].filter(Boolean);
       const key = `${fresh ? "new " : ""}${words.join("|")}`;
       if (facts.dataset.key !== key) {
@@ -209,12 +208,6 @@ function install(): void {
         const mark = fresh ? newTemplate?.content.firstElementChild?.cloneNode(true) : null;
         facts.replaceChildren(...(mark ? [mark] : []), ...spans);
       }
-    }
-    const bar = row.querySelector<HTMLElement>("[data-episode-progress]");
-    if (bar) {
-      const share = heardShare(episode.duration_s, heard);
-      bar.hidden = share <= 0;
-      bar.style.setProperty("--progress", `${Math.round(share * 100)}%`);
     }
     const chip = row.querySelector<HTMLElement>("[data-episode-play]");
     if (chip) {

@@ -18,6 +18,12 @@ export interface Release {
 
 export const CHANGELOG: readonly Release[] = [
   {
+    version: "0.24.2",
+    date: "2026-11-26",
+    description:
+      "Groundwork for playing any public podcast: the app can now look up shows, their episodes and covers behind the scenes. Daily covers are now as light as weekly ones.",
+  },
+  {
     version: "0.24.1",
     date: "2026-11-23",
     description:

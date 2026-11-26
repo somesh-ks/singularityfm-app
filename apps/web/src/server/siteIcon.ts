@@ -36,7 +36,7 @@ export interface SiteIconResult {
 const NOT_FOUND: SiteIconResult = { status: 404 };
 
 /** Reads a body up to a limit; null when it is longer. */
-async function readCapped(response: Response, limit: number): Promise<Uint8Array | null> {
+export async function readCapped(response: Response, limit: number): Promise<Uint8Array | null> {
   const reader = response.body?.getReader();
   if (!reader) return null;
   const chunks: Uint8Array[] = [];

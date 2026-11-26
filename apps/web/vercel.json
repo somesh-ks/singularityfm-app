@@ -130,6 +130,12 @@
       "source": "/design/:path*",
       "destination": "https://design.singularityfm.app/:path*",
       "permanent": false
+    },
+    {
+      "source": "/:path((?!_astro/|api/|favicon\\.svg$|sw\\.js$).+)",
+      "has": [{ "type": "host", "value": "singularityfm.app" }],
+      "destination": "https://play.singularityfm.app/:path",
+      "permanent": false
     }
   ],
   "headers": [

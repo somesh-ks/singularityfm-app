@@ -12,6 +12,8 @@ import { STARTED_EVENT } from "../../lib/queueDay";
 import { narratedOrPage } from "../../narration/narrationRegistry";
 import { pageNeedsPrewarm, whenIdle } from "../../narration/prewarmPage";
 import { createSwitchableAudio, type SwitchableAudio } from "../../narration/switchableAudio";
+import { isShowEpisodeId } from "../../podcasts/rules";
+import { rememberShowSpeed, showSpeedFor } from "../../podcasts/showSpeed";
 import { wakeIslands } from "../../scripts/islandWake";
 import type { PlayerDigestData } from "../../types/contracts";
 import { startSound } from "../sound/soundController";
@@ -264,10 +266,17 @@ export function getPlayerStore(): PlayerStore {
     createPlayerStore({
       createAudio: getPlayerAudio,
       storage: safeLocalStorage(),
-      getPreferredRate: () => getSpeedDefault().getDefaultRate(),
-      // A speed chosen here lasts this episode; the default is only a Settings choice or an accepted offer.
-      onRateChange: (rate) =>
-        getSpeedDefault().noteRate(getPlayerStore().getState().track?.digest.id ?? null, rate),
+      // A public show starts at the speed last used on it; anything else at the default.
+      getPreferredRate: (digestId) =>
+        (digestId ? showSpeedFor(safeLocalStorage(), digestId) : null) ??
+        getSpeedDefault().getDefaultRate(),
+      // A speed chosen here lasts this episode; the default is only a Settings choice or an accepted
+      // offer. On a public show it is kept for that show, and is no vote for a new default.
+      onRateChange: (rate) => {
+        const id = getPlayerStore().getState().track?.digest.id ?? null;
+        if (id && isShowEpisodeId(id)) rememberShowSpeed(safeLocalStorage(), id, rate);
+        else getSpeedDefault().noteRate(id, rate);
+      },
       onPageHide,
     }),
   );

@@ -1,3 +1,4 @@
+import { finishedTailSeconds } from "../../podcasts/rules";
 import type { PlayerDigestData } from "../../types/contracts";
 import { isFiniteNumber } from "./mathUtils";
 
@@ -9,7 +10,10 @@ export interface StorageLike {
 }
 
 export const RESUME_KEY_PREFIX = "singularity:resume:";
-/** Seconds from the end inside which a saved position counts as "finished". */
+/**
+ * Seconds from the end inside which a saved position counts as "finished": three for a Catchup,
+ * the credits of a show episode (podcasts/rules.ts).
+ */
 const FINISHED_TAIL_SECONDS = 3;
 /** Positions under this are not worth restoring: the listener barely started. */
 const MIN_RESTORE_SECONDS = 2;
@@ -116,7 +120,12 @@ export function readResumePosition(
   const seconds = Number(raw);
   if (!isFiniteNumber(seconds) || seconds < MIN_RESTORE_SECONDS) return 0;
   // A saved position at the very end would resume into silence. Start over instead.
-  if (durationSeconds > 0 && seconds >= durationSeconds - FINISHED_TAIL_SECONDS) return 0;
+  if (
+    durationSeconds > 0 &&
+    seconds >= durationSeconds - finishedTailSeconds(digestId, durationSeconds)
+  ) {
+    return 0;
+  }
   return durationSeconds > 0 ? Math.min(seconds, durationSeconds) : seconds;
 }
 
@@ -132,7 +141,8 @@ export function saveResumePosition(
     // A duration inside the tail is no recording's: it is the unlock primer's silence (0.05 s), whose
     // position 0 would otherwise read as the end.
     const finished =
-      durationSeconds > FINISHED_TAIL_SECONDS && seconds >= durationSeconds - FINISHED_TAIL_SECONDS;
+      durationSeconds > FINISHED_TAIL_SECONDS &&
+      seconds >= durationSeconds - finishedTailSeconds(digestId, durationSeconds);
     if (finished) markPlayed(storage, digestId, recording);
     else if (seconds < MIN_RESTORE_SECONDS) storage.removeItem(resumeKey(digestId));
     else {

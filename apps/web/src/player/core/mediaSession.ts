@@ -5,14 +5,11 @@
  * iOS drops handlers now and then, so they are registered again every time the page becomes
  * visible (build-plan 8.4). Position state is kept in sync so the lock-screen scrubber works.
  */
+
+import { skipSeconds } from "../../podcasts/rules";
 import { longDateFromDigestId, monthLabelFromDate } from "./formatTime";
 import { isPlayingStatus } from "./playerCopy";
-import {
-  type PlayerStore,
-  SKIP_BACK_SECONDS,
-  SKIP_FORWARD_SECONDS,
-  type Track,
-} from "./playerTypes";
+import type { PlayerStore, Track } from "./playerTypes";
 
 type ActionName =
   | "play"
@@ -89,8 +86,10 @@ export function attachMediaSession(store: PlayerStore, deps: MediaSessionDeps = 
     play: () => store.play("user"),
     pause: () => store.pause("user"),
     // The system may name its own offset; otherwise these match the transport's two buttons.
-    seekbackward: (details) => store.skip(-(details.seekOffset ?? SKIP_BACK_SECONDS)),
-    seekforward: (details) => store.skip(details.seekOffset ?? SKIP_FORWARD_SECONDS),
+    seekbackward: (details) =>
+      store.skip(-(details.seekOffset ?? skipSeconds(store.getState().digestId).back)),
+    seekforward: (details) =>
+      store.skip(details.seekOffset ?? skipSeconds(store.getState().digestId).forward),
     seekto: (details) => {
       if (typeof details.seekTime === "number") store.seekTo(details.seekTime * 1000);
     },

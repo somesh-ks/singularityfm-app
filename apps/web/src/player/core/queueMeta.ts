@@ -1,3 +1,5 @@
+import { episodeDigest } from "../../podcasts/episodeDigest";
+import { isShowEpisodeId } from "../../podcasts/rules";
 import type { PlayerDigestData } from "../../types/contracts";
 import { readDigestData } from "./digestData";
 import { longDateFromDigestId } from "./formatTime";
@@ -33,6 +35,15 @@ export function queueDigestFor(id: string): PlayerDigestData | null {
   return digests.get(id) ?? null;
 }
 
+/**
+ * A show episode about to play: known at once, with no read, so its Play starts in the same turn
+ * as the press and its queue row has a title from the first frame.
+ */
+export function rememberQueueDigest(data: PlayerDigestData): void {
+  digests.set(data.id, data);
+  known.set(data.id, metaOf(data));
+}
+
 /** Reads the item's page if it has not been read yet; null where it cannot be. */
 export async function loadQueueDigest(id: string): Promise<PlayerDigestData | null> {
   await loadQueueMeta(id);
@@ -51,10 +62,19 @@ export function queueMetaFor(id: string): QueueMeta | null {
 export function loadQueueMeta(id: string): Promise<QueueMeta | null> {
   const cached = asked.get(id);
   if (cached) return cached;
-  const request = fetch(queueItemUrl(id), { credentials: "same-origin" })
-    .then((response) => (response.ok ? response.text() : ""))
-    .then((html) => {
-      const data = html ? readDigestData(new DOMParser().parseFromString(html, "text/html")) : null;
+  // A show episode has no page of ours to read: its record is on the device, pinned there when it
+  // was played or queued (podcasts/deviceStore.ts).
+  const read: Promise<PlayerDigestData | null> = isShowEpisodeId(id)
+    ? import("../../podcasts/deviceStore")
+        .then((store) => store.getEpisode(id))
+        .then((episode) => (episode ? episodeDigest(episode) : null))
+    : fetch(queueItemUrl(id), { credentials: "same-origin" })
+        .then((response) => (response.ok ? response.text() : ""))
+        .then((html) =>
+          html ? readDigestData(new DOMParser().parseFromString(html, "text/html")) : null,
+        );
+  const request = read
+    .then((data) => {
       const meta = data ? metaOf(data) : null;
       known.set(id, meta);
       if (data) digests.set(id, data);

@@ -1,0 +1,29 @@
+---
+import LibraryList from "../components/LibraryList.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { libraryItems } from "../lib/libraryCard";
+import { getSite } from "../lib/site";
+import { keepAtEdge, readFromContentRepo } from "../server/contentRepo";
+
+// Rendered on request from the content repository (D173); the static test build prerenders it.
+export const prerender = false;
+
+if (!Astro.isPrerendered) {
+  const unavailable = await readFromContentRepo("search", Astro.url);
+  if (unavailable) return unavailable;
+  keepAtEdge(Astro.response.headers);
+}
+
+const { entries, episodes } = await getSite();
+const items = libraryItems(entries, episodes);
+---
+
+<BaseLayout
+  title="Search"
+  view="library"
+  nav="search"
+  skipLabel="Skip to search"
+  library={items.length === 0 ? "empty" : "items"}
+>
+  <LibraryList items={items} search />
+</BaseLayout>

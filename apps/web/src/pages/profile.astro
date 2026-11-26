@@ -75,6 +75,18 @@ import "../styles/profile.css";
           </a>
         </div>
       </section>
+
+      {/* Settings lives here, not in the bar (owner, 2026-11-26): Home, Search, Library are the tabs. */}
+      <section aria-label="Settings">
+        <div class="rows card-group">
+          <a class="row-action" href="/settings">
+            <span class="settings-text">
+              <span class="settings-label">Settings</span>
+            </span>
+            <Icon name="chevronRight" />
+          </a>
+        </div>
+      </section>
     </div>
   </main>
 </BaseLayout>

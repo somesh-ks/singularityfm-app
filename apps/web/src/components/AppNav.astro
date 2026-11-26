@@ -29,10 +29,11 @@ const destinations: Array<{
   iconCurrent: IconName;
 }> = [
   // Home, Search, Library (owner, 2026-11-26). Settings sits inside the profile, under the avatar.
-  // Home is today's Latest page until the podcast Home replaces it; Search searches the Library.
+  // Home is today's Latest page until the podcast Home replaces it; Search is where shows are found.
   { id: "today", href: "/", label: "Home", icon: "house", iconCurrent: "houseFill" },
-  // The system has no filled magnifier: the pill alone says Search is current.
-  { id: "search", href: "/search", label: "Search", icon: "search", iconCurrent: "search" },
+  // shortcut: the 12 Nov canvas moves Search to a bar at the top of Home from 64rem; until that Home
+  // ships, the side column keeps Search as a row so it can be reached there.
+  { id: "search", href: "/search", label: "Search", icon: "search", iconCurrent: "searchFill" },
   {
     id: "library",
     href: "/library",

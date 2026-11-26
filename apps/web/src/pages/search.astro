@@ -1,11 +1,22 @@
 ---
+import Band from "@singularityfm/design-system/Band";
+import Button from "@singularityfm/design-system/Button";
+import Chip from "@singularityfm/design-system/Chip";
+import ChipGroup from "@singularityfm/design-system/ChipGroup";
+import SearchField from "@singularityfm/design-system/SearchField";
+import TopicGrid from "@singularityfm/design-system/TopicGrid";
+import TopicTile from "@singularityfm/design-system/TopicTile";
 import LibraryList from "../components/LibraryList.astro";
+import PodcastRowTemplate from "../components/PodcastRowTemplate.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { libraryItems } from "../lib/libraryCard";
 import { getSite } from "../lib/site";
+import { BROWSE_TOPICS, topicHref } from "../lib/topics";
 import { keepAtEdge, readFromContentRepo } from "../server/contentRepo";
+import "../styles/search.css";
 
-// Rendered on request from the content repository (D173); the static test build prerenders it.
+// Rendered on request from the content repository (D173), for the Catchups it searches; the static
+// test build prerenders it.
 export const prerender = false;
 
 if (!Astro.isPrerendered) {
@@ -18,12 +29,96 @@ const { entries, episodes } = await getSite();
 const items = libraryItems(entries, episodes);
 ---
 
-<BaseLayout
-  title="Search"
-  view="library"
-  nav="search"
-  skipLabel="Skip to search"
-  library={items.length === 0 ? "empty" : "items"}
->
-  <LibraryList items={items} search />
+{/* Search, the phone's second tab (owner, 26 Nov; 12 Nov canvas "Search" and "Search results").
+     Before typing it is a place to discover shows: what you opened lately, topics, the top shows.
+     Typing turns it into results under Shows, Episodes and Catchups. Public shows come from our
+     podcast routes (scripts/searchPage.ts); Catchups are searched in the page, as the Library does. */}
+<BaseLayout title="Search" view="library" nav="search" skipLabel="Skip to search">
+  <main id="main" class="library search-page" tabindex="-1" data-search-page>
+    <h1 class="sr-only" id="page-title" tabindex="-1">Search</h1>
+    <form class="library-tools" role="search" aria-label="Search" data-search-form>
+      <SearchField
+        clearable
+        label="Search shows and episodes"
+        name="q"
+        placeholder="Shows and episodes"
+        autoComplete="off"
+        enterKeyHint="search"
+        data-library-search
+      />
+    </form>
+
+    <div data-discover>
+      <section aria-labelledby="recent-title" data-recent hidden>
+        <div class="shelf-head">
+          <h2 id="recent-title">Recent</h2>
+          <Button variant="text" data-recent-clear>Clear</Button>
+        </div>
+        <div data-library data-view="list" data-podcast-list>
+          <ul class="library-grid" role="list" data-recent-list></ul>
+        </div>
+      </section>
+
+      <section aria-labelledby="topics-title">
+        <div class="shelf-head">
+          <h2 id="topics-title">Browse topics</h2>
+        </div>
+        <TopicGrid className="search-topics" data-topics>
+          {BROWSE_TOPICS.map((topic) => (
+            <TopicTile name={topic.name} href={topicHref(topic)} data-topic={topic.query} />
+          ))}
+        </TopicGrid>
+      </section>
+
+      <section aria-labelledby="top-title" data-top hidden>
+        <div class="shelf-head">
+          <h2 id="top-title">Top shows</h2>
+          <Button variant="text" href={topicHref()}>See all</Button>
+        </div>
+        <div data-library data-view="list" data-podcast-list>
+          <ul class="library-grid" role="list" data-top-list></ul>
+        </div>
+      </section>
+    </div>
+
+    <div data-results hidden>
+      {/* One kind at a time, or all three while none is ticked, as the Library's chips work. */}
+      <ChipGroup className="search-kinds scroll-fade-inline" aria-label="Show" data-kinds>
+        <Chip name="kind" value="shows" data-kind>Shows</Chip>
+        <Chip name="kind" value="episodes" data-kind>Episodes</Chip>
+        <Chip name="kind" value="catchups" data-kind>Catchups</Chip>
+      </ChipGroup>
+      <p class="sr-only" role="status" data-results-status></p>
+
+      <section aria-labelledby="shows-title" data-section="shows" hidden>
+        <div class="shelf-head">
+          <h2 id="shows-title">Shows</h2>
+        </div>
+        <div data-library data-view="list" data-podcast-list>
+          <ul class="library-grid" role="list" data-shows-list></ul>
+        </div>
+      </section>
+
+      <section aria-labelledby="episodes-title" data-section="episodes" hidden>
+        <div class="shelf-head">
+          <h2 id="episodes-title">Episodes</h2>
+        </div>
+        <div data-library data-view="list" data-podcast-list>
+          <ul class="library-grid" role="list" data-episodes-list></ul>
+        </div>
+      </section>
+
+      {/* The app's own podcasts in the band with the mark (Band), so they read apart from shows. */}
+      <Band title="In your catchups" className="search-band" data-section="catchups" hidden>
+        <LibraryList items={items} search />
+      </Band>
+
+      {/* The plain cause when the routes did not answer; the Catchups above still show. */}
+      <p class="empty-body search-note" data-results-note hidden></p>
+    </div>
+  </main>
+  <PodcastRowTemplate />
+  <script>
+    import "../scripts/searchPage";
+  </script>
 </BaseLayout>

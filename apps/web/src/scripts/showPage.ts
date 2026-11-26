@@ -384,9 +384,15 @@ function install(): void {
     });
   }
 
-  function markAll(): void {
+  async function markAll(): Promise<void> {
+    // The whole show, not only the newest page of it.
+    await readWhole();
     if (!view) return;
     const marked = view.episodes.filter((episode) => !heardOf(episode.id).played);
+    if (marked.length === 0) {
+      sendToast({ message: "Every episode is already played" });
+      return;
+    }
     const before = marked.map((episode) => ({ id: episode.id, heard: heardOf(episode.id) }));
     for (const episode of marked) setPlayed(storage, episode.id, true);
     sendToast({
@@ -466,7 +472,7 @@ function install(): void {
         if (pick && !pressPlay(pick.episode)) refuse();
       } else if (target.closest("[data-show-favorite]")) void toggleFavorite();
       else if (target.closest("[data-show-share]")) void shareShow();
-      else if (target.closest('[data-show-action="mark-all"]')) markAll();
+      else if (target.closest('[data-show-action="mark-all"]')) void markAll();
       else if (target.closest('[data-show-action="site"]')) {
         if (view?.show.link) window.open(view.show.link, "_blank", "noopener");
       } else if (target.closest("[data-show-about-more]")) {

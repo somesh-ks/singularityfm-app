@@ -233,8 +233,11 @@ function install(): void {
       }
       const action = target.closest<HTMLElement>("[data-pick]")?.dataset.pick;
       if (action === "played") setPlayed(storage, current.id, !heardOf(current.id).played);
-      else if (action === "show") location.assign(showUrl(current.show_id));
-      else if (action === "next" || action === "queue") {
+      else if (action === "show") {
+        // The client router's move: a full load would stop what is playing.
+        const to = showUrl(current.show_id);
+        void import("../player/core/navigation").then(({ navigateTo }) => navigateTo(to));
+      } else if (action === "next" || action === "queue") {
         const where = action === "next" ? "next" : "last";
         void queueEpisode(current, where).then((added) =>
           sendToast({

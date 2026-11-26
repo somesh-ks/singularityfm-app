@@ -644,6 +644,10 @@ export function createPlayerStore(options: PlayerStoreOptions): PlayerStore {
     if (attachedUrl === url) return;
     attachedUrl = url;
     expectPause();
+    // Our own files are read in CORS mode (playerRuntime.ts, getPlayerAudio). A publisher's host
+    // owes us no CORS headers, and a file asked for in that mode without them does not load at
+    // all: a show's episode is asked for plainly, as any page plays any audio.
+    element.crossOrigin = track?.digest.show ? null : "anonymous";
     element.src = url;
     element.preload = "metadata";
     applyRate();

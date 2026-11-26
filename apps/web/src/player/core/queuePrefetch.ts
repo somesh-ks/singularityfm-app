@@ -1,3 +1,4 @@
+import { isShowEpisodeId } from "../../podcasts/rules";
 import { audioCandidates, browserCanPlayType } from "./audioSource";
 import type { PlayQueue } from "./playQueue";
 import { loadQueueDigest } from "./queueMeta";
@@ -40,6 +41,8 @@ export function startQueuePrefetch(queue: PlayQueue, fetcher: typeof fetch = fet
   let stopped = false;
 
   async function warm(id: string): Promise<void> {
+    // A publisher's file is on a host the site's policy lets the player play but not fetch.
+    if (isShowEpisodeId(id)) return;
     const digest = await loadQueueDigest(id);
     // The link may have changed while the page was read: ask again before spending bytes.
     if (stopped || !digest?.audio || !mayPrefetch(connectionNow(), navigator.onLine)) return;

@@ -84,7 +84,8 @@ export function loadQueueMeta(id: string): Promise<QueueMeta | null> {
         );
   const request = read
     .then((data) => {
-      const meta = data ? metaOf(data) : null;
+      // A device with no record (a private window) leaves what Play remembered standing.
+      const meta = data ? metaOf(data) : (known.get(id) ?? null);
       known.set(id, meta);
       if (data) digests.set(id, data);
       return meta;

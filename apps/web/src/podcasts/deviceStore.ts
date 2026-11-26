@@ -201,6 +201,11 @@ export function saveShow(show: ShowDetail, episodes: readonly EpisodeRow[]): Pro
           changed_at: stamp,
           ...kept,
           ...episode,
+          // The long list cuts notes shorter than the newest page gives them: the whole ones stay.
+          description:
+            kept && kept.description.length > episode.description.length
+              ? kept.description
+              : episode.description,
         } satisfies StoredEpisode);
       }
     },

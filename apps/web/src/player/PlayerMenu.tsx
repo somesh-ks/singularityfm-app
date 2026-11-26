@@ -260,9 +260,14 @@ export default function PlayerMenu() {
     const tile = event.currentTarget;
     // A show's episode is a favorite in the device's show store, as its page's heart is.
     if (show) {
-      marks.setSaved(next);
-      if (next) requestAnimationFrame(() => glowFavorite(tile));
-      void import("../podcasts/deviceStore").then((store) => store.setEpisodeFavorite(id, next));
+      void import("../podcasts/deviceStore").then(async (store) => {
+        await store.setEpisodeFavorite(id, next);
+        // The device's own answer: a private window keeps nothing.
+        const kept = Boolean((await store.getEpisode(id))?.favorite_at);
+        marks.setSaved(kept);
+        if (kept && next) glowFavorite(tile);
+        else if (kept !== next) toast("Couldn't change favorites on this device", "error");
+      });
       return;
     }
     // The tile says Saved or Save; a toast would cover the sheet. Only a refusal speaks.

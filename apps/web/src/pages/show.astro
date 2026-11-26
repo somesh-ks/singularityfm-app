@@ -1,0 +1,160 @@
+---
+import Button from "@singularityfm/design-system/Button";
+import Chip from "@singularityfm/design-system/Chip";
+import ChipGroup from "@singularityfm/design-system/ChipGroup";
+import Icon from "@singularityfm/design-system/Icon";
+import IconButton from "@singularityfm/design-system/IconButton";
+import Menu from "@singularityfm/design-system/Menu";
+import MenuItem from "@singularityfm/design-system/MenuItem";
+import PlayChip from "@singularityfm/design-system/PlayChip";
+import SearchField from "@singularityfm/design-system/SearchField";
+import Select from "@singularityfm/design-system/Select";
+import EmptyState from "../components/EmptyState.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import "../styles/show.css";
+---
+
+{/* A public show's page (flow spec, 23 Nov 2026): one static shell for every show. The id is in
+     the query, and scripts/showPage.ts draws the show from what the device holds, then from the show
+     route, so a show opened before appears at once and offline. The header is a briefing's own
+     (hero.css): cover, name, facts and one row of buttons with Play in the middle. */}
+<BaseLayout title="Show" view="library" nav={null} skipLabel="Skip to the show">
+  <main id="main" class="show-page" tabindex="-1" data-show-page data-state="loading" aria-busy="true">
+    <div data-show-body>
+      <header class="hero">
+        <span class="cover show-cover" data-size="hero">
+          <img alt="" decoding="async" data-show-cover hidden />
+        </span>
+        <div class="hero-text">
+          {/* A space holds the title's line until the show is read, so the header never jumps. */}
+          <h1 class="page-title text-display" id="page-title" tabindex="-1" data-show-title>&nbsp;</h1>
+          <p class="meta hero-facts" data-show-facts>&nbsp;</p>
+        </div>
+        <div class="hero-actions scroll-fade-inline">
+          {/* The heart follows the show: its new episodes then count as new (podcasts/rules.ts). */}
+          <IconButton
+            variant="tonal"
+            className="hero-favorite"
+            label="Favorite"
+            aria-pressed="false"
+            data-show-favorite
+          >
+            <Icon name="heartOutline" className="fav-add" /><Icon name="heart" className="fav-remove" />
+          </IconButton>
+          {/* One Play for the show: it resumes what was left half heard, else the oldest new
+               episode, else the newest (rules.ts, pickPlay). Its name says which. */}
+          <PlayChip primary className="hero-play" state="idle" aria-label="Play" data-show-play />
+          <IconButton variant="tonal" className="hero-share" label="Share" data-show-share>
+            <Icon name="shareFat" />
+          </IconButton>
+          <IconButton
+            variant="tonal"
+            className="hero-more"
+            label="More actions"
+            aria-haspopup="menu"
+            popoverTarget="show-menu"
+            data-hero-more
+          >
+            <Icon name="moreVert" />
+          </IconButton>
+          <Menu id="show-menu" title="Show">
+            <MenuItem data-show-action="mark-all"><Icon name="check" />Mark all as played</MenuItem>
+            <MenuItem data-show-action="site"><Icon name="openInNew" />Open the show's website</MenuItem>
+          </Menu>
+        </div>
+      </header>
+
+      {/* What the show says of itself: three lines, and the rest behind More. */}
+      <section class="show-about" aria-label="About this show" data-show-about hidden>
+        <p class="show-description" data-show-description data-clamped></p>
+        <Button variant="text" size="small" data-show-about-more aria-expanded="false" hidden>More</Button>
+      </section>
+
+      <section class="show-list" aria-labelledby="show-episodes-head">
+        <h2 class="section-head text-heading" id="show-episodes-head">Episodes</h2>
+        <div class="show-tools">
+          <SearchField
+            label="Search this show"
+            name="q"
+            placeholder="Search this show"
+            clearable
+            autoComplete="off"
+            data-show-search
+          />
+          <div class="show-filters">
+            <ChipGroup aria-label="Show">
+              <Chip name="unplayed" value="1" data-show-unplayed>Unplayed</Chip>
+            </ChipGroup>
+            <Select variant="tonal" label="Sort" data-show-sort>
+              <option value="newest">Newest first</option>
+              <option value="oldest">Oldest first</option>
+            </Select>
+          </div>
+        </div>
+        <p class="sr-only" role="status" data-show-status></p>
+        <ul class="show-episodes" role="list" data-show-episodes></ul>
+        <div class="show-none" data-show-none hidden>
+          <p data-show-none-message>No episodes match.</p>
+          <Button variant="text" data-show-clear>Clear</Button>
+        </div>
+        {/* The route's first answer is the newest fifty; the rest are one press away. */}
+        <div class="show-more" data-show-more hidden>
+          <Button variant="tonal" data-show-all>Show all episodes</Button>
+        </div>
+      </section>
+    </div>
+
+    <div data-show-missing hidden>
+      <EmptyState
+        art="notfound"
+        title="This show is not here"
+        body="It may have been removed, or the link is not whole."
+        primary={{ label: "Open the Library", href: "/library" }}
+        secondary={null}
+        level={2}
+        headingId="show-missing-title"
+      />
+    </div>
+    <div data-show-failed hidden>
+      <EmptyState
+        art="notfound"
+        title="Couldn't load this show"
+        body="Try again when you're back online."
+        primary={{ label: "Try again", href: "/show", reload: true }}
+        secondary={{ label: "Open the Library", href: "/library" }}
+        level={2}
+        headingId="show-failed-title"
+      />
+    </div>
+
+    {/* One episode's row: its name and facts are the link to its page, and Play at its end plays it
+         here (flow spec rule 1: the play mark plays, the rest opens the page). The dots are a
+         mouse's; a finger holds the row (scripts/cardHold.ts), as on every list of podcasts. */}
+    <template data-show-episode>
+      <li class="show-episode" data-card>
+        <a class="show-episode-link" data-astro-prefetch="hover">
+          <span class="show-episode-title" data-episode-title></span>
+          <span class="meta show-episode-facts" data-episode-facts></span>
+          <span class="show-episode-progress" data-episode-progress aria-hidden="true" hidden></span>
+        </a>
+        <div class="show-episode-menu" data-row-menu>
+          <IconButton className="card-more" label="More actions" aria-haspopup="menu" data-hero-more>
+            <Icon name="moreVert" />
+          </IconButton>
+          <Menu id="episode-menu" title="Episode" className="card-menu-list">
+            <MenuItem data-pick="next"><Icon name="play" />Play next</MenuItem>
+            <MenuItem data-pick="queue"><Icon name="queueAdd" />Add to queue</MenuItem>
+            <MenuItem data-pick="played">
+              <Icon name="check" /><span data-menu-label>Mark as played</span>
+            </MenuItem>
+          </Menu>
+        </div>
+        <PlayChip className="show-episode-play" state="idle" aria-label="Play" data-episode-play />
+      </li>
+    </template>
+    <template data-show-new><span class="show-episode-new">New</span></template>
+  </main>
+  <script>
+    import "../scripts/showPage";
+  </script>
+</BaseLayout>

@@ -12,8 +12,8 @@ import { MENU_SELECTORS } from "@singularityfm/design-system/menu";
 
 /** The complement of the one query that draws a ⋮ (library.css): where there are no dots there is the hold. */
 const TOUCH = "not ((hover: hover) and (pointer: fine))";
-/** What a hold opens a menu from: a Library card, and a queue row in the player. */
-const HELD = ".card-link, .player-queue-row";
+/** What a hold opens a menu from: a Library card, a show's episode row, and a queue row in the player. */
+const HELD = ".card-link, .show-episode-link, .player-queue-row";
 /** The button a hold's sheet belongs to, focused first as a tap on it would. */
 const OPENER = "[data-hero-more], .player-queue-more";
 const HOLD_MS = 450;
@@ -80,7 +80,9 @@ export function installCardHold(): void {
         ? row.parentElement?.querySelector<HTMLElement>(MENU_SELECTORS.list)
         : row
             ?.closest("[data-card]")
-            ?.querySelector<HTMLElement>(`[data-library-menu] ${MENU_SELECTORS.list}`);
+            ?.querySelector<HTMLElement>(
+              `:is([data-library-menu], [data-row-menu]) ${MENU_SELECTORS.list}`,
+            );
       if (!row || !list) return;
       start = { x: event.clientX, y: event.clientY, id: event.pointerId };
       const pointerId = event.pointerId;

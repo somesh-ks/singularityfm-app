@@ -1,0 +1,100 @@
+---
+import Icon from "@singularityfm/design-system/Icon";
+import IconButton from "@singularityfm/design-system/IconButton";
+import Link from "@singularityfm/design-system/Link";
+import Menu from "@singularityfm/design-system/Menu";
+import MenuItem from "@singularityfm/design-system/MenuItem";
+import PlayChip from "@singularityfm/design-system/PlayChip";
+import EmptyState from "../components/EmptyState.astro";
+import HeroMarks from "../components/HeroMarks.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import "../styles/show.css";
+---
+
+{/* One episode of a public show (flow spec, 23 Nov 2026): a static shell for every episode. The id
+     is in the query; scripts/episodePage.ts draws it from the device, where a played or queued
+     episode is kept, then from its show's route. The header is a briefing's own (hero.css). */}
+<BaseLayout title="Episode" view="library" nav={null} skipLabel="Skip to the episode">
+  <main id="main" class="show-page" tabindex="-1" data-episode-page data-state="loading" aria-busy="true">
+    <div data-episode-body>
+      <header class="hero">
+        <span class="cover show-cover" data-size="hero">
+          <img alt="" decoding="async" data-episode-cover hidden />
+        </span>
+        <div class="hero-text">
+          {/* The way back to the show, over the episode's own name. */}
+          <Link className="episode-show" href="/library" data-episode-show>&nbsp;</Link>
+          <h1 class="page-title text-display" id="page-title" tabindex="-1" data-episode-title>&nbsp;</h1>
+          <p class="meta hero-facts" data-episode-facts>&nbsp;<HeroMarks /></p>
+        </div>
+        <div class="hero-actions scroll-fade-inline">
+          <IconButton
+            variant="tonal"
+            className="hero-favorite"
+            label="Favorite"
+            aria-pressed="false"
+            data-episode-favorite
+          >
+            <Icon name="heartOutline" className="fav-add" /><Icon name="heart" className="fav-remove" />
+          </IconButton>
+          <PlayChip primary className="hero-play" state="idle" aria-label="Play" data-episode-play />
+          <IconButton variant="tonal" className="hero-share" label="Share" data-episode-share>
+            <Icon name="shareFat" />
+          </IconButton>
+          <IconButton
+            variant="tonal"
+            className="hero-more"
+            label="More actions"
+            aria-haspopup="menu"
+            popoverTarget="episode-page-menu"
+            data-hero-more
+          >
+            <Icon name="moreVert" />
+          </IconButton>
+          <Menu id="episode-page-menu" title="Episode">
+            <MenuItem data-pick="next"><Icon name="play" />Play next</MenuItem>
+            <MenuItem data-pick="queue"><Icon name="queueAdd" />Add to queue</MenuItem>
+            <MenuItem data-pick="played">
+              <Icon name="check" /><span data-menu-label>Mark as played</span>
+            </MenuItem>
+            <MenuItem data-pick="show"><Icon name="library" />Go to the show</MenuItem>
+          </Menu>
+        </div>
+      </header>
+
+      {/* The publisher's notes, as words and links (podcasts/view.ts): never their markup. */}
+      <section class="episode-notes" aria-label="Episode notes" data-episode-notes hidden></section>
+    </div>
+
+    {/* A link in the notes: the design system's own, copied in for each address. */}
+    <template data-episode-note-link>
+      <Link href="/" target="_blank" rel="noopener noreferrer"> </Link>
+    </template>
+
+    <div data-episode-missing hidden>
+      <EmptyState
+        art="notfound"
+        title="This episode is not here"
+        body="Its show may have removed it, or the link is not whole."
+        primary={{ label: "Open the Library", href: "/library" }}
+        secondary={null}
+        level={2}
+        headingId="episode-missing-title"
+      />
+    </div>
+    <div data-episode-failed hidden>
+      <EmptyState
+        art="notfound"
+        title="Couldn't load this episode"
+        body="Try again when you're back online."
+        primary={{ label: "Try again", href: "/episode", reload: true }}
+        secondary={{ label: "Open the Library", href: "/library" }}
+        level={2}
+        headingId="episode-failed-title"
+      />
+    </div>
+  </main>
+  <script>
+    import "../scripts/episodePage";
+  </script>
+</BaseLayout>

@@ -27,6 +27,7 @@ import {
 import "@singularityfm/design-system/styles/slider.css";
 import { glowFavorite } from "@singularityfm/design-system/glow";
 import { downloadFailure } from "../lib/downloadCopy";
+import { showUrl } from "../podcasts/rules";
 import { longDateFromDigestId } from "./core/formatTime";
 import { recordingCaption } from "./core/playerCopy";
 import { getPlayerStore } from "./core/playerRuntime";
@@ -261,6 +262,15 @@ export default function PlayerMenu() {
     void navigateTo(queueItemUrl(id));
   };
 
+  const goToShow = async (showId: number | undefined): Promise<void> => {
+    if (showId === undefined) return;
+    hide();
+    const { navigateTo } = await import("./core/navigation");
+    const { playerSheet } = await import("./core/playerSheet");
+    await playerSheet.collapse();
+    void navigateTo(showUrl(showId));
+  };
+
   const head = (name: string, subtitle: string | null, back: boolean) => (
     <div className={sheetHeadClass()} data-has-back={back ? "" : undefined}>
       {back ? (
@@ -310,7 +320,9 @@ export default function PlayerMenu() {
           <>
             {head(title, digest ? recordingCaption(digest) : null, false)}
             <div className={menuBodyClass()} role="menu" aria-label={title} onKeyDown={onKeyDown}>
-              {wide ? (
+              {/* Download, Share and Favorite are a Catchup's own (its share link, its saved file,
+                  its Favorites): a public show's episode gets them with its own slice. */}
+              {digest?.show ? null : wide ? (
                 <>
                   <button
                     className={menuItemClass()}
@@ -397,8 +409,19 @@ export default function PlayerMenu() {
                 onClick={() => void goToPodcast()}
               >
                 <Icon name="library" />
-                Go to podcast
+                {digest?.show ? "Go to episode" : "Go to podcast"}
               </button>
+              {digest?.show ? (
+                <button
+                  className={menuItemClass()}
+                  type="button"
+                  role="menuitem"
+                  onClick={() => void goToShow(digest.show?.id)}
+                >
+                  <Icon name="library" />
+                  Go to show
+                </button>
+              ) : null}
               {marks.downloaded ? (
                 <button
                   className={menuItemClass("danger")}

@@ -4,6 +4,7 @@ One note per session, newest first. Read a note only to learn why something was 
 
 | Date | Note | Summary |
 | :--- | :--- | :--- |
+| 2026-11-26 | [PostHog with opt-in replay](2026-11-26-posthog-opt-in.md) | PostHog EU counts everyone cookieless through `/api/ph`; a Privacy switch opts in to a stored id and replay (D400) |
 | 2026-11-13 | [Removing the git commit code, step 2](2026-11-13-commit-ts-step-2.md) | `CommitOutcome` is saved or failed; the pre-flight and fast-forward go; a failed Regenerate restores its seen list |
 | 2026-11-13 | [Removing the git commit code, step 3](2026-11-13-commit-ts-step-3.md) | `config.yml`, `config commit` and the git identity variables go; `/api/config` answers 503 with the store off |
 | 2026-11-13 | [Removing the git commit code, step 1](2026-11-13-commit-ts-step-1.md) | `commitAndPush` became `saveRunState`; git no longer commits or pushes (D300), the guard stays |

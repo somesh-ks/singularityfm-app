@@ -104,6 +104,11 @@ Nothing to create. The `snapshot` workflow copies the config store into the `con
 2. Project `singularity-admin`, Domains: add `admin.singularityfm.app`. Project `singularity-design-system`: add `design.singularityfm.app`.
 3. Wait until Vercel marks each domain valid. Vercel issues the certificates.
 
+### 1.6a Get the Podcast Index key
+
+1. Sign up at https://api.podcastindex.org/signup; the key and secret arrive by email.
+2. Put them in `.env` as `PODCAST_INDEX_API_KEY` and `PODCAST_INDEX_API_SECRET`. Section 1.9 sends them to Vercel; until then the podcast routes (D396) answer 503.
+
 ### 1.7 Create the GitHub token
 
 1. In GitHub, open Settings, Developer settings, Fine-grained personal access tokens.

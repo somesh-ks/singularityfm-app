@@ -1,0 +1,39 @@
+---
+import PodcastRowTemplate from "../components/PodcastRowTemplate.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import "../styles/search.css";
+---
+
+{/* A topic's page (12 Nov canvas, "Topic page"), opened from a tile on Search: its top shows, then what
+     they published this week. One static shell for every topic: the name is in the query, and
+     scripts/topicPage.ts draws the lists from our podcast routes. Without a name it is the top shows
+     of every topic (Search's See all). */}
+<BaseLayout title="Topic" view="library" nav="search" skipLabel="Skip to the topic">
+  <main id="main" class="library search-page" tabindex="-1" data-topic-page>
+    <h1 class="page-title text-display library-title" id="page-title" tabindex="-1" data-topic-title>Top shows</h1>
+
+    <section aria-labelledby="topic-shows-title" data-topic-shows hidden>
+      <div class="shelf-head">
+        <h2 id="topic-shows-title">Top shows</h2>
+      </div>
+      <div data-library data-view="list" data-podcast-list>
+        <ul class="library-grid" role="list" data-topic-shows-list></ul>
+      </div>
+    </section>
+
+    <section aria-labelledby="topic-new-title" data-topic-new hidden>
+      <div class="shelf-head">
+        <h2 id="topic-new-title">New this week</h2>
+      </div>
+      <div data-library data-view="list" data-podcast-list>
+        <ul class="library-grid" role="list" data-topic-new-list></ul>
+      </div>
+    </section>
+
+    <p class="empty-body search-note" data-topic-note hidden>This topic did not answer. Try again in a minute.</p>
+  </main>
+  <PodcastRowTemplate />
+  <script>
+    import "../scripts/topicPage";
+  </script>
+</BaseLayout>

@@ -1,0 +1,37 @@
+---
+import Button from "@singularityfm/design-system/Button";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import "../styles/settings.css";
+import "../styles/manage.css";
+import "../styles/first-run.css";
+
+interface Props {
+  step: 1 | 2 | 3;
+  title: string;
+  about: string;
+  /** Where Continue leads; the last step's Done ends first run instead. */
+  next: string | null;
+}
+
+const { step, title, about, next } = Astro.props;
+---
+
+{/* One step of first run (Nov 12 canvas, boards "First run 1 to 3"): a step count, a title, one
+     line on why, the step's own content, then Continue (Done on the last) and Skip, which ends
+     first run at any step. scripts/firstRunPage.ts keeps what each step picks. */}
+<BaseLayout title={title} view="home" nav={null} skipLabel="Skip to the step">
+  <main id="main" tabindex="-1">
+    <div class="first-run" data-first-run={step}>
+      <p class="meta first-run-steps">Step {step} of 3</p>
+      <header>
+        <h1 class="page-title text-display" id="page-title" tabindex="-1">{title}</h1>
+        <p class="first-run-about">{about}</p>
+      </header>
+      <slot />
+      <div class="first-run-acts">
+        <Button variant="filled" href={next ?? undefined} data-first-run-next>{next ? "Continue" : "Done"}</Button>
+        <Button variant="text" data-first-run-skip>Skip</Button>
+      </div>
+    </div>
+  </main>
+</BaseLayout>

@@ -1,0 +1,30 @@
+---
+import Chip from "@singularityfm/design-system/Chip";
+import ChipGroup from "@singularityfm/design-system/ChipGroup";
+import FirstRunStep from "../components/FirstRunStep.astro";
+import { FIRST_RUN_DEFAULTS, FIRST_RUN_TOPICS } from "../podcasts/firstRun";
+---
+
+<FirstRunStep
+  step={1}
+  title="What do you want to hear about?"
+  about="Pick a few. They shape what Home suggests."
+  next="/welcome/shows"
+>
+  {/* The Catch up form's chips; the picks stay on this device (podcasts/firstRun.ts). */}
+  <ChipGroup aria-labelledby="page-title" data-first-run-topics>
+    {
+      FIRST_RUN_TOPICS.map((topic) => (
+        <Chip name="topic" value={topic.label} defaultChecked={FIRST_RUN_DEFAULTS.includes(topic.label)}>
+          {topic.label}
+        </Chip>
+      ))
+    }
+  </ChipGroup>
+</FirstRunStep>
+
+<script>
+  import { installFirstRun } from "../scripts/firstRunPage";
+
+  installFirstRun();
+</script>

@@ -1,0 +1,46 @@
+---
+import SearchField from "@singularityfm/design-system/SearchField";
+import FirstRunStep from "../../components/FirstRunStep.astro";
+import "../../styles/library.css";
+---
+
+<FirstRunStep
+  step={2}
+  title="Follow a few shows"
+  about="New episodes from your favorites land on Home."
+  next="/welcome/import"
+>
+  {/* Trending in the topics step 1 picked, until a search replaces them. A press favorites the
+       show at once (deviceStore.ts) and rings its cover; a second press takes it back. */}
+  <form role="search" novalidate data-first-run-search>
+    <SearchField
+      clearable
+      label="Search shows"
+      name="q"
+      placeholder="Shows and episodes"
+      autoComplete="off"
+      enterKeyHint="search"
+      data-first-run-query
+    />
+  </form>
+  <p class="sr-only" role="status" data-first-run-status></p>
+  <div data-library data-view="gallery">
+    <ul class="library-grid first-run-shows" role="list" data-first-run-shows></ul>
+  </div>
+  <p class="manage-note" data-first-run-none hidden>No shows found. Try another name.</p>
+  <template data-first-run-show>
+    <li class="card" data-card>
+      <button class="card-link first-run-show" type="button" aria-pressed="false">
+        <span class="cover" data-size="card"><img class="cover-art" alt="" decoding="async" loading="lazy" /></span>
+        <span class="card-title"></span>
+        <span class="card-sub"><span class="card-facts"></span></span>
+      </button>
+    </li>
+  </template>
+</FirstRunStep>
+
+<script>
+  import { installFirstRun } from "../../scripts/firstRunPage";
+
+  installFirstRun();
+</script>

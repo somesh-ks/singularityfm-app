@@ -1,0 +1,85 @@
+---
+import BriefingCard from "../../components/BriefingCard.astro";
+import EmptyArt from "../../components/EmptyArt.astro";
+import EpisodeActions from "../../components/EpisodeActions.astro";
+import EpisodeCard from "../../components/EpisodeCard.astro";
+import ManageChrome from "../../components/ManageChrome.astro";
+import SettingsHead from "../../components/SettingsHead.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { libraryItems } from "../../lib/libraryCard";
+import { getSite } from "../../lib/site";
+import { keepAtEdge, readFromContentRepo } from "../../server/contentRepo";
+import "../../styles/settings.css";
+import "../../styles/manage.css";
+import "../../styles/blocked.css";
+
+// Rendered on request from the content repository, like Downloads, whose way it follows.
+export const prerender = false;
+
+if (!Astro.isPrerendered) {
+  const unavailable = await readFromContentRepo("library", Astro.url, true);
+  if (unavailable) return unavailable;
+  keepAtEdge(Astro.response.headers);
+}
+
+const { entries, episodes } = await getSite();
+const items = libraryItems(entries, episodes);
+---
+
+<BaseLayout title="History" view="settings" skipLabel="Skip to history">
+  <main id="main" tabindex="-1">
+    {/* What this device played for a minute or more, newest first, under a heading per day (Nov 12
+         canvas, board "History"). Which items were heard is only known here, so the page carries
+         every Library row, as Downloads does, and historyPage.ts shows the heard ones in order and
+         adds the public shows' episodes from the device store. */}
+    <div class="manage" data-history>
+      <SettingsHead up={{ href: "/profile", label: "Profile" }} title="History" />
+      <noscript>
+        <p class="manage-note">History needs JavaScript, which is turned off in this browser.</p>
+      </noscript>
+
+      <div data-library data-view="list" data-month-bands data-history-list hidden>
+        <ul class="library-grid" role="list" aria-labelledby="page-title" data-library-grid>
+          {
+            items.map((item) =>
+              item.kind === "episode" ? (
+                <EpisodeCard entry={item.entry} />
+              ) : (
+                <BriefingCard entry={item.entry} menu />
+              ),
+            )
+          }
+        </ul>
+      </div>
+
+      <div class="blocked-empty empty" data-history-empty hidden>
+        <EmptyArt art="library" size="compact" />
+        <p class="empty-title">Nothing played yet</p>
+        <p class="empty-body">What you listen to on this device shows up here</p>
+      </div>
+
+      {/* A day's heading, and one public show's episode as a list row (the Library's own card). */}
+      <template data-history-day>
+        <li class="library-month" data-month-head><h2 class="library-month-head"></h2></li>
+      </template>
+      <template data-history-episode>
+        <li class="card" data-card data-meta-lines="3">
+          <a class="card-link" data-astro-prefetch="hover">
+            <span class="cover" data-size="card"><img class="cover-art" alt="" decoding="async" loading="lazy" /></span>
+            <span class="card-title"></span>
+            <span class="card-sub"><span class="card-facts" data-card-facts></span></span>
+          </a>
+        </li>
+      </template>
+
+      <EpisodeActions id="history" />
+      <ManageChrome />
+    </div>
+  </main>
+</BaseLayout>
+
+<script>
+  import { installHistoryPage } from "../../scripts/historyPage";
+
+  installHistoryPage();
+</script>

@@ -1,0 +1,63 @@
+/*
+ * First run (Nov 12 canvas, boards "First run 1 to 3") and the Add a show page: a step's stack, its
+ * actions centred under it, and a picked show's ring. Tokens only.
+ */
+
+.first-run {
+  display: grid;
+  gap: var(--space-6);
+  padding-block: var(--space-8) var(--space-16);
+}
+
+.first-run-steps {
+  color: var(--color-on-surface-muted);
+}
+
+.first-run-about {
+  margin-block: var(--space-4) 0;
+  color: var(--color-on-surface-muted);
+}
+
+.first-run-acts {
+  display: grid;
+  gap: var(--space-2);
+  justify-items: center;
+}
+
+.first-run-form {
+  display: grid;
+  gap: var(--space-4);
+  justify-items: start;
+  margin-block: var(--space-4);
+}
+
+.first-run-form .field-input {
+  width: 100%;
+}
+
+.first-run-import {
+  display: grid;
+  gap: var(--space-4);
+}
+
+/* A show card is a toggle here, not a link: the button wears the card's own look. */
+button.card-link.first-run-show {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+/* Picked: the accent ring on the cover, inside its edge (blue marks what is chosen). */
+.first-run-show[aria-pressed="true"] .cover {
+  outline: var(--space-1) solid var(--color-accent);
+  outline-offset: calc(var(--space-1) * -1);
+}
+
+.import-missing {
+  margin: 0;
+  padding-inline-start: var(--space-6);
+}

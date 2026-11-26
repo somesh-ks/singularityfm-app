@@ -1,0 +1,53 @@
+---
+import Button from "@singularityfm/design-system/Button";
+import Field from "@singularityfm/design-system/Field";
+import Link from "@singularityfm/design-system/Link";
+import SettingsHead from "../components/SettingsHead.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import "../styles/settings.css";
+import "../styles/manage.css";
+import "../styles/first-run.css";
+
+const title = "Add a show";
+---
+
+<BaseLayout title={title} view="settings" skipLabel="Skip to adding a show">
+  <main id="main" tabindex="-1">
+    {/* A show the index's search does not turn up, by its own address (Nov 12 plan, Search): a feed
+         link, or an Apple Podcasts or Overcast link, whose id the index knows. Found, it becomes a
+         favorite and its page opens (scripts/addShowPage.ts). */}
+    <div class="manage" data-add-show>
+      <SettingsHead
+        title={title}
+        crumb
+        up={{ href: "/search", label: "Search" }}
+        note="Paste the show's RSS feed, or its Apple Podcasts link."
+      />
+      <form class="first-run-form" novalidate data-add-show-form>
+        <label class="sr-only" for="add-show-link">Show link</label>
+        <Field
+          id="add-show-link"
+          name="link"
+          type="url"
+          inputMode="url"
+          placeholder="https://"
+          autoComplete="off"
+          enterKeyHint="go"
+          required
+          data-add-show-input
+        />
+        <p class="create-error" role="alert" data-add-show-error hidden></p>
+        <Button variant="filled" type="submit" data-add-show-go>Add show</Button>
+      </form>
+      <p class="manage-note">
+        Spotify and YouTube don't share their feeds. <Link href="/search">Search for the show</Link> by name instead.
+      </p>
+    </div>
+  </main>
+</BaseLayout>
+
+<script>
+  import { installAddShowPage } from "../scripts/addShowPage";
+
+  installAddShowPage();
+</script>

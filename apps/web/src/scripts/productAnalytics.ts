@@ -15,6 +15,9 @@ export function startProductAnalytics(): void {
   if (started || !POSTHOG_TOKEN) return;
   started = true;
   const optedIn = improving();
+  // The switch is the one consent source: a grant PostHog stored before the reader turned the
+  // switch off (before this idle start ran) is dropped, with its id, before the SDK reads it.
+  if (!optedIn) forgetStoredConsent();
   posthog.init(POSTHOG_TOKEN, {
     api_host: POSTHOG_PROXY,
     ui_host: "https://eu.posthog.com",
@@ -47,11 +50,22 @@ export function startProductAnalytics(): void {
 export function setImproving(on: boolean): void {
   if (!started) return;
   if (on) {
+    // stopSessionRecording() set this; without the reset replay stays off until a reload.
+    posthog.set_config({ disable_session_recording: false });
     posthog.opt_in_capturing();
     posthog.set_config({ enable_heatmaps: true });
   } else {
     posthog.opt_out_capturing();
     posthog.set_config({ enable_heatmaps: false });
     posthog.stopSessionRecording();
+  }
+}
+
+function forgetStoredConsent(): void {
+  try {
+    localStorage.removeItem(`__ph_opt_in_out_${POSTHOG_TOKEN}`);
+    localStorage.removeItem(`ph_${POSTHOG_TOKEN}_posthog`);
+  } catch {
+    // Storage blocked: nothing was stored either.
   }
 }

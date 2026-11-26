@@ -18,6 +18,12 @@ export interface Release {
 
 export const CHANGELOG: readonly Release[] = [
   {
+    version: "0.25.0",
+    date: "2026-11-26",
+    description:
+      "Settings, Privacy has a new switch, Help improve Singularity: off unless you turn it on, it lets the app tell your visits apart and record how you use it, with what you type into a field hidden.",
+  },
+  {
     version: "0.24.3",
     date: "2026-11-26",
     description:

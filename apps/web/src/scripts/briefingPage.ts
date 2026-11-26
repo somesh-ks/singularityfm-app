@@ -38,38 +38,7 @@ function mark(slug: string | undefined): void {
     if (isCurrent === (link.getAttribute("aria-current") === "true")) continue;
     if (isCurrent) link.setAttribute("aria-current", "true");
     else link.removeAttribute("aria-current");
-    const strip = link.closest<HTMLElement>("[data-section-tabs]");
-    if (isCurrent && strip) revealTab(strip, link);
   }
-}
-
-/**
- * Scrolls the strip only when a tab is cut off at one of its edges, and then by the least amount
- * that shows the whole tab and the strip's padding beside it, which puts its label back on the
- * page's gutter. Cut off means its label and underline, inside its padding, or its focus ring,
- * drawn inside the tab nearer its edges (primitives.css), do not all show: where every label fits
- * the strip never moves. Moves the strip itself: scrollIntoView would also scroll the page when
- * the strip is off screen.
- */
-function revealTab(
-  strip: HTMLElement,
-  tab: HTMLElement,
-  behavior: ScrollBehavior = reducedMotion() ? "auto" : "smooth",
-): void {
-  const view = strip.getBoundingClientRect();
-  const box = tab.getBoundingClientRect();
-  const end = view.left + strip.clientWidth;
-  const look = getComputedStyle(tab);
-  const inset =
-    (tab.matches(":focus-visible")
-      ? -Number.parseFloat(look.outlineOffset) - Number.parseFloat(look.outlineWidth)
-      : Number.parseFloat(look.paddingInlineStart)) || 0;
-  // Half a pixel either way is rounding, not a tab that is cut off.
-  if (box.left + inset >= view.left - 0.5 && box.right - inset <= end + 0.5) return;
-  const room = getComputedStyle(strip);
-  const before = box.left - Number.parseFloat(room.paddingInlineStart) - view.left;
-  const after = box.right + Number.parseFloat(room.paddingInlineEnd) - end;
-  strip.scrollBy({ left: before < 0 ? before : Math.max(after, 0), behavior });
 }
 
 /**
@@ -113,8 +82,8 @@ function watchHeroPlay(): void {
   heroObserver.observe(actions);
 }
 
-/** What sticks over the sections: an episode's section tabs, or a podcast's name strip (Briefing.astro). */
-const STRIP = "[data-section-tabs], [data-page-strip]";
+/** What sticks over the sections: the podcast's name strip (PodcastStrip.astro). */
+const STRIP = "[data-page-strip]";
 
 function watchSections({ keepHeld = false } = {}): void {
   observer?.disconnect();
@@ -202,16 +171,10 @@ async function share(button: HTMLElement): Promise<void> {
   if (typeof outcome === "object") sendToast({ message: outcome.refused });
 }
 
-// A tab reached with the keyboard can sit cut off at the strip's edge: bring it into the strip, at
-// once, since what a key starts is never animated. A card on the Earlier briefings shelf can sit flush
-// with the shelf's edge, its ring cut off, which the browser counts as in view: bring it in by the
-// shelf's scroll padding.
+// A card on the Earlier briefings shelf can sit flush with the shelf's edge, its ring cut off, which
+// the browser counts as in view: bring it in by the shelf's scroll padding.
 document.addEventListener("focusin", (event) => {
-  if (!(event.target instanceof HTMLElement)) return;
-  const strip = event.target.closest<HTMLElement>("[data-section-tabs]");
-  if (strip && event.target.matches("a.tab"))
-    revealTab(strip, event.target, event.target.matches(":focus-visible") ? "instant" : undefined);
-  else if (event.target.matches(".shelf a.card-link"))
+  if (event.target instanceof HTMLElement && event.target.matches(".shelf a.card-link"))
     event.target.scrollIntoView({ block: "nearest", inline: "nearest" });
 });
 
@@ -308,29 +271,11 @@ window.addEventListener("keydown", release);
 // Back and Forward move the page to an address of their own, so the mark follows the scroll again.
 window.addEventListener("popstate", release);
 
-/** Marks a tab strip whose tabs all fit, which then shows no edge fades (briefing.css). */
-function fitStrip(): () => void {
-  const strip = document.querySelector<HTMLElement>("[data-section-tabs]");
-  const fits = strip ? strip.scrollWidth <= strip.clientWidth + 1 : false;
-  return () => strip?.toggleAttribute("data-fits", fits);
-}
-
-const measure = (): void => {
-  fitStrip()();
-};
-
 const watchPage = (): void => {
-  // Read before watchSections and written after it: a read after a change to the page costs another
-  // restyle of all of it.
-  const fit = fitStrip();
   watchSections();
   watchHeroPlay();
   prepareEarly();
-  fit();
-  void document.fonts?.ready.then(measure);
 };
-
-window.addEventListener("resize", () => requestAnimationFrame(measure), { passive: true });
 
 // The app bar hiding or coming back moves the strip, and with it the reading line and the edge it
 // sticks at: measure again from where they now are. A tapped tab keeps its mark through the move.

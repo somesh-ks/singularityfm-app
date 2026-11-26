@@ -1,5 +1,5 @@
 /*
- * The briefing: sticky section tabs, then each section as a header and its stories as rows. The
+ * The briefing: the sticky name strip, then each section as a header and its stories as rows. The
  * rows, the hairlines, the tabs, the chip and the source link are primitives; this file only sets
  * what is particular to a story. The player writes data-state on each story (played or current)
  * and the state of each chip; nothing here changes per frame.
@@ -74,28 +74,14 @@ html[data-has-tabs] {
 }
 
 /* From 40rem the strip keeps to the text column, where a side column leaves it narrower than the
-   window: the tabs draw tighter, so every section fits as it does on a 1024px window, and the
-   labels start at the column's edge. */
+   window, and its words start at the column's edge. */
 @media (40rem <= width < 80rem) {
   .briefing > .tabs-bar {
     margin-inline: calc(var(--space-2) * -1);
   }
-
-  .briefing .tabs {
-    padding-inline: 0;
-    scroll-padding-inline: var(--space-2);
-  }
-
-  .briefing .tabs > .tab {
-    padding-inline: var(--space-2);
-  }
-
-  .briefing .tabs > .tab::after {
-    inset-inline: var(--space-2);
-  }
 }
 
-/* A podcast's name strip (Briefing.astro) stands where the tabs stood and takes their bar: the same
+/* A podcast's name strip (PodcastStrip.astro) stands where the tabs stood and takes their bar: the same
    stuck edge, surface and line. It takes no room in the page (its own height is given back below
    it) and shows only while stuck, so the stories start where they did and the name arrives as the
    header leaves. */
@@ -150,13 +136,6 @@ html[data-has-tabs] {
   }
 }
 
-/* The edge fades say "more this way", so a strip whose tabs all fit has none (briefingPage.ts
-   marks it). */
-.briefing .tabs[data-fits] {
-  mask-image: none;
-  -webkit-mask-image: none;
-}
-
 /* From 80rem the contents list beside the column does the tabs' job, and nothing sticks but the
    top chrome. */
 @media (width >= 80rem) {
@@ -190,7 +169,8 @@ html[data-has-tabs] {
 .story {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
-  align-items: start;
+  /* The time's figures sit on the headline's first line. */
+  align-items: first baseline;
 }
 
 .story-details {
@@ -204,7 +184,6 @@ html[data-has-tabs] {
 .story-time {
   min-width: calc(var(--space-12) + var(--space-2));
   justify-content: start;
-  margin-block: calc((var(--size-touch) - var(--text-title-size) * var(--text-title-leading)) / -2);
   margin-inline: calc(var(--space-4) * -1) 0;
   color: var(--color-on-surface-muted);
   font-variant-numeric: tabular-nums;
@@ -216,6 +195,14 @@ html[data-has-tabs] {
 .story-time[data-state="preparing"] {
   color: var(--color-accent);
   font-weight: var(--font-weight-medium);
+}
+
+/* Where colours are forced the accent is gone, so the story being read keeps an edge. */
+@media (forced-colors: active) {
+  .story-time[data-state="current"],
+  .story-time[data-state="preparing"] {
+    outline: var(--stroke-hairline) solid;
+  }
 }
 
 /* The headline row opens the summary under it: no marker of the browser's, a chevron at its end. */
@@ -335,7 +322,8 @@ html[data-has-tabs] {
   line-height: var(--text-reading-leading);
 }
 
-/* Play, then the story controls at the trailing edge. The chip hugs its label. One line on every
+/* The way to the source, then the story controls at the trailing edge (a play mark stood first
+   until 2026-11-26). One line on every
    width, so the controls keep one home in every story instead of wrapping to an orphan line (owner,
    2026-10-22). The publisher once sat between them, but the 112px chip and three 44px controls left
    it about six letters at 360px and one at 320, so it moved above the headline (owner, 2026-10-23). */
@@ -346,12 +334,8 @@ html[data-has-tabs] {
   gap: var(--space-2);
   min-width: 0;
   min-height: var(--size-touch);
-  /* 16px under the summary, not 8: the row read as part of the text (owner, 2026-10-24). */
-  margin-block-start: var(--space-4);
-}
-
-.story-actions > .chip {
-  flex: none;
+  /* With no play mark in it the row sits closer under the text, as it always did without one. */
+  margin-block-start: var(--space-2);
 }
 
 /* The publisher is attribution, not a second call to act: muted words at the label size, so the
@@ -394,15 +378,9 @@ html[data-has-tabs] {
   color: var(--color-on-surface);
 }
 
-/* With the chip hidden (no audio, or offline) the story controls are the row's only content: the
-   row keeps its 44px target but sits closer under the text. */
-.story-actions:not(:has(> .chip:not([hidden]))) {
-  margin-block-start: var(--space-2);
-}
-
-/* Audio needs a connection, so while offline the story chips step out of the way. The briefing's
-   own chip stays, disabled, under the banner that says why. */
-html[data-offline] :is(.story-actions > .chip, .story-time) {
+/* Audio needs a connection, so while offline a story's time steps out of the way, as its play
+   mark did. The briefing's own chip stays, disabled, under the banner that says why. */
+html[data-offline] .story-time {
   display: none;
 }
 

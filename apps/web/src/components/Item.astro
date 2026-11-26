@@ -24,7 +24,7 @@ const { item, index, length, at, hasAudio } = Astro.props;
 const titleId = `t-${item.id}`;
 // Hyphenated words stay whole when the balanced headline wraps (briefing.css).
 const words = headlineParts(item.headline);
-const chip = idleStoryChip(length, item.headline);
+const idle = idleStoryChip(length, item.headline);
 // Null for anything that is not an http or https address: such a story gets no link at all.
 const host = sourceHost(item.url);
 // The link names the publisher, or the host for an aggregator (episodeHighlights.ts).
@@ -43,9 +43,10 @@ const publisher = publisherOf(item.source, host);
   <button
     class:list={[buttonClass("text"), "story-time"]}
     type="button"
-    aria-label={at ? `${at}, ${chip.name}` : chip.name}
+    aria-label={at ? `${at}, ${idle.name}` : idle.name}
     data-play-item={index}
     data-state="idle"
+    data-playing="false"
     hidden={!hasAudio}
   >{at}</button>
   <details class="story-details">

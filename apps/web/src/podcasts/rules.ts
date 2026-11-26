@@ -47,6 +47,9 @@ export function finishedTailSeconds(id: string, durationSeconds: number): number
   );
 }
 
+/** An episode that played this long was listened to: History holds it (flow spec, 23 Nov). */
+export const LISTENED_SECONDS = 60;
+
 /** How far the skip controls move: ten seconds either way on a Catchup, 15 back and 30 on in a show. */
 export function skipSeconds(id: string | null): { back: number; forward: number } {
   return id !== null && isShowEpisodeId(id)

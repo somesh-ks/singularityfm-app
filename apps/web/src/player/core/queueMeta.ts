@@ -15,6 +15,15 @@ export interface QueueMeta {
 }
 
 function metaOf(data: PlayerDigestData): QueueMeta {
+  // In a list the episode is the name and its show the quiet line; the bar has it the other way.
+  if (data.show) {
+    return {
+      title: data.show.episode_title,
+      caption: data.show.title,
+      cover: data.cover,
+      weekly: false,
+    };
+  }
   return {
     title: data.title || longDateFromDigestId(data.id),
     caption: recordingCaption(data),

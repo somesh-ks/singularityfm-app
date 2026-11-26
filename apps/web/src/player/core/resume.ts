@@ -213,6 +213,24 @@ export function clearResumePosition(
   }
 }
 
+/**
+ * "Mark as played" and its undo, from a show's page: the same two keys the player writes, so every
+ * card, chip and count agrees. Unplayed forgets the position too: the episode starts over.
+ */
+export function setPlayed(storage: StorageLike | null, digestId: string, played: boolean): void {
+  if (!storage) return;
+  try {
+    if (played) markPlayed(storage, digestId);
+    else {
+      storage.removeItem(resumeKey(digestId));
+      storage.removeItem(playedKey(digestId));
+      announce(digestId);
+    }
+  } catch {
+    // Best effort.
+  }
+}
+
 /** localStorage, or null when the browser refuses access (Safari private mode, blocked site data). */
 export function safeLocalStorage(): StorageLike | null {
   try {

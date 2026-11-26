@@ -12,7 +12,8 @@ import { STARTED_EVENT } from "../../lib/queueDay";
 import { narratedOrPage } from "../../narration/narrationRegistry";
 import { pageNeedsPrewarm, whenIdle } from "../../narration/prewarmPage";
 import { createSwitchableAudio, type SwitchableAudio } from "../../narration/switchableAudio";
-import { isShowEpisodeId } from "../../podcasts/rules";
+import { showEpisodesAfter } from "../../podcasts/after";
+import { isShowEpisodeId, LISTENED_SECONDS, showIdOf } from "../../podcasts/rules";
 import { rememberShowSpeed, showSpeedFor } from "../../podcasts/showSpeed";
 import { wakeIslands } from "../../scripts/islandWake";
 import type { PlayerDigestData } from "../../types/contracts";
@@ -48,7 +49,7 @@ import { getPreferences } from "./preferences";
 import { loadQueueDigest, queueDigestFor } from "./queueMeta";
 import { startQueuePrefetch } from "./queuePrefetch";
 import { createReaderSync, type ReaderSync } from "./readerSync";
-import { safeLocalStorage, safeSessionStorage } from "./resume";
+import { readRemembered, safeLocalStorage, safeSessionStorage } from "./resume";
 import { reapplyRootState, setRootAttribute, setRootProperty } from "./rootAttributes";
 import { isReturn, openQuietly, readSession, saveSession } from "./sessionRestore";
 import { getSpeedDefault } from "./speedDefaultRuntime";
@@ -161,12 +162,18 @@ let shownAfter: string | null = null;
 
 /** The suggested items after what is playing: the list Up next shows and Autoplay draws from. */
 export async function loadSuggested(): Promise<string[] | null> {
-  const ordered = await loadTimeline();
-  if (!ordered) return null;
   const currentId = getPlayerStore().getState().track?.digest.id ?? null;
   const queue = getPlayQueue();
   // A row put above the playing one is listed too (D357): it is not suggested again.
   const listed = [...queue.getAbove(), ...queue.getIds()];
+  // After a show episode comes its own show, newer first, and then nothing (flow spec, 23 Nov):
+  // the next older Catchup would start a three day old Daily after someone else's episode.
+  if (currentId && isShowEpisodeId(currentId)) {
+    const after = await showEpisodesAfter(currentId, safeLocalStorage());
+    return after.filter((id) => !listed.includes(id));
+  }
+  const ordered = await loadTimeline();
+  if (!ordered) return null;
   const fresh = suggestNext(ordered, currentId, skipper(safeLocalStorage(), listed));
   // A new item playing starts the list over, in timeline order: Autoplay takes the next one.
   shownSuggestions = keepPlaces(shownAfter === currentId ? shownSuggestions : [], fresh);
@@ -427,6 +434,27 @@ export function startPlayerRuntime(): () => void {
       document.dispatchEvent(new CustomEvent(STARTED_EVENT, { detail: { id } }));
     }
   });
+  // A show episode that has played for a minute goes to History and becomes the one its show's Play
+  // resumes (podcasts/deviceStore.ts). Asked at each change of state rather than on a timer: a
+  // pause, an end or another item always follows a minute of listening, and the position the
+  // device kept says how far the one before got.
+  let heardShowEpisode: string | null = null;
+  const noted = new Set<string>();
+  const noteIfHeard = (id: string, seconds: number): void => {
+    const showId = showIdOf(id);
+    if (showId === null || noted.has(id) || seconds < LISTENED_SECONDS) return;
+    noted.add(id);
+    void import("../../podcasts/deviceStore").then((device) => device.noteListened(id, showId));
+  };
+  const offListened = playerStore.subscribe(({ track }) => {
+    const id = track?.digest.id ?? null;
+    if (heardShowEpisode && heardShowEpisode !== id) {
+      const kept = readRemembered(safeLocalStorage(), heardShowEpisode);
+      noteIfHeard(heardShowEpisode, kept.played ? LISTENED_SECONDS : kept.seconds);
+    }
+    heardShowEpisode = id && isShowEpisodeId(id) ? id : null;
+    if (heardShowEpisode) noteIfHeard(heardShowEpisode, playerStore.getTime());
+  });
   // Queued items' first minutes are fetched at an idle moment, so a tap on any of the next three
   // starts at once (queuePrefetch.ts).
   let stopPrefetch: (() => void) | null = null;
@@ -541,6 +569,7 @@ export function startPlayerRuntime(): () => void {
 
   return () => {
     tornDown = true;
+    offListened();
     stopPrefetch?.();
     document.removeEventListener("visibilitychange", onVisible);
     document.removeEventListener("astro:page-load", onPageLoad);

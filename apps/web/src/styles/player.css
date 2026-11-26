@@ -209,6 +209,11 @@
   -webkit-touch-callout: none;
 }
 
+/* A public show's cover is a picture, and not every publisher's is square: it fills the frame. */
+img.player-cover-art {
+  object-fit: cover;
+}
+
 /* ------------------------------------------------------------------ the surface */
 
 .player {

@@ -44,6 +44,17 @@ export function asPng(src: string): string {
 
 export function trackMetadata(track: Track): MediaMetadataInit {
   const { digest } = track;
+  // A show episode: its own title, its show as the artist, and the cover route's picture as it is.
+  if (digest.show) {
+    return {
+      title: digest.show.episode_title,
+      artist: digest.show.title,
+      album: digest.show.title,
+      artwork: digest.cover.src512
+        ? [{ src: digest.cover.src512, sizes: "512x512", type: "image/webp" }]
+        : [],
+    };
+  }
   return {
     title: digest.title || longDateFromDigestId(digest.id),
     artist: "Singularity",

@@ -16,6 +16,12 @@ function liveSrc(src: string): string {
   return id ? `/covers/${encodeURIComponent(id)}.svg${match?.[2] ?? ""}` : "";
 }
 
+/**
+ * A public show's cover: a picture our cover route serves (server/podcasts/signing.ts), never a
+ * vector to colour. Only that route's own signed address is drawn.
+ */
+const SHOW_COVER = /^\/api\/podcasts\/cover\?u=[^&]+&s=[\w-]+(?:&w=\d+)?$/;
+
 /** One fetch for every place the player draws the same cover (the bar, the page, the flight, the glow). */
 const loading = new Map<string, Promise<SVGSVGElement>>();
 
@@ -86,10 +92,12 @@ interface PlayerCoverProps {
 export default function PlayerCover({ cover, weekly, size }: PlayerCoverProps) {
   const style = { "--cover-key": cover.key } as CSSProperties;
   const src = liveSrc(cover.src512);
+  const picture = SHOW_COVER.test(cover.src512) ? cover.src512 : "";
   // Pending (no drawn path), missing or failed to load: the branded fallback (cover.css), never a
   // broken or empty box. A new cover path gets a new try.
   const [state, setState] = useState<{ src: string; drawn: Drawn }>({ src: "", drawn: "pending" });
-  const fallback = !src || (state.src === src && state.drawn === "failed");
+  const shown = src || picture;
+  const fallback = !shown || (state.src === shown && state.drawn === "failed");
   return (
     <span
       className="player-cover-frame"
@@ -99,6 +107,16 @@ export default function PlayerCover({ cover, weekly, size }: PlayerCoverProps) {
       style={style}
     >
       {src && <LiveCover src={src} onState={(drawn) => setState({ src, drawn })} />}
+      {picture && (
+        <img
+          className="player-cover-art"
+          src={picture}
+          alt=""
+          decoding="async"
+          draggable={false}
+          onError={() => setState({ src: picture, drawn: "failed" })}
+        />
+      )}
     </span>
   );
 }
@@ -112,7 +130,12 @@ export function PlayerCoverGlow({ cover }: { cover: PlayerDigestData["cover"] })
   const src = liveSrc(cover.src512);
   return (
     <span className="player-cover-glow" aria-hidden="true">
-      <span className="player-cover-glow-light">{src && <LiveCover src={src} />}</span>
+      <span className="player-cover-glow-light">
+        {src && <LiveCover src={src} />}
+        {SHOW_COVER.test(cover.src512) && (
+          <img className="player-cover-art" src={cover.src512} alt="" decoding="async" />
+        )}
+      </span>
     </span>
   );
 }

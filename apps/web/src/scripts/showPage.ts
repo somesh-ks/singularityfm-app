@@ -205,8 +205,10 @@ function install(): void {
           span.textContent = text;
           return span;
         });
+        // New stands after the day and the time (owner, 2026-11-26), before a Trailer or Bonus word.
         const mark = fresh ? newTemplate?.content.firstElementChild?.cloneNode(true) : null;
-        facts.replaceChildren(...(mark ? [mark] : []), ...spans);
+        if (mark) spans.splice(2, 0, mark as HTMLSpanElement);
+        facts.replaceChildren(...spans);
       }
     }
     const chip = row.querySelector<HTMLElement>("[data-episode-play]");

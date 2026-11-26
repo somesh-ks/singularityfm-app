@@ -12,7 +12,7 @@ import { STARTED_EVENT } from "../../lib/queueDay";
 import { narratedOrPage } from "../../narration/narrationRegistry";
 import { pageNeedsPrewarm, whenIdle } from "../../narration/prewarmPage";
 import { createSwitchableAudio, type SwitchableAudio } from "../../narration/switchableAudio";
-import { showEpisodesAfter } from "../../podcasts/after";
+import { otherShowsAfter, showEpisodesAfter } from "../../podcasts/after";
 import { isShowEpisodeId, LISTENED_SECONDS, showIdOf } from "../../podcasts/rules";
 import { rememberShowSpeed, showSpeedFor } from "../../podcasts/showSpeed";
 import { wakeIslands } from "../../scripts/islandWake";
@@ -162,16 +162,28 @@ let shownSuggestions: readonly string[] = [];
 let shownAfter: string | null = null;
 
 /** The suggested items after what is playing: the list Up next shows and Autoplay draws from. */
+/** How many rows Up next offers after a show episode: its show, other shows, Catchups. */
+const SHOW_SUGGESTED_COUNT = 8;
+
 export async function loadSuggested(): Promise<string[] | null> {
   const currentId = getPlayerStore().getState().track?.digest.id ?? null;
   const queue = getPlayQueue();
   // A row put above the playing one is listed too (D357): it is not suggested again.
   const listed = [...queue.getAbove(), ...queue.getIds()];
-  // After a show episode comes its own show, newer first, and then nothing (flow spec, 23 Nov):
-  // the next older Catchup would start a three day old Daily after someone else's episode.
+  // After a show episode comes its own show, newer first; then, to pick from, the listener's other
+  // favorite shows and the newest Catchups (owner, 2026-11-26). Autoplay stays inside the show
+  // (playUpNext): the next older Catchup would start a three day old Daily after someone else's episode.
   if (currentId && isShowEpisodeId(currentId)) {
-    const after = await showEpisodesAfter(currentId, safeLocalStorage());
-    return after.filter((id) => !listed.includes(id));
+    const storage = safeLocalStorage();
+    const [after, others, timeline] = await Promise.all([
+      showEpisodesAfter(currentId, storage),
+      otherShowsAfter(currentId, storage),
+      loadTimeline(),
+    ]);
+    const catchups = suggestNext(timeline ?? [], null, skipper(storage, listed), 2);
+    return [...after, ...others, ...catchups]
+      .filter((id) => !listed.includes(id))
+      .slice(0, SHOW_SUGGESTED_COUNT);
   }
   const ordered = await loadTimeline();
   if (!ordered) return null;
@@ -211,6 +223,8 @@ export async function playUpNext(
   if (queuedMeanwhile) return playQueueItem(queuedMeanwhile);
   // Autoplay may have been switched off while the list loaded (the lock screen's Next ignores it).
   if (!stillSuggesting()) return;
+  // A show's episode is followed only by its own show: the rest of its list is offered, not started.
+  if (first && endedId && isShowEpisodeId(endedId) && showIdOf(first) !== showIdOf(endedId)) return;
   if (first) playQueueItem(first);
 }
 

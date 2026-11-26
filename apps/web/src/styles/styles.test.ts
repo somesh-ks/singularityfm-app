@@ -944,11 +944,14 @@ const RULES: Rule[] = [
     // control class or a named bespoke one, so it inherits the press, focus and hit-area rules.
     name: "every <button> wears a shared control class or a named bespoke one",
     offenders: () =>
-      sourceFiles().flatMap((file) =>
-        buttonsIn(readFileSync(file, "utf8"))
-          .filter(({ classes }) => classes !== undefined && !systemButton(classes))
-          .map(({ tag }) => `${posix(file)}: ${tag.replace(/\s+/g, " ").slice(0, 80)}`),
-      ),
+      sourceFiles()
+        // The design system's accessibility notes (0.14.0) name <button> in prose; they draw nothing.
+        .filter((file) => file !== join(SYSTEM_SRC, "a11y.ts"))
+        .flatMap((file) =>
+          buttonsIn(readFileSync(file, "utf8"))
+            .filter(({ classes }) => classes !== undefined && !systemButton(classes))
+            .map(({ tag }) => `${posix(file)}: ${tag.replace(/\s+/g, " ").slice(0, 80)}`),
+        ),
   },
   {
     // Prevents an outlined control (owner, 2026-11-03: the floating button had "a thin outline that

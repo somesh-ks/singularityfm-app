@@ -7,6 +7,8 @@
 
 const DONE_KEY = "singularity:first-run";
 const TOPICS_KEY = "singularity:first-run-topics";
+/** The show the Add a show page added for step 3, which says so once (session only). */
+export const FIRST_RUN_ADDED_KEY = "singularity:first-run-added";
 
 /**
  * The topics step 1 offers, in the canvas's order, each with the Podcast Index category its
@@ -15,7 +17,7 @@ const TOPICS_KEY = "singularity:first-run-topics";
 export const FIRST_RUN_TOPICS = [
   { label: "AI", category: "Technology" },
   { label: "Business", category: "Business" },
-  { label: "Culture", category: "Culture" },
+  { label: "Culture", category: "Society" },
   { label: "Design", category: "Design" },
   { label: "Science", category: "Science" },
   { label: "Software Engineering", category: "Technology" },

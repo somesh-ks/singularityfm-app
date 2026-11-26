@@ -21,7 +21,7 @@ const { step, title, about, next } = Astro.props;
      first run at any step. scripts/firstRunPage.ts keeps what each step picks. */}
 <BaseLayout title={title} view="home" nav={null} skipLabel="Skip to the step">
   <main id="main" tabindex="-1">
-    <div class="first-run" data-first-run={step}>
+    <div class="settings-view first-run" data-first-run={step}>
       <p class="meta first-run-steps">Step {step} of 3</p>
       <header>
         <h1 class="page-title text-display" id="page-title" tabindex="-1">{title}</h1>

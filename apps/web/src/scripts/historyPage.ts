@@ -17,7 +17,7 @@ export function installHistoryPage(): void {
   const grid = list?.querySelector<HTMLElement>("[data-library-grid]");
   const empty = root?.querySelector<HTMLElement>("[data-history-empty]");
   const dayTemplate = root?.querySelector<HTMLTemplateElement>("template[data-history-day]");
-  const rowTemplate = root?.querySelector<HTMLTemplateElement>("template[data-history-episode]");
+  const rowTemplate = root?.querySelector<HTMLTemplateElement>("template[data-podcast-row]");
   if (!root || !list || !grid || !empty || !dayTemplate || !rowTemplate) return;
   const catchups = new Map(
     [...grid.querySelectorAll<HTMLElement>("[data-card][data-id]")].map((card) => [
@@ -40,9 +40,9 @@ export function installHistoryPage(): void {
       const image = card.querySelector("img") as HTMLImageElement;
       if (episode.cover) image.src = coverAt(episode.cover, 256);
       else image.remove();
-      (card.querySelector(".card-title") as HTMLElement).textContent = episode.title;
+      (card.querySelector("[data-row-title]") as HTMLElement).textContent = episode.title;
       const facts = [episode.show_title, timeFact(episode.duration_s, heard(episode.id))];
-      (card.querySelector(".card-facts") as HTMLElement).textContent = facts
+      (card.querySelector("[data-row-facts]") as HTMLElement).textContent = facts
         .filter(Boolean)
         .join(" · ");
       if (heard(episode.id).played) card.dataset.played = "";

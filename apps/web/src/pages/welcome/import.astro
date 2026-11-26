@@ -1,6 +1,5 @@
 ---
 import Button from "@singularityfm/design-system/Button";
-import Field from "@singularityfm/design-system/Field";
 import Icon from "@singularityfm/design-system/Icon";
 import FirstRunStep from "../../components/FirstRunStep.astro";
 ---
@@ -11,33 +10,29 @@ import FirstRunStep from "../../components/FirstRunStep.astro";
   about="Coming from another app? Import your list, or skip and add shows later."
   next={null}
 >
-  {/* The same import as Settings > Import and export (scripts/importPage.ts), and a pasted link as
-       on the Add a show page, here without leaving first run. */}
+  {/* The same import as Settings > Import and export (scripts/importPage.ts), and a pasted link goes
+       to the Add a show page, which comes back here. */}
   <section class="first-run-import" data-import-page>
     <div class="rows card-group">
-      <button class="row-action" type="button" data-import-pick>
-        <span class="settings-text">
+      <div class="settings-row">
+        <div class="settings-text">
           <span class="settings-label">Import a file</span>
-          <span class="settings-hint">OPML from Apple Podcasts, Pocket Casts, Overcast</span>
-        </span>
-        <Icon name="chevronRight" />
-      </button>
-      <button class="row-action" type="button" aria-expanded="false" aria-controls="first-run-link" data-first-run-paste>
+          <span class="settings-hint" data-import-hint>OPML from Apple Podcasts, Pocket Casts, Overcast</span>
+        </div>
+        <Button variant="text" data-import-pick>Choose file</Button>
+      </div>
+      <a class="row-action" href="/add-show?from=welcome">
         <span class="settings-text">
           <span class="settings-label">Paste a show link</span>
-          <span class="settings-hint">An RSS or Apple Podcasts link</span>
         </span>
         <Icon name="chevronRight" />
-      </button>
+      </a>
     </div>
-    <form class="first-run-form" id="first-run-link" novalidate hidden data-add-show-form>
-      <label class="sr-only" for="add-show-link">Show link</label>
-      <Field id="add-show-link" name="link" type="url" inputMode="url" placeholder="https://" autoComplete="off" enterKeyHint="go" data-add-show-input />
-      <p class="create-error" role="alert" data-add-show-error hidden></p>
-      <Button variant="tonal" type="submit" data-add-show-go>Add show</Button>
-    </form>
-    <p class="manage-note" role="status" data-import-status hidden></p>
-    <ul class="manage-note import-missing" data-import-missing hidden></ul>
+    <p class="sr-only" role="status" data-import-status></p>
+    <div class="import-missing" data-import-missing hidden>
+      <h2 class="section-head text-heading">Not found</h2>
+      <ul class="manage-note" data-import-missing-list></ul>
+    </div>
     <input class="sr-only" type="file" accept=".opml,.xml,.json,application/json,text/xml,text/x-opml" tabindex="-1" aria-hidden="true" data-import-file />
   </section>
 </FirstRunStep>

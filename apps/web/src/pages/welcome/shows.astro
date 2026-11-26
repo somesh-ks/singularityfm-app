@@ -1,7 +1,10 @@
 ---
+import Icon from "@singularityfm/design-system/Icon";
+import IconButton from "@singularityfm/design-system/IconButton";
 import SearchField from "@singularityfm/design-system/SearchField";
 import FirstRunStep from "../../components/FirstRunStep.astro";
 import "../../styles/library.css";
+import "../../styles/podcast-rows.css";
 ---
 
 <FirstRunStep
@@ -10,8 +13,7 @@ import "../../styles/library.css";
   about="New episodes from your favorites land on Home."
   next="/welcome/import"
 >
-  {/* Trending in the topics step 1 picked, until a search replaces them. A press favorites the
-       show at once (deviceStore.ts) and rings its cover; a second press takes it back. */}
+  {/* Trending in the topics step 1 picked, until a search replaces them. */}
   <form role="search" novalidate data-first-run-search>
     <SearchField
       clearable
@@ -28,13 +30,18 @@ import "../../styles/library.css";
     <ul class="library-grid first-run-shows" role="list" data-first-run-shows></ul>
   </div>
   <p class="manage-note" data-first-run-none hidden>No shows found. Try another name.</p>
+  {/* A show as the Library's gallery card, with the heart every show page has: a press favorites
+       it at once, a second takes it back (owner's pick over the canvas's ring: no new part). */}
   <template data-first-run-show>
-    <li class="card" data-card>
-      <button class="card-link first-run-show" type="button" aria-pressed="false">
-        <span class="cover" data-size="card"><img class="cover-art" alt="" decoding="async" loading="lazy" /></span>
-        <span class="card-title"></span>
-        <span class="card-sub"><span class="card-facts"></span></span>
-      </button>
+    <li class="card first-run-show" data-card>
+      <div class="card-link">
+        <span class="cover podcast-cover" data-size="card"><img alt="" decoding="async" loading="lazy" /></span>
+        <span class="card-title" data-row-title></span>
+        <span class="card-sub"><span class="card-facts" data-row-facts></span></span>
+      </div>
+      <IconButton variant="tonal" className="first-run-heart" label="Favorite" aria-pressed="false" data-first-run-heart>
+        <Icon name="heartOutline" className="fav-add" /><Icon name="heart" className="fav-remove" />
+      </IconButton>
     </li>
   </template>
 </FirstRunStep>

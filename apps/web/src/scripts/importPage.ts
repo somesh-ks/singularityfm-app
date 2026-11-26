@@ -4,7 +4,7 @@ import { exportBackup, exportOpml, type ImportOutcome, importFile } from "../pod
 
 /**
  * Wires a file picker row to the import (Settings > Import and export, first run step 3): the row
- * opens the picker, the file goes in, and the status line says how far it is and what it did,
+ * opens the picker, the file goes in, the row's line says how far it is and a toast what it did,
  * with the shows the index did not know listed by name. One import at a time.
  */
 export function installImportPicker(
@@ -13,12 +13,16 @@ export function installImportPicker(
 ): void {
   const pick = root.querySelector<HTMLButtonElement>("[data-import-pick]");
   const input = root.querySelector<HTMLInputElement>("[data-import-file]");
+  const hint = root.querySelector<HTMLElement>("[data-import-hint]");
   const status = root.querySelector<HTMLElement>("[data-import-status]");
-  const missing = root.querySelector<HTMLUListElement>("[data-import-missing]");
-  if (!pick || !input || !status || !missing) return;
+  const missing = root.querySelector<HTMLElement>("[data-import-missing]");
+  const missingList = root.querySelector<HTMLUListElement>("[data-import-missing-list]");
+  if (!pick || !input || !hint || !status || !missing || !missingList) return;
+  const resting = hint.textContent ?? "";
+  // The row's own line says how far it is; the screen reader hears the same.
   const say = (text: string): void => {
+    hint.textContent = text || resting;
     status.textContent = text;
-    status.hidden = text === "";
   };
   pick.addEventListener("click", () => {
     input.value = "";
@@ -29,22 +33,27 @@ export function installImportPicker(
     if (!file) return;
     pick.disabled = true;
     missing.hidden = true;
-    missing.replaceChildren();
+    missingList.replaceChildren();
     say("Reading the file");
     try {
       const outcome = await importFile(file, (count, total) => say(importProgress(count, total)));
-      say(importSummary(outcome));
+      say("");
+      sendToast({
+        message: importSummary(outcome),
+        kind: outcome.kind === "problem" ? "error" : undefined,
+      });
       if (outcome.kind === "opml" && outcome.missing.length > 0) {
         for (const show of outcome.missing) {
           const item = document.createElement("li");
           item.textContent = show.title || show.feed_url;
-          missing.append(item);
+          missingList.append(item);
         }
         missing.hidden = false;
       }
       done(outcome);
     } catch {
-      say("Couldn't read that file. Try again.");
+      say("");
+      sendToast({ message: "Couldn't read that file. Try again.", kind: "error" });
     } finally {
       pick.disabled = false;
     }

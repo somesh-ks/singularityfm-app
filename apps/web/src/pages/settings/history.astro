@@ -4,6 +4,7 @@ import EmptyArt from "../../components/EmptyArt.astro";
 import EpisodeActions from "../../components/EpisodeActions.astro";
 import EpisodeCard from "../../components/EpisodeCard.astro";
 import ManageChrome from "../../components/ManageChrome.astro";
+import PodcastRowTemplate from "../../components/PodcastRowTemplate.astro";
 import SettingsHead from "../../components/SettingsHead.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { libraryItems } from "../../lib/libraryCard";
@@ -58,20 +59,12 @@ const items = libraryItems(entries, episodes);
         <p class="empty-body">What you listen to on this device shows up here</p>
       </div>
 
-      {/* A day's heading, and one public show's episode as a list row (the Library's own card). */}
+      {/* A day's heading; a public show's episode is Search's row (PodcastRowTemplate.astro). */}
       <template data-history-day>
         <li class="library-month" data-month-head><h2 class="library-month-head"></h2></li>
       </template>
-      <template data-history-episode>
-        <li class="card" data-card data-meta-lines="3">
-          <a class="card-link" data-astro-prefetch="hover">
-            <span class="cover" data-size="card"><img class="cover-art" alt="" decoding="async" loading="lazy" /></span>
-            <span class="card-title"></span>
-            <span class="card-sub"><span class="card-facts" data-card-facts></span></span>
-          </a>
-        </li>
-      </template>
 
+      <PodcastRowTemplate />
       <EpisodeActions id="history" />
       <ManageChrome />
     </div>

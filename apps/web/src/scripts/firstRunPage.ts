@@ -1,16 +1,18 @@
-import { addShowByLink } from "../podcasts/addShow";
+import { sendToast } from "@singularityfm/design-system/toastEvent";
 import { favoriteShows, setShowFavorite } from "../podcasts/deviceStore";
 import { coverAt } from "../podcasts/episodeDigest";
 import {
+  FIRST_RUN_ADDED_KEY,
   markFirstRunDone,
   pickedCategories,
   pickedTopics,
   setPickedTopics,
 } from "../podcasts/firstRun";
-import { fetchShow, findShow } from "../podcasts/shows";
+import { fetchShow } from "../podcasts/shows";
 import { follow } from "../podcasts/transfer";
 import type { ShowRow } from "../server/podcasts/shapes";
 import { installImportPicker } from "./importPage";
+import { searchShows, trending } from "./podcastRows";
 
 /**
  * First run's three steps (pages/welcome*.astro). Each step keeps its picks as they are made, so
@@ -22,33 +24,23 @@ const SUGGESTED = 12;
 /** How many of the picked topics' charts step 2 reads: enough to mix them, few enough to be quick. */
 const CHARTS = 3;
 
-async function shows(path: string): Promise<ShowRow[]> {
-  try {
-    const response = await fetch(path, { credentials: "same-origin" });
-    if (!response.ok) return [];
-    const body = (await response.json()) as { shows?: ShowRow[] };
-    return Array.isArray(body.shows) ? body.shows : [];
-  } catch {
-    return [];
-  }
-}
-
 /** The picked topics' charts, interleaved so the first row mixes them, each show once. */
 async function suggestions(): Promise<ShowRow[]> {
   const categories = pickedCategories().slice(0, CHARTS);
   const charts = await Promise.all(
-    (categories.length > 0 ? categories : [""]).map((topic) =>
-      shows(`/api/podcasts/trending${topic ? `?topic=${encodeURIComponent(topic)}` : ""}`),
+    (categories.length > 0 ? categories : [undefined]).map(
+      async (category) => (await trending(category)) ?? [],
     ),
   );
-  const seen = new Set<string>();
+  const seen = new Set<number>();
   const mixed: ShowRow[] = [];
-  for (let i = 0; mixed.length < SUGGESTED && charts.some((chart) => i < chart.length); i++) {
+  const longest = Math.max(0, ...charts.map((chart) => chart.length));
+  for (let i = 0; i < longest && mixed.length < SUGGESTED; i++) {
     for (const chart of charts) {
       const show = chart[i];
-      const key = show ? `${show.id ?? `a${show.apple_id}`}` : "";
-      if (!show || seen.has(key) || mixed.length >= SUGGESTED) continue;
-      seen.add(key);
+      // A show only Apple found has no page here yet (podcastRows.ts, showRow).
+      if (!show || show.id === null || seen.has(show.id) || mixed.length >= SUGGESTED) continue;
+      seen.add(show.id);
       mixed.push(show);
     }
   }
@@ -82,48 +74,49 @@ function installShows(root: HTMLElement): void {
   let suggested: ShowRow[] = [];
   let asked = 0;
 
-  const draw = (rows: readonly ShowRow[]): void => {
-    list.replaceChildren(
-      ...rows.map((show) => {
-        const card = template.content.firstElementChild?.cloneNode(true) as HTMLElement;
-        const press = card.querySelector<HTMLButtonElement>("button") as HTMLButtonElement;
-        const image = card.querySelector<HTMLImageElement>("img") as HTMLImageElement;
-        if (show.cover) image.src = coverAt(show.cover, 256);
-        else image.remove();
-        (card.querySelector(".card-title") as HTMLElement).textContent = show.title;
-        (card.querySelector(".card-facts") as HTMLElement).textContent = show.author;
-        press.setAttribute("aria-pressed", String(show.id !== null && favorites.has(show.id)));
-        press.addEventListener("click", () => void toggle(show, press));
-        return card;
-      }),
-    );
-    none.hidden = rows.length > 0 || query.value.trim() === "";
+  const toggle = async (id: number, title: string, heart: HTMLButtonElement): Promise<void> => {
+    const on = !favorites.has(id);
+    // The heart fills at once; a show that cannot be read gives it back.
+    heart.setAttribute("aria-pressed", String(on));
+    if (!on) {
+      favorites.delete(id);
+      await setShowFavorite(id, false, null);
+      status.textContent = `Removed ${title}`;
+      return;
+    }
+    favorites.add(id);
+    const answer = await fetchShow(id);
+    if (typeof answer === "string") {
+      favorites.delete(id);
+      heart.setAttribute("aria-pressed", "false");
+      status.textContent = `Couldn't add ${title}. Try again.`;
+      return;
+    }
+    await follow(answer);
+    status.textContent = `Added ${title}`;
   };
 
-  const toggle = async (show: ShowRow, press: HTMLButtonElement): Promise<void> => {
-    const on = press.getAttribute("aria-pressed") !== "true";
-    // Rings at once; a show that cannot be read gives its ring back.
-    press.setAttribute("aria-pressed", String(on));
-    if (!on && show.id !== null) {
-      favorites.delete(show.id);
-      await setShowFavorite(show.id, false, null);
-      status.textContent = `Removed ${show.title}`;
-      return;
+  const draw = (rows: readonly ShowRow[]): void => {
+    const cards: HTMLElement[] = [];
+    for (const show of rows) {
+      const id = show.id;
+      if (id === null) continue;
+      const card = template.content.firstElementChild?.cloneNode(true) as HTMLElement;
+      const image = card.querySelector<HTMLImageElement>("img") as HTMLImageElement;
+      if (show.cover) image.src = coverAt(show.cover, 256);
+      else image.remove();
+      (card.querySelector("[data-row-title]") as HTMLElement).textContent = show.title;
+      (card.querySelector("[data-row-facts]") as HTMLElement).textContent = show.author;
+      const heart = card.querySelector<HTMLButtonElement>(
+        "[data-first-run-heart]",
+      ) as HTMLButtonElement;
+      heart.setAttribute("aria-label", `Favorite ${show.title}`);
+      heart.setAttribute("aria-pressed", String(favorites.has(id)));
+      heart.addEventListener("click", () => void toggle(id, show.title, heart));
+      cards.push(card);
     }
-    const answer =
-      show.id !== null
-        ? await fetchShow(show.id)
-        : show.apple_id !== null
-          ? await findShow({ apple: show.apple_id })
-          : "failed";
-    if (typeof answer === "string" || answer.show.id === null) {
-      press.setAttribute("aria-pressed", "false");
-      status.textContent = `Couldn't add ${show.title}. Try again.`;
-      return;
-    }
-    favorites.add(answer.show.id);
-    await follow(answer);
-    status.textContent = `Added ${show.title}`;
+    list.replaceChildren(...cards);
+    none.hidden = cards.length > 0 || query.value.trim() === "";
   };
 
   form.addEventListener("submit", (event) => event.preventDefault());
@@ -134,7 +127,7 @@ function installShows(root: HTMLElement): void {
     if (term.length < 2) return draw(suggested);
     timer = window.setTimeout(async () => {
       const mine = ++asked;
-      const found = await shows(`/api/podcasts/search?q=${encodeURIComponent(term)}`);
+      const found = (await searchShows(term)) ?? [];
       if (mine === asked) draw(found);
     }, 300);
   });
@@ -148,35 +141,15 @@ function installShows(root: HTMLElement): void {
 
 function installImport(root: HTMLElement): void {
   const section = root.querySelector<HTMLElement>("[data-import-page]");
-  if (!section) return;
-  installImportPicker(section);
-  const paste = section.querySelector<HTMLButtonElement>("[data-first-run-paste]");
-  const form = section.querySelector<HTMLFormElement>("[data-add-show-form]");
-  const input = form?.querySelector<HTMLInputElement>("[data-add-show-input]");
-  const error = form?.querySelector<HTMLElement>("[data-add-show-error]");
-  const status = section.querySelector<HTMLElement>("[data-import-status]");
-  if (!paste || !form || !input || !error || !status) return;
-  paste.addEventListener("click", () => {
-    form.hidden = false;
-    paste.setAttribute("aria-expanded", "true");
-    input.focus();
-  });
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    error.hidden = true;
-    const result = await addShowByLink(input.value);
-    if (!result.ok) {
-      error.textContent = result.message;
-      error.hidden = false;
-      input.focus();
-      return;
-    }
-    input.value = "";
-    status.textContent = result.added
-      ? `Added ${result.title} to your favorites.`
-      : `${result.title} is already a favorite.`;
-    status.hidden = false;
-  });
+  if (section) installImportPicker(section);
+  // Back from the Add a show page with the show it added.
+  try {
+    const added = sessionStorage.getItem(FIRST_RUN_ADDED_KEY);
+    sessionStorage.removeItem(FIRST_RUN_ADDED_KEY);
+    if (added) sendToast({ message: `Added ${added} to your favorites` });
+  } catch {
+    // Nothing to say.
+  }
 }
 
 export function installFirstRun(): void {

@@ -1,4 +1,5 @@
 import { addShowByLink } from "../podcasts/addShow";
+import { FIRST_RUN_ADDED_KEY } from "../podcasts/firstRun";
 
 /** The Add a show page: one field, one button; a found show becomes a favorite and opens. */
 export function installAddShowPage(): void {
@@ -7,6 +8,7 @@ export function installAddShowPage(): void {
   const error = form?.querySelector<HTMLElement>("[data-add-show-error]");
   const go = form?.querySelector<HTMLButtonElement>("[data-add-show-go]");
   if (!form || !input || !error || !go) return;
+  const fromFirstRun = new URLSearchParams(location.search).get("from") === "welcome";
   const fail = (message: string): void => {
     error.textContent = message;
     error.hidden = false;
@@ -24,7 +26,17 @@ export function installAddShowPage(): void {
     try {
       const result = await addShowByLink(input.value);
       if (!result.ok) return fail(result.message);
-      // Its page's heart shows it is a favorite now.
+      // From first run, back to its last step, which says so; else the show's page, whose heart
+      // shows it is a favorite now.
+      if (fromFirstRun) {
+        try {
+          sessionStorage.setItem(FIRST_RUN_ADDED_KEY, result.title);
+        } catch {
+          // Best effort: the step still lists the show on Home.
+        }
+        location.assign("/welcome/import");
+        return;
+      }
       location.assign(result.url);
     } finally {
       go.disabled = false;

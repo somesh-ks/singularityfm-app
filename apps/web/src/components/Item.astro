@@ -1,6 +1,6 @@
 ---
 import type { DigestItem } from "@singularityfm/core";
-import { buttonClass } from "@singularityfm/design-system/button";
+import Button from "@singularityfm/design-system/Button";
 import Icon from "@singularityfm/design-system/Icon";
 import Link from "@singularityfm/design-system/Link";
 import { publisherOf } from "../lib/episodeHighlights";
@@ -40,15 +40,15 @@ const publisher = publisherOf(item.source, host);
        data-play-item and writes its state and name (readerSync.ts), as it did the play mark's.
        Always in the page, hidden while the briefing has no audio timeline, so audio that arrives
        later only has to reveal it and write its time. */}
-  <button
-    class:list={[buttonClass("text"), "story-time"]}
-    type="button"
+  <Button
+    variant="text"
+    className="story-time"
     aria-label={at ? `${at}, ${idle.name}` : idle.name}
     data-play-item={index}
     data-state="idle"
     data-playing="false"
     hidden={!hasAudio}
-  >{at}</button>
+  >{at}</Button>
   <details class="story-details">
     <summary class="story-head">
       <h3 class="story-title text-title" id={titleId}>
@@ -59,8 +59,10 @@ const publisher = publisherOf(item.source, host);
     </summary>
     <p class="story-summary">{item.summary}</p>
     <div class="story-actions">
-      {/* The way to the story itself, in a new tab: the publisher's name, underlined. The new tab
-           is said, not shown. A story whose address must not become a link gets none. */}
+      {/* The way to the story itself, in a new tab. The words are short and the same for every
+           story: beside three 44px controls a long publisher's name was cut to "Read at Interface …"
+           on a phone, and the name already stands under the headline. The name and the new tab are
+           said, not shown. A story whose address must not become a link gets none. */}
       {
         host && (
           <Link
@@ -71,8 +73,8 @@ const publisher = publisherOf(item.source, host);
             rel="noopener noreferrer"
             title={publisher ?? undefined}
           >
-            Read at {publisher}
-            <span class="sr-only">(opens in a new tab)</span>
+            Read the source
+            <span class="sr-only">at {publisher} (opens in a new tab)</span>
           </Link>
         )
       }

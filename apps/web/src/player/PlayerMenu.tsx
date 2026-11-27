@@ -264,9 +264,11 @@ export default function PlayerMenu() {
         await store.setEpisodeFavorite(id, next);
         // The device's own answer: a private window keeps nothing.
         const kept = Boolean((await store.getEpisode(id))?.favorite_at);
+        if (kept !== next) toast("Couldn't change favorites on this device", "error");
+        // Another episode took the player meanwhile: this answer is not its menu's.
+        if (getPlayerStore().getState().digestId !== id) return;
         marks.setSaved(kept);
         if (kept && next) glowFavorite(tile);
-        else if (kept !== next) toast("Couldn't change favorites on this device", "error");
       });
       return;
     }

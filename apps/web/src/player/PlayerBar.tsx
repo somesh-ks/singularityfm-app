@@ -497,7 +497,7 @@ export default function PlayerBar() {
         // The surface controller keeps this in step with the page; false is the collapsed truth.
         aria-expanded="false"
         aria-controls={PLAYER_PAGE_ID}
-        aria-label={`Player: ${[...new Set([title, story, headline].filter(Boolean))].join(", ")}`}
+        aria-label={`Player: ${[...new Set([title, story || (digest?.show?.episode_title ?? ""), headline].filter(Boolean))].join(", ")}`}
         onClick={(event) => {
           // The click some browsers still send after a swipe's lift is not a press.
           if (swipe.swiped()) return;

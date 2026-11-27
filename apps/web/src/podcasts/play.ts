@@ -1,3 +1,4 @@
+import { sendToast } from "@singularityfm/design-system/toastEvent";
 import type { EpisodeRow } from "../server/podcasts/shapes";
 import { pinEpisode } from "./deviceStore";
 import { episodeDigest } from "./episodeDigest";
@@ -23,10 +24,17 @@ export function loadPlayer(): Promise<Player> {
     import("../player/core/playerRuntime"),
     import("../player/core/queueMeta"),
     import("../player/core/openOnPhone"),
-  ]).then(([runtime, queueMeta, phone]) => {
-    player = { runtime, queueMeta, phone };
-    return player;
-  });
+  ]).then(
+    ([runtime, queueMeta, phone]) => {
+      player = { runtime, queueMeta, phone };
+      return player;
+    },
+    (error: unknown) => {
+      // A failed import (the connection dropped) is not kept: the next press asks again.
+      loading = null;
+      throw error;
+    },
+  );
   return loading;
 }
 
@@ -66,7 +74,10 @@ export function pressPlay(episode: EpisodeRow): boolean {
     phone.openPlayerOnPhone();
   };
   if (player) start(player);
-  else void loadPlayer().then(start);
+  else
+    void loadPlayer().then(start, () =>
+      sendToast({ message: "Couldn't start the player. Try again.", kind: "error" }),
+    );
   // What plays is kept whatever its show's list does later (deviceStore.ts).
   void pinEpisode(episode.id);
   return true;
@@ -74,7 +85,7 @@ export function pressPlay(episode: EpisodeRow): boolean {
 
 /**
  * Play next, or Add to queue: the episode goes first, or last, in what is to come. False when it
- * was there already, or is the one playing.
+ * was there already, or is the one playing; Play next still moves one that waits further down.
  */
 export async function queueEpisode(episode: EpisodeRow, where: "next" | "last"): Promise<boolean> {
   const digest = episodeDigest(episode);
@@ -82,8 +93,9 @@ export async function queueEpisode(episode: EpisodeRow, where: "next" | "last"):
   const { runtime, queueMeta } = await loadPlayer();
   queueMeta.rememberQueueDigest(digest);
   const queue = runtime.getPlayQueue();
-  if (!queue.add(episode.id)) return false;
-  void pinEpisode(episode.id);
+  const added = queue.add(episode.id);
+  if (!added && !(where === "next" && queue.getView().upcoming.includes(episode.id))) return false;
+  if (added) void pinEpisode(episode.id);
   if (where === "next") {
     const view = queue.getView();
     // Every listed row in order (playQueue.ts, listedIds), spelled here so a page does not load the

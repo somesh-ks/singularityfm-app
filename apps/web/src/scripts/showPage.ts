@@ -7,7 +7,7 @@
 import { installSearchClear, syncSearchClear } from "@singularityfm/design-system/searchField";
 import { sendToast } from "@singularityfm/design-system/toastEvent";
 import { whenIdle } from "../narration/prewarmPage";
-import { safeLocalStorage, setPlayed } from "../player/core/resume";
+import { safeLocalStorage, setPlayed, setPlayedAll } from "../player/core/resume";
 import { heardOnDevice } from "../podcasts/after";
 import { getEpisode, setEpisodeFavorite, setShowFavorite } from "../podcasts/deviceStore";
 import { coverAt } from "../podcasts/episodeDigest";
@@ -100,11 +100,16 @@ function install(): void {
 
   /* ------------------------------------------------------------------ the header */
 
+  /** This show's episode in the player, if one is. */
+  function playingHere(): EpisodeRow | undefined {
+    const current = nowPlaying()?.id;
+    return current && showIdOf(current) === showId ? byId(current) : undefined;
+  }
+
   /** The episode the header's Play acts on: the one from this show in the player, else the rules' pick. */
   function playTarget(): { episode: EpisodeRow; reason: string } | null {
     if (!view) return null;
-    const current = nowPlaying()?.id;
-    const playing = current && showIdOf(current) === showId ? byId(current) : undefined;
+    const playing = playingHere();
     if (playing) return { episode: playing, reason: "current" };
     return pickPlay(view.show, view.episodes, view.following, heardOf, view.lastId);
   }
@@ -276,15 +281,23 @@ function install(): void {
     if (!view) return;
     const found = matching();
     view.shown = Math.min(Math.max(keep, PAGE), found.length);
-    rows.clear();
-    const drawn: HTMLElement[] = [];
-    for (const episode of found.slice(0, view.shown)) {
-      const row = buildRow(episode);
-      if (!row) continue;
-      rows.set(episode.id, row);
-      drawn.push(row);
+    const page = found.slice(0, view.shown);
+    // The same episodes in the same order (the route answering what the device already held): the
+    // rows stay, so an open row menu, the focus and a finger's hold are not torn away.
+    const same =
+      page.length === rows.size && [...rows.keys()].every((id, at) => page[at]?.id === id);
+    if (same) paintRows();
+    else {
+      rows.clear();
+      const drawn: HTMLElement[] = [];
+      for (const episode of page) {
+        const row = buildRow(episode);
+        if (!row) continue;
+        rows.set(episode.id, row);
+        drawn.push(row);
+      }
+      list?.replaceChildren(...drawn);
     }
-    list?.replaceChildren(...drawn);
     const filtered = Boolean(search?.value.trim()) || Boolean(unplayed?.checked);
     const none = part("none");
     if (none) {
@@ -316,6 +329,8 @@ function install(): void {
   /** What the device holds now, with `fallback` where it holds nothing (no database here). */
   async function read(fallback?: { show: ShowDetail; episodes: EpisodeRow[] }): Promise<boolean> {
     const stored = await storedShow(showId);
+    // The reader left while the device answered: the next page is not ours to draw on.
+    if (life.signal.aborted) return true;
     const source = stored ?? fallback;
     if (!source) return false;
     view = {
@@ -334,16 +349,28 @@ function install(): void {
     return true;
   }
 
-  let asking: Promise<void> | null = null;
-  /** Asks for the whole show once: a search, or oldest first, means all of it. */
-  function readWhole(): Promise<void> {
-    if (!view || view.whole) return Promise.resolve();
-    asking ??= fetchShow(showId, true).then(async (answer) => {
-      asking = null;
-      if (typeof answer === "string" || !view) return;
-      view.whole = true;
-      await read(answer);
-    });
+  const toldInOrder = (): boolean => view?.show.order === "serial";
+  let asking: Promise<boolean> | null = null;
+  /**
+   * Asks for the whole show once: a search, oldest first, Mark all, or a show told in order (whose
+   * Play starts at its first episode, not at the oldest of the newest page) means all of it. False
+   * when the whole list could not be had.
+   */
+  function readWhole(): Promise<boolean> {
+    if (!view) return Promise.resolve(false);
+    // An ask still being read in comes first: the list is whole only once it is drawn from.
+    if (asking) return asking;
+    if (view.whole) return Promise.resolve(true);
+    asking = fetchShow(showId, true)
+      .then(async (answer) => {
+        if (typeof answer === "string" || !view) return false;
+        view.whole = true;
+        await read(answer);
+        return true;
+      })
+      .finally(() => {
+        asking = null;
+      });
     return asking;
   }
 
@@ -353,12 +380,28 @@ function install(): void {
     if (life.signal.aborted) return;
     if (typeof answer !== "string") await read(answer);
     else if (!held) show(answer === "not_found" ? "missing" : "failed");
+    if (toldInOrder()) void readWhole();
   })();
 
   /* ------------------------------------------------------------------ presses */
 
   const refuse = (): void =>
     sendToast({ message: "This episode can't be played here", kind: "error" });
+
+  /**
+   * The header's Play. A show told in order starts at its first unplayed episode, which is in the
+   * whole list, not in its newest page: the press waits for that list, and says so when it cannot
+   * be had, in place of starting somewhere in the middle.
+   */
+  async function playShow(): Promise<void> {
+    if (toldInOrder() && !playingHere() && !(await readWhole())) {
+      if (!life.signal.aborted)
+        sendToast({ message: "Couldn't load every episode. Try again.", kind: "error" });
+      return;
+    }
+    const pick = playTarget();
+    if (pick && !pressPlay(pick.episode)) refuse();
+  }
 
   async function act(action: string, episode: EpisodeRow): Promise<void> {
     if (action === "played") {
@@ -368,7 +411,11 @@ function install(): void {
     if (action === "favorite") {
       const next = !(await getEpisode(episode.id))?.favorite_at;
       await setEpisodeFavorite(episode.id, next);
-      sendToast({ message: next ? "Added to favorites" : "Removed from favorites" });
+      // The device's own answer: a private window keeps nothing.
+      const kept = Boolean((await getEpisode(episode.id))?.favorite_at);
+      if (kept === next)
+        sendToast({ message: next ? "Added to favorites" : "Removed from favorites" });
+      else sendToast({ message: "Couldn't change favorites on this device", kind: "error" });
       return;
     }
     if (action === "share") {
@@ -388,21 +435,24 @@ function install(): void {
 
   async function markAll(): Promise<void> {
     // The whole show, not only the newest page of it.
-    await readWhole();
-    if (!view) return;
+    if (!(await readWhole()) || !view) {
+      // Marking only the newest page would say "all" and leave the older ones unplayed.
+      sendToast({ message: "Couldn't load every episode. Try again.", kind: "error" });
+      return;
+    }
     const marked = view.episodes.filter((episode) => !heardOf(episode.id).played);
     if (marked.length === 0) {
       sendToast({ message: "Every episode is already played" });
       return;
     }
-    const before = marked.map((episode) => ({ id: episode.id, heard: heardOf(episode.id) }));
-    for (const episode of marked) setPlayed(storage, episode.id, true);
+    const ids = marked.map((episode) => episode.id);
+    setPlayedAll(storage, ids, true);
     sendToast({
       message: `${pluralEpisodes(marked.length)} marked as played`,
       actionLabel: "Undo",
       // Undo gives back "unplayed"; a position inside an episode is not kept.
       onAction: () => {
-        for (const entry of before) setPlayed(storage, entry.id, false);
+        setPlayedAll(storage, ids, false);
       },
     });
   }
@@ -470,8 +520,7 @@ function install(): void {
         return;
       }
       if (target.closest("[data-show-play]")) {
-        const pick = playTarget();
-        if (pick && !pressPlay(pick.episode)) refuse();
+        void playShow();
       } else if (target.closest("[data-show-favorite]")) void toggleFavorite();
       else if (target.closest("[data-show-share]")) void shareShow();
       else if (target.closest('[data-show-action="mark-all"]')) void markAll();
@@ -512,7 +561,12 @@ function install(): void {
   sort?.addEventListener("change", filter, on);
 
   // A position kept, an episode finished or marked: its row and the header's Play say so.
-  window.addEventListener("singularity:resume", paintRows, on);
+  // With Unplayed chosen, one that has just become played leaves the list, and the count follows.
+  window.addEventListener(
+    "singularity:resume",
+    () => (unplayed?.checked ? drawList(view?.shown) : paintRows()),
+    on,
+  );
   void onPlayerChange(paintRows).then((off) => {
     if (life.signal.aborted) off();
     else life.signal.addEventListener("abort", off, { once: true });

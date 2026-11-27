@@ -51,6 +51,8 @@ export function queueDigestFor(id: string): PlayerDigestData | null {
 export function rememberQueueDigest(data: PlayerDigestData): void {
   digests.set(data.id, data);
   known.set(data.id, metaOf(data));
+  // An earlier read that found nothing (a show episode not yet on the device) is not the answer now.
+  asked.delete(data.id);
 }
 
 /** Reads the item's page if it has not been read yet; null where it cannot be. */

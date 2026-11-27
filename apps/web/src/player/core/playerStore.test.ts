@@ -572,6 +572,29 @@ describe("resume position", () => {
     hooks.hide?.();
     expect(harness.storage.getItem(resumeKey("2026-10-07"))).toBe("33");
   });
+
+  // A feed's declared length is an estimate (ads are cut in later). A page hidden before the file
+  // reported its own length took a place near that estimate's end for a finished episode and
+  // deleted it, so the episode started over.
+  it("keeps a show episode's place when the page hides before the file's length is known", () => {
+    const hooks: { hide: (() => void) | null } = { hide: null };
+    const harness = createHarness({
+      onPageHide: (callback) => {
+        hooks.hide = callback;
+        return () => {
+          hooks.hide = null;
+        };
+      },
+    });
+    const id = "pe:7:0123456789abcdef";
+    harness.storage.setItem(resumeKey(id), "3450");
+    harness.store.load(
+      makeDigest({ id, audio: { url: "/audio/show.mp3", duration_ms: 3_600_000 }, items: [] }),
+    );
+    hooks.hide?.();
+    expect(harness.storage.getItem(resumeKey(id))).toBe("3450");
+    expect(harness.storage.getItem(playedKey(id))).toBeNull();
+  });
 });
 
 describe("system interruptions", () => {

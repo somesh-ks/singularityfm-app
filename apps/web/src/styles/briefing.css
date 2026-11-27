@@ -7,10 +7,11 @@
 
 /* ------------------------------------------------------------------ sections */
 
-/* While the section tabs stick, focus and anchors land below them as well as below the app bar.
-   data-has-tabs is the layout's word for a page with the tabs (BaseLayout.astro), not a root :has(),
-   which restyled the whole page (D147). */
-html[data-has-tabs] {
+/* While the name strip sticks, focus and anchors land below it as well as below the app bar.
+   data-has-tabs is the layout's word for a page with two sections or more (BaseLayout.astro), not a
+   root :has(), which restyled the whole page (D147); data-tabs-stuck (briefingPage.ts) covers a
+   page with one section, whose strip sticks all the same. */
+html:is([data-has-tabs], [data-tabs-stuck]) {
   scroll-padding-block-start: calc(var(--sticky-top) + var(--tabs-height) + var(--space-4));
 }
 
@@ -143,7 +144,7 @@ html[data-has-tabs] {
     display: none;
   }
 
-  html[data-has-tabs] {
+  html:is([data-has-tabs], [data-tabs-stuck]) {
     scroll-padding-block-start: calc(var(--sticky-top) + var(--space-4));
   }
 
@@ -201,7 +202,7 @@ html[data-has-tabs] {
 @media (forced-colors: active) {
   .story-time[data-state="current"],
   .story-time[data-state="preparing"] {
-    outline: var(--stroke-hairline) solid;
+    outline: var(--stroke-hairline) solid CanvasText;
   }
 }
 

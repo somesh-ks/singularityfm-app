@@ -107,8 +107,9 @@ const fallbackTopic = episode.request.topic_ids[0] ?? "general";
           <Chapter section={section}>
             {section.highlights.map((highlight) => (
               <article class="episode-highlight">
-                {/* As a briefing's story (Item.astro): the headline is the link to the source,
-                    and the publisher above it is its quiet attribution. */}
+                {/* The headline is the link to the source, and the publisher above it is its quiet
+                    attribution. A Catchup's script has no start time for a story, so there is no
+                    time to press here as a briefing's story has (Item.astro, D403). */}
                 {highlight.host && (
                   <Link
                     variant="source"

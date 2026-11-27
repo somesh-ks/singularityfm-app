@@ -458,14 +458,15 @@ export function startPlayerRuntime(): () => void {
   // Seconds that sounded in this tab, not the saved position: an episode restored half way by a
   // reload has not been listened to again.
   const offListened = playerStore.onSecond(() => {
-    const { track, status } = playerStore.getState();
+    const { track, status, scrubbing } = playerStore.getState();
     const id = track?.digest.id ?? null;
     if (id !== heardItem) {
       heardItem = id;
       heardSeconds = 0;
     }
     const showId = id ? showIdOf(id) : null;
-    if (!id || !isPlayingStatus(status)) return;
+    // A drag of the scrubber publishes seconds too, with the sound held: those were not heard.
+    if (!id || !isPlayingStatus(status) || scrubbing) return;
     heardSeconds += 1;
     if (heardSeconds !== LISTENED_SECONDS) return;
     // A Catchup has no device-store record: History keeps its time in the key store.

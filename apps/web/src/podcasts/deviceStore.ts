@@ -103,8 +103,8 @@ async function run<T>(
       tx.onerror = () => reject(tx.error);
       tx.onabort = () => reject(tx.error);
     });
-    const result = await work(tx);
-    await done;
+    // Both at once: a failed request rejects the work and the transaction, and each is observed.
+    const [result] = await Promise.all([work(tx), done]);
     return result;
   } catch {
     return fallback;

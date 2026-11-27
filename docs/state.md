@@ -23,7 +23,7 @@ Unit (CI): 368 files, 5,579 tests, 2 min. Site e2e: 468, 14 min. Player: 81, 7 m
 ## Not working or unverified
 
 - PostHog (D400). closed when: events arrive via `/api/ph`; an opt-in replays.
-- Shows, headline list (D403): fixtures. closed when: on his phone a show plays, resumes, marks played.
+- Shows, headline list (D403). closed when: his phone plays and resumes a show.
 - First run, OPML, Add a show by name or link (slice 6): fixtures. closed when: on his phone a pasted Spotify link adds its show and an OPML imports.
 - D391: Play is the glyph alone. closed when: on his Android, Play keeps one size as it loads and plays.
 - D318 edge cache. closed when: a week of his loads is mostly HIT or STALE.

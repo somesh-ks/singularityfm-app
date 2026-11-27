@@ -172,7 +172,11 @@ export function installCardHold(): void {
   // has its own menu now. A mouse's right click keeps the browser's (copy link).
   document.addEventListener("contextmenu", (event) => {
     if (!matchMedia(TOUCH).matches) return;
-    if ((event.target as Element).closest?.("[data-card] .card-link, .player-queue-row"))
+    if (
+      (event.target as Element).closest?.(
+        `[data-card] :is(.card-link, .show-episode-link), .player-queue-row`,
+      )
+    )
       event.preventDefault();
   });
 }

@@ -177,8 +177,7 @@ test.describe("how the page reacts to those attributes", () => {
     const time = page.locator("[data-play-item]").nth(1);
     const idle = await computedColor(time, "color");
     await time.evaluate((node) => node.setAttribute("data-state", "current"));
-    await page.waitForTimeout(250);
-    expect(await computedColor(time, "color")).not.toBe(idle);
+    await expect.poll(() => computedColor(time, "color")).not.toBe(idle);
   });
 
   test("a played chip shows a check, a preparing one no spinner until it plays", async ({

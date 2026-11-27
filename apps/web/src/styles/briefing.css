@@ -190,11 +190,11 @@ html[data-has-tabs] {
   font-weight: var(--font-weight-regular);
 }
 
-/* The story being read says so on its time, in the accent. */
+/* The story being read says so on its time, in the accent. The weight stays: a heavier figure is
+   wider, and the headline beside it would move (D106). */
 .story-time[data-state="current"],
 .story-time[data-state="preparing"] {
   color: var(--color-accent);
-  font-weight: var(--font-weight-medium);
 }
 
 /* Where colours are forced the accent is gone, so the story being read keeps an edge. */

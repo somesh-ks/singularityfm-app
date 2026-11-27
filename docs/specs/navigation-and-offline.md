@@ -5,7 +5,7 @@ Service worker, saved copies, PWA, launch screen, offline. What it does now. Rea
 ## Requirements
 
 ### Moves between pages
-- Moves between Latest, Library, Create and Settings are answered from a copy the service worker saved in the last ten minutes and swapped at once (D47).
+- Tabs: Home, Search (and `/topic`), Library (D401); Profile and Settings light none. Moves are answered from a copy the worker saved in the last ten minutes, swapped at once (D47).
 - The current destination is marked the moment it is pressed. The pill growing under it carries on, at the same instant, on the bar of the page that arrives: the new bar takes the old pill's animation start time (`navigation.ts`), so a slow swap does not take it back. A finger has already drawn the pill (the press layer): the arrival eases it from the press tone to the current one in place and does not grow a second, smaller pill.
 - A briefing or an episode keeps the tab it was opened under (the Library's card for the latest podcast leaves the Library lit, with a Back to it), for the visit and across a reload; opened from nowhere it is the page's own tab. A move that leaves the same tab lit does not grow its pill again.
 - Between two tabs the pill grows in place from its centre over 300 ms on the hover curve and never travels (D280). The page arrives from the side the move came from: from the end side for a tab further along the bar, from the start side for one before it (D341).

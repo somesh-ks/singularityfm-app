@@ -696,7 +696,8 @@ export function createPlayerStore(options: PlayerStoreOptions): PlayerStore {
 
     const timeline = buildTimeline(digest);
     const duration = timeline?.durationSec ?? 0;
-    if (!sameDigest) measured = false;
+    // New audio, for the same item too: its length is not known until this file says it.
+    measured = false;
     const restored = readResumePosition(storage, digest.id, duration, recordingOf(digest));
     time = restored;
     pendingStart = restored > 0 ? restored : null;

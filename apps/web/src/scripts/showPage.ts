@@ -333,9 +333,12 @@ function install(): void {
     if (life.signal.aborted) return true;
     const source = stored ?? fallback;
     if (!source) return false;
+    // A device that could not keep the long list (a full disk) still holds the short one: the
+    // longest list in hand is the show, on this read and on every later one.
+    const lists = [source.episodes, fallback?.episodes ?? [], view?.episodes ?? []];
     view = {
       show: source.show,
-      episodes: source.episodes,
+      episodes: lists.reduce((a, b) => (b.length > a.length ? b : a)),
       following: stored?.show.favorite_at
         ? { favorite_at: stored.show.favorite_at, newest_id: stored.show.newest_id }
         : null,
@@ -399,6 +402,8 @@ function install(): void {
         sendToast({ message: "Couldn't load every episode. Try again.", kind: "error" });
       return;
     }
+    // The reader left while the list was read: the next page's player is not ours to start.
+    if (life.signal.aborted) return;
     const pick = playTarget();
     if (pick && !pressPlay(pick.episode)) refuse();
   }

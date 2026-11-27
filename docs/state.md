@@ -22,8 +22,8 @@ Unit (CI): 368 files, 5,579 tests, 2 min. Site e2e: 468, 14 min. Player: 81, 7 m
 
 ## Not working or unverified
 
-- PostHog (D400). closed when: events arrive via `/api/ph`; an opt-in replays.
-- Shows, headline list (D403). closed when: his phone plays and resumes a show.
+- PostHog (D400), events live. closed when: an opt-in replays.
+- D396 routes, D403 shows on fixtures. closed when: 200s with his keys; his phone resumes one.
 - D391: Play is the glyph alone. closed when: on his Android, Play keeps one size as it loads and plays.
 - D318 edge cache. closed when: a week of his loads is mostly HIT or STALE.
 - Guardrails (D360): #673 merged; `secrets:push` waits. closed when: Health's Budgets are fresh.

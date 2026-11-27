@@ -10,7 +10,12 @@ import { installPageArrows } from "@singularityfm/design-system/pageDots";
 import { RESUME_CARD_SELECTORS as RESUME } from "@singularityfm/design-system/resumeCard";
 import { sendToast } from "@singularityfm/design-system/toastEvent";
 import { whenIdle } from "../narration/prewarmPage";
-import { readRemembered, safeLocalStorage, setPlayed } from "../player/core/resume";
+import {
+  readRemembered,
+  safeLocalStorage,
+  saveResumePosition,
+  setPlayed,
+} from "../player/core/resume";
 import { heardOnDevice } from "../podcasts/after";
 import { continueIds, dropContinue, readContinue } from "../podcasts/continueListening";
 import {
@@ -119,7 +124,7 @@ function install(): void {
 
   /** Each favorite on the dial with its count of new episodes. */
   async function dialShows(): Promise<Array<{ show: StoredShow; count: number }>> {
-    const shows = (await favoriteShows()).filter((show) => show.hidden_at === null);
+    const shows = (await favoriteShows()).filter((show) => !show.hidden_at);
     return Promise.all(
       shows.map(async (show) => {
         const episodes = await episodesOfShow(show.id);
@@ -137,6 +142,8 @@ function install(): void {
       tile.dataset.homeAt = show.newest_at ?? "";
       if (show.pinned_at) tile.dataset.homePinned = show.pinned_at;
       const hit = tile.querySelector<HTMLElement>(DIAL.hit);
+      // As the Catchups' tiles: the tile takes its press area's data attributes (its kind).
+      if (hit) Object.assign(tile.dataset, hit.dataset);
       hit?.setAttribute(
         "aria-label",
         count > 0 ? `Play ${show.title}, ${count} new` : `Play ${show.title}`,
@@ -228,8 +235,9 @@ function install(): void {
     if (drawn === dialDrawn) return;
     dialDrawn = drawn;
     dialTiles = [...catchupTiles, ...showTiles(entries)];
-    applyFilter();
+    // Laid out first: the chips read the page, and the new tiles are in it only after.
     layoutDial();
+    applyFilter();
   }
 
   /* ------------------------------------------------------------------ Continue listening */
@@ -253,7 +261,14 @@ function install(): void {
     if (left) left.textContent = total > 0 ? `${lengthLabel(total - seconds)} left` : "";
   }
 
-  async function drawResume(): Promise<void> {
+  // One draw at a time: two at once each miss the other's new card and clone it twice.
+  let resumeDrawing: Promise<void> = Promise.resolve();
+  function drawResume(): Promise<void> {
+    resumeDrawing = resumeDrawing.then(drawResumeNow, drawResumeNow);
+    return resumeDrawing;
+  }
+
+  async function drawResumeNow(): Promise<void> {
     if (!resumeList || !resumeSection) return;
     const ids = continueIds(readContinue(storage), halfHeard);
     const items: HTMLElement[] = [];
@@ -388,7 +403,7 @@ function install(): void {
   let newDrawn = "";
   async function drawNew(): Promise<void> {
     if (!newList || !newSection) return;
-    const shows = (await favoriteShows()).filter((show) => show.hidden_at === null);
+    const shows = (await favoriteShows()).filter((show) => !show.hidden_at);
     const fresh: Array<{ episode: StoredEpisode; show: StoredShow }> = [];
     for (const show of shows) {
       const following = followingOf(show);
@@ -510,7 +525,11 @@ function install(): void {
       const keep = shownBy(filter, {
         kind,
         played: id !== "" && heardOf(id).played,
-        downloaded: thing.hasAttribute("data-downloaded"),
+        downloaded:
+          thing.hasAttribute("data-downloaded") ||
+          (id !== "" &&
+            root.querySelector(`[data-card][data-downloaded][data-id="${CSS.escape(id)}"]`) !==
+              null),
       });
       if (thing.hasAttribute("data-home-out") === keep) {
         thing.toggleAttribute("data-home-out", !keep);
@@ -632,7 +651,7 @@ function install(): void {
         paintFavorite(row, favorite);
         sendToast({ message: favorite ? "Added to favorites" : "Removed from favorites" });
       } else if (pick === "pin") {
-        const pinned = show.pinned_at === null;
+        const pinned = !show.pinned_at;
         // A pin is a place on the dial, and the dial holds favorites.
         if (pinned && show.favorite_at === null)
           await setShowFavorite(showId, true, await newestId(showId));
@@ -767,7 +786,7 @@ function install(): void {
       const show = await getShow(target.showId);
       if (!show) return;
       if (pick === "pin") {
-        await setShowPinned(target.showId, show.pinned_at === null);
+        await setShowPinned(target.showId, !show.pinned_at);
       } else if (pick === "show") go(showUrl(target.showId));
       else if (pick === "share") await share(show.title, showUrl(target.showId));
       else if (pick === "hide") {
@@ -788,11 +807,16 @@ function install(): void {
     }
     const { id, href } = target;
     if (pick === "played") {
+      // Marking it played forgets the position: Undo puts it back, and the card with it.
+      const { seconds } = readRemembered(storage, id);
       setPlayed(storage, id, true);
       sendToast({
         message: "Marked as played",
         actionLabel: "Undo",
-        onAction: () => setPlayed(storage, id, false),
+        onAction: () => {
+          setPlayed(storage, id, false);
+          if (seconds > 0) saveResumePosition(storage, id, seconds, 0);
+        },
       });
     } else if (pick === "drop") {
       dropContinue(storage, id);
@@ -883,12 +907,17 @@ function install(): void {
   redraw();
   installPageArrows();
   whenIdle(() => {
+    // Left before the browser was idle: the page is gone, and an aborted signal fires no more.
+    if (life.signal.aborted) return;
     void refreshNew();
     void drawTrending();
     drawTopics();
     void loadPlayer().then(() => {
       paintPlaying();
-      void onPlayerChange(paintPlaying).then((stop) => life.signal.addEventListener("abort", stop));
+      void onPlayerChange(paintPlaying).then((stop) => {
+        if (life.signal.aborted) stop();
+        else life.signal.addEventListener("abort", stop);
+      });
     });
     // The Catchups' menus (Download, Queue, Share, Favorite) and every hold are the Library's code.
     void import("./libraryMenu").then((menu) => menu.installLibraryMenu());

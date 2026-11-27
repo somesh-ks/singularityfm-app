@@ -292,7 +292,8 @@ export function setShowPinned(id: number, pinned: boolean): Promise<void> {
  * and every episode's record stay, so the Library still finds them.
  */
 export function setShowHidden(id: number, hidden: boolean): Promise<void> {
-  return changeShow(id, () => ({ hidden_at: hidden ? now() : null, pinned_at: null }));
+  // The pin stays: Undo brings a pinned show back to its place.
+  return changeShow(id, () => ({ hidden_at: hidden ? now() : null }));
 }
 
 /**

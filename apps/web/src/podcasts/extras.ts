@@ -35,6 +35,20 @@ export function isSponsorChapter(title: string): boolean {
   return SPONSOR_CHAPTER.test(title);
 }
 
+/** A publisher's "Sponsor:" or "Ad break -" before the sponsor's name. */
+const SPONSOR_PREFIX = /^\s*(?:sponsor(?:ed)?(?:\s+by)?|ads?|ad break|advert)\s*[:\u00b7\u2013-]\s*/i;
+
+/**
+ * A row's name beside the Sponsor badge (episode page): the badge says sponsor, so the name does
+ * not say it again ("Sponsor: ClickHouse" reads "ClickHouse"), and a break the transcript found
+ * says where it came from.
+ */
+export function badgedTitle(row: Pick<ChapterRow, "title" | "sponsor">): string {
+  if (!row.sponsor) return row.title;
+  if (row.title === SPONSOR_ROW) return "Found in the transcript";
+  return row.title.replace(SPONSOR_PREFIX, "") || row.title;
+}
+
 /** Breaks in time order with overlapping or touching ones joined. */
 function joined(spans: readonly SponsorBreak[]): SponsorBreak[] {
   const sorted = [...spans].sort((a, b) => a.start_s - b.start_s);

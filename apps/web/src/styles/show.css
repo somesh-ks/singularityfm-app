@@ -223,3 +223,7 @@
   color: var(--color-on-surface-muted);
   font-variant-numeric: tabular-nums;
 }
+
+[data-hours] > * > .episode-chapter-time {
+  min-inline-size: 7ch;
+}

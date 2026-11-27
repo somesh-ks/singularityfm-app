@@ -234,6 +234,14 @@ const BESPOKE_CONTROLS: [name: string, reason: string][] = [
   ["story-row", "a story row in the player's list"],
   ["script-back", "the transcript's back-to-playing control"],
   ["script-turn", "a transcript turn that seeks on tap"],
+  [
+    "dial-hit",
+    "a Dial tile's press area (design system 0.15): the whole square cover, not a control face",
+  ],
+  [
+    "resume-card-hit",
+    "a Continue listening card's press area (design system): the whole card resumes, not a control face",
+  ],
 ];
 
 /** The field family, whose outline is its form (D54): the Field and Select components, and the
@@ -259,6 +267,10 @@ const OUTLINED_CONTROLS: [rule: string, reason: string][] = [
   [
     'topics.css: .emoji-cell[aria-current="true"]',
     "the topic's own emoji in the emoji grid: a hairline ring on its tonal cell",
+  ],
+  [
+    'dial.css: .dial-tile[data-playing="true"] > .dial-hit::after',
+    "the playing show on Home's Dial, ringed in the accent inside its cover (design system 0.15)",
   ],
 ];
 
@@ -944,11 +956,14 @@ const RULES: Rule[] = [
     // control class or a named bespoke one, so it inherits the press, focus and hit-area rules.
     name: "every <button> wears a shared control class or a named bespoke one",
     offenders: () =>
-      sourceFiles().flatMap((file) =>
-        buttonsIn(readFileSync(file, "utf8"))
-          .filter(({ classes }) => classes !== undefined && !systemButton(classes))
-          .map(({ tag }) => `${posix(file)}: ${tag.replace(/\s+/g, " ").slice(0, 80)}`),
-      ),
+      sourceFiles()
+        // The design system's accessibility notes (0.14.0) name <button> in prose; they draw nothing.
+        .filter((file) => file !== join(SYSTEM_SRC, "a11y.ts"))
+        .flatMap((file) =>
+          buttonsIn(readFileSync(file, "utf8"))
+            .filter(({ classes }) => classes !== undefined && !systemButton(classes))
+            .map(({ tag }) => `${posix(file)}: ${tag.replace(/\s+/g, " ").slice(0, 80)}`),
+        ),
   },
   {
     // Prevents an outlined control (owner, 2026-11-03: the floating button had "a thin outline that

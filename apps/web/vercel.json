@@ -110,6 +110,20 @@
       "schedule": "0 23 * * *"
     }
   ],
+  "rewrites": [
+    {
+      "source": "/api/ph/static/:path(.*)",
+      "destination": "https://eu-assets.i.posthog.com/static/:path"
+    },
+    {
+      "source": "/api/ph/array/:path(.*)",
+      "destination": "https://eu-assets.i.posthog.com/array/:path"
+    },
+    {
+      "source": "/api/ph/:path(.*)",
+      "destination": "https://eu.i.posthog.com/:path"
+    }
+  ],
   "redirects": [
     {
       "source": "/analytics",
@@ -129,6 +143,12 @@
     {
       "source": "/design/:path*",
       "destination": "https://design.singularityfm.app/:path*",
+      "permanent": false
+    },
+    {
+      "source": "/:path((?!_astro/|api/|favicon\\.svg$|sw\\.js$).+)",
+      "has": [{ "type": "host", "value": "singularityfm.app" }],
+      "destination": "https://play.singularityfm.app/:path",
       "permanent": false
     }
   ],

@@ -152,8 +152,8 @@ html[data-has-tabs] {
   }
 }
 
-/* The header sits above its card now, so the first story keeps its full padding like the rest; the
-   card's top inset is all that differs from a story between two others. */
+/* The header sits above its card; the card (.card-group-content) gives the first and last story the
+   card's padding at its edges, the same as at its sides (owner, 2026-11-25). */
 
 /* ------------------------------------------------------------------ a story */
 

@@ -389,10 +389,14 @@ function install(): void {
   // At the start of a move, not its swap: Back changes the address and then fetches the page, and a
   // store answer in between would write this page's filter into the address being left for.
   document.addEventListener("astro:before-preparation", () => life.abort(), { once: true });
+  // Only the latest draw lands: an older one still reading the store could put back a show since removed.
+  let deviceDraw = 0;
   const drawDevice = (): void => {
     if (!template || searchOnly) return;
+    const draw = ++deviceDraw;
     void import("./libraryPodcasts").then(async ({ deviceRows }) => {
       const rows = await deviceRows(template);
+      if (draw !== deviceDraw) return;
       // A move away before the store answered: apply() would write this page's filter into the next
       // page's address, and a delete from there would lose the Library it came from.
       if (life.signal.aborted) return;

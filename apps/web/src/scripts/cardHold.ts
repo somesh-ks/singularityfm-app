@@ -112,7 +112,8 @@ export function installCardHold(): void {
         if (!other || !held) return;
         row = held;
         list = null;
-        fill = () => other.sheet(held);
+        // A page swapped while the finger was down: its tile is gone, and so is its sheet.
+        fill = () => (held.isConnected ? other.sheet(held) : null);
       }
       start = { x: event.clientX, y: event.clientY, id: event.pointerId };
       const pointerId = event.pointerId;

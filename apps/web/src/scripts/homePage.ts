@@ -185,8 +185,15 @@ function install(): void {
       list.replaceChildren(...tiles);
       return list;
     });
-    // Tiles left out stay in the document so a chip can bring them back.
+    // Tiles left out stay in the document so a chip can bring them back, in a page of their own
+    // when no tile is left to give one.
     const parked = ordered.filter((tile) => tile.hasAttribute("data-home-out"));
+    if (lists.length === 0 && parked.length > 0) {
+      lists.push(
+        template(wide ? "data-home-dial-wide-template" : "data-home-dial-page-template") ??
+          document.createElement("ul"),
+      );
+    }
     lists.at(-1)?.append(...parked);
     pagesHost.replaceChildren(...lists);
     pagesHost.dataset.paged = String(!wide && pages.length > 1);
@@ -334,10 +341,18 @@ function install(): void {
 
   /** A Catchup plays from its page, as a cover's play does in a list (player/core/coverPress.ts). */
   async function playCatchup(id: string, href: string | undefined): Promise<void> {
-    const [{ runtime }, cover] = await Promise.all([
-      loadPlayer(),
-      import("../player/core/coverPress"),
-    ]);
+    let loaded: [
+      Awaited<ReturnType<typeof loadPlayer>>,
+      typeof import("../player/core/coverPress"),
+    ];
+    try {
+      loaded = await Promise.all([loadPlayer(), import("../player/core/coverPress")]);
+    } catch {
+      // The player's code did not load (offline before it was saved): say so, as a show's Play does.
+      sendToast({ message: "Couldn't start this episode. Try again when you're online." });
+      return;
+    }
+    const [{ runtime }, cover] = loaded;
     cover.pressCover({
       store: runtime.getPlayerStore(),
       // shortcut: a Catchup with no audio yet is not narrated on arrival from here; its page's Play
@@ -358,7 +373,11 @@ function install(): void {
     const show = await getShow(showId);
     if (!show) return;
     let episodes = await episodesOfShow(showId);
-    if (episodes.length === 0 && typeof (await fetchShow(showId)) === "object") {
+    if (episodes.length === 0) {
+      if (typeof (await fetchShow(showId)) !== "object") {
+        sendToast({ message: "Couldn't load this show's episodes. Try again when you're online." });
+        return;
+      }
       episodes = await episodesOfShow(showId);
     }
     const pick = pickPlay(show, episodes, followingOf(show), heardOf, show.last_episode_id);
@@ -454,6 +473,12 @@ function install(): void {
   const trendingList = q("[data-home-trending]");
   const trendingSection = q("[data-home-trending-section]");
   const trendingShows = new Map<number, ShowRow>();
+
+  /** A card taken off the shelf by hand: the heading goes with the last one. */
+  function trendingGone(): void {
+    if (trendingList && trendingSection)
+      trendingSection.hidden = trendingList.childElementCount === 0;
+  }
 
   async function drawTrending(): Promise<void> {
     if (!trendingList || !trendingSection) return;
@@ -649,6 +674,8 @@ function install(): void {
         const favorite = show.favorite_at === null;
         await setShowFavorite(showId, favorite, await newestId(showId));
         paintFavorite(row, favorite);
+        // Leaving the favorites takes the pin with it (deviceStore.ts).
+        if (!favorite) paintPin(row, false);
         sendToast({ message: favorite ? "Added to favorites" : "Removed from favorites" });
       } else if (pick === "pin") {
         const pinned = !show.pinned_at;
@@ -657,12 +684,14 @@ function install(): void {
           await setShowFavorite(showId, true, await newestId(showId));
         await setShowPinned(showId, pinned);
         paintPin(row, pinned);
+        if (pinned) paintFavorite(row, true);
         sendToast({ message: pinned ? "Pinned to your speed dial" : "Unpinned" });
       } else if (pick === "share") await share(show.title, showUrl(showId));
       else if (pick === "show") go(showUrl(showId));
       else if (pick === "hide") {
         await setShowHidden(showId, true);
         row.remove();
+        trendingGone();
         sendToast({
           message: "We'll show you less of this",
           actionLabel: "Undo",
@@ -791,10 +820,13 @@ function install(): void {
       else if (pick === "share") await share(show.title, showUrl(target.showId));
       else if (pick === "hide") {
         await setShowHidden(target.showId, true);
+        // Not interested holds on every shelf: its Trending card goes too, with no new request.
+        trendingList?.querySelector(`:scope > [data-home-show="${target.showId}"]`)?.remove();
+        trendingGone();
         sendToast({
           message: "Removed from your speed dial",
           actionLabel: "Undo",
-          onAction: () => void setShowHidden(target.showId, false),
+          onAction: () => void setShowHidden(target.showId, false).then(drawTrending),
         });
       }
       return;
@@ -814,6 +846,8 @@ function install(): void {
         message: "Marked as played",
         actionLabel: "Undo",
         onAction: () => {
+          // Heard on since: that newer place stands, and the card is back already.
+          if (readRemembered(storage, id).seconds > 0) return;
           setPlayed(storage, id, false);
           if (seconds > 0) saveResumePosition(storage, id, seconds, 0);
         },

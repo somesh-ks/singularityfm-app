@@ -194,7 +194,7 @@ Status words: `active` (holds), `amends Dn` or `supersedes Dn` (holds, and chang
 | D332 | A scheduled run waits at the gate when the last 24 hours cost over $5 | amends D139 |
 | D333 | The short-text Claude steps run Haiku medium, then Haiku high, then Sonnet medium | amends D308, D324; amended by D334, D399 |
 | D334 | Every Claude step starts at Haiku medium, the podcast script included | amends D333; amended by D399 |
-| D335 | The avatar leads to a profile page; Settings is Podcast settings, App settings and About | amends D129, D281, D299; amended by D344 |
+| D335 | The avatar leads to a profile page; Settings is Podcast settings, App settings and About | amends D129, D281, D299; amended by D344, D401 |
 | D336 | A cover no longer flies between its card and the page's hero | partly supersedes D271, D280; amended by D341 |
 | D337 | Regenerate sheets open on the comment; Length and Categories appear as words reach for them | amends D207, D323; amended by D370, D371 |
 | D338 | Settings sets the default speed on the player's speed screen | amends D309 |

@@ -18,6 +18,12 @@ export interface Release {
 
 export const CHANGELOG: readonly Release[] = [
   {
+    version: "0.27.0",
+    date: "2026-11-27",
+    description:
+      "The bar is now Home, Search and Library, and Settings, About, Privacy and Change log live in your Profile. Search opens on topics with show covers, the top shows and what you opened lately, then finds shows, episodes and your catchups as you type; each topic has its own page.",
+  },
+  {
     version: "0.26.0",
     date: "2026-11-27",
     description:

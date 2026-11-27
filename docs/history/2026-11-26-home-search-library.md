@@ -1,0 +1,3 @@
+# Home, Search and Library (26 Nov 2026)
+
+The owner asked for a bar of Home, Search and Library, with Settings inside Profile, and for Search to be a discover screen as the 12 Nov canvas drew it. Search reuses the Library's search for Catchups and the podcast routes for shows and episodes; topic tiles show covers from each topic's chart and open `/topic`. The tiles were half a desktop column wide, so the design system capped them at 10rem from 40rem (DS PR 108); a phone keeps its share so the next tile always peeks. Nine browser tests that walked the old Settings tab were updated with his OK. Decision: D401.

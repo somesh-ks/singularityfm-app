@@ -2,8 +2,8 @@
 import Button from "@singularityfm/design-system/Button";
 import Icon from "@singularityfm/design-system/Icon";
 import ManageChrome from "../components/ManageChrome.astro";
+import SettingsHead from "../components/SettingsHead.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
-import { buildDayShort } from "../lib/buildDay";
 import { loadManage } from "../lib/manage";
 import { loadScheduleView } from "../lib/schedule";
 import { dailySummary, sourcesSummary, weeklySummary } from "../lib/settingsSummary";
@@ -72,8 +72,6 @@ const APP: Row[] = [
   { href: "/settings/appearance", label: "Appearance", data: {} },
   { href: "/settings/sound", label: "Sound and voice", data: {} },
 ];
-
-const updated = buildDayShort();
 ---
 
 <BaseLayout title="Settings" view="settings" skipLabel="Skip to the settings">
@@ -82,7 +80,8 @@ const updated = buildDayShort();
          that knows it (this device's preferences, the browser's notifications), so no build-time word
          ever paints first. */}
     <div class="settings-view" data-settings>
-      <h1 class="text-display" id="page-title" tabindex="-1">Settings</h1>
+      {/* Settings is inside the profile (owner, 2026-11-26), so it says so as Downloads does. */}
+      <SettingsHead crumb up={{ href: "/profile", label: "Profile" }} title="Settings" />
       <noscript>
         <p class="settings-note">These settings need JavaScript, which is turned off in this browser.</p>
       </noscript>
@@ -144,31 +143,6 @@ const updated = buildDayShort();
         </div>
       </section>
 
-      {/* No heading: three rows say what they are. The date under them is the build's, small and
-           centred; from 64rem the side column carries it (settings.css). */}
-      <section aria-label="About">
-        <div class="rows card-group">
-          <a class="row-action" href="/settings/about">
-            <span class="settings-text">
-              <span class="settings-label">About</span>
-            </span>
-            <Icon name="chevronRight" />
-          </a>
-          <a class="row-action" href="/settings/privacy">
-            <span class="settings-text">
-              <span class="settings-label">Privacy</span>
-            </span>
-            <Icon name="chevronRight" />
-          </a>
-          <a class="row-action" href="/settings/changelog">
-            <span class="settings-text">
-              <span class="settings-label">Change log</span>
-            </span>
-            <Icon name="chevronRight" />
-          </a>
-        </div>
-        <p class="settings-updated">Last updated on {updated}</p>
-      </section>
 
       {/* Only Safari on iOS can do this, and only when the app is not already on the Home Screen, so
            the section starts hidden and the script shows it where it applies. */}

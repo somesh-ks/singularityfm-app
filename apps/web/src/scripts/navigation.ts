@@ -32,9 +32,9 @@ function isBriefingPath(pathname: string): boolean {
   return pathname.startsWith("/d/") || pathname.startsWith("/e/");
 }
 
-/** A page one level below its tab: a briefing, an episode, or a page under Settings (Downloads, Voice, ...). */
+/** A page one level below its tab: a briefing, an episode, a topic, or a page under Settings (Downloads, Voice, ...). */
 function isDeeperPath(pathname: string): boolean {
-  return isBriefingPath(pathname) || pathname.startsWith("/settings/");
+  return isBriefingPath(pathname) || pathname === "/topic" || pathname.startsWith("/settings/");
 }
 
 export function navigationKind(from: URL, to: URL): NavigationKind {

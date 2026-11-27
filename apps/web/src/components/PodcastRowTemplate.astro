@@ -1,0 +1,19 @@
+---
+import "../styles/podcast-rows.css";
+---
+
+{/* One public show or episode as a Library list row (library.css): its art, title and one quiet
+     line. scripts/podcastRows.ts clones it, so Search and a topic's page draw the same row. */}
+<template data-podcast-row>
+  <li class="card" data-card>
+    <a class="card-link" data-astro-prefetch="hover">
+      <span class="cover podcast-cover" data-size="card">
+        <img alt="" decoding="async" loading="lazy" />
+      </span>
+      <span class="card-title" data-row-title></span>
+      <span class="card-sub">
+        <span class="card-facts" data-row-facts></span>
+      </span>
+    </a>
+  </li>
+</template>

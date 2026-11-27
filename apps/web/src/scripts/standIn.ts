@@ -43,16 +43,19 @@ export function targetOf(location: Pick<Location, "pathname" | "search" | "hash"
     : `${location.pathname}${location.search}${location.hash}`;
 }
 
-/** The tab the page belongs to, from its address; the stand-in cannot say it itself (nav is server-drawn). */
-export function destinationOf(pathname: string): "today" | "library" | "settings" {
+/** The tab the page belongs to, from its address; the stand-in cannot say it itself (nav is server-drawn). The profile and Settings belong to none. */
+export function destinationOf(pathname: string): "today" | "search" | "library" | null {
   if (pathname === "/" || pathname === "") return "today";
-  if (pathname === "/settings" || pathname.startsWith("/settings/")) return "settings";
+  if (pathname === "/search" || pathname === "/topic") return "search";
+  if (pathname === "/profile" || pathname === "/settings" || pathname.startsWith("/settings/"))
+    return null;
   return "library";
 }
 
 function markDestination(): void {
   const destination = destinationOf(location.pathname);
-  const hrefs = { today: "/", library: "/library", settings: "/settings" } as const;
+  if (destination === null) return;
+  const hrefs = { today: "/", search: "/search", library: "/library" } as const;
   for (const link of document.querySelectorAll<HTMLAnchorElement>(".app-nav a[href]")) {
     if (link.matches(".app-nav-brand, .app-nav-create")) continue;
     if (link.getAttribute("href") === hrefs[destination]) link.setAttribute("aria-current", "page");

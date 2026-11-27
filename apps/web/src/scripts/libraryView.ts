@@ -25,9 +25,14 @@ export function applyView(root: HTMLElement, view: LibraryView): void {
   }
 }
 
-/** The Library's root on the page now, not Settings' rows, which wear the same attribute. */
+/**
+ * The Library's root on the page now (or Search's Catchups), not Settings' rows or Search's show
+ * lists, which wear the same attribute for the same rows.
+ */
 export function libraryRoot(): HTMLElement | null {
-  return document.querySelector<HTMLElement>("#main.library [data-library]");
+  return document.querySelector<HTMLElement>(
+    "#main.library [data-library]:not([data-podcast-list])",
+  );
 }
 
 /**
@@ -50,7 +55,8 @@ function restoreOffset(root: HTMLElement): void {
 export function installLibraryViewSwap(): void {
   document.addEventListener("astro:after-swap", () => {
     const root = libraryRoot();
-    if (!root) return;
+    // Search's Catchups are always the list: the gallery never applies to them.
+    if (!root || root.hasAttribute("data-search-only")) return;
     const view = storedView();
     applyView(root, view);
     if (view === "gallery") restoreOffset(root);

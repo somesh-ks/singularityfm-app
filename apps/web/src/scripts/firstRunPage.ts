@@ -203,7 +203,8 @@ function mountFirstRun(root: HTMLElement): void {
   const finish = async (): Promise<void> => {
     markFirstRunDone();
     // A show tapped a moment ago is still being saved; leaving the page now would drop it.
-    await Promise.allSettled(saving);
+    // Until none remain: a pick made while it waits joins the set and is waited for too.
+    while (saving.size > 0) await Promise.allSettled([...saving]);
     location.assign("/");
   };
   root.querySelector("[data-first-run-skip]")?.addEventListener("click", finish);

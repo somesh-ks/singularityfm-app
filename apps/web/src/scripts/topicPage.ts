@@ -27,19 +27,25 @@ function install(): void {
   }
   const shows = one("[data-topic-shows]");
   // The page heading already says "Top shows" without a topic: the list needs no second one.
-  if (!topic) shows?.querySelector(".shelf-head")?.remove();
+  if (!topic) {
+    shows?.setAttribute("aria-labelledby", "page-title");
+    shows?.querySelector(".shelf-head")?.remove();
+  }
 
   void trending(topic?.query).then(async (answer) => {
     const note = one("[data-topic-note]");
-    if (answer === null) {
-      if (note) note.hidden = false;
+    const top = (answer ?? [])
+      .filter((show) => show.id !== null)
+      .slice(0, topic ? TOP_SHOWS : undefined);
+    if (top.length === 0) {
+      if (note) {
+        if (answer !== null) note.textContent = "No shows here yet. Try another topic.";
+        note.hidden = false;
+      }
       return;
     }
-    const top = answer
-      .filter((show) => show.id !== null)
-      .slice(0, topic ? TOP_SHOWS : answer.length);
     const list = one("[data-topic-shows-list]");
-    if (list && shows && top.length > 0) {
+    if (list && shows) {
       drawRows(
         list,
         top.flatMap((show) => showRow(show) ?? []),

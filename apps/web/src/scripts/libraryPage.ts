@@ -118,7 +118,8 @@ function install(): void {
       .then((response) => (response.ok ? response.json() : Promise.reject(new Error("no index"))))
       .then((entries: SearchIndexEntry[]) => {
         fullText = new Map(entries.map((entry) => [entry.id, entry.text]));
-        apply();
+        // The page may have been left meanwhile: a detached root must not write its words to the next one's address.
+        if (host.isConnected) apply();
       })
       .catch(() => {
         // Offline or missing: the search goes on with what the page holds, and does not ask again.

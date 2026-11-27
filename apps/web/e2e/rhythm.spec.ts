@@ -11,7 +11,7 @@ const SIZES = [
 ];
 
 // Settings opens from Profile and carries its way back, so it is a sub-page (D401).
-const DESTINATIONS = ["/", "/library", "/create"];
+const DESTINATIONS = ["/latest", "/library", "/create"];
 const SUBPAGES = [
   "/settings",
   "/settings/daily",
@@ -43,7 +43,7 @@ for (const size of SIZES) {
         await page.goto(path);
         tops[path] = await firstBlockTop(page, "main .hero .cover, main h1");
       }
-      const reference = tops["/"] ?? 0;
+      const reference = tops["/latest"] ?? 0;
       expect(reference).toBeGreaterThan(0);
       for (const [path, top] of Object.entries(tops)) {
         expect(
@@ -54,7 +54,7 @@ for (const size of SIZES) {
     });
 
     test("a sub-page puts its title where the destinations start", async ({ page }) => {
-      await page.goto("/");
+      await page.goto("/latest");
       const reference = await firstBlockTop(page, "main .hero .cover, main h1");
       for (const path of SUBPAGES) {
         await page.goto(path);

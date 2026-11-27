@@ -18,6 +18,8 @@ import {
   moreMatches,
   normalize,
   resultSummary,
+  SHOW_EPISODE_KIND,
+  SHOW_KIND,
   storyHeadline,
   textHasWords,
 } from "./library";
@@ -105,6 +107,21 @@ describe("matchesFilter", () => {
     }
     expect(matchesFilter(card(), "custom")).toBe(false);
     expect(matchesFilter(card({ kind: "weekly" }), "custom")).toBe(false);
+  });
+
+  // A favorite show's row is not a Catchup: under Daily or All it would sit among the podcasts.
+  it("keeps favorite shows under Shows and hearted episodes under Favorites only", () => {
+    const show = card({ kind: SHOW_KIND });
+    const episode = card({ kind: SHOW_EPISODE_KIND });
+    expect(matchesFilter(show, "shows", true)).toBe(true);
+    expect(matchesFilter(show, "favorites", true)).toBe(false);
+    expect(matchesFilter(episode, "favorites", true)).toBe(true);
+    for (const filter of ["all", "daily", "weekly", "custom"] as const) {
+      expect(matchesFilter(show, filter, true)).toBe(false);
+      expect(matchesFilter(episode, filter, true)).toBe(false);
+    }
+    expect(matchesFilter(card(), "favorites", true)).toBe(true);
+    expect(matchesFilter(card(), "favorites", false)).toBe(false);
   });
 });
 

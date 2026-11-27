@@ -149,7 +149,7 @@ for (const width of [360, 390]) {
 for (const width of [360, 390]) {
   test(`the shelf on Today keeps each card's facts on one line at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 800 });
-    await page.goto("/");
+    await page.goto("/latest");
     const lines = await page.locator(".shelf .card-facts").evaluateAll((nodes) =>
       nodes.map((node) => ({
         text: node.textContent,
@@ -265,7 +265,7 @@ test.describe("library fixes", () => {
     await page.addInitScript(() =>
       sessionStorage.setItem("singularity:run", JSON.stringify({ id: 5, phase: "done" })),
     );
-    await page.goto("/");
+    await page.goto("/latest");
     await hydrated(page);
     await page.getByRole("link", { name: "Library", exact: true }).first().click();
     await expect(page).toHaveURL(/\/library$/);
@@ -782,7 +782,7 @@ test.describe("library episodes", () => {
     );
 
     // A move from Today, once its scripts run, is a swap in the same document.
-    await page.goto("/");
+    await page.goto("/latest");
     await hydrated(page);
     await page.evaluate(() => {
       (window as unknown as { kept?: boolean }).kept = true;
@@ -814,7 +814,7 @@ test.describe("library episodes", () => {
 
 test.describe("navigating without reloading", () => {
   test("moves between the reader and the library on the client", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/latest");
     await page.evaluate(() => {
       (window as unknown as { __kept: string }).__kept = "same document";
     });
@@ -840,14 +840,14 @@ test.describe("navigating without reloading", () => {
   });
 
   test("moves focus to the new heading and updates the title", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/latest");
     await page.getByRole("link", { name: "See all" }).click();
     await expect(page).toHaveTitle("Library, Singularity");
     await expect(page.locator("main h1")).toBeFocused();
   });
 
   test("keeps the page at the top of the new route", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/latest");
     await page.getByRole("link", { name: "See all" }).scrollIntoViewIfNeeded();
     await page.getByRole("link", { name: "See all" }).click();
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Library");
@@ -855,11 +855,11 @@ test.describe("navigating without reloading", () => {
   });
 
   test("works with the browser back button", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/latest");
     await page.getByRole("link", { name: "See all" }).click();
     await expect(page).toHaveURL(/\/library$/);
     await page.goBack();
-    await expect(page).toHaveURL(/\/$/);
+    await expect(page).toHaveURL(/\/latest$/);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Wednesday 7 October");
   });
 });

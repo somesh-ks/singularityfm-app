@@ -20,7 +20,7 @@ test.describe("time zone prompt", () => {
     page,
   }) => {
     const server = await routeConfigServer(page);
-    await page.goto("/");
+    await page.goto("/latest");
     const toast = page.locator(TOAST);
     await expect(toast).toContainText("You're in Tokyo");
     // Never silent: nothing is sent until Switch is pressed.
@@ -43,7 +43,7 @@ test.describe("time zone prompt", () => {
     browser,
     baseURL,
   }) => {
-    await page.goto("/");
+    await page.goto("/latest");
     // Closed from the keyboard: on a phone the close button is hidden from the eye, not the page.
     await page.locator(TOAST).getByRole("button", { name: "Dismiss" }).focus();
     await page.keyboard.press("Enter");
@@ -59,7 +59,7 @@ test.describe("time zone prompt", () => {
       timezoneId: "Europe/Stockholm",
     });
     const homePage = await home.newPage();
-    await homePage.goto("/");
+    await homePage.goto("/latest");
     await expect(homePage.locator("html")).toHaveAttribute(CHECKED, "agree");
     await expect(homePage.locator(`${TOAST}:popover-open`)).toHaveCount(0);
     const afterHome = await home.storageState();
@@ -68,7 +68,7 @@ test.describe("time zone prompt", () => {
     // A second trip to the same place asks again.
     const again = await browser.newContext({ baseURL, storageState: afterHome, ...TOKYO });
     const againPage = await again.newPage();
-    await againPage.goto("/");
+    await againPage.goto("/latest");
     await expect(againPage.locator(TOAST)).toContainText("You're in Tokyo");
     await again.close();
   });

@@ -118,7 +118,7 @@ test.describe("layout", () => {
     tag: "@desktop",
   }, async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
-    await page.goto("/");
+    await page.goto("/latest");
     await hydrated(page);
     await page.locator(".hero [data-play-digest]").click();
     await expect(page.locator("html")).toHaveAttribute("data-player-state", "playing");
@@ -143,7 +143,7 @@ test.describe("layout", () => {
     page,
   }) => {
     await page.setViewportSize({ width: 1600, height: 900 });
-    await page.goto("/");
+    await page.goto("/latest");
     const column = await page
       .locator("main")
       .evaluate((node) => node.getBoundingClientRect().width);
@@ -171,7 +171,7 @@ test.describe("layout", () => {
     page,
   }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
-    await page.goto("/");
+    await page.goto("/latest");
     const aside = page.getByRole("navigation", { name: "Contents" });
     await expect(aside).toBeVisible();
     await expect(aside.locator(".aside-link")).toHaveCount(6);
@@ -200,7 +200,7 @@ test.describe("layout", () => {
     tag: "@desktop",
   }, async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
-    await page.goto("/");
+    await page.goto("/latest");
     const current = page.locator('.aside-link[aria-current="true"]');
     await expect(current).toHaveText(/Top picks/);
     await page.evaluate(() => {
@@ -231,7 +231,7 @@ test.describe("layout", () => {
     tag: "@desktop",
   }, async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
-    await page.goto("/");
+    await page.goto("/latest");
     const current = page.locator('.aside-link[aria-current="true"]');
     await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
     await expect(current).toHaveText(/Watch and listen/);
@@ -246,7 +246,7 @@ test.describe("layout", () => {
     tag: "@desktop",
   }, async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
-    for (const path of [SILENT_DIGEST, "/"]) {
+    for (const path of [SILENT_DIGEST, "/latest"]) {
       await page.goto(path);
       await expect(page.locator(".aside-link").first()).toBeVisible();
       await expect(page.locator(".aside-length")).toHaveCount(0);
@@ -258,7 +258,7 @@ test.describe("layout", () => {
   }) => {
     for (const width of [360, 390, 768, 1024]) {
       await page.setViewportSize({ width, height: 900 });
-      await page.goto("/");
+      await page.goto("/latest");
       const misses = await page.evaluate(() => {
         const out: string[] = [];
         for (const chip of document.querySelectorAll<HTMLElement>(".story [data-play-item]")) {
@@ -282,13 +282,13 @@ test.describe("layout", () => {
     // A publisher of a usual length reads whole on a 360px phone: beside the chip and the controls
     // it once showed about six letters (owner, 2026-10-23).
     await page.setViewportSize({ width: 360, height: 700 });
-    await page.goto("/");
+    await page.goto("/latest");
     const name = page.locator(".story").first().locator(".story-publisher");
     await expect(name).toHaveText("Springlet Blog");
     expect(await name.evaluate((node) => node.scrollWidth <= node.clientWidth)).toBe(true);
 
     await page.setViewportSize({ width: 320, height: 700 });
-    await page.goto("/");
+    await page.goto("/latest");
     const story = page.locator(".story").nth(1);
     // The summary, the way to the source and the controls are under the headline: open it.
     await story.locator("summary").click();
@@ -367,7 +367,7 @@ test.describe("layout", () => {
   test("fonts are self-hosted with a metric-matched fallback", async ({ page }) => {
     const requests: string[] = [];
     page.on("request", (request) => requests.push(request.url()));
-    await page.goto("/");
+    await page.goto("/latest");
     await page.evaluate(() => document.fonts.ready);
     const faces = await page.evaluate(() =>
       [...document.fonts].map((face) => `${face.family}:${face.status}`),
@@ -383,7 +383,7 @@ test.describe("layout", () => {
   }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
     await page.emulateMedia({ forcedColors: "active" });
-    await page.goto("/");
+    await page.goto("/latest");
     // The player clears story states as it hydrates; write ours after it has.
     await hydrated(page);
     await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => resolve(null))));

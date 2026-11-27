@@ -152,6 +152,16 @@ export function startServer({ root, port, api }) {
       response.end(JSON.stringify({ length: null, topics: false, add: [], by: "none" }));
       return;
     }
+    if (
+      (pathname === "/api/podcasts/trending" || pathname === "/api/podcasts/new") &&
+      request.method === "GET"
+    ) {
+      // Home asks both on every visit: an empty answer, as a quiet index gives, so no test pays a
+      // console line for it. A journey that needs shows answers the route itself (page.route).
+      response.writeHead(200, { "Content-Type": "application/json" });
+      response.end(JSON.stringify(pathname.endsWith("/new") ? { episodes: [] } : { shows: [] }));
+      return;
+    }
     if (pathname.startsWith("/api/")) {
       response.writeHead(501, { "Content-Type": "application/json" });
       response.end(JSON.stringify({ error: "not served by the static test server" }));

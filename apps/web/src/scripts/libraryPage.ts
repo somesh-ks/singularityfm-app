@@ -382,7 +382,9 @@ function install(): void {
   // and again whenever it changes (a heart on a show's page, another tab).
   const template = document.querySelector<HTMLTemplateElement>("template[data-podcast-row]");
   const life = new AbortController();
-  document.addEventListener("astro:before-swap", () => life.abort(), { once: true });
+  // At the start of a move, not its swap: Back changes the address and then fetches the page, and a
+  // store answer in between would write this page's filter into the address being left for.
+  document.addEventListener("astro:before-preparation", () => life.abort(), { once: true });
   const drawDevice = (): void => {
     if (!template || searchOnly) return;
     void import("./libraryPodcasts").then(async ({ deviceRows }) => {

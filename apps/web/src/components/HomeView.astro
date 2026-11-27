@@ -85,7 +85,9 @@ const kindWord = (entry: DigestEntry): string =>
     {/* Nine a page on the phone, swiped sideways with dots under it; one row of six on desktop. The
          script lays the tiles out for the width it has; the Catchups' tiles are here before it. */}
     <div class="home-dial-pages" data-home-dial-pages>
-      <Dial className="home-dial-page" data-home-dial-page>
+      {/* The arrows control this row by id, so the page as served names a row that exists; the
+           script swaps in the wide row, with the same id, or the phone's pages. */}
+      <Dial id="home-dial-wide" className="home-dial-page" data-home-dial-page>
         {daily && (
           <DialTile
             name="Daily"

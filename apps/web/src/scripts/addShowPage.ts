@@ -30,7 +30,9 @@ function mountAddShow(root: HTMLElement, life: AbortSignal): void {
   const params = new URLSearchParams(location.search);
   const fromFirstRun = params.get("from") === "welcome";
   // A file being imported holds the page: an add that opened a show's page now would cut it short.
+  // The picker's own button is held too while an add looks or a dropped file imports.
   let importing = false;
+  const pick = root.querySelector<HTMLButtonElement>("[data-import-pick]");
   installImportPicker(root, (on) => {
     importing = on;
   });
@@ -53,6 +55,7 @@ function mountAddShow(root: HTMLElement, life: AbortSignal): void {
   let working = false;
   const busy = (on: boolean): void => {
     working = on;
+    if (pick) pick.disabled = on;
     for (const name of ["aria-disabled", "aria-busy", "data-busy"]) {
       if (on) go.setAttribute(name, "true");
       else go.removeAttribute(name);
@@ -151,6 +154,7 @@ function mountAddShow(root: HTMLElement, life: AbortSignal): void {
       event.preventDefault();
       if (importing || working) return;
       importing = true;
+      if (pick) pick.disabled = true;
       try {
         const outcome = await (await transfer()).importFile(file);
         if (!life.aborted) reportImport(root, outcome);
@@ -159,6 +163,7 @@ function mountAddShow(root: HTMLElement, life: AbortSignal): void {
           sendToast({ message: "Couldn't read that file. Try again.", kind: "error" });
       } finally {
         importing = false;
+        if (pick) pick.disabled = false;
       }
     },
     on,

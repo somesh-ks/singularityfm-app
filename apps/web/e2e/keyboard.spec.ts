@@ -37,9 +37,9 @@ test.describe("keyboard", { tag: "@desktop" }, () => {
       "a: Singularity, latest podcast",
       // Create is first in the side column.
       "a: Catch up",
-      "a: Latest",
+      "a: Home",
+      "a: Search",
       "a: Library",
-      "a: Settings",
       // The avatar is the last stop of the side column, before the page itself (D335).
       "a: Your profile",
       // The queue's row ends the side column only while something is being made.

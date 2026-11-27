@@ -12,7 +12,8 @@ describe("the stand-in page", () => {
 
   it("marks the tab the page belongs to", () => {
     expect(destinationOf("/")).toBe("today");
-    expect(destinationOf("/settings/saved")).toBe("settings");
+    expect(destinationOf("/topic")).toBe("search");
+    expect(destinationOf("/settings/saved")).toBeNull();
     expect(destinationOf("/d/2026-10-04-weekly")).toBe("library");
   });
 });

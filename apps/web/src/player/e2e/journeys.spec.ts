@@ -86,7 +86,7 @@ test("a listening journey across pages: A on Today, B from the Library, back to 
   });
   // Back to A, on Today.
   await player.finger.press(
-    page.getByRole("navigation", { name: "Primary" }).getByRole("link", { name: "Latest" }),
+    page.getByRole("navigation", { name: "Primary" }).getByRole("link", { name: "Home" }),
   );
   await expect(page).toHaveURL(/\/$/);
   // A offers the time left from where it stopped, not a fresh start.

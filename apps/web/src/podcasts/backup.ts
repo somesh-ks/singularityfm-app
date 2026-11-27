@@ -128,11 +128,40 @@ const stringOrNull = (value: unknown): string | null => (typeof value === "strin
 const numberOrNull = (value: unknown): number | null =>
   typeof value === "number" && Number.isFinite(value) ? value : null;
 
-/** A show as the store keeps it: its times in one form, each field it reads of the right type. */
+const textOr = (value: unknown, fallback = ""): string =>
+  typeof value === "string" ? value : fallback;
+/** An address the app may open or fetch: https only, so a file cannot plant `javascript:` or http. */
+const httpsOrNull = (value: unknown): string | null =>
+  typeof value === "string" && value.length <= 2048 && value.startsWith("https://") ? value : null;
+const countOrNull = (value: unknown): number | null => {
+  const number = numberOrNull(value);
+  return number !== null && number >= 0 ? Math.floor(number) : null;
+};
+
+/**
+ * A show as the store keeps it, rebuilt field by field: a file is someone else's text, so nothing in
+ * it reaches the device unless the app reads that field and it has the right type (Code review, 27 Nov).
+ */
 function storedShow(raw: StoredShow): StoredShow {
   const speed = numberOrNull(raw.speed);
   return {
-    ...raw,
+    id: raw.id,
+    apple_id: countOrNull(raw.apple_id),
+    title: raw.title,
+    author: textOr(raw.author),
+    feed_url: raw.feed_url,
+    cover: raw.cover,
+    categories: Array.isArray(raw.categories)
+      ? raw.categories.filter((name): name is string => typeof name === "string").slice(0, 20)
+      : [],
+    episode_count: countOrNull(raw.episode_count),
+    newest_at: iso(raw.newest_at),
+    source: "index",
+    description: textOr(raw.description),
+    link: httpsOrNull(raw.link),
+    language: stringOrNull(raw.language),
+    explicit: raw.explicit === true,
+    order: raw.order === "serial" ? "serial" : "episodic",
     favorite_at: iso(raw.favorite_at),
     newest_id: stringOrNull(raw.newest_id),
     speed: speed !== null && speed >= 0.5 && speed <= 3 ? speed : null,
@@ -143,10 +172,27 @@ function storedShow(raw: StoredShow): StoredShow {
 }
 
 function storedEpisode(raw: StoredEpisode): StoredEpisode {
-  const duration = numberOrNull(raw.duration_s);
   return {
-    ...raw,
-    duration_s: duration !== null && duration >= 0 ? duration : null,
+    id: raw.id,
+    show_id: raw.show_id,
+    show_title: textOr(raw.show_title),
+    guid: textOr(raw.guid),
+    title: raw.title,
+    published_at: iso(raw.published_at),
+    duration_s: countOrNull(raw.duration_s),
+    audio_url: raw.audio_url,
+    audio_insecure: raw.audio_insecure === true,
+    audio_type: stringOrNull(raw.audio_type),
+    audio_bytes: countOrNull(raw.audio_bytes),
+    cover: raw.cover,
+    description: textOr(raw.description),
+    link: httpsOrNull(raw.link),
+    season: countOrNull(raw.season),
+    episode: countOrNull(raw.episode),
+    kind: raw.kind === "trailer" || raw.kind === "bonus" ? raw.kind : "full",
+    transcript: httpsOrNull(raw.transcript),
+    chapters: httpsOrNull(raw.chapters),
+    pinned: raw.pinned,
     favorite_at: iso(raw.favorite_at),
     dismissed: raw.dismissed === true,
     listened_at: iso(raw.listened_at),

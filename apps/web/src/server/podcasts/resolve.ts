@@ -195,7 +195,7 @@ export function readShowPage(
   }
   const apple = [
     ...head.matchAll(
-      /podcasts\.apple\.com\/[\w-]{0,8}\/?podcast\/[^"'\s<>/]{0,200}\/id(\d{1,12})/gi,
+      /podcasts\.apple\.com\/[\w-]{0,8}\/?podcast\/(?:[^"'\s<>/]{1,200}\/)?id(\d{1,12})/gi,
     ),
   ].map((match) => match[1] as string);
   let name: string | null = null;
@@ -247,7 +247,9 @@ export async function resolveLink(
     if (show) return found(show);
   }
   // 2. The page itself.
-  const text = await readPage(https, deps);
+  // Over https first; a host with no TLS is read as given.
+  const text =
+    (await readPage(https, deps)) ?? (https !== url.href ? await readPage(url.href, deps) : null);
   let name: string | null = null;
   if (text && /<(?:rss|feed)[\s>]/i.test(text.slice(0, 4000))) {
     const feed = readFeed(text);
@@ -285,7 +287,8 @@ export async function resolveLink(
   }
   // 3. The closest shows by the page's name. A failed search is the search's answer, never kept.
   if (!name) return failure(404, "not_found", "Nothing on that page names a show.");
-  const search = await searchShows(name.toLowerCase().slice(0, 100), deps);
+  // Index only: an Apple row has no index id to follow, and Apple's search cap is shared by everyone.
+  const search = await searchShows(name.toLowerCase().slice(0, 100), deps, false);
   if (!("shows" in search.body)) return search as ApiResult<ErrorBody>;
   const matches = search.body.shows.filter((show) => show.id !== null);
   if (matches.length === 0) return failure(404, "not_found", "No show goes by that page's name.");

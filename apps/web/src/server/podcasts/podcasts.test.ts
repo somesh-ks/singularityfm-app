@@ -244,5 +244,23 @@ describe("a pasted link", () => {
     );
     expect(article.show).toBeNull();
     expect(article.matches.map((show) => show.id)).toEqual([11, 22]);
+
+    // A name the index does not know never spends the Apple search everyone shares: an Apple row
+    // has no index id to follow, so it could only be thrown away (Code review, 27 Nov).
+    let appleCalls = 0;
+    const unknown = await resolveLink(
+      new URLSearchParams({ link: "https://open.spotify.com/show/y" }),
+      {
+        ...deps({ index: async () => ({ feeds: [] }) }),
+        apple: async () => {
+          appleCalls += 1;
+          return [appleResult];
+        },
+        resolve: PUBLIC,
+        fetch: async () => new Response("<title>Nobody Knows</title>", { status: 200 }),
+      },
+    );
+    expect(unknown.status).toBe(404);
+    expect(appleCalls).toBe(0);
   });
 });

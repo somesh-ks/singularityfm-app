@@ -32,7 +32,9 @@ export function catchupHistory(
     if (!Array.isArray(list)) return [];
     return list.filter(
       (row): row is CatchupListen =>
-        typeof row?.id === "string" && typeof row?.at === "string" && row.at !== "",
+        typeof row?.id === "string" &&
+        typeof row?.at === "string" &&
+        !Number.isNaN(Date.parse(row.at)),
     );
   } catch {
     return [];

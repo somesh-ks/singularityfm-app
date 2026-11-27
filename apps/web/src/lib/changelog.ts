@@ -21,7 +21,7 @@ export const CHANGELOG: readonly Release[] = [
     version: "0.28.0",
     date: "2026-11-27",
     description:
-      "A first visit starts with three short steps: pick topics, follow a few shows, and bring your shows from another app. Add a show takes a name or any link to it, from Apple Podcasts, Spotify, YouTube, its feed or its website. Settings imports and exports your shows as an OPML file, or as a full backup that keeps your History, the list in your Profile of what you played.",
+      "Add a show takes a name or any link to it, from Apple Podcasts, Spotify, YouTube, its feed or its website. Settings imports and exports your shows as an OPML file, or as a full backup that keeps your History, the list in your Profile of what you played.",
   },
   {
     version: "0.27.0",

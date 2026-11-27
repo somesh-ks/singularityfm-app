@@ -28,7 +28,7 @@ What it does now. Reasons: D396, D403; the flow spec of 2026-11-23; history: [20
 
 ## First run, Add a show, import (`/welcome`, `/add-show`, `/settings/import`, `/settings/history`)
 
-- A first visit runs three steps: topics, shows to follow (a picked show wears the accent ring), a file from another app. Each step can be skipped; done is kept under `singularity:first-run`.
+- First run is three steps: topics, shows to follow (a picked show wears the accent ring), a file from another app. Each step can be skipped; done is kept under `singularity:first-run`. The podcast Home sends a new device there; until it ships, nothing does.
 - Add a show takes one field: a name searches the index; a link is read on the server (`/api/podcasts/resolve`): a feed the index knows, its `podcast:guid`, where it moved, a page's alternate feeds and Apple ids, then the page's own name searched. Spotify and YouTube land on the name. One show found is followed; several are offered to pick. A link arriving by `?link=` offers its show and follows nothing until tapped. Several links follow each; an OPML or backup imports.
 - Import reads OPML or the backup file; export writes either. The backup holds shows, episodes, positions and History. History lists what played a minute or more, by day.
 - A feed the index does not know cannot be added.

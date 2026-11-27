@@ -1,7 +1,8 @@
 /**
  * First run (Nov 12 plan, slice 6): three skippable steps at /welcome, /welcome/shows and
- * /welcome/import. Home sends a device here once, until it finished or skipped. What step 1 picks
- * stays on this device: Home's "Trending in a topic" shelves read it. It never edits the Daily's
+ * /welcome/import. The podcast Home (its own pull request) sends a device here once, until it
+ * finished or skipped, and its "Trending in a topic" shelves read what step 1 picks, which stays on
+ * this device. Until that Home ships, nothing sends a device here. It never edits the Daily's
  * topics, which are the owner's config (D296) and need no first run.
  */
 

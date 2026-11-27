@@ -112,6 +112,26 @@ describe("import and export", () => {
     expect(typeof read !== "string" && read.shows.map((row) => row.id)).toEqual([show.id]);
     expect(typeof read !== "string" && read.episodes.map((row) => row.id)).toEqual([episode.id]);
     expect(typeof read !== "string" && Object.keys(read.positions)).toEqual([episode.id]);
+    // A shared file is someone else's text: a planted address or a wrong type never reaches the store.
+    const planted = readBackup(
+      JSON.stringify({
+        format: "singularity-backup",
+        version: 1,
+        shows: [{ ...show, link: "javascript:alert(1)", categories: null, extra: "x" }],
+        episodes: [{ ...episode, link: "http://a/b", published_at: 5, kind: "other" }],
+      }),
+    );
+    expect(typeof planted !== "string" && planted.shows[0]).toEqual({
+      ...show,
+      link: null,
+      categories: [],
+    });
+    expect(typeof planted !== "string" && planted.episodes[0]).toEqual({
+      ...episode,
+      link: null,
+      published_at: null,
+      kind: "full",
+    });
     expect(readBackup("not json")).toBe("not_json");
     expect(readBackup(JSON.stringify({ format: "singularity-backup", version: 9 }))).toBe(
       "newer_version",

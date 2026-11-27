@@ -189,6 +189,8 @@ export interface SearchBody {
 export async function searchShows(
   term: string,
   deps: PodcastDeps,
+  /** Off where an Apple row is no use: a resolve keeps only shows the index knows. */
+  appleFallback = true,
 ): Promise<ApiResult<SearchBody | ErrorBody>> {
   try {
     const body = await deps.index("/search/byterm", { q: term, max: String(SEARCH_MAX) });
@@ -207,6 +209,13 @@ export async function searchShows(
     }
   } catch {
     // A failing index falls through to Apple, as an empty one does.
+  }
+  if (!appleFallback) {
+    return {
+      status: 200,
+      body: { shows: [], source: "none" },
+      headers: edgeHeaders(EDGE_SECONDS.search),
+    };
   }
   // Apple not asked or not answering is an unfinished search, never a kept "no results".
   if (!(await deps.limit("podcasts:apple", APPLE_PER_MINUTE))) {

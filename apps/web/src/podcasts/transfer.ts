@@ -134,8 +134,11 @@ export async function findOrResolve(url: string): Promise<ShowAnswer | ShowFailu
   return resolved.show?.id ? fetchShow(resolved.show.id) : "not_found";
 }
 
-/** How long a failed lookup waits before its one retry. */
-const RETRY_AFTER_MS = 3000;
+/**
+ * How long a failed lookup waits before its one retry: past the routes' per-minute caps (resolve's 30
+ * a client), so a long list that ran into them is finished, not reported failed (Code review, 27 Nov).
+ */
+const RETRY_AFTER_MS = 61_000;
 
 /** At most this many show lookups at once: kind to the route and to a phone's connection. */
 const AT_ONCE = 4;
@@ -146,6 +149,8 @@ export async function followAll(
   progress: (done: number, total: number) => void = () => {},
 ): Promise<FollowResult> {
   const result: FollowResult = { added: 0, already: 0, missing: [], failed: [] };
+  // Two entries for one show (its http and https address, an old and a new feed) count it once.
+  const seen = new Set<number>();
   let next = 0;
   let done = 0;
   const worker = async (): Promise<void> => {
@@ -159,8 +164,12 @@ export async function followAll(
       }
       if (answer === "not_found") result.missing.push(show);
       else if (answer === "failed") result.failed.push(show);
-      else if (await follow(answer)) result.added += 1;
-      else result.already += 1;
+      else if (answer.show.id !== null && seen.has(answer.show.id)) result.already += 1;
+      else {
+        if (answer.show.id !== null) seen.add(answer.show.id);
+        if (await follow(answer)) result.added += 1;
+        else result.already += 1;
+      }
       progress(++done, shows.length);
     }
   };

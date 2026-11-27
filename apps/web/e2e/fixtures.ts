@@ -60,12 +60,12 @@ export const test = base.extend<Options & { problems: Problems }>({
         const text = message.text();
         if (expectedNotFound.has(message.location().url)) return;
         // A page without audio asks for its narration shortly after it loads, and an open player
-        // for the turn's word marks. The static fixture server has no API and answers 501, which the
-        // browser logs on the page's behalf. The client takes it as a quiet refusal; this one line is
-        // not a problem.
+        // for the turn's word marks, and Search its topics' covers and top shows (D401). The static
+        // fixture server has no API and answers 501, which the browser logs on the page's behalf.
+        // The client takes it as a quiet refusal; this one line is not a problem.
         if (
           /status of 501/.test(text) &&
-          /\/api\/narrate(-marks)?(\?|$)/.test(message.location().url)
+          /\/api\/(narrate(-marks)?(\?|$)|podcasts\/)/.test(message.location().url)
         )
           return;
         const isNetworkNoise =

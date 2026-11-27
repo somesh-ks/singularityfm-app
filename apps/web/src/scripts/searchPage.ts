@@ -25,10 +25,23 @@ const EPISODE_RESULTS = 5;
 const RECENT_KEY = "singularity:search-recent";
 const RECENT_MAX = 6;
 
+/** A stored row is drawn only whole and pointing inside the app; anything else is dropped. */
+function isRow(row: unknown): row is PodcastRow {
+  const item = row as Partial<PodcastRow> | null;
+  return (
+    typeof item?.href === "string" &&
+    item.href.startsWith("/") &&
+    !item.href.startsWith("//") &&
+    typeof item.title === "string" &&
+    typeof item.facts === "string" &&
+    (item.cover === null || typeof item.cover === "string")
+  );
+}
+
 function readRecent(): PodcastRow[] {
   try {
     const rows = JSON.parse(localStorage.getItem(RECENT_KEY) ?? "[]") as unknown;
-    return Array.isArray(rows) ? (rows as PodcastRow[]).slice(0, RECENT_MAX) : [];
+    return Array.isArray(rows) ? rows.filter(isRow).slice(0, RECENT_MAX) : [];
   } catch {
     return [];
   }
@@ -41,6 +54,11 @@ function writeRecent(rows: PodcastRow[]): void {
   } catch {
     // Not remembered; the search still works.
   }
+}
+
+/** A show's link or feed (first run thread's contract): Add a show resolves it, not search. */
+function isShowLink(text: string): boolean {
+  return /^(https?|feed|pcast|podcast):/i.test(text) || /^[\w-]+(\.[\w-]+)+\/\S*$/.test(text);
 }
 
 /** Words the episode's title holds all of, as the Library matches. */
@@ -130,8 +148,9 @@ function install(): void {
   let timer: ReturnType<typeof setTimeout> | undefined;
   let found = { shows: 0, episodes: 0 };
 
-  /** Which sections show: the ticked chip's, or every one with something in it. */
-  function showSections(): void {
+  /** Which sections show: the ticked chip's, or every one with something in it. The count is said
+   *  only once the shows have answered, so a keystroke never announces the last word's total. */
+  function showSections(announce = true): void {
     const chosen = chips.find((chip) => chip.checked)?.value;
     const catchups = page.querySelectorAll("[data-search-only] [data-card]:not([hidden])").length;
     const counts: Record<string, number> = { ...found, catchups };
@@ -140,7 +159,7 @@ function install(): void {
       if (element) element.hidden = (chosen !== undefined && chosen !== kind) || counts[kind] === 0;
     }
     const total = chosen ? (counts[chosen] ?? 0) : found.shows + found.episodes + catchups;
-    if (status) status.textContent = total === 0 ? "No results" : `${total} results`;
+    if (status && announce) status.textContent = total === 0 ? "No results" : `${total} results`;
   }
 
   async function ask(term: string): Promise<void> {
@@ -174,8 +193,32 @@ function install(): void {
     showSections();
   }
 
-  function apply(): void {
+  /** Hands a link to Add a show, which reads ?link= and resolves it at once. */
+  function addShow(link: string): void {
+    location.assign(`/add-show?${new URLSearchParams({ link })}`);
+  }
+
+  /** The words in the address, so Back from a result brings them back (with or without Catchups). */
+  function keepWords(term: string): void {
+    const url = new URL(location.href);
+    if (term) url.searchParams.set("q", term);
+    else url.searchParams.delete("q");
+    if (url.href !== location.href) history.replaceState(history.state, "", url);
+  }
+
+  function apply(event?: Event): void {
     const term = input.value.trim();
+    keepWords(term);
+    // A pasted link goes straight on; one typed waits for the Search key, so "http" mid-word never
+    // jumps. Until then the page shows discover, not the results of the link's first letters.
+    if (isShowLink(term)) {
+      clearTimeout(timer);
+      asked = "";
+      discover.hidden = false;
+      results.hidden = true;
+      if ((event as InputEvent | undefined)?.inputType === "insertFromPaste") addShow(term);
+      return;
+    }
     const typing = term.length >= MIN_LETTERS;
     discover.hidden = typing;
     results.hidden = !typing;
@@ -188,15 +231,22 @@ function install(): void {
       return;
     }
     // The Catchups answer at once, from the page; the shows after the pause.
-    requestAnimationFrame(showSections);
+    requestAnimationFrame(() => showSections(false));
     if (term !== asked) timer = setTimeout(() => void ask(term), PAUSE_MS);
   }
 
   input.addEventListener("input", apply);
-  // Enter would reload the page; the keyboard's Search key puts the keyboard away over the results.
+  // The Catchups' search ran again (its full-text index arrived): count and say them anew.
+  page.addEventListener("library:applied", () => {
+    if (!results.hidden && asked === input.value.trim()) showSections();
+  });
+  // Enter would reload the page; the keyboard's Search key puts the keyboard away over the results,
+  // or hands a link to Add a show.
   one("[data-search-form]")?.addEventListener("submit", (event) => {
     event.preventDefault();
-    input.blur();
+    const term = input.value.trim();
+    if (isShowLink(term)) addShow(term);
+    else input.blur();
   });
   for (const chip of chips) {
     chip.addEventListener("change", () => {
@@ -204,7 +254,7 @@ function install(): void {
       showSections();
     });
   }
-  // Back from a result keeps the words (libraryPage.ts writes ?q=).
+  // Back from a result keeps the words (keepWords writes ?q=).
   const start = new URLSearchParams(location.search).get("q");
   if (start) {
     input.value = start;

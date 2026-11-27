@@ -26,6 +26,8 @@ export interface TimelineSection {
 
 export interface Timeline {
   durationSec: number;
+  /** What an item is called: a story, or a public show's chapter. */
+  unit?: "Story" | "Chapter";
   items: readonly TimelineItem[];
   sections: readonly TimelineSection[];
 }
@@ -81,7 +83,7 @@ export function buildTimeline(digest: PlayerDigestData): Timeline | null {
     endSec: sections[index + 1]?.startSec ?? durationSec,
   }));
 
-  return { durationSec, items, sections: closed };
+  return { durationSec, unit: digest.show ? "Chapter" : "Story", items, sections: closed };
 }
 
 /**
@@ -120,20 +122,26 @@ export function findItemIndexById(timeline: Timeline | null, id: string): number
   return timeline?.items.findIndex((item) => item.id === id) ?? -1;
 }
 
+/** What Previous and Next step between, in a button's name: "story", or "chapter" in a public show. */
+export function stepUnit(timeline: Pick<Timeline, "unit"> | null | undefined): string {
+  return (timeline?.unit ?? "Story").toLowerCase();
+}
+
 /** Item numbering is for people: "Item 5 of 12". */
 export function itemPositionLabel(timeline: Timeline | null, index: number): string {
   const total = timeline?.items.length ?? 0;
-  return total === 0 || index < 0 || index >= total ? "" : `Story ${index + 1} of ${total}`;
+  const unit = timeline?.unit ?? "Story";
+  return total === 0 || index < 0 || index >= total ? "" : `${unit} ${index + 1} of ${total}`;
 }
 
 /**
  * The section a story's position is told with: a briefing's own section ("Design engineering"),
- * and none for an episode, whose one section is a placeholder that says nothing.
+ * and none for an episode or a public show's chapters, whose one section is a placeholder.
  */
 export function storySectionName(
-  digest: Pick<PlayerDigestData, "kind" | "turns"> | undefined,
+  digest: Pick<PlayerDigestData, "kind" | "turns" | "show"> | undefined,
   section: Pick<TimelineSection, "title"> | undefined,
 ): string {
-  if (!digest || !section || digest.kind === "on-demand" || digest.turns) return "";
+  if (!digest || !section || digest.kind === "on-demand" || digest.turns || digest.show) return "";
   return section.title;
 }

@@ -1,4 +1,5 @@
 ---
+import Badge from "@singularityfm/design-system/Badge";
 import Icon from "@singularityfm/design-system/Icon";
 import IconButton from "@singularityfm/design-system/IconButton";
 import Link from "@singularityfm/design-system/Link";
@@ -6,6 +7,7 @@ import Menu from "@singularityfm/design-system/Menu";
 import MenuItem from "@singularityfm/design-system/MenuItem";
 import { menuTilesClass } from "@singularityfm/design-system/menu";
 import PlayChip from "@singularityfm/design-system/PlayChip";
+import Switch from "@singularityfm/design-system/Switch";
 import EmptyState from "../components/EmptyState.astro";
 import HeroMarks from "../components/HeroMarks.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
@@ -74,7 +76,39 @@ import "../styles/show.css";
 
       {/* The publisher's notes, as words and links (podcasts/view.ts): never their markup. */}
       <section class="episode-notes" aria-label="Episode notes" data-episode-notes hidden></section>
+
+      {/* Sponsor breaks the publisher's transcript or chapters show (podcasts/sponsors.ts), with the
+           one choice that matters here: skip them by itself. The switch is the Sponsor breaks setting
+           (Settings, Show settings), so it says the same on every episode (canvas, Episode board). */}
+      <section class="episode-extras" aria-labelledby="episode-sponsors-title" data-episode-sponsors hidden>
+        <h2 class="section-head text-heading" id="episode-sponsors-title">Sponsor breaks</h2>
+        <div class="rows card-group">
+          <div class="settings-row">
+            <span class="settings-text">
+              <label class="settings-label" for="episode-sponsor-skip">Skip sponsor breaks</label>
+              <span class="settings-hint" data-episode-sponsor-hint></span>
+            </span>
+            <Switch id="episode-sponsor-skip" data-episode-sponsor-switch />
+          </div>
+        </div>
+      </section>
+
+      {/* The publisher's chapters, with the sponsor breaks in place; a row plays from its start. */}
+      <section class="episode-extras" aria-labelledby="episode-chapters-title" data-episode-chapters hidden>
+        <h2 class="section-head text-heading" id="episode-chapters-title">Chapters</h2>
+        <div class="rows card-group" data-episode-chapter-rows></div>
+      </section>
     </div>
+
+    {/* One chapter: its start, its name and, for a sponsor break, the design system's Badge. A link to
+         the episode at that moment, which a plain press plays here (episodePage.ts). */}
+    <template data-episode-chapter-row>
+      <a class="row-action">
+        <span class="episode-chapter-time num" data-time></span>
+        <span class="settings-text"><span class="settings-label" data-title></span></span>
+        <Badge>Sponsor</Badge>
+      </a>
+    </template>
 
     {/* A link in the notes: the design system's own, copied in for each address. */}
     <template data-episode-note-link>

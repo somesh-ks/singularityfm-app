@@ -3,15 +3,20 @@
  * queued or favorited is kept, else from its show's route. Its Play, its marks and its menu follow
  * the same rules as its row on the show's page (podcasts/rules.ts, podcasts/play.ts).
  */
+import { badgeClass } from "@singularityfm/design-system/badge";
 import { sendToast } from "@singularityfm/design-system/toastEvent";
 import { whenIdle } from "../narration/prewarmPage";
+import { formatClock } from "../player/core/formatTime";
+import { getPreferences, type SponsorChoice } from "../player/core/preferences";
 import { safeLocalStorage, setPlayed } from "../player/core/resume";
 import { heardOnDevice } from "../podcasts/after";
 import { getEpisode, setEpisodeFavorite } from "../podcasts/deviceStore";
 import { coverAt } from "../podcasts/episodeDigest";
+import { badgedTitle, chapterRows, episodeBreaks, loadExtras } from "../podcasts/extras";
 import { loadPlayer, nowPlaying, onPlayerChange, pressPlay, queueEpisode } from "../podcasts/play";
 import { isShowEpisodeId, showIdOf, showUrl } from "../podcasts/rules";
 import { fetchShow } from "../podcasts/shows";
+import { breaksSummary } from "../podcasts/sponsors";
 import { dayLabel, noteParagraphs, timeFact } from "../podcasts/view";
 import type { EpisodeRow } from "../server/podcasts/shapes";
 
@@ -20,7 +25,12 @@ function install(): void {
   if (!page || page.dataset.ready !== undefined) return;
   const root = page;
   root.dataset.ready = "";
-  const id = new URLSearchParams(location.search).get("id") ?? "";
+  const params = new URLSearchParams(location.search);
+  const id = params.get("id") ?? "";
+  // A first chapter's link says t=0: still a position, not the resume point.
+  const linkedAt = params.has("t") ? Number(params.get("t")) : Number.NaN;
+  let startAt: number | undefined =
+    Number.isFinite(linkedAt) && linkedAt >= 0 ? linkedAt : undefined;
   const showId = isShowEpisodeId(id) ? showIdOf(id) : null;
   const part = <T extends HTMLElement>(name: string): T | null =>
     root.querySelector<T>(`[data-episode-${name}]`);
@@ -111,6 +121,66 @@ function install(): void {
     if (label) label.textContent = heard.played ? "Mark as unplayed" : "Mark as played";
   }
 
+  /** The sponsor switch says the setting it is (Settings, Show settings: Sponsor breaks). */
+  function paintSponsorSwitch(): void {
+    const toggle = part<HTMLInputElement>("sponsor-switch");
+    if (toggle) toggle.checked = getPreferences().get().sponsors === "skip";
+  }
+
+  /**
+   * Chapters and sponsor breaks, once the publisher's files are read through the extras route. An
+   * episode whose show publishes neither keeps neither section.
+   */
+  let extrasFor: string | null = null;
+  function paintExtras(): void {
+    if (!episode) return;
+    const current = episode;
+    // The length too: a refreshed feed that adds one closes a last sponsor chapter's break.
+    const key = `${current.id}|${current.chapters ?? ""}|${current.transcript ?? ""}|${current.duration_s ?? ""}`;
+    if (extrasFor === key) return;
+    extrasFor = key;
+    void loadExtras(current.id, current).then((extras) => {
+      if (life.signal.aborted || episode?.id !== current.id) return;
+      // Offline: the device coming back online asks again (the listener below).
+      if (extras.partial) extrasFor = null;
+      // The same length the player measures breaks against (extras.ts, withExtras).
+      const duration = current.duration_s || Number.POSITIVE_INFINITY;
+      const breaks = episodeBreaks(extras, duration);
+      const sponsors = part("sponsors");
+      if (sponsors) sponsors.hidden = breaks.length === 0;
+      const hint = part("sponsor-hint");
+      if (hint) hint.textContent = breaks.length > 0 ? breaksSummary(breaks) : "";
+      paintSponsorSwitch();
+      const rows = chapterRows(extras.chapters, breaks, duration);
+      const chapters = part("chapters");
+      const list = part("chapter-rows");
+      const template = root.querySelector<HTMLTemplateElement>(
+        "template[data-episode-chapter-row]",
+      );
+      if (!chapters || !list || !template) return;
+      chapters.hidden = rows.length === 0;
+      // Past an hour a start reads h:mm:ss: every time takes that width, so the names share one edge.
+      list.toggleAttribute(
+        "data-hours",
+        rows.some((row) => row.start_s >= 3600),
+      );
+      list.replaceChildren(
+        ...rows.map((row) => {
+          const node = template.content.firstElementChild?.cloneNode(true) as HTMLAnchorElement;
+          node.dataset.chapterAt = String(row.start_s);
+          // The episode at that moment; a plain press plays it here (the click handler below).
+          node.href = `${location.pathname}?id=${encodeURIComponent(current.id)}&t=${Math.floor(row.start_s)}`;
+          const time = node.querySelector("[data-time]");
+          const title = node.querySelector("[data-title]");
+          if (time) time.textContent = formatClock(row.start_s);
+          if (title) title.textContent = badgedTitle(row);
+          if (!row.sponsor) node.querySelector(`.${badgeClass()}`)?.remove();
+          return node;
+        }),
+      );
+    });
+  }
+
   function paint(): void {
     if (!episode) return;
     show("ready");
@@ -161,6 +231,7 @@ function install(): void {
       );
     }
     paintHeard();
+    paintExtras();
   }
 
   /** The device's copy; true when it holds one. */
@@ -200,8 +271,23 @@ function install(): void {
       if (!episode) return;
       const current = episode;
       const target = event.target as Element;
+      const chapter = target.closest<HTMLElement>("[data-chapter-at]");
+      // A press with a modifier opens the link as the browser would (a new tab).
+      const modified =
+        event instanceof MouseEvent && (event.metaKey || event.ctrlKey || event.shiftKey);
+      if (chapter && !modified) {
+        event.preventDefault();
+        // A chosen chapter replaces the link's position: Play is Play after it.
+        startAt = undefined;
+        if (!pressPlay(current, Number(chapter.dataset.chapterAt)))
+          sendToast({ message: "This episode can't be played here", kind: "error" });
+        return;
+      }
       if (target.closest("[data-episode-play]")) {
-        if (!pressPlay(current))
+        // A chapter's link (?t=) plays from its chapter the first time; Play is Play after that.
+        const at = startAt;
+        startAt = undefined;
+        if (!pressPlay(current, at))
           sendToast({ message: "This episode can't be played here", kind: "error" });
         return;
       }
@@ -255,7 +341,25 @@ function install(): void {
     on,
   );
 
+  root.addEventListener(
+    "change",
+    (event) => {
+      if (event.target !== part("sponsor-switch")) return;
+      const checked = (event.target as HTMLInputElement).checked;
+      // Off again returns to the choice it replaced, so an Off made in Settings stays Off.
+      const choice = getPreferences().get().sponsors;
+      if (checked && choice !== "skip") before = choice;
+      getPreferences().set({ sponsors: checked ? "skip" : before });
+    },
+    on,
+  );
+  let before: SponsorChoice = "button";
+  // Another tab, or Settings, may change the choice while this page is open.
+  const offPreferences = getPreferences().subscribe(paintSponsorSwitch);
+  life.signal.addEventListener("abort", offPreferences, { once: true });
+
   window.addEventListener("singularity:resume", paintHeard, on);
+  window.addEventListener("online", paintExtras, on);
   void onPlayerChange(paintHeard).then((off) => {
     if (life.signal.aborted) off();
     else life.signal.addEventListener("abort", off, { once: true });

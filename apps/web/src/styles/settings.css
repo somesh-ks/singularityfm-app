@@ -190,3 +190,9 @@
   position-anchor: --default-speed;
   min-width: 20rem;
 }
+
+/* Sponsor breaks draws no value until the stored choice is in it (settingsPage.ts at data-ready), so
+   a stored "Off" never shows the first choice for a frame. As the Theme select above. */
+.settings-view:not([data-ready]) .sponsor-select > select {
+  color: transparent;
+}

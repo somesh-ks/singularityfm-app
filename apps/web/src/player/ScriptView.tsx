@@ -70,7 +70,10 @@ export default function ScriptView({
   const storedHosts = state.track?.digest.hosts;
   const voiceIds = state.track?.digest.voices;
   const [catalogue, setCatalogue] = useState<VoiceCatalogue | null | undefined>(undefined);
-  const wantsVoices = needsVoiceList(turns, readHostNames(storedHosts));
+  // A public show's voices are its own people, never ours: no voice list names them, and no word
+  // marks exist for its file, so its words are lit by estimate.
+  const publisher = Boolean(state.track?.digest.show);
+  const wantsVoices = !publisher && needsVoiceList(turns, readHostNames(storedHosts));
   useEffect(() => {
     if (!wantsVoices || catalogue !== undefined) return;
     let live = true;
@@ -83,12 +86,14 @@ export default function ScriptView({
   }, [wantsVoices, catalogue]);
   const names = useMemo(
     () =>
-      transcriptNames(
-        turns,
-        readHostNames(storedHosts),
-        catalogue ? { ids: readVoiceIds(voiceIds), ...catalogue } : catalogue,
-      ),
-    [turns, storedHosts, voiceIds, catalogue],
+      publisher
+        ? null
+        : transcriptNames(
+            turns,
+            readHostNames(storedHosts),
+            catalogue ? { ids: readVoiceIds(voiceIds), ...catalogue } : catalogue,
+          ),
+    [turns, storedHosts, voiceIds, catalogue, publisher],
   );
   // Speechify's word marks, by segment key, for the turns that have been near the voice.
   const [marks, setMarks] = useState<Record<string, SegmentWordMark[]>>({});
@@ -122,7 +127,7 @@ export default function ScriptView({
 
   // The turn being spoken and the next: their marks, once each, on demand. A miss keeps the estimate.
   useEffect(() => {
-    if (!open || playing < 0 || !digestId) return;
+    if (!open || playing < 0 || !digestId || publisher) return;
     let live = true;
     for (const turn of turns.slice(playing, playing + 2)) {
       if (turn.start_ms === null) continue;
@@ -137,7 +142,7 @@ export default function ScriptView({
     return () => {
       live = false;
     };
-  }, [open, playing, digestId, turns]);
+  }, [open, playing, digestId, turns, publisher]);
 
   // The spoken word, at frame rate, without a render: one attribute moves from word to word.
   useEffect(() => {
@@ -295,6 +300,8 @@ export default function ScriptView({
           const host = hostOf(turn.speaker, names);
           // A name goes where the speaker changes: a second turn from the same voice just continues.
           const named = host.name !== null && turns[index - 1]?.speaker !== turn.speaker;
+          // A publisher's transcript names its own speakers, where the name changes.
+          const ownName = turn.name && turns[index - 1]?.name !== turn.name ? turn.name : null;
           return (
             <li key={turn.key}>
               <button
@@ -316,6 +323,8 @@ export default function ScriptView({
               >
                 {turn.title ? (
                   <span className="script-speaker script-story">{turn.title}</span>
+                ) : ownName ? (
+                  <span className="script-speaker">{ownName}</span>
                 ) : named ? (
                   <span className="script-speaker">{host.name}</span>
                 ) : null}

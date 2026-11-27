@@ -479,6 +479,20 @@ export function startPlayerRuntime(): () => void {
   // Queued items' first minutes are fetched at an idle moment, so a tap on any of the next three
   // starts at once (queuePrefetch.ts).
   let stopPrefetch: (() => void) | null = null;
+  // A public show's chapters, transcript and sponsor breaks join its episode once read; loaded
+  // apart, since a listener of Catchups alone never needs it (showExtras.ts).
+  let stopShowExtras: (() => void) | null = null;
+  const offShowExtras = playerStore.subscribe(({ track }) => {
+    if (!track?.digest.show || stopShowExtras) return;
+    stopShowExtras = () => undefined;
+    void import("./showExtras")
+      .then((extras) => {
+        if (!tornDown) stopShowExtras = extras.startShowExtras(playerStore, preferences);
+      })
+      .catch(() => {
+        stopShowExtras = null;
+      });
+  });
   whenIdle(() => {
     if (tornDown) return;
     stopPrefetch = startQueuePrefetch(playQueue);
@@ -592,6 +606,8 @@ export function startPlayerRuntime(): () => void {
     tornDown = true;
     offListened();
     stopPrefetch?.();
+    offShowExtras();
+    stopShowExtras?.();
     document.removeEventListener("visibilitychange", onVisible);
     document.removeEventListener("astro:page-load", onPageLoad);
     document.removeEventListener("astro:before-preparation", onBeforeNavigation);

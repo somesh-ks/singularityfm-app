@@ -183,7 +183,7 @@ export function createPlayerStore(options: PlayerStoreOptions): PlayerStore {
 
   const stateListeners = new Set<StateListener>();
   const frameListeners = new Set<FrameListener>();
-  const secondListeners = new Set<() => void>();
+  const secondListeners = new Set<(cause: ItemChangeCause) => void>();
   const eventListeners = new Set<EventListener>();
   const audioHandlers = new Map<string, () => void>();
   let removePageHide: (() => void) | null = null;
@@ -239,7 +239,7 @@ export function createPlayerStore(options: PlayerStoreOptions): PlayerStore {
     const whole = Math.floor(time);
     if (forceSecond || whole !== lastSecond) {
       lastSecond = whole;
-      for (const listener of secondListeners) listener();
+      for (const listener of secondListeners) listener(cause);
     }
   }
 
@@ -1086,6 +1086,7 @@ export function createPlayerStore(options: PlayerStoreOptions): PlayerStore {
       return () => eventListeners.delete(listener);
     },
     getTime: () => time,
+    measuredDuration: () => (measured ? state.duration : 0),
     isNarrating: () => state.status === "playing" && !state.scrubbing,
     getPageDigest: () => pageDigest,
     setPageDigest,

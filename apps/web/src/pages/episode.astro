@@ -100,13 +100,14 @@ import "../styles/show.css";
       </section>
     </div>
 
-    {/* One chapter: its start, its name and, for a sponsor break, the design system's Badge. */}
+    {/* One chapter: its start, its name and, for a sponsor break, the design system's Badge. A link to
+         the episode at that moment, which a plain press plays here (episodePage.ts). */}
     <template data-episode-chapter-row>
-      <button class="row-action" type="button">
+      <a class="row-action">
         <span class="episode-chapter-time num" data-time></span>
         <span class="settings-text"><span class="settings-label" data-title></span></span>
         <Badge>Sponsor</Badge>
-      </button>
+      </a>
     </template>
 
     {/* A link in the notes: the design system's own, copied in for each address. */}

@@ -151,16 +151,20 @@ function install(): void {
       if (!chapters || !list || !template) return;
       chapters.hidden = rows.length === 0;
       // Past an hour a start reads h:mm:ss: every time takes that width, so the names share one edge.
-      list.toggleAttribute("data-hours", rows.some((row) => row.start_s >= 3600));
+      list.toggleAttribute(
+        "data-hours",
+        rows.some((row) => row.start_s >= 3600),
+      );
       list.replaceChildren(
         ...rows.map((row) => {
-          const node = template.content.firstElementChild?.cloneNode(true) as HTMLButtonElement;
+          const node = template.content.firstElementChild?.cloneNode(true) as HTMLAnchorElement;
           node.dataset.chapterAt = String(row.start_s);
+          // The episode at that moment; a plain press plays it here (the click handler below).
+          node.href = `${location.pathname}?id=${encodeURIComponent(current.id)}&t=${Math.floor(row.start_s)}`;
           const time = node.querySelector("[data-time]");
           const title = node.querySelector("[data-title]");
           if (time) time.textContent = formatClock(row.start_s);
           if (title) title.textContent = badgedTitle(row);
-          node.setAttribute("aria-label", `${row.title}, from ${formatClock(row.start_s)}`);
           if (!row.sponsor) node.querySelector(`.${badgeClass()}`)?.remove();
           return node;
         }),
@@ -259,7 +263,11 @@ function install(): void {
       const current = episode;
       const target = event.target as Element;
       const chapter = target.closest<HTMLElement>("[data-chapter-at]");
-      if (chapter) {
+      // A press with a modifier opens the link as the browser would (a new tab).
+      const modified =
+        event instanceof MouseEvent && (event.metaKey || event.ctrlKey || event.shiftKey);
+      if (chapter && !modified) {
+        event.preventDefault();
         if (!pressPlay(current, Number(chapter.dataset.chapterAt)))
           sendToast({ message: "This episode can't be played here", kind: "error" });
         return;

@@ -36,7 +36,8 @@ export function isSponsorChapter(title: string): boolean {
 }
 
 /** A publisher's "Sponsor:" or "Ad break -" before the sponsor's name. */
-const SPONSOR_PREFIX = /^\s*(?:sponsor(?:ed)?(?:\s+by)?|ads?|ad break|advert)\s*[:\u00b7\u2013-]\s*/i;
+const SPONSOR_PREFIX =
+  /^\s*(?:sponsor(?:ed)?(?:\s+by)?|ads?|ad break|advert)\s*[:\u00b7\u2013-]\s*/i;
 
 /**
  * A row's name beside the Sponsor badge (episode page): the badge says sponsor, so the name does

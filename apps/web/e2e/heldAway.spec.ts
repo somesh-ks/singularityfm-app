@@ -39,7 +39,7 @@ test.describe("a refused settings change", () => {
     // Inside the server's gap: the change waits, and the owner leaves for Today.
     await page.locator("#daily-length").selectOption("3");
     await page.clock.runFor(2000);
-    await page.locator("nav").getByRole("link", { name: "Latest" }).first().click();
+    await page.locator("nav").getByRole("link", { name: "Home" }).first().click();
     await expect(page).toHaveURL(/\/$/);
     await page.clock.runFor(10_000);
     await expect.poll(() => sent.length).toBe(2);

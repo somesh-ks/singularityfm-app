@@ -24,20 +24,24 @@ const APPEARANCE = "/settings/appearance";
 const theme = (page: Page) => page.getByRole("combobox", { name: "Theme" });
 const sounds = (page: Page) => page.getByRole("switch", { name: "Sounds", exact: true });
 const volume = (page: Page) => page.getByRole("slider", { name: "Volume" });
-const settingsLink = (page: Page) =>
-  page.getByRole("navigation", { name: "Primary" }).getByRole("link", { name: "Settings" });
+/** Settings opens from Profile, under the app bar's avatar (D401). */
+async function toSettings(page: Page): Promise<void> {
+  await page.getByRole("link", { name: "Your profile", exact: true }).click();
+  await page
+    .getByRole("main")
+    .getByRole("link", { name: /^Settings/ })
+    .click();
+}
+/** On Settings no tab is lit: it is not a destination of the bar (D401). */
+const litTabs = (page: Page) =>
+  page.getByRole("navigation", { name: "Primary" }).locator('a[aria-current="page"]');
 
 test.describe("settings page", () => {
-  test("is the current destination in the navigation", async ({ page }) => {
+  test("lights no tab, since it lives in Profile", async ({ page }) => {
     await openSettings(page);
     await expect(page).toHaveTitle("Settings, Singularity");
     await expect(page.getByRole("heading", { level: 1, name: "Settings" })).toBeVisible();
-    await expect(settingsLink(page)).toHaveAttribute("aria-current", "page");
-    const today = page.getByRole("navigation", { name: "Primary" }).getByRole("link", {
-      name: "Latest",
-      exact: true,
-    });
-    await expect(today).not.toHaveAttribute("aria-current", /.*/);
+    await expect(litTabs(page)).toHaveCount(0);
   });
 
   test("ships with no choice made, so a stored one never flashes the default first", async ({
@@ -174,7 +178,7 @@ test.describe("settings page", () => {
     await page.evaluate(() => {
       (window as unknown as { __sameDocument?: boolean }).__sameDocument = true;
     });
-    await settingsLink(page).click();
+    await toSettings(page);
     await expect(page).toHaveURL(/\/settings$/);
     await expect(page.locator("[data-settings]")).toHaveAttribute("data-ready", "true");
     expect(
@@ -184,12 +188,12 @@ test.describe("settings page", () => {
     ).toBe(true);
 
     await expect(page.getByRole("heading", { level: 1, name: "Settings" })).toBeFocused();
-    await expect(settingsLink(page)).toHaveAttribute("aria-current", "page");
+    await expect(litTabs(page)).toHaveCount(0);
     await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
     await page.getByRole("link", { name: /^Appearance/ }).click();
     await expect(page.locator("[data-settings]")).toHaveAttribute("data-ready", "true");
     await expect(theme(page)).toHaveValue("dark");
-    await settingsLink(page).click();
+    await toSettings(page);
     await page.getByRole("link", { name: /^Sound and voice/ }).click();
     await expect(page.locator("[data-settings]")).toHaveAttribute("data-ready", "true");
     await expect(sounds(page)).not.toBeChecked();
@@ -208,7 +212,7 @@ test.describe("settings page", () => {
       .click();
     await expect(page).toHaveURL(/\/library$/);
     // The page's script has already run once; this time only the router's event can start it.
-    await settingsLink(page).click();
+    await toSettings(page);
     await expect(page).toHaveURL(/\/settings$/);
     await page.getByRole("link", { name: /^Appearance/ }).click();
     await expect(page).toHaveURL(/\/settings\/appearance$/);
@@ -298,7 +302,7 @@ test.describe("profile page", () => {
     // A new pick answers with a show.
     await expect(page.locator(".profile-face > *")).toHaveAttribute("data-play", /./);
 
-    await settingsLink(page).click();
+    await toSettings(page);
     await toProfile();
     await expect(sheet.locator("[data-shape]")).not.toHaveCount(0);
     await expect(sheet.locator(`[data-shape="${shape}"]`)).toHaveAttribute("aria-pressed", "true");

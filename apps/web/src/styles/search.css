@@ -1,0 +1,28 @@
+/* Search (pages/search.astro): the Library's page frame and rows; only its own sections are here. */
+
+/* The page opens on its field, with no title above it (12 Nov canvas). */
+.search-page {
+  display: grid;
+  align-content: start;
+}
+
+/* The kind chips sit under the field, a step above the first section's heading. */
+.search-kinds {
+  padding-block-start: var(--space-2);
+}
+
+/* The band holds the Catchups' rows, which keep their own line inside it (Band). */
+.search-band {
+  margin-block-start: var(--space-8);
+}
+
+.search-note {
+  padding-block: var(--space-8);
+  text-align: center;
+}
+
+/* The field's own room below it is the air before the first section: its heading takes no more. */
+[data-discover] > :not([hidden]):first-child .shelf-head,
+[data-discover] > [hidden]:first-child + section .shelf-head {
+  padding-block-start: 0;
+}

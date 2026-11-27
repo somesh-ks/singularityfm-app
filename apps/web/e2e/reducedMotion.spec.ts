@@ -90,8 +90,8 @@ test("under reduced motion nothing moves, and the fades keep their timing", asyn
   await page.goto("/library");
   await expect(page.locator("[data-library]")).toHaveAttribute("data-ready", "");
   await page.evaluate(() => (window as unknown as { __seen: Map<string, Seen> }).__seen.clear());
-  await page.locator('.app-nav-item[href="/settings"]').click();
-  await expect(page).toHaveURL(/\/settings/);
+  await page.locator('.app-nav-item[href="/search"]').click();
+  await expect(page).toHaveURL(/\/search/);
   await frames(page);
   await collect();
 

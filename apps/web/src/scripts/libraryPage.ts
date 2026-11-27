@@ -76,8 +76,14 @@ function install(): void {
   if (!root || root.dataset.ready !== undefined) return;
   root.dataset.ready = "";
 
+  // Search's Catchups: the same cards, driven by the page's own field (pages/search.astro), nothing on
+  // show until it holds words, always the list view.
+  const searchOnly = root.hasAttribute("data-search-only");
+  const host: HTMLElement = root;
   const grid = root.querySelector<HTMLElement>("[data-library-grid]");
-  const input = root.querySelector<HTMLInputElement>("[data-library-search]");
+  const input = (searchOnly ? document : root).querySelector<HTMLInputElement>(
+    "[data-library-search]",
+  );
   const select = root.querySelector<HTMLSelectElement>("[data-library-sort]");
   const status = root.querySelector<HTMLElement>("[data-library-status]");
   const empty = root.querySelector<HTMLElement>("[data-library-empty]");
@@ -112,7 +118,8 @@ function install(): void {
       .then((response) => (response.ok ? response.json() : Promise.reject(new Error("no index"))))
       .then((entries: SearchIndexEntry[]) => {
         fullText = new Map(entries.map((entry) => [entry.id, entry.text]));
-        apply();
+        // The page may have been left meanwhile: a detached root must not write its words to the next one's address.
+        if (host.isConnected) apply();
       })
       .catch(() => {
         // Offline or missing: the search goes on with what the page holds, and does not ask again.
@@ -181,6 +188,7 @@ function install(): void {
     set("show", filter, "all");
     set("sort", sort, "newest");
     if (url.href !== location.href) history.replaceState(history.state, "", url);
+    if (searchOnly) return;
     // Where the Library was left, for a move that comes back to it (a delete from an episode).
     try {
       sessionStorage.setItem(LIBRARY_URL_KEY, url.pathname + url.search);
@@ -203,7 +211,7 @@ function install(): void {
     const live = cards.filter((card) => card.element.isConnected);
     let shown = 0;
     for (const card of live) {
-      const passes = matchesFilter(card.data, filter);
+      const passes = matchesFilter(card.data, filter) && (searching || !searchOnly);
       const detail = passes ? matchDetail(card.data, query) : { meta: 0, stories: 0 };
       let matches = detail.meta + detail.stories;
       // A word that only the script or a story's text holds: the card is there, for another reason.
@@ -244,9 +252,10 @@ function install(): void {
         if (place === 0) head.setAttribute("data-first", "");
       }
     }
-    if (status) status.textContent = resultSummary(shown, live.length);
+    const waiting = searchOnly && !searching;
+    if (status) status.textContent = waiting ? "" : resultSummary(shown, live.length);
     if (empty) {
-      empty.hidden = shown > 0;
+      empty.hidden = shown > 0 || waiting;
       // A search with no result puts the floating New episode away (library.css), said on the root
       // so a key restyles only the button, not the whole page (D147).
       document.documentElement.toggleAttribute("data-search-empty", shown === 0 && query !== "");
@@ -259,6 +268,8 @@ function install(): void {
     }
     writeUrl(query, filter, sort);
     requestAnimationFrame(markTruncated);
+    // Search counts the Catchups shown; the full-text index can land after its own answer.
+    if (searchOnly) host.dispatchEvent(new CustomEvent("library:applied", { bubbles: true }));
   }
 
   /** What the address asked for when the page opened: Back from a result, or a shared link. */
@@ -322,7 +333,7 @@ function install(): void {
     if (root) applyView(root, view);
     requestAnimationFrame(markTruncated);
   }
-  showView(storedView());
+  showView(searchOnly ? "list" : storedView());
   for (const button of viewButtons) {
     button.addEventListener("click", () => {
       const view = button.dataset.libraryView === "gallery" ? "gallery" : "list";

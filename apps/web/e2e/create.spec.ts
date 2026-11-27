@@ -690,7 +690,7 @@ test.describe("navigation with three destinations and one action", () => {
   test("fits at 320px and marks the Library as current on Create", async ({ page }) => {
     await page.setViewportSize({ width: 320, height: 640 });
     await openCreate(page);
-    await expect(page.locator("a.app-nav-item")).toHaveText(["Latest", "Library", "Settings"]);
+    await expect(page.locator("a.app-nav-item")).toHaveText(["Home", "Search", "Library"]);
     for (const item of await page.locator("a.app-nav-item").all())
       await expect(item).toBeInViewport();
     // Create sits under the Library, where episodes are kept.

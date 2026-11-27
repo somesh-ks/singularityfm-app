@@ -1,0 +1,8 @@
+/* A public show's or episode's art in a Library row (PodcastRowTemplate.astro): the publisher's image
+   fills the cover's box; without one the cover's own ground shows. */
+.podcast-cover > img {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+}

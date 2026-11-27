@@ -90,7 +90,7 @@ test.describe("the Settings index", () => {
     await expect(page).toHaveTitle("Daily Podcast, Singularity");
   });
 
-  test("a settings subpage has a Settings link above its title and the index has none @desktop", async ({
+  test("a settings subpage has a Settings link above its title and the index one to Profile @desktop", async ({
     page,
   }) => {
     const ROUTES = [
@@ -109,8 +109,12 @@ test.describe("the Settings index", () => {
       await page.goto(path);
       await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
       const crumb = page.getByRole("navigation", { name: "Breadcrumb" });
+      // Settings opens from Profile and goes back to it (D401).
       if (path === "/settings") {
-        await expect(crumb, path).toHaveCount(0);
+        await expect(crumb.getByRole("link", { name: "Profile" }), path).toHaveAttribute(
+          "href",
+          "/profile",
+        );
         continue;
       }
       await expect(crumb.getByRole("link", { name: "Settings" }), path).toHaveAttribute(

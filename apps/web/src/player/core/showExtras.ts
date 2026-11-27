@@ -41,7 +41,7 @@ export function startShowExtras(store: PlayerStore, preferences: PreferencesStor
   // Skips by itself only a break the playhead reached by playing into it: a listener who sought into
   // a break meant to be there.
   let last = store.getTime();
-  const offSkip = store.onSecond(() => {
+  const offSkip = store.onSecond((cause) => {
     const now = store.getTime();
     const before = last;
     last = now;
@@ -51,10 +51,9 @@ export function startShowExtras(store: PlayerStore, preferences: PreferencesStor
     const span = currentBreak(store);
     if (!span) return;
     // From before its start, or from its very start: a break at 0:00 is reached by pressing Play.
-    // A tick is a second of the episode at any speed, and every seek ticks too: only a step of one
-    // whole second is playing, so a seek from 1:39 to 1:41 stays where the listener put it.
-    const step = Math.floor(now) - Math.floor(before);
-    const playedInto = before <= span.start_s && step === 1 && now - before < 1.5;
+    // Only the episode playing there ("auto"): a seek across the start, however short, stays where
+    // the listener put it.
+    const playedInto = cause === "auto" && before <= span.start_s;
     if (playedInto) skipBreak(store, span, "auto");
   });
   return () => {

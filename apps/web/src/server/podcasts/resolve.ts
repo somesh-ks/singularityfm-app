@@ -198,7 +198,7 @@ const TITLE_TAILS =
 export function readShowPage(
   html: string,
   base: string,
-): { feeds: string[]; apple: string[]; name: string | null } {
+): { feeds: string[]; apple: string[]; dropped: number; name: string | null } {
   const head = html.slice(0, PARSE_MAX_CHARS);
   const feeds: string[] = [];
   for (const tag of tagsNamed(head, "link")) {
@@ -233,9 +233,14 @@ export function readShowPage(
   }
   name ??= tagText(head, "title");
   for (let i = 0; name && i < 3; i++) name = name.replace(TITLE_TAILS, "").trim();
+  const allFeeds = [...new Set(feeds)];
+  const allApple = [...new Set(apple)];
   return {
-    feeds: [...new Set(feeds)].slice(0, ALTERNATES_MAX),
-    apple: [...new Set(apple)].slice(0, ALTERNATES_MAX),
+    feeds: allFeeds.slice(0, ALTERNATES_MAX),
+    apple: allApple.slice(0, ALTERNATES_MAX),
+    // Links past the lookup cap are not asked about, so they may name another show.
+    dropped:
+      Math.max(0, allFeeds.length - ALTERNATES_MAX) + Math.max(0, allApple.length - ALTERNATES_MAX),
     name: name ? name.slice(0, 200) : null,
   };
 }
@@ -306,7 +311,7 @@ export async function resolveLink(
     const shows = new Map<number, ShowRow>();
     // A link the index did not answer for may be another show: then the one found is offered, not
     // followed on its own.
-    let unknown = 0;
+    let unknown = listed.dropped;
     for (const feed of listed.feeds) {
       const show = await quietly(() => byFeedUrl(feed, deps));
       if (show?.id) shows.set(show.id, show);

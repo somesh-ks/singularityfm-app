@@ -297,6 +297,31 @@ describe("a pasted link", () => {
     );
     expect(partial.show).toBeNull();
     expect(partial.matches.map((show) => show.id)).toEqual([1]);
+    // Past the lookup cap: three links to one show and a fourth never asked about.
+    const capped = await resolveLink(
+      new URLSearchParams({ link: "https://blog.example.com/four" }),
+      {
+        ...deps({
+          index: async (path: string, params: Record<string, string>) =>
+            path === "/podcasts/byfeedurl" && params.url?.startsWith("https://one.example.com/")
+              ? { feed: feed(1, "Hard Fork") }
+              : { feed: [] },
+        }),
+        resolve: PUBLIC,
+        fetch: async () =>
+          new Response(
+            ["one.example.com/a", "one.example.com/b", "one.example.com/c", "two.example.com/rss"]
+              .map(
+                (address) =>
+                  `<link rel="alternate" type="application/rss+xml" href="https://${address}">`,
+              )
+              .join(""),
+            { status: 200 },
+          ),
+      },
+    ).then((answer) => answer.body as ResolveBody);
+    expect(capped.show).toBeNull();
+    expect(capped.matches.map((show) => show.id)).toEqual([1]);
   });
 
   // A feed address that redirects (a host move, a short link) is known to the index by where it

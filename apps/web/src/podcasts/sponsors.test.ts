@@ -60,6 +60,22 @@ describe("sponsor breaks", () => {
         line(30, 40, "The new workflow is documented at github.com."),
       ]),
     ).toEqual([]);
+    expect(
+      findSponsorBreaks([
+        line(0, 4, "Thanks to our sponsors."),
+        line(4, 30, "GitHub has changed how maintainers review code."),
+        line(30, 40, "The new workflow is documented at github.com."),
+      ]),
+    ).toEqual([]);
+    // A sponsor named on the line after the opener is still the sponsor.
+    expect(
+      findSponsorBreaks([
+        line(0, 2, "And now, my sponsor,"),
+        line(2, 10, "Antithesis, which tests your distributed systems."),
+        line(10, 20, "Learn more at antithesis.com."),
+        line(20, 30, "So, back to it."),
+      ]),
+    ).toHaveLength(1);
     const [found] = findSponsorBreaks([
       line(0, 4, "This episode is brought to you by Acme, the build tool."),
       line(4, 20, "Acme runs every build on fast machines for your whole team."),

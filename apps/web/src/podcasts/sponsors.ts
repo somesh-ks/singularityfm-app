@@ -54,6 +54,9 @@ export const MIN_BREAK_S = 10;
 /** Two breaks this close are one: the second ad read follows the first. */
 const JOIN_GAP_S = 2;
 
+/** What may follow an opener that ends its line with the sponsor still to come: "sponsor," "is". */
+const CONTINUES = /^[\s,:\u2013-]*(?:is|are)?[\s,:\u2013-]*$/i;
+
 export function opensAd(text: string): boolean {
   return OPENS.test(text);
 }
@@ -108,10 +111,15 @@ export function findSponsorBreaks(lines: readonly TimedLine[]): SponsorBreak[] {
       index += 1;
       continue;
     }
-    // "My sponsor," and "Antithesis," can be two lines; the next line is read only then, so a
-    // company the talk names after the opener ("GitHub has changed...") is not taken as the sponsor.
+    // "My sponsor," and "Antithesis," can be two lines: the next line names the sponsor only when
+    // the opener ends its line mid-phrase. A company the talk names next ("Thanks to our sponsors."
+    // then "GitHub has changed...") is not taken as the sponsor.
+    const opening = OPENS.exec(first.text);
+    const runsOn = opening
+      ? CONTINUES.test(first.text.slice(opening.index + opening[0].length))
+      : false;
     const named = sponsorNames(first.text);
-    const names = named.size > 0 ? named : sponsorNames(lines[index + 1]?.text ?? "");
+    const names = named.size > 0 || !runsOn ? named : sponsorNames(lines[index + 1]?.text ?? "");
     const limit = first.start_s + MAX_BREAK_S;
     let last = -1;
     for (let at = index; at < lines.length && (lines[at]?.start_s ?? limit) < limit; at += 1) {

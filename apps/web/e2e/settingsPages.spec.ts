@@ -90,7 +90,8 @@ test("a select's fill is as far from its card's right edge as from its top or bo
             const card = holder.closest(".card-group, .topic-panel");
             if (fill.width === 0 || !card) continue;
             const box = card.getBoundingClientRect();
-            const rows = [...card.querySelectorAll(".settings-row")].filter(
+            // Every row of the card counts, a link row too: a select above one is not the last row.
+            const rows = [...card.querySelectorAll(".settings-row, .row-action")].filter(
               (row) => row.getBoundingClientRect().height > 0,
             );
             const row = holder.closest(".settings-row");

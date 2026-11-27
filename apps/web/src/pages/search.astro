@@ -3,6 +3,7 @@ import Band from "@singularityfm/design-system/Band";
 import Button from "@singularityfm/design-system/Button";
 import Chip from "@singularityfm/design-system/Chip";
 import ChipGroup from "@singularityfm/design-system/ChipGroup";
+import Icon from "@singularityfm/design-system/Icon";
 import SearchField from "@singularityfm/design-system/SearchField";
 import TopicGrid from "@singularityfm/design-system/TopicGrid";
 import TopicTile from "@singularityfm/design-system/TopicTile";
@@ -77,6 +78,25 @@ const items = libraryItems(entries, episodes);
         </div>
         <div data-library data-view="list" data-podcast-list>
           <ul class="library-grid" role="list" data-top-list></ul>
+        </div>
+      </section>
+
+      {/* A show the search does not find, by its own link, or a list from another app (Nov 12
+           canvas, board "Search"). */}
+      <section class="settings-view" aria-label="Add shows">
+        <div class="rows card-group">
+          <a class="row-action" href="/add-show">
+            <span class="settings-text">
+              <span class="settings-label">Add a show by name or link</span>
+            </span>
+            <Icon name="chevronRight" />
+          </a>
+          <a class="row-action" href="/settings/import">
+            <span class="settings-text">
+              <span class="settings-label">Import from another app</span>
+            </span>
+            <Icon name="chevronRight" />
+          </a>
         </div>
       </section>
     </div>

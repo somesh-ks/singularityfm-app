@@ -449,26 +449,31 @@ export function startPlayerRuntime(): () => void {
       document.dispatchEvent(new CustomEvent(STARTED_EVENT, { detail: { id } }));
     }
   });
-  // A show episode that has played for a minute goes to History and becomes the one its show's Play
-  // resumes (podcasts/deviceStore.ts).
+  // Anything that has played for a minute goes to History; a show episode also becomes the one its
+  // show's Play resumes (podcasts/deviceStore.ts).
   // shortcut: a tick is a second of the recording, so a seek adds one and double speed counts double;
   // count wall time if History's order ever needs to be exact.
-  let heardShowEpisode: string | null = null;
+  let heardItem: string | null = null;
   let heardSeconds = 0;
   // Seconds that sounded in this tab, not the saved position: an episode restored half way by a
   // reload has not been listened to again.
   const offListened = playerStore.onSecond(() => {
     const { track, status, scrubbing } = playerStore.getState();
     const id = track?.digest.id ?? null;
-    if (id !== heardShowEpisode) {
-      heardShowEpisode = id;
+    if (id !== heardItem) {
+      heardItem = id;
       heardSeconds = 0;
     }
     const showId = id ? showIdOf(id) : null;
     // A drag of the scrubber publishes seconds too, with the sound held: those were not heard.
-    if (!id || showId === null || !isPlayingStatus(status) || scrubbing) return;
+    if (!id || !isPlayingStatus(status) || scrubbing) return;
     heardSeconds += 1;
     if (heardSeconds !== LISTENED_SECONDS) return;
+    // A Catchup has no device-store record: History keeps its time in the key store.
+    if (showId === null) {
+      void import("../../podcasts/history").then((history) => history.noteCatchupListened(id));
+      return;
+    }
     void import("../../podcasts/deviceStore").then((device) => device.noteListened(id, showId));
   });
   // Queued items' first minutes are fetched at an idle moment, so a tap on any of the next three

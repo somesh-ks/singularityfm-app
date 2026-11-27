@@ -63,11 +63,18 @@ const updated = buildDayShort();
       <Button variant="filled" className="profile-login" data-login>Log in</Button>
 
       {/* Favorites live in the Library now, its Favorites chip (12 Nov canvas, Profile board). */}
-      <section aria-label="Downloads">
+      <section aria-label="Downloads and history">
         <div class="rows card-group">
           <a class="row-action" href="/settings/downloads">
             <span class="settings-text">
               <span class="settings-label">Downloads</span>
+            </span>
+            <Icon name="chevronRight" />
+          </a>
+          {/* What this device played (Nov 12 canvas, board "Profile"). */}
+          <a class="row-action" href="/settings/history">
+            <span class="settings-text">
+              <span class="settings-label">History</span>
             </span>
             <Icon name="chevronRight" />
           </a>

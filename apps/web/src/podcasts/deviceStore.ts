@@ -22,8 +22,8 @@ import type { Following } from "./rules";
 
 export const DB_NAME = "singularity-podcasts";
 export const DB_VERSION = 1;
-const SHOWS = "shows";
-const EPISODES = "episodes";
+export const SHOWS = "shows";
+export const EPISODES = "episodes";
 const BY_SHOW = "by_show";
 
 export interface StoredShow extends ShowDetail {
@@ -63,7 +63,7 @@ type Mode = "readonly" | "readwrite";
 
 const now = (): string => new Date().toISOString();
 
-function request<T>(req: IDBRequest<T>): Promise<T> {
+export function request<T>(req: IDBRequest<T>): Promise<T> {
   return new Promise((resolve, reject) => {
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
@@ -95,24 +95,34 @@ function open(): Promise<IDBDatabase | null> {
   return opened;
 }
 
-async function run<T>(
+/** The work in one transaction; throws when there is no database or the transaction fails. */
+export async function transact<T>(
+  stores: string[],
+  mode: Mode,
+  work: (tx: IDBTransaction) => Promise<T>,
+): Promise<T> {
+  const db = await open();
+  if (!db) throw new Error("No device store");
+  const tx = db.transaction(stores, mode);
+  const done = new Promise<void>((resolve, reject) => {
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+    tx.onabort = () => reject(tx.error);
+  });
+  // Both at once: a failed request rejects the work and the transaction, and each is observed.
+  const [result] = await Promise.all([work(tx), done]);
+  return result;
+}
+
+/** As `transact`, with `fallback` for any failure: what a view draws from. */
+export async function run<T>(
   stores: string[],
   mode: Mode,
   work: (tx: IDBTransaction) => Promise<T>,
   fallback: T,
 ): Promise<T> {
   try {
-    const db = await open();
-    if (!db) return fallback;
-    const tx = db.transaction(stores, mode);
-    const done = new Promise<void>((resolve, reject) => {
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error);
-      tx.onabort = () => reject(tx.error);
-    });
-    // Both at once: a failed request rejects the work and the transaction, and each is observed.
-    const [result] = await Promise.all([work(tx), done]);
-    return result;
+    return await transact(stores, mode, work);
   } catch {
     return fallback;
   }
@@ -121,7 +131,7 @@ async function run<T>(
 /** Tells every open view that what the device holds about shows changed. */
 export const PODCASTS_CHANGED_EVENT = "singularity:podcasts-changed";
 
-function announce(): void {
+export function announce(): void {
   if (typeof document === "undefined") return;
   document.dispatchEvent(new CustomEvent(PODCASTS_CHANGED_EVENT));
 }

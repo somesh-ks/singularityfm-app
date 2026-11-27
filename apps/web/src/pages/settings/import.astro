@@ -1,0 +1,80 @@
+---
+import Button from "@singularityfm/design-system/Button";
+import Icon from "@singularityfm/design-system/Icon";
+import SettingsHead from "../../components/SettingsHead.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import "../../styles/settings.css";
+
+const title = "Import and export";
+---
+
+<BaseLayout title={title} view="settings" skipLabel="Skip to import and export">
+  <main id="main" tabindex="-1">
+    {/* Shows move in and out of the device here (Nov 12 plan, "Import and export"). Everything is
+         on this device only, so the backup file is the one copy there is; scripts/importPage.ts does
+         the reading and the writing. Search's "Import from another app" row leads here too. */}
+    <div class="settings-view" data-settings data-import-page data-import-settings>
+      <SettingsHead title={title} note="Your shows live on this device. A backup file keeps a copy." />
+
+      <section aria-labelledby="import-head">
+        <h2 class="section-head text-heading" id="import-head">Import</h2>
+        <div class="rows card-group">
+          <div class="settings-row">
+            <div class="settings-text">
+              <span class="settings-label">Import a file</span>
+              <span class="settings-hint" data-import-hint>OPML from Apple Podcasts, Pocket Casts, Overcast, or a backup</span>
+            </div>
+            <Button variant="text" data-import-pick>Choose file</Button>
+          </div>
+          <a class="row-action" href="/add-show">
+            <span class="settings-text">
+              <span class="settings-label">Add a show by name or link</span>
+            </span>
+            <Icon name="chevronRight" />
+          </a>
+        </div>
+        {/* How far an import is shows in its row's line; what it did is a toast. The shows the index
+             did not know stay listed here, so they can be searched for by name. */}
+        <p class="sr-only" role="status" data-import-status></p>
+        <div class="import-missing" data-import-missing hidden>
+          <h3 class="section-head text-heading">Not found</h3>
+          <ul class="manage-note" data-import-missing-list></ul>
+        </div>
+        <input
+          class="sr-only"
+          type="file"
+          accept=".opml,.xml,.json,application/json,text/xml,text/x-opml"
+          tabindex="-1"
+          aria-hidden="true"
+          data-import-file
+        />
+      </section>
+
+      <section aria-labelledby="export-head">
+        <h2 class="section-head text-heading" id="export-head">Export</h2>
+        <div class="rows card-group">
+          <div class="settings-row">
+            <div class="settings-text">
+              <span class="settings-label">Backup</span>
+              <span class="settings-hint">Shows, favorites, where you left off and History</span>
+            </div>
+            <Button variant="text" data-export="backup">Save</Button>
+          </div>
+          <div class="settings-row">
+            <div class="settings-text">
+              <span class="settings-label">Shows as OPML</span>
+              <span class="settings-hint">For another podcast app</span>
+            </div>
+            <Button variant="text" data-export="opml">Export</Button>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+</BaseLayout>
+
+<script>
+  import { installImportPage } from "../../scripts/importPage";
+
+  installImportPage();
+</script>

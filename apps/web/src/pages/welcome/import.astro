@@ -1,0 +1,44 @@
+---
+import Button from "@singularityfm/design-system/Button";
+import Icon from "@singularityfm/design-system/Icon";
+import FirstRunStep from "../../components/FirstRunStep.astro";
+---
+
+<FirstRunStep
+  step={3}
+  title="Bring your shows"
+  about="Coming from another app? Import your list, or skip and add shows later."
+  next={null}
+>
+  {/* The same import as Settings > Import and export (scripts/importPage.ts), and a pasted link goes
+       to the Add a show page, which comes back here. */}
+  <section class="first-run-import" data-import-page>
+    <div class="rows card-group">
+      <div class="settings-row">
+        <div class="settings-text">
+          <span class="settings-label">Import a file</span>
+          <span class="settings-hint" data-import-hint>OPML from Apple Podcasts, Pocket Casts, Overcast</span>
+        </div>
+        <Button variant="text" data-import-pick>Choose file</Button>
+      </div>
+      <a class="row-action" href="/add-show?from=welcome">
+        <span class="settings-text">
+          <span class="settings-label">Add a show by name or link</span>
+        </span>
+        <Icon name="chevronRight" />
+      </a>
+    </div>
+    <p class="sr-only" role="status" data-import-status></p>
+    <div class="import-missing" data-import-missing hidden>
+      <h2 class="section-head text-heading">Not found</h2>
+      <ul class="manage-note" data-import-missing-list></ul>
+    </div>
+    <input class="sr-only" type="file" accept=".opml,.xml,.json,application/json,text/xml,text/x-opml" tabindex="-1" aria-hidden="true" data-import-file />
+  </section>
+</FirstRunStep>
+
+<script>
+  import { installFirstRun } from "../../scripts/firstRunPage";
+
+  installFirstRun();
+</script>

@@ -135,6 +135,13 @@ const SPONSOR_LABELS: Record<SponsorChoice, string> = {
               {SPONSOR_CHOICES.map((choice) => <option value={choice}>{SPONSOR_LABELS[choice]}</option>)}
             </Select>
           </div>
+          <a class="row-action" href="/settings/import">
+            <span class="settings-text">
+              <span class="settings-label">Import and export</span>
+              <span class="settings-hint">OPML file</span>
+            </span>
+            <Icon name="chevronRight" />
+          </a>
         </div>
       </section>
 

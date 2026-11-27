@@ -301,6 +301,13 @@ export const test = base.extend<{ player: PlayerPage; audio: AudioProbe; finger:
     });
     page.on("pageerror", (error) => problems.push(`[pageerror] ${error.message}`));
     await page.addInitScript(() => {
+      // A device past first run: Home would send a new one to /welcome (scripts/homePage.ts).
+      try {
+        if (localStorage.getItem("singularity:first-run") === null)
+          localStorage.setItem("singularity:first-run", "2026-11-01T00:00:00.000Z");
+      } catch {
+        // An opaque page (about:blank) has no storage.
+      }
       window.__audios = [];
       const Original = window.Audio;
       window.Audio = class extends Original {

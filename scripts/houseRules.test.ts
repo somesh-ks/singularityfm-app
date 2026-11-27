@@ -55,6 +55,7 @@ describe("house rules for authored files", () => {
 describe("where a status line may live", () => {
   const ALLOWED: Record<string, { count: number; reason: string }> = {
     "components/CreateForm.astro": { count: 2, reason: "inline form errors" },
+    "pages/add-show.astro": { count: 1, reason: "a link that cannot be added, under its field" },
     "components/EpisodeActions.astro": { count: 2, reason: "inline form errors" },
     "components/TopicsPanel.astro": { count: 4, reason: "inline field errors" },
     "components/SourceFilter.astro": { count: 1, reason: "a filter that found nothing, inline" },

@@ -1,0 +1,41 @@
+/*
+ * First run (Nov 12 canvas, boards "First run 1 to 3") and the Add a show page: a step's stack and its
+ * actions centred under it. Tokens only.
+ */
+
+/* A settings view (page-frame.css) for its top and the rows' look, stacked a step apart. */
+.first-run {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.first-run-steps {
+  color: var(--color-on-surface-muted);
+}
+
+.first-run-about {
+  margin-block: var(--space-4) 0;
+  color: var(--color-on-surface-muted);
+}
+
+.first-run-acts {
+  display: grid;
+  gap: var(--space-2);
+  justify-items: center;
+}
+
+.first-run-form {
+  display: grid;
+  gap: var(--space-4);
+  margin-block: var(--space-4);
+}
+
+.first-run-import {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.import-missing > ul {
+  margin: 0;
+  padding-inline-start: var(--space-6);
+}

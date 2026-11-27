@@ -1,0 +1,91 @@
+---
+import Button from "@singularityfm/design-system/Button";
+import Field from "@singularityfm/design-system/Field";
+import PodcastRowTemplate from "../components/PodcastRowTemplate.astro";
+import SettingsHead from "../components/SettingsHead.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import "../styles/settings.css";
+import "../styles/manage.css";
+import "../styles/first-run.css";
+import "../styles/library.css";
+
+const title = "Add a show";
+---
+
+<BaseLayout title={title} view="settings" skipLabel="Skip to adding a show">
+  <main id="main" tabindex="-1">
+    {/* One forgiving field (owner, 26 Nov: "a single field that works for everything"): a show's
+         name, any link to it (Apple Podcasts, Overcast, Spotify, YouTube, Pocket Casts, a feed, its
+         site), or several links or an OPML list pasted at once. A show found for certain becomes a
+         favorite and its page opens (first run's last step when it came from there); otherwise the
+         closest shows are listed to pick from (scripts/addShowPage.ts, podcasts/addShow.ts). A file
+         dropped on the page, or chosen below, is imported. Search hands a pasted link here (?link=). */}
+    <div class="manage" data-add-show data-import-page>
+      <SettingsHead
+        title={title}
+        crumb
+        up={{ href: "/search", label: "Search" }}
+        note="Type its name, or paste any link to it: Apple Podcasts, Spotify, YouTube, its RSS feed or its website."
+      />
+      <form class="first-run-form" novalidate data-add-show-form>
+        <label class="sr-only" for="add-show-link">Show name or link</label>
+        <Field
+          id="add-show-link"
+          name="link"
+          type="text"
+          placeholder="Name or link"
+          autoComplete="off"
+          autoCapitalize="off"
+          spellCheck={false}
+          enterKeyHint="go"
+          required
+          data-add-show-input
+        />
+        <p class="create-error" role="alert" data-add-show-error hidden></p>
+        <Button variant="filled" type="submit" data-add-show-go>
+          <span class="spinner" aria-hidden="true"></span>
+          <span data-add-show-go-text>Find show</span>
+        </Button>
+      </form>
+      <p class="sr-only" role="status" data-add-show-status></p>
+      <section aria-labelledby="add-show-matches-head" data-add-show-matches hidden>
+        <h2 class="section-head text-heading" id="add-show-matches-head" data-add-show-matches-head>Is it one of these?</h2>
+        <div data-library data-view="list" data-podcast-list>
+          <ul class="library-grid" role="list" data-add-show-list></ul>
+        </div>
+      </section>
+      <section class="settings-view" aria-labelledby="add-show-file-head">
+        <h2 class="section-head text-heading" id="add-show-file-head">From another app</h2>
+        <div class="rows card-group">
+          <div class="settings-row">
+            <div class="settings-text">
+              <span class="settings-label">Import a file</span>
+              <span class="settings-hint" data-import-hint>OPML or a backup</span>
+            </div>
+            <Button variant="text" data-import-pick>Choose file</Button>
+          </div>
+        </div>
+        <p class="sr-only" role="status" data-import-status></p>
+        <div class="import-missing" data-import-missing hidden>
+          <h3 class="section-head text-heading">Not found</h3>
+          <ul class="manage-note" data-import-missing-list></ul>
+        </div>
+        <input
+          class="sr-only"
+          type="file"
+          accept=".opml,.xml,.json,application/json,text/xml,text/x-opml"
+          tabindex="-1"
+          aria-hidden="true"
+          data-import-file
+        />
+      </section>
+    </div>
+    <PodcastRowTemplate />
+  </main>
+</BaseLayout>
+
+<script>
+  import { installAddShowPage } from "../scripts/addShowPage";
+
+  installAddShowPage();
+</script>

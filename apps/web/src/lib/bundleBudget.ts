@@ -38,7 +38,8 @@ export const FIRST_LOAD_BUDGET_BYTES = 130 * 1024;
  * device and then the route, so its renderer is first-load by nature (the heaviest page before it,
  * a category's settings, stood at 63.8 KB); its menus' keys and the row hold load at idle.
  * Recorded again 2026-11-27: /search, 71.3 KB. Home's search and shelves (#841) brought it to
- * 71.0 KB on main, and the player's sponsor skip adds 0.3 KB to every page.
+ * 71.0 KB on main, and the player's sponsor skip adds 0.3 KB to every page. First run, Add a show
+ * and import load the file formats on use, so their pages stay under it.
  */
 export const FIRST_LOAD_RECORD_BYTES = 71.5 * 1024;
 export const FIRST_LOAD_STEP_BYTES = 5 * 1024;

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { coverFile, extrasFile, parseChapters, parseCues, parseJsonTranscript } from "./files";
 import { BREAKER_FAILURES, createIndexClient, newBreaker } from "./podcastIndex";
+import { type ResolveBody, resolveLink } from "./resolve";
 import {
   canonicalNew,
   canonicalSearch,
@@ -198,5 +199,194 @@ describe("podcast routes", () => {
     expect(
       uniqueShows([row("https://Feeds.example/a/"), row("http://feeds.example/a")]),
     ).toHaveLength(1);
+  });
+});
+
+describe("a pasted link", () => {
+  const feed = (id: number, title: string) => ({
+    id,
+    title,
+    url: `https://feeds.example.com/${id}.xml`,
+  });
+  // A fake index that knows two feeds, by address and by guid, and answers a search by title.
+  const index = async (path: string, params: Record<string, string>) => {
+    if (path === "/podcasts/byfeedurl" && params.url === "https://feeds.example.com/1.xml")
+      return { feed: feed(1, "Hard Fork") };
+    if (path === "/podcasts/byguid" && params.guid === "guid-2") return { feed: feed(2, "Syntax") };
+    if (path === "/podcasts/byitunesid") return { feed: feed(Number(params.id), "Listed") };
+    if (path === "/search/byterm")
+      return { feeds: [feed(1, "Hard Fork"), feed(3, "Hard Fork Live")] };
+    return { feed: [] };
+  };
+  const page = (body: string) => ({
+    ...deps({ index }),
+    resolve: PUBLIC,
+    fetch: async () => new Response(body, { status: 200 }),
+  });
+  const ask = (link: string, body: string) =>
+    resolveLink(new URLSearchParams({ link }), page(body)).then(
+      (answer) => answer.body as ResolveBody,
+    );
+
+  // Prevents the one field giving up on a show the index knows by another road: a site that links
+  // its feed, a feed the index files under its guid, and Spotify, whose feed is private but whose
+  // page names the show.
+  it("finds the show by the page's feed, the feed's guid, or the page's name", async () => {
+    const site = await ask(
+      "https://www.hardfork.show/",
+      '<link rel="alternate" type="application/rss+xml" href="https://feeds.example.com/1.xml">',
+    );
+    expect(site.show?.id).toBe(1);
+
+    const moved = await ask(
+      "https://unknown.example.com/rss",
+      "<rss><channel><title>Syntax</title><podcast:guid>guid-2</podcast:guid><item></item></channel></rss>",
+    );
+    expect(moved.show?.id).toBe(2);
+
+    const spotify = await ask(
+      "https://open.spotify.com/show/x",
+      '<meta property="og:title" content="Hard Fork | Podcast on Spotify">',
+    );
+    expect(spotify.show).toBeNull();
+    expect(spotify.name).toBe("Hard Fork");
+    expect(spotify.matches.map((show) => show.id)).toEqual([1, 3]);
+
+    // An article that links several shows names none of them: they are offered, none followed.
+    const article = await ask(
+      "https://blog.example.com/best-podcasts",
+      '<a href="https://podcasts.apple.com/us/podcast/a/id11">A</a><a href="https://podcasts.apple.com/us/podcast/b/id22">B</a>',
+    );
+    expect(article.show).toBeNull();
+    expect(article.matches.map((show) => show.id)).toEqual([11, 22]);
+
+    // A name the index does not know never spends the Apple search everyone shares: an Apple row
+    // has no index id to follow, so it could only be thrown away (Code review, 27 Nov).
+    let appleCalls = 0;
+    const unknown = await resolveLink(
+      new URLSearchParams({ link: "https://open.spotify.com/show/y" }),
+      {
+        ...deps({ index: async () => ({ feeds: [] }) }),
+        apple: async () => {
+          appleCalls += 1;
+          return [appleResult];
+        },
+        resolve: PUBLIC,
+        fetch: async () => new Response("<title>Nobody Knows</title>", { status: 200 }),
+      },
+    );
+    expect(unknown.status).toBe(404);
+    expect(appleCalls).toBe(0);
+    // A failing index is "try again", never "no such show" (CodeRabbit, 27 Nov).
+    const down = await resolveLink(
+      new URLSearchParams({ link: "https://open.spotify.com/show/y" }),
+      {
+        ...deps({
+          index: async () => {
+            throw new Error("down");
+          },
+        }),
+        resolve: PUBLIC,
+        fetch: async () => new Response("<title>Nobody Knows</title>", { status: 200 }),
+      },
+    );
+    expect(down.status).toBe(502);
+    // The same when the page cannot be read either: an OPML import retries it, not "missing".
+    const unread = await resolveLink(
+      new URLSearchParams({ link: "https://feeds.example.com/9.xml" }),
+      {
+        ...deps({
+          index: async () => {
+            throw new Error("down");
+          },
+        }),
+        resolve: PUBLIC,
+        fetch: async () => new Response("", { status: 503 }),
+      },
+    );
+    expect(unread.status).toBe(502);
+    // And when the feed lookup threw but the page's name, searched, matched nothing.
+    const halfway = await resolveLink(
+      new URLSearchParams({ link: "https://feeds.example.com/9.xml" }),
+      {
+        ...deps({
+          index: async (path: string) => {
+            if (path === "/podcasts/byfeedurl") throw new Error("down");
+            return { feeds: [] };
+          },
+        }),
+        resolve: PUBLIC,
+        fetch: async () => new Response("<title>Nobody Knows</title>", { status: 200 }),
+      },
+    );
+    expect(halfway.status).toBe(502);
+  });
+
+  // Prevents a site's feed link going unread (a ">" in its title, values without quotes), and a
+  // lone find being followed while another link on the page went unanswered (Code review, 27 Nov).
+  it("reads any feed link, and offers a lone find when another link went unanswered", async () => {
+    const quoted = await ask(
+      "https://www.hardfork.show/",
+      '<link title="Subscribe >" rel="alternate" type="application/rss+xml" href="https://feeds.example.com/1.xml">',
+    );
+    expect(quoted.show?.id).toBe(1);
+    const bare = await ask(
+      "https://www.hardfork.show/",
+      "<link rel=alternate type=application/rss+xml href=https://feeds.example.com/1.xml>",
+    );
+    expect(bare.show?.id).toBe(1);
+    const partial = await ask(
+      "https://blog.example.com/two",
+      '<link rel="alternate" type="application/rss+xml" href="https://feeds.example.com/1.xml"><link rel="alternate" type="application/rss+xml" href="https://feeds.example.com/9.xml">',
+    );
+    expect(partial.show).toBeNull();
+    expect(partial.matches.map((show) => show.id)).toEqual([1]);
+    // Past the lookup cap: three links to one show and a fourth never asked about.
+    const capped = await resolveLink(
+      new URLSearchParams({ link: "https://blog.example.com/four" }),
+      {
+        ...deps({
+          index: async (path: string, params: Record<string, string>) =>
+            path === "/podcasts/byfeedurl" && params.url?.startsWith("https://one.example.com/")
+              ? { feed: feed(1, "Hard Fork") }
+              : { feed: [] },
+        }),
+        resolve: PUBLIC,
+        fetch: async () =>
+          new Response(
+            ["one.example.com/a", "one.example.com/b", "one.example.com/c", "two.example.com/rss"]
+              .map(
+                (address) =>
+                  `<link rel="alternate" type="application/rss+xml" href="https://${address}">`,
+              )
+              .join(""),
+            { status: 200 },
+          ),
+      },
+    ).then((answer) => answer.body as ResolveBody);
+    expect(capped.show).toBeNull();
+    expect(capped.matches.map((show) => show.id)).toEqual([1]);
+  });
+
+  // A feed address that redirects (a host move, a short link) is known to the index by where it
+  // landed, not by the address pasted (CodeRabbit, 27 Nov).
+  it("finds a redirected feed by the address it landed at", async () => {
+    const redirected = await resolveLink(
+      new URLSearchParams({ link: "https://short.example.com/hf" }),
+      {
+        ...deps({ index }),
+        resolve: PUBLIC,
+        fetch: async (input) =>
+          new URL(String(input)).hostname === "short.example.com"
+            ? new Response(null, {
+                status: 301,
+                headers: { location: "https://feeds.example.com/1.xml" },
+              })
+            : new Response("<rss><channel><title>Other name</title></channel></rss>", {
+                status: 200,
+              }),
+      },
+    );
+    expect((redirected.body as ResolveBody).show?.id).toBe(1);
   });
 });

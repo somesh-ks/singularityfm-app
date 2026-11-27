@@ -9,8 +9,11 @@ import { DIAL_SELECTORS as DIAL } from "@singularityfm/design-system/dial";
 import { installPageArrows } from "@singularityfm/design-system/pageDots";
 import { RESUME_CARD_SELECTORS as RESUME } from "@singularityfm/design-system/resumeCard";
 import { sendToast } from "@singularityfm/design-system/toastEvent";
+import { BROWSE_TOPICS, type BrowseTopic, topicHref } from "../lib/topics";
 import { whenIdle } from "../narration/prewarmPage";
 import {
+  PLAYED_KEY_PREFIX,
+  RESUME_KEY_PREFIX,
   readRemembered,
   safeLocalStorage,
   saveResumePosition,
@@ -18,6 +21,7 @@ import {
 } from "../player/core/resume";
 import { heardOnDevice } from "../podcasts/after";
 import { continueIds, dropContinue, readContinue } from "../podcasts/continueListening";
+import { listenedEpisodes } from "../podcasts/deviceRecords";
 import {
   episodesOfShow,
   favoriteShows,
@@ -34,6 +38,8 @@ import {
   setShowHidden,
   setShowPinned,
 } from "../podcasts/deviceStore";
+import { firstRunPending, markFirstRunDone, pickedCategories } from "../podcasts/firstRun";
+import { catchupHistory } from "../podcasts/history";
 import { dialOrder, dialPages, type HomeFilter, shownBy } from "../podcasts/home";
 import { loadPlayer, nowPlaying, onPlayerChange, pressPlay, queueEpisode } from "../podcasts/play";
 import {
@@ -55,7 +61,46 @@ import { newSince, trending } from "./podcastRows";
 const WIDE = "(width >= 64rem)";
 /** How many new episodes Home lists; See all opens the shows in the Library. */
 const NEW_SHOWN = 4;
-const TRENDING_TOPIC = "Technology";
+/**
+ * The trending shelf's topic: the first one picked at first run that Search browses, else
+ * Technology (BROWSE_TOPICS' first), as before first run or when it was skipped.
+ */
+function shelfTopic(): BrowseTopic {
+  const browsed = pickedCategories().flatMap((category) =>
+    BROWSE_TOPICS.filter((topic) => topic.query === category),
+  );
+  return browsed[0] ?? (BROWSE_TOPICS[0] as BrowseTopic);
+}
+
+/** A position or played mark, which the player kept before History did (26 Nov). */
+function playedBeforeHistory(): boolean {
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i) ?? "";
+      if (key.startsWith(RESUME_KEY_PREFIX) || key.startsWith(PLAYED_KEY_PREFIX)) return true;
+    }
+  } catch {
+    // No storage: nothing was kept.
+  }
+  return false;
+}
+
+/**
+ * A new device opens first run (pages/welcome*.astro) once; one that has followed or played
+ * something is past it, and is marked so without a detour. Offline, Home stays: first run needs
+ * the index for its shows.
+ */
+async function sendNewDeviceToFirstRun(): Promise<void> {
+  if (!firstRunPending()) return;
+  const used =
+    catchupHistory().length > 0 ||
+    playedBeforeHistory() ||
+    (await favoriteShows()).length > 0 ||
+    (await listenedEpisodes()).length > 0;
+  if (used) markFirstRunDone();
+  // Still on Home after the reads: a tap elsewhere meanwhile keeps its page.
+  else if (navigator.onLine && document.querySelector("[data-home]")) location.replace("/welcome");
+}
 
 type Held =
   | { sheet: "dial"; kind: "show"; showId: number; tile: HTMLElement }
@@ -67,6 +112,7 @@ function install(): void {
   if (!found || found.dataset.ready !== undefined) return;
   const root = found;
   root.dataset.ready = "";
+  void sendNewDeviceToFirstRun();
   const life = new AbortController();
   const on = { signal: life.signal };
   document.addEventListener("astro:before-swap", () => life.abort(), { once: true });
@@ -483,7 +529,11 @@ function install(): void {
   async function drawTrending(): Promise<void> {
     if (!trendingList || !trendingSection) return;
     // Offline, or the index down: the shelf stays away.
-    const shows: ShowRow[] = (await trending(TRENDING_TOPIC)) ?? [];
+    const topic = shelfTopic();
+    const title = q("[data-home-trending-title]");
+    if (title) title.textContent = `Trending in ${topic.name}`;
+    q("[data-home-trending-all]")?.setAttribute("href", topicHref(topic));
+    const shows: ShowRow[] = (await trending(topic.query)) ?? [];
     const cards: HTMLElement[] = [];
     for (const show of shows) {
       if (show.id === null) continue;

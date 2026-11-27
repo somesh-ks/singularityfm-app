@@ -18,6 +18,12 @@ export interface Release {
 
 export const CHANGELOG: readonly Release[] = [
   {
+    version: "0.29.0",
+    date: "2026-11-27",
+    description:
+      "A new device starts with three short steps: the topics you like, shows to follow, and a file from another podcast app, each one skippable. Add a show takes a name or any link to it, from Apple Podcasts, Spotify, YouTube, its feed or its website. Settings imports and exports your shows as an OPML file, or as a full backup that keeps your History, the list in your Profile of what you played.",
+  },
+  {
     version: "0.28.0",
     date: "2026-11-27",
     description:

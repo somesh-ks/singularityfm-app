@@ -100,11 +100,16 @@ function install(): void {
 
   /* ------------------------------------------------------------------ the header */
 
+  /** This show's episode in the player, if one is. */
+  function playingHere(): EpisodeRow | undefined {
+    const current = nowPlaying()?.id;
+    return current && showIdOf(current) === showId ? byId(current) : undefined;
+  }
+
   /** The episode the header's Play acts on: the one from this show in the player, else the rules' pick. */
   function playTarget(): { episode: EpisodeRow; reason: string } | null {
     if (!view) return null;
-    const current = nowPlaying()?.id;
-    const playing = current && showIdOf(current) === showId ? byId(current) : undefined;
+    const playing = playingHere();
     if (playing) return { episode: playing, reason: "current" };
     return pickPlay(view.show, view.episodes, view.following, heardOf, view.lastId);
   }
@@ -378,6 +383,21 @@ function install(): void {
   const refuse = (): void =>
     sendToast({ message: "This episode can't be played here", kind: "error" });
 
+  /**
+   * The header's Play. A show told in order starts at its first unplayed episode, which is in the
+   * whole list, not in its newest page: the press waits for that list, and says so when it cannot
+   * be had, in place of starting somewhere in the middle.
+   */
+  async function playShow(): Promise<void> {
+    if (toldInOrder() && !playingHere() && !(await readWhole())) {
+      if (!life.signal.aborted)
+        sendToast({ message: "Couldn't load every episode. Try again.", kind: "error" });
+      return;
+    }
+    const pick = playTarget();
+    if (pick && !pressPlay(pick.episode)) refuse();
+  }
+
   async function act(action: string, episode: EpisodeRow): Promise<void> {
     if (action === "played") {
       setPlayed(storage, episode.id, !heardOf(episode.id).played);
@@ -495,8 +515,7 @@ function install(): void {
         return;
       }
       if (target.closest("[data-show-play]")) {
-        const pick = playTarget();
-        if (pick && !pressPlay(pick.episode)) refuse();
+        void playShow();
       } else if (target.closest("[data-show-favorite]")) void toggleFavorite();
       else if (target.closest("[data-show-share]")) void shareShow();
       else if (target.closest('[data-show-action="mark-all"]')) void markAll();

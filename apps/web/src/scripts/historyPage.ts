@@ -1,6 +1,7 @@
 import { safeLocalStorage } from "../player/core/resume";
 import { heardOnDevice } from "../podcasts/after";
-import { listenedEpisodes, PODCASTS_CHANGED_EVENT } from "../podcasts/deviceStore";
+import { listenedEpisodes } from "../podcasts/deviceRecords";
+import { PODCASTS_CHANGED_EVENT } from "../podcasts/deviceStore";
 import { coverAt } from "../podcasts/episodeDigest";
 import { catchupHistory, historyDay } from "../podcasts/history";
 import { showEpisodeUrl } from "../podcasts/rules";

@@ -1,7 +1,10 @@
 import { sendToast } from "@singularityfm/design-system/toastEvent";
 import { importProgress, importSummary } from "../podcasts/importCopy";
-import { exportBackup, exportOpml, type ImportOutcome, importFile } from "../podcasts/transfer";
+import type { ImportOutcome } from "../podcasts/transfer";
 import { mountEachVisit } from "./pageMount";
+
+// Loaded on the action: the file formats stay off each page's first load (D361).
+export const transfer = () => import("../podcasts/transfer");
 
 /**
  * Wires a file picker row to the import (Settings > Import and export, first run step 3): the row
@@ -39,7 +42,9 @@ export function installImportPicker(
     missingList.replaceChildren();
     say("Reading the file");
     try {
-      const outcome = await importFile(file, (count, total) => say(importProgress(count, total)));
+      const outcome = await (await transfer()).importFile(file, (count, total) =>
+        say(importProgress(count, total)),
+      );
       say("");
       reportImport(root, outcome);
     } catch {
@@ -87,12 +92,12 @@ function mountImportPage(root: HTMLElement): void {
       button.disabled = true;
       try {
         if (button.dataset.export === "opml") {
-          const count = await exportOpml();
+          const count = await (await transfer()).exportOpml();
           sendToast({
             message: count === 0 ? "No favorite shows to export yet" : "Shows exported",
           });
         } else {
-          await exportBackup();
+          await (await transfer()).exportBackup();
           sendToast({ message: "Backup saved" });
         }
       } catch {

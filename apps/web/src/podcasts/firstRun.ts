@@ -51,17 +51,31 @@ function storage(): Storage | null {
 export function firstRunPending(): boolean {
   try {
     const store = storage();
-    return store !== null && store.getItem(DONE_KEY) === null;
+    return store !== null && store.getItem(DONE_KEY) === null && !doneThisVisit();
+  } catch {
+    return false;
+  }
+}
+
+/** Done kept for the tab when the device's storage is full, so Skip still ends first run. */
+function doneThisVisit(): boolean {
+  try {
+    return sessionStorage.getItem(DONE_KEY) !== null;
   } catch {
     return false;
   }
 }
 
 export function markFirstRunDone(): void {
+  const at = new Date().toISOString();
   try {
-    storage()?.setItem(DONE_KEY, new Date().toISOString());
+    storage()?.setItem(DONE_KEY, at);
   } catch {
-    // Best effort: a device that cannot remember is not sent again (firstRunPending).
+    try {
+      sessionStorage.setItem(DONE_KEY, at);
+    } catch {
+      // Neither store takes it: firstRunPending then reads storage it cannot write, and asks again.
+    }
   }
 }
 

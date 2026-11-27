@@ -12,6 +12,8 @@ import { sendToast } from "@singularityfm/design-system/toastEvent";
 import { BROWSE_TOPICS, type BrowseTopic, topicHref } from "../lib/topics";
 import { whenIdle } from "../narration/prewarmPage";
 import {
+  PLAYED_KEY_PREFIX,
+  RESUME_KEY_PREFIX,
   readRemembered,
   safeLocalStorage,
   saveResumePosition,
@@ -19,13 +21,13 @@ import {
 } from "../player/core/resume";
 import { heardOnDevice } from "../podcasts/after";
 import { continueIds, dropContinue, readContinue } from "../podcasts/continueListening";
+import { listenedEpisodes } from "../podcasts/deviceRecords";
 import {
   episodesOfShow,
   favoriteShows,
   followingOf,
   getEpisode,
   getShow,
-  listenedEpisodes,
   PODCASTS_CHANGED_EVENT,
   type StoredEpisode,
   type StoredShow,
@@ -70,6 +72,19 @@ function shelfTopic(): BrowseTopic {
   return browsed[0] ?? (BROWSE_TOPICS[0] as BrowseTopic);
 }
 
+/** A position or played mark, which the player kept before History did (26 Nov). */
+function playedBeforeHistory(): boolean {
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i) ?? "";
+      if (key.startsWith(RESUME_KEY_PREFIX) || key.startsWith(PLAYED_KEY_PREFIX)) return true;
+    }
+  } catch {
+    // No storage: nothing was kept.
+  }
+  return false;
+}
+
 /**
  * A new device opens first run (pages/welcome*.astro) once; one that has followed or played
  * something is past it, and is marked so without a detour. Offline, Home stays: first run needs
@@ -79,6 +94,7 @@ async function sendNewDeviceToFirstRun(): Promise<void> {
   if (!firstRunPending()) return;
   const used =
     catchupHistory().length > 0 ||
+    playedBeforeHistory() ||
     (await favoriteShows()).length > 0 ||
     (await listenedEpisodes()).length > 0;
   if (used) markFirstRunDone();

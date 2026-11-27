@@ -22,8 +22,8 @@ import type { Following } from "./rules";
 
 export const DB_NAME = "singularity-podcasts";
 export const DB_VERSION = 1;
-const SHOWS = "shows";
-const EPISODES = "episodes";
+export const SHOWS = "shows";
+export const EPISODES = "episodes";
 const BY_SHOW = "by_show";
 
 export interface StoredShow extends ShowDetail {
@@ -63,7 +63,7 @@ type Mode = "readonly" | "readwrite";
 
 const now = (): string => new Date().toISOString();
 
-function request<T>(req: IDBRequest<T>): Promise<T> {
+export function request<T>(req: IDBRequest<T>): Promise<T> {
   return new Promise((resolve, reject) => {
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
@@ -96,7 +96,7 @@ function open(): Promise<IDBDatabase | null> {
 }
 
 /** The work in one transaction; throws when there is no database or the transaction fails. */
-async function transact<T>(
+export async function transact<T>(
   stores: string[],
   mode: Mode,
   work: (tx: IDBTransaction) => Promise<T>,
@@ -115,7 +115,7 @@ async function transact<T>(
 }
 
 /** As `transact`, with `fallback` for any failure: what a view draws from. */
-async function run<T>(
+export async function run<T>(
   stores: string[],
   mode: Mode,
   work: (tx: IDBTransaction) => Promise<T>,
@@ -131,7 +131,7 @@ async function run<T>(
 /** Tells every open view that what the device holds about shows changed. */
 export const PODCASTS_CHANGED_EVENT = "singularity:podcasts-changed";
 
-function announce(): void {
+export function announce(): void {
   if (typeof document === "undefined") return;
   document.dispatchEvent(new CustomEvent(PODCASTS_CHANGED_EVENT));
 }
@@ -383,69 +383,4 @@ export function setEpisodeDismissed(id: string, dismissed: boolean): Promise<voi
 /** What `isNewEpisode` needs of a stored show. */
 export function followingOf(show: StoredShow | null): Following | null {
   return show?.favorite_at ? { favorite_at: show.favorite_at, newest_id: show.newest_id } : null;
-}
-
-/**
- * Every show and episode the device holds, for the backup file (podcasts/backup.ts). Throws when
- * they cannot be read: a backup must never be saved empty by mistake.
- */
-export function allRecords(): Promise<{ shows: StoredShow[]; episodes: StoredEpisode[] }> {
-  return transact([SHOWS, EPISODES], "readonly", async (tx) => ({
-    shows: await request<StoredShow[]>(tx.objectStore(SHOWS).getAll()),
-    episodes: await request<StoredEpisode[]>(tx.objectStore(EPISODES).getAll()),
-  }));
-}
-
-/** Episodes played for a minute or more, last heard first: History's show episodes. */
-export function listenedEpisodes(): Promise<StoredEpisode[]> {
-  return run(
-    [EPISODES],
-    "readonly",
-    async (tx) => {
-      const rows: StoredEpisode[] = await request(tx.objectStore(EPISODES).getAll());
-      return rows
-        .filter((row) => row.listened_at !== null)
-        .sort((a, b) => (b.listened_at ?? "").localeCompare(a.listened_at ?? ""));
-    },
-    [],
-  );
-}
-
-/** Takes the record with the later `changed_at`; the device's own on a tie. */
-function newer<T extends { changed_at: string }>(mine: T | undefined, theirs: T): T | null {
-  if (!mine) return theirs;
-  return theirs.changed_at > mine.changed_at ? theirs : null;
-}
-
-/**
- * Merges records from a backup file into the device, record by record, the newest change winning
- * (Nov 12 plan, "Import and export"). Returns how many records changed; throws when the write
- * fails, so an import never reports what it did not keep.
- */
-export async function mergeRecords(
-  shows: readonly StoredShow[],
-  episodes: readonly StoredEpisode[],
-): Promise<number> {
-  const changed = await transact([SHOWS, EPISODES], "readwrite", async (tx) => {
-    let count = 0;
-    const showStore = tx.objectStore(SHOWS);
-    for (const show of shows) {
-      const take = newer<StoredShow>(await request(showStore.get(show.id)), show);
-      if (take) {
-        showStore.put(take);
-        count += 1;
-      }
-    }
-    const episodeStore = tx.objectStore(EPISODES);
-    for (const episode of episodes) {
-      const take = newer<StoredEpisode>(await request(episodeStore.get(episode.id)), episode);
-      if (take) {
-        episodeStore.put(take);
-        count += 1;
-      }
-    }
-    return count;
-  });
-  if (changed > 0) announce();
-  return changed;
 }

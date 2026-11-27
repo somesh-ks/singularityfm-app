@@ -1,8 +1,7 @@
 import { sendToast } from "@singularityfm/design-system/toastEvent";
 import { type AddShowResult, addPicked, addShowFrom } from "../podcasts/addShow";
 import { FIRST_RUN_ADDED_KEY } from "../podcasts/firstRun";
-import { importFile } from "../podcasts/transfer";
-import { installImportPicker, reportImport } from "./importPage";
+import { installImportPicker, reportImport, transfer } from "./importPage";
 import { mountEachVisit } from "./pageMount";
 import { drawRows, type PodcastRow, showRow } from "./podcastRows";
 
@@ -137,7 +136,7 @@ function mountAddShow(root: HTMLElement, life: AbortSignal): void {
       if (!file) return;
       event.preventDefault();
       try {
-        reportImport(root, await importFile(file));
+        reportImport(root, await (await transfer()).importFile(file));
       } catch {
         sendToast({ message: "Couldn't read that file. Try again.", kind: "error" });
       }

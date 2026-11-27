@@ -41,7 +41,8 @@ const isLink = (word: string): boolean =>
 
 /**
  * The pasted words that are links, each once; a name has none. A comma parts links only where
- * every piece is one, so a feed address with a comma in its query stays whole.
+ * every piece is one and, after a query (?), each next piece starts with its own scheme, so a feed
+ * address with a comma in its query stays whole.
  */
 export function linksIn(text: string): string[] {
   const words = text
@@ -49,7 +50,12 @@ export function linksIn(text: string): string[] {
     .filter(Boolean)
     .flatMap((word) => {
       const pieces = word.split(",").filter(Boolean);
-      return pieces.length > 1 && pieces.every(isLink) ? pieces : [word.replace(/^,+|,+$/g, "")];
+      const parted =
+        pieces.length > 1 &&
+        pieces.every(isLink) &&
+        (!word.includes("?") ||
+          pieces.slice(1).every((piece) => /^[a-z][\w+.-]*:\/\//i.test(piece)));
+      return parted ? pieces : [word.replace(/^,+|,+$/g, "")];
     })
     .filter(Boolean);
   const links = words.filter(isLink);

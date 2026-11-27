@@ -10,9 +10,8 @@ import {
   topicsSaved,
 } from "../podcasts/firstRun";
 import { fetchShow } from "../podcasts/shows";
-import { follow } from "../podcasts/transfer";
 import type { ShowRow } from "../server/podcasts/shapes";
-import { installImportPicker } from "./importPage";
+import { installImportPicker, transfer } from "./importPage";
 import { mountEachVisit } from "./pageMount";
 import { searchShows, trending } from "./podcastRows";
 
@@ -91,14 +90,17 @@ function installShows(root: HTMLElement): void {
     favorites.add(id);
     const answer = await fetchShow(id);
     if (!favorites.has(id)) return;
-    if (typeof answer === "string") {
+    // The follow code loads now (D361); offline it fails like the fetch.
+    const shows = typeof answer === "string" ? null : await transfer().catch(() => null);
+    if (!favorites.has(id)) return;
+    if (typeof answer === "string" || !shows) {
       favorites.delete(id);
       const box = boxOf(id);
       if (box) box.checked = false;
       sendToast({ message: `Couldn't add ${title}. Try again.`, kind: "error" });
       return;
     }
-    await follow(answer);
+    await shows.follow(answer);
     if (!favorites.has(id)) await setShowFavorite(id, false, null);
   };
 

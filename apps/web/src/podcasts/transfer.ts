@@ -16,7 +16,8 @@ import {
   positionsToRestore,
   readBackup,
 } from "./backup";
-import { allRecords, favoriteShows, getShow, mergeRecords, setShowFavorite } from "./deviceStore";
+import { allRecords, mergeRecords } from "./deviceRecords";
+import { favoriteShows, getShow, setShowFavorite } from "./deviceStore";
 import { catchupHistory, mergeListens, saveCatchupHistory } from "./history";
 import { OPML_MAX_BYTES, type OpmlShow, parseOpml, writeOpml } from "./opml";
 import { parseShowLink } from "./showLink";
@@ -230,9 +231,10 @@ export async function importFile(
   const text = await file.text();
   // A backup is JSON; one whose words mention OPML is still a backup.
   if (text.trimStart().startsWith("{")) return restore(text);
+  // Measured before parsing: only a file of an OPML's size reaches the parser.
+  if (file.size > OPML_MAX_BYTES) return { kind: "problem", problem: "too_large" };
   const opml = parseOpml(text);
   if (opml === null) return restore(text);
-  if (file.size > OPML_MAX_BYTES) return { kind: "problem", problem: "too_large" };
   if (opml.length === 0) return { kind: "problem", problem: "empty_opml" };
   return { kind: "opml", ...(await followAll(opml, progress)) };
 }

@@ -3,7 +3,10 @@ import type { ShowRow } from "../server/podcasts/shapes";
 import { showUrl } from "./rules";
 import { linksIn, parseShowLink } from "./showLink";
 import { fetchShow, findShow, resolveLink, type ShowAnswer, type ShowFailure } from "./shows";
-import { follow, followAll, type ImportOutcome, importFile } from "./transfer";
+import type { ImportOutcome } from "./transfer";
+
+// Loaded on the add: the file formats stay off the page's first load (D361).
+const transfer = () => import("./transfer");
 
 /**
  * Add a show from whatever a person typed or pasted into its one field (the Add a show page, Search's
@@ -37,7 +40,7 @@ async function added(
   if (answer === "not_found") return null;
   if (answer === "failed" || answer.show.id === null) return { kind: "error", message: OFFLINE };
   if (confirm) return { kind: "matches", shows: [answer.show], name: answer.show.title };
-  const fresh = await follow(answer);
+  const fresh = await (await transfer()).follow(answer);
   return {
     kind: "added",
     url: showUrl(answer.show.id),
@@ -106,10 +109,10 @@ export async function addShowFrom(text: string, confirm = false): Promise<AddSho
     return { kind: "error", message: "Paste one show at a time here, or import a file below." };
   }
   if (/<opml[\s>]/i.test(trimmed)) {
-    return { kind: "imported", outcome: await importFile(new Blob([trimmed])) };
+    return { kind: "imported", outcome: await (await transfer()).importFile(new Blob([trimmed])) };
   }
   if (links.length > 1) {
-    const outcome = await followAll(
+    const outcome = await (await transfer()).followAll(
       links.map((url) => {
         const link = parseShowLink(url);
         return { title: url, feed_url: link.kind === "link" ? link.url : url };

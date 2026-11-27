@@ -194,5 +194,13 @@ describe("import and export", () => {
     // A comma inside one feed's address once split it into a link and a "name".
     expect(linksIn("https://a.com/feed?tags=1,2")).toEqual(["https://a.com/feed?tags=1,2"]);
     expect(linksIn("a.com/feed,b.com/rss")).toEqual(["a.com/feed", "b.com/rss"]);
+    // A query's comma before a host-like word split one feed into two.
+    expect(linksIn("https://a.com/feed?hosts=x.com,y.com")).toEqual([
+      "https://a.com/feed?hosts=x.com,y.com",
+    ]);
+    expect(linksIn("https://a.com/f?v=1,https://b.com/rss")).toEqual([
+      "https://a.com/f?v=1",
+      "https://b.com/rss",
+    ]);
   });
 });

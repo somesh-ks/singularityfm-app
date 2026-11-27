@@ -93,6 +93,10 @@ test("a new device opens first run once, and Skip ends it", async ({ browser, ba
   await page.waitForURL(/\/welcome$/);
   await page.locator("button[data-first-run-skip]").click();
   await page.waitForURL((url) => url.pathname === "/");
+  // Home's own check is async, so a quick look after the reload proves nothing: Skip kept "done".
+  await expect
+    .poll(() => page.evaluate(() => localStorage.getItem("singularity:first-run")))
+    .not.toBeNull();
   await page.reload();
   await expect(page.locator("[data-home]")).toBeVisible();
   expect(new URL(page.url()).pathname).toBe("/");

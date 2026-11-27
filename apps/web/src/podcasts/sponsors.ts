@@ -54,6 +54,17 @@ export const MIN_BREAK_S = 10;
 /** Two breaks this close are one: the second ad read follows the first. */
 const JOIN_GAP_S = 2;
 
+/** Where the sentence that holds character `at` of `text` starts. */
+function sentenceStart(text: string, at: number): number {
+  return Math.max(
+    0,
+    ...[". ", "! ", "? "].map((stop) => {
+      const found = text.lastIndexOf(stop, at);
+      return found < 0 ? 0 : found + stop.length;
+    }),
+  );
+}
+
 /** What may follow an opener that ends its line with the sponsor still to come: "sponsor," "is". */
 const CONTINUES = /^[\s,:\u2013-]*(?:is|are)?[\s,:\u2013-]*$/i;
 
@@ -118,7 +129,12 @@ export function findSponsorBreaks(lines: readonly TimedLine[]): SponsorBreak[] {
     const runsOn = opening
       ? CONTINUES.test(first.text.slice(opening.index + opening[0].length))
       : false;
-    const named = sponsorNames(first.text);
+    // Names from the opener's own sentence: "...brought to you by Acme. GitHub has changed code
+    // review." names Acme alone.
+    const from = opening ? sentenceStart(first.text, opening.index) : 0;
+    const stop = opening ? /[.!?](?:\s|$)/.exec(first.text.slice(opening.index)) : null;
+    const to = opening && stop ? opening.index + stop.index + 1 : first.text.length;
+    const named = sponsorNames(first.text.slice(from, to));
     const names = named.size > 0 || !runsOn ? named : sponsorNames(lines[index + 1]?.text ?? "");
     const limit = first.start_s + MAX_BREAK_S;
     let last = -1;
@@ -145,15 +161,8 @@ export function findSponsorBreaks(lines: readonly TimedLine[]): SponsorBreak[] {
         : Math.min(next, line.start_s + share * (line.end_s - line.start_s) - 0.3);
     // A line that opens with the show and turns to the ad ("...why it matters. Today's sponsor is
     // Acme.") starts the break at the sentence that says it, a little late rather than a word early.
-    const said = OPENS.exec(first.text)?.index ?? 0;
     // The sentence that holds the opener, so "This episode is brought to you" starts at "This".
-    const opener = Math.max(
-      0,
-      ...[". ", "! ", "? "].map((stop) => {
-        const at = first.text.lastIndexOf(stop, said);
-        return at < 0 ? 0 : at + stop.length;
-      }),
-    );
+    const opener = from;
     const start =
       first.start_s + (opener / Math.max(1, first.text.length)) * (first.end_s - first.start_s);
     const before = found[found.length - 1];

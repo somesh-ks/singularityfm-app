@@ -28,7 +28,7 @@ test.describe("story controls", () => {
   }) => {
     await page.clock.install();
     const server = await routeConfigServer(page);
-    await page.goto("/");
+    await page.goto("/latest");
     await openStories(page);
     // An open alone never makes a request (every save is a commit); it waits for the like.
     const popup = page.waitForEvent("popup");
@@ -58,7 +58,7 @@ test.describe("story controls", () => {
     expect(op.opens).toHaveLength(1);
 
     // After a reload the story is still pressed, and having been sent it is not sent again.
-    await page.goto("/");
+    await page.goto("/latest");
     await openStories(page);
     await expect(page.locator("[data-story-controls] [data-vote=up]").first()).toHaveAttribute(
       "aria-pressed",
@@ -73,7 +73,7 @@ test.describe("story controls", () => {
   }) => {
     await page.clock.install();
     const server = await routeConfigServer(page);
-    await page.goto("/");
+    await page.goto("/latest");
     await openStories(page);
     await stop(page.locator("[data-story-controls]").first());
     const toast = page.locator(".toast");
@@ -108,7 +108,7 @@ test.describe("story controls", () => {
   test("stopping an outlet waits for Undo, and an Undo sends nothing", async ({ page }) => {
     await page.clock.install();
     const server = await routeConfigServer(page);
-    await page.goto("/");
+    await page.goto("/latest");
     await openStories(page);
     const story = page.locator("[data-story-controls]").first();
 
@@ -138,7 +138,7 @@ test.describe("story controls", () => {
   test("two outlets stopped in a row are both stopped", async ({ page }) => {
     await page.clock.install();
     const server = await routeConfigServer(page);
-    await page.goto("/");
+    await page.goto("/latest");
     await openStories(page);
     // Every fixture story is on example.com: the second is moved to an outlet of its own.
     const stories = page.locator("[data-story-controls][data-outlet]");
@@ -177,7 +177,7 @@ test.describe("story controls", () => {
   }) => {
     await page.clock.install();
     const server = await routeConfigServer(page);
-    await page.goto("/");
+    await page.goto("/latest");
     await openStories(page);
     await page.locator("[data-story-controls] [data-vote=up]").first().click();
     await stop(page.locator("[data-story-controls][data-outlet]").first());

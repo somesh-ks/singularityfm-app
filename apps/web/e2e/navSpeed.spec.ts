@@ -38,7 +38,7 @@ interface Move {
  * also means the idle-time module is installed), then records every move from here on.
  */
 async function openWarm(page: Page): Promise<void> {
-  await page.goto("/");
+  await page.goto("/latest");
   await page.evaluate(() => navigator.serviceWorker.ready);
   await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
   await expect
@@ -276,7 +276,7 @@ test.describe("the whole bottom bar is the tab", () => {
   test("a press under the label, at the cell's corner and in the home-indicator strip opens the tab", async ({
     page,
   }) => {
-    await page.goto("/");
+    await page.goto("/latest");
     await page.evaluate(() => document.documentElement.style.setProperty("--safe-bottom", "34px"));
     const spots = [
       { href: "/search", at: [0.5, 0.97], heading: "Search" },
@@ -291,7 +291,7 @@ test.describe("the whole bottom bar is the tab", () => {
       const y = spot.at[1] > 0.9 ? bar.y + bar.height - 4 : cell.y + cell.height * spot.at[1];
       await page.touchscreen.tap(x, y);
       await expect(heading(page)).toHaveText(spot.heading);
-      await page.goto("/");
+      await page.goto("/latest");
       await page.evaluate(() =>
         document.documentElement.style.setProperty("--safe-bottom", "34px"),
       );
@@ -302,7 +302,7 @@ test.describe("the whole bottom bar is the tab", () => {
   // that bar belongs to the outer two.
   test("a press on the bar beside the column opens the outer tab", async ({ page }) => {
     await page.setViewportSize({ width: 880, height: 600 });
-    await page.goto("/");
+    await page.goto("/latest");
     const bar = await page.locator(".app-nav").boundingBox();
     if (!bar) throw new Error("the bar is not on screen");
     // The edge reach is the outer two tabs' alone: the middle one still takes its own cell.
@@ -310,7 +310,7 @@ test.describe("the whole bottom bar is the tab", () => {
     if (!middle) throw new Error("the Search tab is not on screen");
     await page.touchscreen.tap(middle.x + middle.width / 2, bar.y + bar.height / 2);
     await expect(heading(page)).toHaveText("Search");
-    await page.goto("/");
+    await page.goto("/latest");
     await page.touchscreen.tap(bar.x + bar.width - 3, bar.y + bar.height / 2);
     await expect(heading(page)).toHaveText("Library");
   });
@@ -378,7 +378,7 @@ test.describe("a touch on a tab shows at once and goes on across the move", () =
 
   // A second finger elsewhere, lifting, must not end the press the first one is making.
   test("another finger lifting does not end the press on the tab", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/latest");
     const tab = item(page, "/library");
     const box = await tab.boundingBox();
     if (!box) throw new Error("the Library tab is not on screen");

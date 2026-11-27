@@ -1,4 +1,5 @@
 ---
+import Band from "@singularityfm/design-system/Band";
 import Button from "@singularityfm/design-system/Button";
 import Icon from "@singularityfm/design-system/Icon";
 import ManageChrome from "../components/ManageChrome.astro";
@@ -86,8 +87,9 @@ const APP: Row[] = [
         <p class="settings-note">These settings need JavaScript, which is turned off in this browser.</p>
       </noscript>
 
-      <section>
-        <h2 class="section-head text-heading">Podcast settings</h2>
+      {/* The app's own podcasts sit in the tinted band with the mark, as on Home, so they read apart
+           from the app's settings (12 Nov canvas, Settings board). The rows are the same. */}
+      <Band title="Podcast settings">
         <div class="rows card-group">
           {
             PODCAST.map((row) => (
@@ -111,7 +113,7 @@ const APP: Row[] = [
             ))
           }
         </div>
-      </section>
+      </Band>
 
       <section>
         <h2 class="section-head text-heading">App settings</h2>

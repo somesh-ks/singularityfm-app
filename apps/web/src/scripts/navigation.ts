@@ -375,7 +375,7 @@ export function installNavigation(): void {
         document.elementFromPoint(event.clientX, event.clientY)?.closest(NAV_ITEM_SELECTOR) !== item
       )
         return;
-      if (isSamePage(new URL(item.href), new URL(location.href)) || showsToday(item)) return;
+      if (isSamePage(new URL(item.href), new URL(location.href))) return;
       lifted = item.getAttribute("href");
       // The click is dropped from here on, so a router that cannot load leaves by a plain load.
       void router?.then(
@@ -407,8 +407,7 @@ export function installNavigation(): void {
       const link = (event.target as Element | null)?.closest<HTMLAnchorElement>(
         "a.app-nav-item[aria-current='page'], a.app-nav-create",
       );
-      if (!link || !(isSamePage(new URL(link.href), new URL(location.href)) || showsToday(link)))
-        return;
+      if (!link || !isSamePage(new URL(link.href), new URL(location.href))) return;
       event.preventDefault();
       event.stopPropagation();
       // A key (Enter on the tab) goes there at once: what a key starts is never animated.
@@ -418,18 +417,6 @@ export function installNavigation(): void {
       window.scrollTo({ top: 0, behavior: instant ? "instant" : "smooth" });
     },
     { capture: true },
-  );
-}
-
-/**
- * True when the Today tab is pressed on the latest briefing at its dated address: the navigation
- * marks that page as Today, and it shows what Today shows, so the press goes to its top as well.
- */
-function showsToday(link: HTMLAnchorElement): boolean {
-  return (
-    link.matches("[aria-current='page']") &&
-    normalize(new URL(link.href).pathname) === "/" &&
-    document.querySelector("main[data-latest='true']") !== null
   );
 }
 

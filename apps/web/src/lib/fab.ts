@@ -19,7 +19,8 @@ export interface FabPage {
  * Settings pages, Create itself, offline, not found and a Today with no briefing yet have none.
  */
 export function fabFor({ path, playable }: FabPage): FabKind | null {
-  if (path === "/library") return "create";
+  // Home's next thing is a new Catch up, as on the Library (12 Nov canvas, Home board).
+  if (path === "/library" || path === "/") return "create";
   if (/^\/settings\/categories(\/[^/]+)?$/.test(path)) return "add";
   return playable ? "play" : null;
 }

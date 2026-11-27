@@ -104,7 +104,7 @@ test("a podcast without audio says where it was left, as its cards do", async ({
   await expect(card.locator("[data-cover-progress]")).toBeVisible();
   await expect(card.locator("[data-cover-progress]")).toHaveAttribute("style", /--progress: 33%/);
 
-  await page.goto("/");
+  await page.goto("/latest");
   await hydrated(page);
   const shelf = page.locator('.earlier [data-card][data-id="2026-10-05"]');
   await expect(shelf.locator("[data-cover-progress]")).toBeVisible();
@@ -152,7 +152,7 @@ test("a podcast heard to the end shows Played in its subtitle and its play butto
 
 test("the floating Play on Today follows the chip", async ({ page }) => {
   await seedStorage(page, { local: { "singularity:resume:2026-10-07": "20" } });
-  await page.goto("/");
+  await page.goto("/latest");
   await hydrated(page);
   await page.mouse.wheel(0, 1200);
   const chip = page.locator(".hero [data-play-digest]");

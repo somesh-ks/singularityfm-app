@@ -6,12 +6,12 @@ Updated 2026-11-27. Rewrite, never append.
 
 - Engine live: [engine](specs/engine.md). A run that loses stories or races a push degrades, not fails, and records health (D204): [resilience](engineering/generation-resilience.md), [metrics](engineering/metrics.md).
 - Reader: [library](specs/library.md), [settings](specs/settings.md), [health](specs/health.md), [look](specs/look-and-sound.md).
-- Desktop layout: the column, with any contents list, centres in the pane at the Library's width (D287).
-- Player as one surface: transcript, chapters, a queue keeping played items (D277): [player](specs/player.md).
+- Desktop: the column and any contents list centre at the Library's width (D287).
+- Player: transcript, chapters, a queue keeping played items (D277): [player](specs/player.md).
 - Narration on Play, per story; `audio.yml` pre-narrates briefings, `podcast.yml` episodes (D198): [narration](specs/narration.md), [create](specs/create.md).
 - Live content: creates, deletes (tombstones) and regenerates show without a deploy (D199). Regenerate and Catch up queue with Cancel; ended runs stay a day (D204, D231).
 - Saved copies, offline, downloads, PWA: [navigation and offline](specs/navigation-and-offline.md).
-- Vercel deploys `main`. CI: checks, audit, browser shards by path (D393). CodeRabbit reviews a ready PR once, by tier (D192, D292).
+- Vercel deploys `main`. CI: checks, audit, browser shards by path (D393). Review by tier (D192, D292).
 - Styles (D306, D310, D314, D315, D319): Halloween and Expressive, a Hue slider, live covers. closed when: he OKs the stills ([ghost states](https://claude.ai/artifact/MVNhZmVMk4kYNu2tJbHRPp), [disabled](https://claude.ai/artifact/Kc7RaKbskg5UeGULwwKtU8)) and a style change on his phone recolours every page with no flash and survives a restart, and a press on the Library view toggle and a toast action beats hover.
 
 - Avatar, Settings (D335, D344), Mood (D327), taps (D353): merged. closed when: his phone's shows come home.
@@ -22,6 +22,7 @@ Unit (CI): 368 files, 5,579 tests, 2 min. Site e2e: 468, 14 min. Player: 81, 7 m
 
 ## Not working or unverified
 
+- Home (D402) on fixtures. closed when: his phone shows covers.
 - PostHog (D400), events live. closed when: an opt-in replays.
 - D396 routes, D403 shows on fixtures. closed when: 200s with his keys; his phone resumes one.
 - D391: Play is the glyph alone. closed when: on his Android, Play keeps one size as it loads and plays.

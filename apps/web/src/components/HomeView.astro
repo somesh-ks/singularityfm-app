@@ -1,0 +1,283 @@
+---
+import Band from "@singularityfm/design-system/Band";
+import Button from "@singularityfm/design-system/Button";
+import Chip from "@singularityfm/design-system/Chip";
+import ChipGroup from "@singularityfm/design-system/ChipGroup";
+import Dial from "@singularityfm/design-system/Dial";
+import DialTile from "@singularityfm/design-system/DialTile";
+import Icon from "@singularityfm/design-system/Icon";
+import IconButton from "@singularityfm/design-system/IconButton";
+import Menu from "@singularityfm/design-system/Menu";
+import MenuItem from "@singularityfm/design-system/MenuItem";
+import { menuTilesClass } from "@singularityfm/design-system/menu";
+import PageArrows from "@singularityfm/design-system/PageArrows";
+import PageDots from "@singularityfm/design-system/PageDots";
+import ResumeCard from "@singularityfm/design-system/ResumeCard";
+import SearchField from "@singularityfm/design-system/SearchField";
+import TopicGrid from "@singularityfm/design-system/TopicGrid";
+import TopicTile from "@singularityfm/design-system/TopicTile";
+import { episodeCover } from "../lib/covers";
+import type { DigestEntry } from "../lib/digests";
+import { airedMinutes } from "../lib/digestView";
+import type { EpisodeEntry } from "../lib/episodes";
+import { longDateTitle } from "../lib/format";
+import { libraryItems } from "../lib/libraryCard";
+import { BROWSE_TOPICS, topicHref } from "../lib/topics";
+import { HOME_FILTERS } from "../podcasts/home";
+import BriefingCard from "./BriefingCard.astro";
+import Cover from "./Cover.astro";
+import EpisodeActions from "./EpisodeActions.astro";
+import EpisodeCard from "./EpisodeCard.astro";
+
+interface Props {
+  entries: DigestEntry[];
+  episodes: EpisodeEntry[];
+}
+
+const { entries, episodes } = Astro.props;
+const items = libraryItems(entries, episodes);
+// The band shows the newest few; the Library holds them all.
+const band = items.slice(0, 8);
+// A Catchup left half heard is nearly always a recent one: these are drawn for Continue listening,
+// hidden, and the script shows the ones the device is part way through.
+// shortcut: one older than the newest 12 is left off the shelf; draw Catchups from the device as the
+// show episodes are when listeners keep many half heard.
+const resumable = items.slice(0, 12);
+// The Daily is the regular briefing: a Catch up made on request is never the first tile.
+const daily = entries.find((entry) => entry.digest.kind === "regular");
+const weekly = entries.find((entry) => entry.digest.kind === "weekly");
+const kindWord = (entry: DigestEntry): string =>
+  entry.digest.kind === "weekly"
+    ? "Weekly"
+    : entry.digest.kind === "on-demand"
+      ? "Catch up"
+      : "Daily";
+---
+
+{/* Home (12 Nov canvas, boards Home and Desktop: Home): the chips, the speed dial, Continue
+     listening, new episodes of the shows you follow, the app's own podcasts in their band, a
+     trending shelf and the topics. What is the device's own (favorites, positions, pins) is drawn
+     by scripts/homePage.ts; the Catchups are in the page, so it is whole before any script. */}
+<main id="main" class="home" tabindex="-1" data-home data-filter="all">
+  <h1 class="sr-only" id="page-title" tabindex="-1">Home</h1>
+
+  {/* Search is a bar at the top on desktop and a tab on the phone (canvas, Desktop: Home). */}
+  <form class="home-search" role="search" aria-label="Search" action="/search" method="get">
+    <SearchField label="Search podcasts" name="q" placeholder="Search podcasts" autoComplete="off" enterKeyHint="search" />
+  </form>
+
+  {/* The Library's chips: no All chip, a second press clears it (canvas, Home: 2). */}
+  <ChipGroup className="home-filters library-filters scroll-fade-inline" aria-label="Show" data-home-filters>
+    {HOME_FILTERS.map((filter) => (
+      <Chip name="home-show" value={filter.id} data-home-filter>
+        {filter.label}
+      </Chip>
+    ))}
+  </ChipGroup>
+
+  <section class="home-section" aria-labelledby="home-dial-head" data-home-dial-section>
+    <div class="shelf-head">
+      <h2 id="home-dial-head">Speed dial</h2>
+      <PageArrows className="home-dial-arrows" controls="home-dial-wide" prevLabel="Earlier shows" nextLabel="More shows" />
+    </div>
+    {/* A tile's press plays (the Dial's own rule): a show's next episode by the show's Play rule
+         (rules.ts, pickPlay), a Catchup from its page. Its page is in the hold's menu. */}
+    {/* Nine a page on the phone, swiped sideways with dots under it; one row of six on desktop. The
+         script lays the tiles out for the width it has; the Catchups' tiles are here before it. */}
+    <div class="home-dial-pages" data-home-dial-pages>
+      {/* The arrows control this row by id, so the page as served names a row that exists; the
+           script swaps in the wide row, with the same id, or the phone's pages. */}
+      <Dial id="home-dial-wide" className="home-dial-page" data-home-dial-page>
+        {daily && (
+          <DialTile
+            name="Daily"
+            label={`Play the Daily, ${longDateTitle(daily.digest.date)}`}
+            data-home-href={`/d/${daily.id}`}
+            count="New"
+            pinned
+            className="home-dial-tile"
+            data-home-id={daily.id}
+            data-home-kind="catchup"
+            data-home-first=""
+          >
+            <Cover digestId={daily.id} size="card" source={daily.digest} weekly={false} />
+          </DialTile>
+        )}
+        {weekly && (
+          <DialTile
+            name="Weekly"
+            label={`Play the Weekly, ${longDateTitle(weekly.digest.date)}`}
+            data-home-href={`/d/${weekly.id}`}
+            count="New"
+            className="home-dial-tile"
+            data-home-id={weekly.id}
+            data-home-kind="catchup"
+            data-home-at={weekly.digest.date}
+          >
+            <Cover digestId={weekly.id} size="card" source={weekly.digest} weekly />
+          </DialTile>
+        )}
+      </Dial>
+    </div>
+    <PageDots count={2} className="home-dial-dots" />
+    <template data-home-dial-page-template>
+      <Dial className="home-dial-page" data-home-dial-page><></></Dial>
+    </template>
+    <template data-home-dial-wide-template>
+      <Dial wide id="home-dial-wide" className="home-dial-page" data-home-dial-page><></></Dial>
+    </template>
+    <template data-home-dial-template>
+      <DialTile name="" label="" count={1} pinned className="home-dial-tile" data-home-kind="show">
+        <img alt="" decoding="async" loading="lazy" />
+      </DialTile>
+    </template>
+  </section>
+
+  <section class="home-section" aria-labelledby="home-resume-head" data-home-resume-section hidden>
+    <div class="shelf-head"><h2 id="home-resume-head">Continue listening</h2></div>
+    <ul class="home-resume shelf scroll-fade-inline" role="list" data-home-resume>
+      {resumable.map((item) => {
+        const minutes =
+          item.kind === "episode" ? item.entry.episode.listen_minutes : airedMinutes(item.entry);
+        const title =
+          item.kind === "episode" ? item.entry.episode.title : longDateTitle(item.entry.digest.date);
+        const facts = item.kind === "episode" ? "Catch up" : kindWord(item.entry);
+        return (
+          <li class="home-resume-item" data-home-resume-id={item.id} data-home-kind="catchup" data-home-href={`/${item.kind === "episode" ? "e" : "d"}/${item.id}`} data-home-seconds={Math.round(minutes * 60)} hidden>
+            <ResumeCard title={title} facts={facts} remaining=" " progress={0} playLabel={`Resume ${title}`}>
+              {item.kind === "episode" ? (
+                <Cover digestId={item.id} size="card" source={episodeCover(item.entry)} weekly={false} />
+              ) : (
+                <Cover digestId={item.id} size="card" source={item.entry.digest} weekly={item.entry.digest.kind === "weekly"} />
+              )}
+            </ResumeCard>
+          </li>
+        );
+      })}
+    </ul>
+    <template data-home-resume-template>
+      <li class="home-resume-item" data-home-kind="show">
+        <ResumeCard title="" facts="" remaining=" " progress={0} playLabel="Resume">
+          <img alt="" decoding="async" loading="lazy" />
+        </ResumeCard>
+      </li>
+    </template>
+  </section>
+
+  <section class="home-section" aria-labelledby="home-new-head" data-home-new-section data-home-kind="show" hidden>
+    <div class="shelf-head">
+      <h2 id="home-new-head">New from your favorites</h2>
+      <Button variant="text" href="/library?show=shows" data-astro-prefetch="hover">See all</Button>
+    </div>
+    <div data-library data-view="list">
+      <ul class="library-grid" role="list" data-home-new></ul>
+    </div>
+  </section>
+
+  {band.length > 0 && (
+    <Band title="Catchups" className="home-band" data-home-kind="catchup" data-home-band>
+      <Button slot="action" variant="text" href="/library" data-astro-prefetch="hover">See all</Button>
+      <ul class="shelf scroll-fade-inline" role="list">
+        {band.map((item) =>
+          item.kind === "episode" ? <EpisodeCard entry={item.entry} /> : <BriefingCard entry={item.entry} menu />,
+        )}
+      </ul>
+    </Band>
+  )}
+
+  <section class="home-section" aria-labelledby="home-trending-head" data-home-trending-section data-home-kind="show" hidden>
+    <div class="shelf-head">
+      <h2 id="home-trending-head" data-home-trending-title>Trending in Technology</h2>
+      <Button variant="text" href="/topic?name=Technology" data-home-trending-all data-astro-prefetch="hover">See all</Button>
+    </div>
+    <ul class="shelf scroll-fade-inline" role="list" data-home-trending></ul>
+  </section>
+
+  {/* General topics only, with See all (canvas, Home: 6). The tiles are Search's own. */}
+  <section class="home-section" aria-labelledby="home-topics-head">
+    <div class="shelf-head">
+      <h2 id="home-topics-head">Browse topics</h2>
+      <Button variant="text" href="/search" data-astro-prefetch="hover">See all</Button>
+    </div>
+    <TopicGrid className="scroll-fade-inline" data-home-topics>
+      {BROWSE_TOPICS.slice(0, 4).map((topic) => (
+        <TopicTile name={topic.name} href={topicHref(topic)} data-topic={topic.query} />
+      ))}
+    </TopicGrid>
+  </section>
+
+  {/* A show's card on a shelf, and an episode's row: the Library's own card (library.css). A finger
+       holds either for its menu (scripts/cardHold.ts); a mouse has the dots. */}
+  <template data-home-show-card>
+    <li class="card" data-card data-meta-lines="2" data-home-kind="show">
+      <a class="card-link" data-astro-prefetch="hover">
+        <span class="cover" data-size="card"><img class="cover-art" alt="" decoding="async" loading="lazy" /></span>
+        <span class="card-title" data-home-title></span>
+        <span class="card-sub"><span class="card-facts" data-home-facts></span></span>
+      </a>
+      <div class="card-menu" data-row-menu>
+        <IconButton className="card-more" label="More actions" aria-haspopup="menu" data-hero-more>
+          <Icon name="moreVert" />
+        </IconButton>
+        <Menu id="home-show-menu" title="Show" className="card-menu-list">
+          <div class={menuTilesClass()} data-fold role="presentation">
+            <MenuItem data-home-pick="favorite">
+              <Icon name="heartOutline" className="fav-add" /><Icon name="heart" className="fav-remove" /><span data-menu-label>Favorite</span>
+            </MenuItem>
+            <MenuItem data-home-pick="pin"><Icon name="pin" /><span data-menu-label>Pin</span></MenuItem>
+            <MenuItem data-home-pick="share"><Icon name="shareFat" />Share</MenuItem>
+          </div>
+          <MenuItem data-home-pick="show"><Icon name="library" />Go to show</MenuItem>
+          <MenuItem data-home-pick="hide"><Icon name="thumbsDown" />Not interested</MenuItem>
+        </Menu>
+      </div>
+    </li>
+  </template>
+  <template data-home-episode-row>
+    <li class="card" data-card data-meta-lines="2" data-home-kind="show">
+      <a class="card-link" data-astro-prefetch="hover">
+        <span class="cover" data-size="card"><img class="cover-art" alt="" decoding="async" loading="lazy" /></span>
+        <span class="card-title" data-home-title></span>
+        <span class="card-sub"><span class="card-facts" data-home-facts></span></span>
+      </a>
+      <div class="card-menu" data-row-menu>
+        <IconButton className="card-more" label="More actions" aria-haspopup="menu" data-hero-more>
+          <Icon name="moreVert" />
+        </IconButton>
+        <Menu id="home-episode-menu" title="Episode" className="card-menu-list">
+          <div class={menuTilesClass()} data-fold role="presentation">
+            <MenuItem data-home-pick="favorite">
+              <Icon name="heartOutline" className="fav-add" /><Icon name="heart" className="fav-remove" /><span data-menu-label>Favorite</span>
+            </MenuItem>
+            <MenuItem data-home-pick="queue"><Icon name="queueAdd" />Add to queue</MenuItem>
+            <MenuItem data-home-pick="share"><Icon name="shareFat" />Share</MenuItem>
+          </div>
+          <MenuItem data-home-pick="played"><Icon name="check" /><span data-menu-label>Mark as played</span></MenuItem>
+          <MenuItem data-home-pick="show"><Icon name="library" />Go to show</MenuItem>
+          <MenuItem data-home-pick="hide"><Icon name="thumbsDown" />Not interested</MenuItem>
+        </Menu>
+      </div>
+    </li>
+  </template>
+  {/* The sheets a hold opens on the dial and on Continue listening: four actions, so plain rows
+       (canvas, Long press menus: 3 and 4). One of each, filled for the card held; the subtitle
+       holds the held card's facts. */}
+  <Menu id="home-dial-menu" title="Show" subtitle=" " className="card-menu-list">
+    <MenuItem data-home-pick="pin"><Icon name="pin" /><span data-menu-label>Unpin</span></MenuItem>
+    <MenuItem data-home-pick="show"><Icon name="library" />Go to show</MenuItem>
+    <MenuItem data-home-pick="share"><Icon name="shareFat" />Share</MenuItem>
+    <MenuItem data-home-pick="hide"><Icon name="close" />Remove from speed dial</MenuItem>
+  </Menu>
+  <Menu id="home-resume-menu" title="Episode" subtitle=" " className="card-menu-list">
+    <MenuItem data-home-pick="played"><Icon name="check" />Mark as played</MenuItem>
+    <MenuItem data-home-pick="drop"><Icon name="close" />Remove from Continue listening</MenuItem>
+    <MenuItem data-home-pick="queue"><Icon name="queueAdd" />Add to queue</MenuItem>
+    <MenuItem data-home-pick="show"><Icon name="library" />Go to show</MenuItem>
+  </Menu>
+</main>
+{band.length > 0 && <EpisodeActions id="home" />}
+<script>
+  // Lazily, as DigestView does: the page is whole as served, and the script only adds to it, so it
+  // stays out of the first load's JavaScript (D361).
+  void import("../scripts/homePage");
+</script>

@@ -2,7 +2,6 @@
 import BrandMark from "@singularityfm/design-system/BrandMark";
 import Icon from "@singularityfm/design-system/Icon";
 import IconButton from "@singularityfm/design-system/IconButton";
-import { getSite } from "../lib/site";
 import AccountSlot from "./AccountSlot.astro";
 
 interface Props {
@@ -11,9 +10,8 @@ interface Props {
 }
 
 const { back } = Astro.props;
-// The wordmark goes to Today: it names the briefing only when there is one.
-const homeLabel =
-  (await getSite()).entries.length > 0 ? "Singularity, latest podcast" : "Singularity, Latest";
+// The wordmark goes Home (the root, 12 Nov canvas).
+const homeLabel = "Singularity, Home";
 ---
 
 {/* The top app bar, shown below 64rem. The wordmark leads. A page one level down adds

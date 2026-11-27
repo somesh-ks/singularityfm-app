@@ -146,6 +146,8 @@ function install(): void {
   let found = { shows: 0, episodes: 0 };
   /** Whether the shows' search failed for the words asked; null until it answers. */
   let failed: boolean | null = null;
+  /** The best match's episodes are still coming: the page is not empty yet, so no empty note. */
+  let episodesPending = false;
 
   /** Which sections show: the ticked chip's, or every one with something in it. The count is said
    *  only once the shows have answered, so a keystroke never announces the last word's total. */
@@ -161,7 +163,7 @@ function install(): void {
     if (status && announce) status.textContent = total === 0 ? "No results" : `${total} results`;
     // Once the shows have answered, the note says why the page is empty: a failure, or no match.
     if (note && failed !== null) {
-      note.hidden = !failed && total > 0;
+      note.hidden = (!failed && total > 0) || episodesPending;
       note.textContent = failed
         ? "Search did not answer. Try again in a minute."
         : "Nothing matches these words. Try fewer, or other ones.";
@@ -177,13 +179,15 @@ function install(): void {
     found = { shows: Math.min(showRows.length, SHOW_RESULTS), episodes: 0 };
     // The shows show now; the best match's episodes join them when they arrive.
     failed = shows === null;
+    const best = shows?.find((show) => show.id !== null);
+    episodesPending = best?.id != null;
     showSections(false);
     // The index cannot search every episode of every show: the best match's newest, those that
     // hold the words first (flow spec, Episodes chip).
-    const best = shows?.find((show) => show.id !== null);
     if (best?.id != null) {
       const episodes = await showEpisodes(best.id);
       if (asked !== term) return;
+      episodesPending = false;
       const ordered = [
         ...(episodes ?? []).filter((episode) => hasWords(episode.title, term)),
         ...(episodes ?? []).filter((episode) => !hasWords(episode.title, term)),

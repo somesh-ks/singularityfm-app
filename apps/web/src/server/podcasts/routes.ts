@@ -130,7 +130,9 @@ export const canonicalFile =
     const query = new URLSearchParams();
     for (const name of names) {
       const value = params.get(name);
-      if (value !== null) query.set(name, value);
+      // A width is one decimal form, so `0256` shares the cache entry (and the resize) of `256`.
+      if (value !== null)
+        query.set(name, name === "w" && /^\d{1,5}$/.test(value) ? String(Number(value)) : value);
     }
     return { query: query.toString() };
   };

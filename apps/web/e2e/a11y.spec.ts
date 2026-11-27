@@ -99,13 +99,4 @@ test.describe("axe, banners and live states", () => {
     });
     await expectNoViolationsInEitherScheme(page);
   });
-
-  test("the section in view is announced as current on the tabs", async ({ page }) => {
-    await page.goto("/");
-    await page.evaluate(() => {
-      document.querySelector("#c-research")?.scrollIntoView({ block: "start" });
-    });
-    await expect(page.locator('.tab[aria-current="true"]')).toHaveText("Research");
-    expect(await violations(page)).toEqual([]);
-  });
 });

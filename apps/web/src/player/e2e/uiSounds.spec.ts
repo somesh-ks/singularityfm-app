@@ -72,7 +72,8 @@ test.describe("interface cues by kind of action", () => {
       cue: /^scrubDetent$/,
     },
     {
-      name: "a Contents entry ticks",
+      // The contents list stands beside the column on a wide screen only: a phone has no section links.
+      name: "a Contents entry ticks @wide",
       path: "/d/2026-10-07",
       act: (page: Page) => page.locator("[data-section]:visible").nth(1).click(),
       cue: /^scrubDetent$/,

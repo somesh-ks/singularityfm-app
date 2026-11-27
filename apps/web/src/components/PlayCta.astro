@@ -24,12 +24,12 @@ interface Props {
   album?: readonly AlbumOption[];
   /** The item the heart adds to Favorites; absent on a shared page, which has no Favorites. */
   favorite?: string | undefined;
-  /** The page's More menu, and Download when it has audio; absent on a shared page. */
+  /** The page's More menu; absent on a shared page. */
   menu?: ComponentProps<typeof HeroMenu> | undefined;
 }
 
 const { digestId, mode, length, noun = "podcast", share, album, favorite, menu } = Astro.props;
-// The row is the page menu's root: Download and the sheet's items read the podcast from it
+// The buttons' wrapper is the page menu's root: the sheet's items read the podcast from it
 // (scripts/libraryMenu.ts, episodeActions.ts), and its data-downloaded and data-saved swap their glyphs.
 const root = menu && {
   "data-page-menu": "",
@@ -61,26 +61,13 @@ const unavailable = mode === "expired" ? AUDIO_UNAVAILABLE_COPY.expired : null;
     </Select>
   )
 }
-{/* The header's buttons, as one row (owner, 2026-11-15, after a reference): Download, the heart,
-     a large Play in the middle, Share and More. The side buttons are equal circles; Play is the
-     player's own Play size, so the page's main action reads as the one in the full player. */}
-<div class="hero-actions scroll-fade-inline" {...root}>
-  {/* Download acts as the sheet's own Download item, wired by scripts/libraryMenu.ts and served
-       dimmed until then; the row's data-downloaded swaps it to the bin and its name to Remove
-       download, as on every sheet (owner, 2026-11-04). */}
-  {
-    menu?.page.audio && (
-      <IconButton
-        variant="tonal"
-        className="hero-download"
-        label="Download"
-        data-page-download
-        aria-disabled="true"
-      >
-        <Icon name="download" className="dl-add" /><Icon name="trash" className="dl-remove" />
-      </IconButton>
-    )
-  }
+{/* The header's buttons (owner, 2026-11-26, on the show page's stills): the heart, a large Play in
+     the middle and Share, so Play stands on the page's centre line; More stands alone at the header's
+     top corner (hero.css), and Download is in More's sheet only. The side buttons are equal circles;
+     Play is the player's own Play size, so the page's main action reads as the one in the full
+     player. The wrapper is the page menu's root and no box of its own. */}
+<div class="hero-tools" {...root}>
+<div class="hero-actions scroll-fade-inline">
   {/* Favorites (owner, 2026-11-04): a heart, the same tonal icon button as Share,
        before Play (owner, 2026-11-15).
        scripts/briefingPage.ts sets aria-pressed from this device's Favorites and toggles it with a
@@ -136,6 +123,7 @@ const unavailable = mode === "expired" ? AUDIO_UNAVAILABLE_COPY.expired : null;
       </IconButton>
     )
   }
-  {menu && <HeroMenu {...menu} />}
+</div>
+{menu && <HeroMenu {...menu} />}
 </div>
 {unavailable && <p class="hero-hint" id="play-hint">{unavailable.label}</p>}

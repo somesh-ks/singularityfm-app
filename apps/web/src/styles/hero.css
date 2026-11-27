@@ -54,8 +54,8 @@
   font-size: var(--text-meta-size);
 }
 
-/* The row of buttons (PlayCta.astro, owner 2026-11-15 after a reference): Download, Favorite, a large
-   Play, Share and More. The side circles give up size before the row runs out of room (below), so
+/* The row of buttons (PlayCta.astro, owner 2026-11-15 after a reference, and 2026-11-26: More and
+   Download left it): Favorite, a large Play and Share. The side circles give up size before the row runs out of room (below), so
    it never scrolls; overflow stays as the guard for a row that still would not fit. Its padding
    holds the focus rings the scroll box would clip; the negative margins take the padding back, so
    the row stands where it did. It is the container the side circles measure. */
@@ -67,7 +67,9 @@
   container-type: inline-size;
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  /* One close group on every screen (owner, 2026-11-26: spread across a phone, the three stood too
+     far apart). */
+  gap: var(--space-4);
   min-height: var(--size-touch);
   margin-block: calc(var(--space-4) - var(--space-2)) calc(var(--space-2) * -1);
   margin-inline: calc(var(--space-2) * -1);
@@ -102,20 +104,37 @@
 /*
  * The side buttons are one size, tonal circles (.icon-btn-tonal, buttons.css) a comfortable touch
  * wide, so their box is their target, with the large glyph: about half the circle, as Play's is.
- * Where four of them, Play and their gaps would not fit (a narrow phone in Expressive), they share
+ * Where the two of them, Play and their gaps would not fit (a narrow phone in Expressive), they share
  * what is left beside Play instead, so the row never scrolls (coordinator, 2026-11-15).
  * shortcut: the page sizes the DS buttons by their custom properties; a size prop on IconButton and
  * PlayChip replaces these two rules once the design system has its size scale.
  */
-.hero :is(.hero-download, .hero-favorite, .hero-share, .hero-more) {
+.hero :is(.hero-favorite, .hero-share, .hero-more) {
   --icon-size: var(--size-icon-lg);
   --hero-side: min(
     var(--size-touch-comfortable),
-    (100cqi - var(--control-size-lg) - 4 * var(--space-2)) /
-    4
+    (100cqi - var(--control-size-lg) - 2 * var(--space-4)) /
+    2
   );
   min-width: var(--hero-side);
   min-height: var(--hero-side);
+}
+
+/* More stands alone at the header's top corner, level with the cover and under the account's
+   picture, on every screen (owner, 2026-11-26: with it in the row, Play stood off the centre line).
+   A step smaller than the row's circles, the plain touch size and glyph, so it reads as the
+   lesser control (owner, 2026-11-26). The wrapper that holds the page menu's data (PlayCta.astro)
+   is no box, so the row and More are the header's own. */
+.hero-tools {
+  display: contents;
+}
+
+.hero .hero-more {
+  --icon-size: var(--size-icon);
+  --hero-side: var(--size-touch);
+  grid-area: cover;
+  justify-self: end;
+  align-self: start;
 }
 
 /* Play is the full player's Play (player.css): the large control and its glyph. The page's primary
@@ -196,13 +215,6 @@
   display: block;
 }
 
-/* Beside a wider screen's larger gaps the row stays one centred group. */
-@media (width >= 40rem) {
-  .hero-actions {
-    gap: var(--space-4);
-  }
-}
-
 /* A phone's row scrolls to the screen's edges, so what runs past the column slides off the screen,
    not off a margin (as the section tabs do, primitives.css); its first item still starts on the gutter. */
 @media (width < 40rem) {
@@ -210,17 +222,6 @@
     margin-inline: calc(var(--page-gutter-start) * -1) calc(var(--page-gutter-end) * -1);
     padding-inline: var(--page-gutter-start) var(--page-gutter-end);
     scroll-padding-inline: var(--page-gutter-start);
-  }
-
-  /* Spread across the column with equal space round each button, as in the owner's reference. Auto
-     margins, not space-evenly: should the row ever overflow they fall to zero and it scrolls from its
-     start, where space-evenly would centre it and cut off the first button. */
-  .hero-actions > button {
-    margin-inline-start: auto;
-  }
-
-  .hero-actions > :nth-last-child(1 of button) {
-    margin-inline-end: auto;
   }
 }
 

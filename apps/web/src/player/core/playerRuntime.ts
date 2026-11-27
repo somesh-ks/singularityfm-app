@@ -12,6 +12,9 @@ import { STARTED_EVENT } from "../../lib/queueDay";
 import { narratedOrPage } from "../../narration/narrationRegistry";
 import { pageNeedsPrewarm, whenIdle } from "../../narration/prewarmPage";
 import { createSwitchableAudio, type SwitchableAudio } from "../../narration/switchableAudio";
+import { otherShowsAfter, showEpisodesAfter } from "../../podcasts/after";
+import { isShowEpisodeId, LISTENED_SECONDS, showIdOf } from "../../podcasts/rules";
+import { rememberShowSpeed, showSpeedFor } from "../../podcasts/showSpeed";
 import { wakeIslands } from "../../scripts/islandWake";
 import type { PlayerDigestData } from "../../types/contracts";
 import { startSound } from "../sound/soundController";
@@ -29,6 +32,7 @@ import { replayEarlyTap, takeEarlyAudio } from "./earlyTap";
 import { countListening } from "./listenEvents";
 import { attachMediaSession } from "./mediaSession";
 import { directionBetween, navigateTo } from "./navigation";
+import { isPlayingStatus } from "./playerCopy";
 import { shouldToggleOnPageSpace } from "./playerKeys";
 import { playerSheet } from "./playerSheet";
 import { createPlayerStore } from "./playerStore";
@@ -158,13 +162,31 @@ let shownSuggestions: readonly string[] = [];
 let shownAfter: string | null = null;
 
 /** The suggested items after what is playing: the list Up next shows and Autoplay draws from. */
+/** How many rows Up next offers after a show episode: its show, other shows, Catchups. */
+const SHOW_SUGGESTED_COUNT = 8;
+
 export async function loadSuggested(): Promise<string[] | null> {
-  const ordered = await loadTimeline();
-  if (!ordered) return null;
   const currentId = getPlayerStore().getState().track?.digest.id ?? null;
   const queue = getPlayQueue();
   // A row put above the playing one is listed too (D357): it is not suggested again.
   const listed = [...queue.getAbove(), ...queue.getIds()];
+  // After a show episode comes its own show, newer first; then, to pick from, the listener's other
+  // favorite shows and the newest Catchups (owner, 2026-11-26). Autoplay stays inside the show
+  // (playUpNext): the next older Catchup would start a three day old Daily after someone else's episode.
+  if (currentId && isShowEpisodeId(currentId)) {
+    const storage = safeLocalStorage();
+    const [after, others, timeline] = await Promise.all([
+      showEpisodesAfter(currentId, storage),
+      otherShowsAfter(currentId, storage),
+      loadTimeline(),
+    ]);
+    const catchups = suggestNext(timeline ?? [], null, skipper(storage, listed), 2);
+    return [...after, ...others, ...catchups]
+      .filter((id) => !listed.includes(id))
+      .slice(0, SHOW_SUGGESTED_COUNT);
+  }
+  const ordered = await loadTimeline();
+  if (!ordered) return null;
   const fresh = suggestNext(ordered, currentId, skipper(safeLocalStorage(), listed));
   // A new item playing starts the list over, in timeline order: Autoplay takes the next one.
   shownSuggestions = keepPlaces(shownAfter === currentId ? shownSuggestions : [], fresh);
@@ -201,6 +223,8 @@ export async function playUpNext(
   if (queuedMeanwhile) return playQueueItem(queuedMeanwhile);
   // Autoplay may have been switched off while the list loaded (the lock screen's Next ignores it).
   if (!stillSuggesting()) return;
+  // A show's episode is followed only by its own show: the rest of its list is offered, not started.
+  if (first && endedId && isShowEpisodeId(endedId) && showIdOf(first) !== showIdOf(endedId)) return;
   if (first) playQueueItem(first);
 }
 
@@ -264,10 +288,17 @@ export function getPlayerStore(): PlayerStore {
     createPlayerStore({
       createAudio: getPlayerAudio,
       storage: safeLocalStorage(),
-      getPreferredRate: () => getSpeedDefault().getDefaultRate(),
-      // A speed chosen here lasts this episode; the default is only a Settings choice or an accepted offer.
-      onRateChange: (rate) =>
-        getSpeedDefault().noteRate(getPlayerStore().getState().track?.digest.id ?? null, rate),
+      // A public show starts at the speed last used on it; anything else at the default.
+      getPreferredRate: (digestId) =>
+        (digestId ? showSpeedFor(safeLocalStorage(), digestId) : null) ??
+        getSpeedDefault().getDefaultRate(),
+      // A speed chosen here lasts this episode; the default is only a Settings choice or an accepted
+      // offer. On a public show it is kept for that show, and is no vote for a new default.
+      onRateChange: (rate) => {
+        const id = getPlayerStore().getState().track?.digest.id ?? null;
+        if (id && isShowEpisodeId(id)) rememberShowSpeed(safeLocalStorage(), id, rate);
+        else getSpeedDefault().noteRate(id, rate);
+      },
       onPageHide,
     }),
   );
@@ -418,6 +449,28 @@ export function startPlayerRuntime(): () => void {
       document.dispatchEvent(new CustomEvent(STARTED_EVENT, { detail: { id } }));
     }
   });
+  // A show episode that has played for a minute goes to History and becomes the one its show's Play
+  // resumes (podcasts/deviceStore.ts).
+  // shortcut: a tick is a second of the recording, so a seek adds one and double speed counts double;
+  // count wall time if History's order ever needs to be exact.
+  let heardShowEpisode: string | null = null;
+  let heardSeconds = 0;
+  // Seconds that sounded in this tab, not the saved position: an episode restored half way by a
+  // reload has not been listened to again.
+  const offListened = playerStore.onSecond(() => {
+    const { track, status, scrubbing } = playerStore.getState();
+    const id = track?.digest.id ?? null;
+    if (id !== heardShowEpisode) {
+      heardShowEpisode = id;
+      heardSeconds = 0;
+    }
+    const showId = id ? showIdOf(id) : null;
+    // A drag of the scrubber publishes seconds too, with the sound held: those were not heard.
+    if (!id || showId === null || !isPlayingStatus(status) || scrubbing) return;
+    heardSeconds += 1;
+    if (heardSeconds !== LISTENED_SECONDS) return;
+    void import("../../podcasts/deviceStore").then((device) => device.noteListened(id, showId));
+  });
   // Queued items' first minutes are fetched at an idle moment, so a tap on any of the next three
   // starts at once (queuePrefetch.ts).
   let stopPrefetch: (() => void) | null = null;
@@ -532,6 +585,7 @@ export function startPlayerRuntime(): () => void {
 
   return () => {
     tornDown = true;
+    offListened();
     stopPrefetch?.();
     document.removeEventListener("visibilitychange", onVisible);
     document.removeEventListener("astro:page-load", onPageLoad);

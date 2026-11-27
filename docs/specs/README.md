@@ -16,6 +16,7 @@ What each capability does now, one file each. A spec states requirements in the 
 | Costs | [costs.md](costs.md) | `packages/core/src/costs.ts` |
 | Analytics and privacy | [analytics.md](analytics.md) | `apps/web/src/lib/analytics.ts` |
 | Sharing | [sharing.md](sharing.md) | `apps/web/src/server/share.ts` |
+| Podcast pages, shows and episodes | [podcasts.md](podcasts.md) | `apps/web/src/podcasts`, `apps/web/src/components/Item.astro` |
 | Notifications | [notifications.md](notifications.md) | `apps/web/src/server/pushWatch.ts` |
 | Navigation and offline | [navigation-and-offline.md](navigation-and-offline.md) | `apps/web/public/sw.js` |
 | Look and sound | [look-and-sound.md](look-and-sound.md) | `apps/web/src/styles` |

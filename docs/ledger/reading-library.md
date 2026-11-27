@@ -14,7 +14,9 @@ Ledger section 3, one surface. Read [the core](../design-engineering-ledger.md) 
 - **Play chip.**
   - One width; Played shows Play again only under a mouse or focus (D106, #116).
   - Its state machine: idle, current, played, preparing, error, unavailable.
-- **A story.** The publisher above the headline, muted, whole and underlined with no link glyph (D161; owner, 2026-10-24); no Why line (owner, 2026-10-24); under the text, 16px down, one row, the Play chip and the controls at its end, never wrapping (owner, 2026-10-22 and 2026-10-23). Every quiet line of facts takes one separator: a centred dot in a 12px box (`--meta-dot`, 2026-10-22). Section tabs and the contents column only from two sections, on a briefing and an episode alike, whose highlights take their briefings' sections and whose facts read "Discussion · 5 stories" (owner, 2026-10-24).
+- **A story, from 2026-11-26 (D403).** Start time, headline, publisher on one row; the time plays from there, the headline opens the summary, "Read the source" and the votes. No tabs ("annoying"), no Play on a story; a strip with the cover and the name sticks in their place ("see if this can be made smaller to have more space for headlines"); Play stays the floating button ("keep the play as FAB on scroll").
+- **A show's page (2026-11-26).** Heart, Play and Share close together, More one step smaller at the header's corner; hairlines between episodes run edge to edge ("the dividers to be full bleed"); New follows the day and time ("have the new tag after the time").
+- **A story, what still holds from before.** No Why line (owner, 2026-10-24); the controls on one row, never wrapping (owner, 2026-10-22 and 2026-10-23). Every quiet line of facts takes one separator: a centred dot in a 12px box (`--meta-dot`, 2026-10-22). The contents column only from two sections, on a briefing and an episode alike, whose highlights take their briefings' sections and whose facts read "Discussion · 5 stories" (owner, 2026-10-24).
 - **Library.**
   - A cover grid with one facts line per card (D78).
   - Search, filter and sort live in the address.

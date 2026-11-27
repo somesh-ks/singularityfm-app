@@ -22,6 +22,20 @@ function liveSrc(src: string): string {
  */
 const SHOW_COVER = /^\/api\/podcasts\/cover\?u=[^&]+&s=[\w-]+(?:&w=\d+)?$/;
 
+/**
+ * A show's cover address, written again from its parts: only our own cover route, with each value
+ * encoded, so nothing a stored digest holds reaches an image's address as it stands (CodeQL reads
+ * the pattern alone as no check).
+ */
+function showCoverSrc(src: string): string {
+  if (!SHOW_COVER.test(src)) return "";
+  const query = new URLSearchParams(src.slice(src.indexOf("?") + 1));
+  const width = Number(query.get("w"));
+  return `/api/podcasts/cover?u=${encodeURIComponent(query.get("u") ?? "")}&s=${encodeURIComponent(
+    query.get("s") ?? "",
+  )}${width > 0 ? `&w=${width}` : ""}`;
+}
+
 /** One fetch for every place the player draws the same cover (the bar, the page, the flight, the glow). */
 const loading = new Map<string, Promise<SVGSVGElement>>();
 
@@ -92,7 +106,7 @@ interface PlayerCoverProps {
 export default function PlayerCover({ cover, weekly, size }: PlayerCoverProps) {
   const style = { "--cover-key": cover.key } as CSSProperties;
   const src = liveSrc(cover.src512);
-  const picture = SHOW_COVER.test(cover.src512) ? cover.src512 : "";
+  const picture = showCoverSrc(cover.src512);
   // Pending (no drawn path), missing or failed to load: the branded fallback (cover.css), never a
   // broken or empty box. A new cover path gets a new try.
   const [state, setState] = useState<{ src: string; drawn: Drawn }>({ src: "", drawn: "pending" });
@@ -128,13 +142,12 @@ export default function PlayerCover({ cover, weekly, size }: PlayerCoverProps) {
  */
 export function PlayerCoverGlow({ cover }: { cover: PlayerDigestData["cover"] }) {
   const src = liveSrc(cover.src512);
+  const picture = showCoverSrc(cover.src512);
   return (
     <span className="player-cover-glow" aria-hidden="true">
       <span className="player-cover-glow-light">
         {src && <LiveCover src={src} />}
-        {SHOW_COVER.test(cover.src512) && (
-          <img className="player-cover-art" src={cover.src512} alt="" decoding="async" />
-        )}
+        {picture && <img className="player-cover-art" src={picture} alt="" decoding="async" />}
       </span>
     </span>
   );

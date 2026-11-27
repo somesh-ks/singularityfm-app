@@ -271,5 +271,17 @@ describe("restoring a backup", () => {
       (key) => key === resumeKey("2026-11-25"),
     );
     await expect(importFile(file())).rejects.toThrow();
+    // History read once, for the merge itself: a later read that fails must not count as empty.
+    let reads = 0;
+    const listened = storage(
+      () => false,
+      (key) => key === "singularity:history" && ++reads > 1,
+    );
+    listened.set(
+      "singularity:history",
+      JSON.stringify([{ id: "mine", at: "2026-11-24T07:00:00.000Z" }]),
+    );
+    await importFile(file());
+    expect(listened.get("singularity:history")).toContain("mine");
   });
 });

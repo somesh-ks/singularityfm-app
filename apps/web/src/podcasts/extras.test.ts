@@ -21,11 +21,16 @@ describe("chapters with sponsor breaks", () => {
   });
 
   // The Changelog titles its ads "Sponsor: Deepgram": those are breaks too, run to the next chapter.
-  it("takes a publisher's sponsor chapters as breaks", () => {
+  // A chapter about ads ("Ad hoc teams", "Sponsorship deals") is talk, and skipping it lost it.
+  it("takes a publisher's sponsor chapters as breaks, and not chapters about ads", () => {
     const chapters = [
       { start_s: 0, title: "Welcome", url: null },
       { start_s: 65, title: "Sponsor: ClickHouse", url: null },
       { start_s: 283, title: "Zach is back!", url: null },
+      { start_s: 900, title: "Ad hoc teams", url: null },
+      { start_s: 1200, title: "Sponsorship deals that work", url: null },
+      { start_s: 1500, title: "Ads in podcasts", url: null },
+      { start_s: 1800, title: "Wrap up", url: null },
     ];
     expect(episodeBreaks({ chapters, segments: [] }, 6000)).toEqual([{ start_s: 65, end_s: 283 }]);
   });

@@ -27,8 +27,13 @@ export interface ChapterRow {
 /** What a break the transcript found is called in a list of chapters. */
 export const SPONSOR_ROW = "Sponsor break";
 
-/** A publisher's chapter that is an ad: "Sponsor: Deepgram", "Ad break", "Ads". */
-const SPONSOR_CHAPTER = /^\s*(?:sponsor(?:ed)?\b|ads?\b|ad break|advert|a word from)/i;
+/**
+ * A publisher's chapter that is an ad: "Sponsor: Deepgram", "Ad break", "Ads", "Sponsored by Acme".
+ * The word alone must end the title or meet a separator: "Ad hoc teams" and "Advertising after
+ * cookies" are the show, and a skip over them would cut it.
+ */
+const SPONSOR_CHAPTER =
+  /^\s*(?:(?:sponsors?|sponsored(?:\s+by)?|ads?|ad break|advert(?:isement)?|commercial break)\s*(?:[:\u00b7\u2013-]|$)|sponsored by\b|a word from (?:our|this|today'?s) sponsors?\b)/i;
 
 /** A break split off a chapter leaves this much of the chapter after it, or it is not listed again. */
 const MIN_REST_S = 5;

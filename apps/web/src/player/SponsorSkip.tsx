@@ -28,7 +28,17 @@ export default function SponsorSkip() {
     <Button
       variant="text"
       className="player-sponsor-skip"
-      onClick={() => skipBreak(store, span, "user")}
+      onClick={(event) => {
+        const focused = document.activeElement === event.currentTarget;
+        skipBreak(store, span, "user");
+        // The button leaves with the break: focus goes to Play, not to the page's top.
+        if (focused) {
+          const plays = document.querySelectorAll<HTMLElement>(
+            "[data-player-surface] [data-primary]",
+          );
+          [...plays].find((play) => play.offsetParent !== null)?.focus();
+        }
+      }}
     >
       {/* One child: the button spaces its children apart, which would open a gap after the dot. */}
       <span>

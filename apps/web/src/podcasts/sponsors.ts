@@ -135,9 +135,22 @@ export function findSponsorBreaks(lines: readonly TimedLine[]): SponsorBreak[] {
       share >= WHOLE_LINE
         ? next
         : Math.min(next, line.start_s + share * (line.end_s - line.start_s) - 0.3);
+    // A line that opens with the show and turns to the ad ("...why it matters. Today's sponsor is
+    // Acme.") starts the break at the sentence that says it, a little late rather than a word early.
+    const said = OPENS.exec(first.text)?.index ?? 0;
+    // The sentence that holds the opener, so "This episode is brought to you" starts at "This".
+    const opener = Math.max(
+      0,
+      ...[". ", "! ", "? "].map((stop) => {
+        const at = first.text.lastIndexOf(stop, said);
+        return at < 0 ? 0 : at + stop.length;
+      }),
+    );
+    const start =
+      first.start_s + (opener / Math.max(1, first.text.length)) * (first.end_s - first.start_s);
     const before = found[found.length - 1];
-    if (before && first.start_s - before.end_s <= JOIN_GAP_S) before.end_s = end;
-    else found.push({ start_s: first.start_s, end_s: end });
+    if (before && start - before.end_s <= JOIN_GAP_S) before.end_s = end;
+    else found.push({ start_s: start, end_s: end });
     index = last + 1;
   }
   return found.filter((span) => span.end_s - span.start_s >= MIN_BREAK_S);

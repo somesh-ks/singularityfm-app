@@ -50,6 +50,20 @@ describe("sponsor breaks", () => {
     expect(findSponsorBreaks(lines)).toEqual([]);
   });
 
+  // A line that closes the talk and opens the ad started the break at the line's start, so Skip
+  // sponsor jumped over the host's last sentence.
+  it("starts a break at the sentence that opens it, not at its line", () => {
+    const lines = [
+      line(100, 110, "That is why it matters. Today's sponsor is Acme, the build tool for teams."),
+      line(110, 130, "Acme runs your builds on fast machines and caches every step for you."),
+      line(130, 140, "Try it free at acme dot com slash pod."),
+      line(140, 150, "So back to the question of builds."),
+    ];
+    const [found] = findSponsorBreaks(lines);
+    expect(found?.start_s).toBeGreaterThan(102);
+    expect(found?.start_s).toBeLessThan(104);
+  });
+
   // Lenny's Podcast: "...get dx dot com slash Leny I want to kind of go" ends the ad and starts the
   // next question in one line; skipping to the next line would cut the question's first words.
   it("ends inside a line that runs on past the address", () => {

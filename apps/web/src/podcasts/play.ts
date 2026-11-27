@@ -56,21 +56,27 @@ export async function onPlayerChange(listener: () => void): Promise<() => void> 
 
 /**
  * A press on an episode's Play: pauses it when it is the one sounding, else plays it in place,
- * from where it was left (the player's own resume). False when the episode has no audio that can
- * play here (an address that is not secure).
+ * from where it was left (the player's own resume). With `atSeconds` (a chapter's row) it plays from
+ * there instead, and never pauses. False when the episode has no audio that can play here (an address
+ * that is not secure).
  */
-export function pressPlay(episode: EpisodeRow): boolean {
+export function pressPlay(episode: EpisodeRow, atSeconds?: number): boolean {
   const digest = episodeDigest(episode);
   if (!digest) return false;
   const start = ({ runtime, queueMeta, phone }: Player): void => {
     const store = runtime.getPlayerStore();
     const state = store.getState();
-    if (state.hasStarted && state.digestId === episode.id && nowPlaying()?.playing) {
+    const here = state.hasStarted && state.digestId === episode.id;
+    if (atSeconds === undefined && here && nowPlaying()?.playing) {
       store.pause("user");
       return;
     }
-    queueMeta.rememberQueueDigest(digest);
-    runtime.playQueueItem(episode.id);
+    if (!here) {
+      queueMeta.rememberQueueDigest(digest);
+      runtime.playQueueItem(episode.id);
+    } else if (!nowPlaying()?.playing) store.play("user");
+    // A chapter's row: from its start, in the episode already playing or the one just loaded.
+    if (atSeconds !== undefined) store.seekTo(Math.round(atSeconds * 1000));
     phone.openPlayerOnPhone();
   };
   if (player) start(player);

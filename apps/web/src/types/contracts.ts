@@ -48,6 +48,8 @@ export interface PlayerTurn {
   item_id?: string | null;
   /** A name for the turn in the transcript, in place of a speaker's: a briefing's story headline. */
   title?: string;
+  /** Who speaks, as a publisher's transcript names them; shown where the speaker changes. */
+  name?: string;
   /** Words the host says at the start of this turn's segment that `text` leaves out; none for an episode's turn. */
   lead_words?: number;
   /** Start and end inside the narration, or null before it has been laid out. */
@@ -59,6 +61,23 @@ export interface PlayerSection {
   slug: string;
   title: string;
   start_ms: number | null;
+}
+
+/** What a public show's episode carries beyond a Catchup's shape (podcasts/episodeDigest.ts). */
+export interface ShowEpisodeData {
+  id: number;
+  title: string;
+  episode_title: string;
+  /** Our signed addresses of the publisher's chapters and transcript, or null where it has none. */
+  chapters?: string | null;
+  transcript?: string | null;
+  /**
+   * Sponsor breaks, once the extras are read (podcasts/extras.ts), in seconds of the publisher's file.
+   * The player offers a skip only while the file it plays fits them (podcasts/sponsors.ts).
+   */
+  breaks?: { start_s: number; end_s: number }[];
+  /** Where the transcript's last line ends; null when the breaks came from chapters alone. */
+  transcript_end_s?: number | null;
 }
 
 /**
@@ -77,7 +96,7 @@ export interface PlayerDigestData {
    * Set on a public show's episode (podcasts/episodeDigest.ts): its show and its own title. Such an
    * item has no stories, and `title` is the show's name.
    */
-  show?: { id: number; title: string; episode_title: string };
+  show?: ShowEpisodeData;
   audio: { url: string; duration_ms: number; m4a_url?: string } | null;
   /** How the item times were derived, or null when there is no audio. */
   timeline: "marks" | "estimated" | null;

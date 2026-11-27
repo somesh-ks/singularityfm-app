@@ -1086,6 +1086,7 @@ export function createPlayerStore(options: PlayerStoreOptions): PlayerStore {
       return () => eventListeners.delete(listener);
     },
     getTime: () => time,
+    measuredDuration: () => (measured ? state.duration : 0),
     isNarrating: () => state.status === "playing" && !state.scrubbing,
     getPageDigest: () => pageDigest,
     setPageDigest,

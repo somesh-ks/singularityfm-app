@@ -1,6 +1,7 @@
 import { skipSeconds } from "../podcasts/rules";
 import { isPlayingStatus, toggleLabel } from "./core/playerCopy";
 import { getPlayerStore } from "./core/playerRuntime";
+import { stepUnit } from "./core/timeline";
 import { usePlayerState } from "./hooks/usePlayer";
 import { useStoryStep } from "./hooks/useStoryStep";
 import { openSpeed, PLAYER_MENU_ID } from "./PlayerMenu";
@@ -28,7 +29,7 @@ export default function TransportControls() {
       <button
         className="transport-btn press"
         type="button"
-        aria-label="Previous story"
+        aria-label={`Previous ${stepUnit(state.track?.timeline)}`}
         aria-disabled={step.previousDisabled || undefined}
         onClick={step.previous}
       >
@@ -82,7 +83,7 @@ export default function TransportControls() {
       <button
         className="transport-btn press"
         type="button"
-        aria-label="Next story"
+        aria-label={`Next ${stepUnit(state.track?.timeline)}`}
         aria-disabled={step.nextDisabled || undefined}
         onClick={step.next}
       >

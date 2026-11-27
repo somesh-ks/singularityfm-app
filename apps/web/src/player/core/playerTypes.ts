@@ -167,6 +167,8 @@ export interface PlayerStore {
   /** Semantic events for sounds and announcements. */
   onEvent(listener: EventListener): () => void;
   getTime(): number;
+  /** The file's length once the audio element has read it; 0 before (or for the unlock primer). */
+  measuredDuration(): number;
   isNarrating(): boolean;
   getPageDigest(): PlayerDigestData | null;
   /** Reads the page's digest. Attaches its audio when nothing has started yet. */

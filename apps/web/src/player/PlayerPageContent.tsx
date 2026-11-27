@@ -1,22 +1,41 @@
 import { useId, useLayoutEffect, useMemo, useRef, useState } from "react";
+import type { PlayerTurn } from "../types/contracts";
 import { getPlayerStore } from "./core/playerRuntime";
 import { storyTurns } from "./core/storyTurns";
 import { swipeClickGuard } from "./core/swipeClickGuard";
 import { usePlayerState } from "./hooks/usePlayer";
 import { useQueue } from "./hooks/useQueue";
 import Scrubber from "./Scrubber";
+import ShowTranscript from "./ShowTranscript";
 import StoryList from "./StoryList";
 import TransportControls from "./TransportControls";
 import UpNext from "./UpNext";
 import PlayerTabs from "./ui/PlayerTabs";
 
-type ListView = "stories" | "upnext";
+type ListView = "stories" | "transcript" | "upnext";
 
 const LIST_VIEWS = [
   { value: "stories", label: "Stories" },
   { value: "upnext", label: "Up next" },
 ] as const;
 const UP_NEXT_ONLY = LIST_VIEWS.filter((tab) => tab.value === "upnext");
+const CHAPTERS_TAB = { value: "stories", label: "Chapters" } as const;
+const TRANSCRIPT_TAB = { value: "transcript", label: "Transcript" } as const;
+const UP_NEXT_TAB = { value: "upnext", label: "Up next" } as const;
+
+/**
+ * A public show's episode: Chapters where the publisher gave them, Transcript where it gave a timed
+ * one, and Up next always (canvas, PlayerPublic board; the owner's ask for a transcript in its own tab).
+ */
+function showViews(digest: { items: unknown[]; turns?: unknown[] }) {
+  return [
+    ...(digest.items.length > 0 ? [CHAPTERS_TAB] : []),
+    ...(digest.turns?.length ? [TRANSCRIPT_TAB] : []),
+    UP_NEXT_TAB,
+  ];
+}
+
+const NO_TURNS: readonly PlayerTurn[] = [];
 
 /**
  * The player page's lazy half. Two groups, so a wide screen can set them side by side: the
@@ -47,13 +66,15 @@ export default function PlayerPageContent() {
   // stays, holding one tab, so nothing below it moves and a focused Up next tab keeps its focus.
   // Playing again brings Stories back, on the view the listener last chose.
   const ended = status === "ended" && offered;
-  // A public show's episode has no stories to list: Up next is its one view.
-  const only = ended || Boolean(digest?.show);
-  const view = only
-    ? "upnext"
-    : choice && (choice.id === id || choice.view === "upnext")
+  // A public show's episode lists its chapters and its transcript once they are read, and Up next.
+  const tabs = ended ? UP_NEXT_ONLY : digest?.show ? showViews(digest) : LIST_VIEWS;
+  const chosen =
+    choice && (choice.id === id || choice.view === "upnext")
       ? choice.view
-      : "stories";
+      : (tabs[0]?.value ?? "upnext");
+  const view: ListView = tabs.some((tab) => tab.value === chosen)
+    ? chosen
+    : (tabs[0]?.value ?? "upnext");
   // The page stays where it was when the other view takes its place: a list shorter than the one it
   // replaces would otherwise clamp the scroll, and an effect of the new view could move it.
   const kept = useRef<{ view: ListView; page: number; list: number } | null>(null);
@@ -83,20 +104,21 @@ export default function PlayerPageContent() {
       </div>
       <div className="player-list">
         {/* On a phone the switch sticks under the status bar (player.css, .player-tabs-bar). */}
-        <PlayerTabs
-          label="Show"
-          idBase={idBase}
-          tabs={only ? UP_NEXT_ONLY : LIST_VIEWS}
-          value={view}
-          onChange={choose}
-        />
+        <PlayerTabs label="Show" idBase={idBase} tabs={tabs} value={view} onChange={choose} />
         <div
           className="player-panel"
           role="tabpanel"
           id={`${idBase}-panel-${view}`}
           aria-labelledby={`${idBase}-tab-${view}`}
         >
-          {view === "upnext" ? <UpNext /> : <StoryList turns={turns} />}
+          {view === "upnext" ? (
+            <UpNext />
+          ) : view === "transcript" ? (
+            <ShowTranscript turns={digest?.turns ?? NO_TURNS} />
+          ) : (
+            // A show's chapters are rows alone: its transcript has a tab of its own.
+            <StoryList turns={digest?.show ? NO_TURNS : turns} />
+          )}
         </div>
       </div>
     </>

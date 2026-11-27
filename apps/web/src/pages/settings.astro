@@ -1,6 +1,7 @@
 ---
 import Button from "@singularityfm/design-system/Button";
 import Icon from "@singularityfm/design-system/Icon";
+import Select from "@singularityfm/design-system/Select";
 import ManageChrome from "../components/ManageChrome.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { buildDayShort } from "../lib/buildDay";
@@ -8,6 +9,7 @@ import { loadManage } from "../lib/manage";
 import { loadScheduleView } from "../lib/schedule";
 import { dailySummary, sourcesSummary, weeklySummary } from "../lib/settingsSummary";
 import { topicLayout } from "../lib/topicPages";
+import { SPONSOR_CHOICES, type SponsorChoice } from "../player/core/preferences";
 // The build links this file before the layout's stylesheet, so its rules never rely on coming last:
 // where one adjusts a shared rule, it does so with a more specific selector.
 import "../styles/settings.css";
@@ -74,6 +76,12 @@ const APP: Row[] = [
 ];
 
 const updated = buildDayShort();
+// What a public show's sponsor break does (Nov 12 plan; canvas, Settings board: "Skip where found").
+const SPONSOR_LABELS: Record<SponsorChoice, string> = {
+  button: "Show a skip button",
+  skip: "Skip where found",
+  off: "Off",
+};
 ---
 
 <BaseLayout title="Settings" view="settings" skipLabel="Skip to the settings">
@@ -111,6 +119,20 @@ const updated = buildDayShort();
               </a>
             ))
           }
+        </div>
+      </section>
+
+      {/* Public shows' settings (canvas, Settings board). Kept on this device with the player's
+           other preferences; settingsPage.ts fills the choice in. */}
+      <section>
+        <h2 class="section-head text-heading">Show settings</h2>
+        <div class="rows card-group">
+          <div class="settings-row">
+            <label class="settings-label" for="settings-sponsors">Sponsor breaks</label>
+            <Select className="value-select sponsor-select" id="settings-sponsors" name="sponsors" autoComplete="off" inert>
+              {SPONSOR_CHOICES.map((choice) => <option value={choice}>{SPONSOR_LABELS[choice]}</option>)}
+            </Select>
+          </div>
         </div>
       </section>
 

@@ -28,7 +28,7 @@ import { getPlayerStore, playQueueItem } from "./core/playerRuntime";
 import { playerSheet } from "./core/playerSheet";
 import { loadQueueMeta } from "./core/queueMeta";
 import { dockSeekKeyValue, fractionOfTime, scrubberValueText } from "./core/scrubberMath";
-import { itemIndexAt, storySectionName } from "./core/timeline";
+import { itemIndexAt, stepUnit, storySectionName } from "./core/timeline";
 import { applyVolume, getVolume, setVolume } from "./core/volume";
 import { usePlayerFrame, usePlayerSecond, usePlayerState } from "./hooks/usePlayer";
 import { useQueueMeta, useQueueView } from "./hooks/useQueue";
@@ -549,7 +549,7 @@ export default function PlayerBar() {
         <button
           className="dock-btn dock-wide press"
           type="button"
-          aria-label="Previous story"
+          aria-label={`Previous ${stepUnit(state.track?.timeline)}`}
           aria-disabled={itemCount === 0 || (state.itemIndex < 0 && atStart) || undefined}
           {...heldTap(() => store.previous())}
         >
@@ -573,7 +573,7 @@ export default function PlayerBar() {
         <button
           className="dock-btn dock-next press"
           type="button"
-          aria-label="Next story"
+          aria-label={`Next ${stepUnit(state.track?.timeline)}`}
           aria-disabled={isLastItem || undefined}
           {...heldTap(() => isLastItem || store.next())}
         >

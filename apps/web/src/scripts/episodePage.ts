@@ -3,15 +3,20 @@
  * queued or favorited is kept, else from its show's route. Its Play, its marks and its menu follow
  * the same rules as its row on the show's page (podcasts/rules.ts, podcasts/play.ts).
  */
+import { badgeClass } from "@singularityfm/design-system/badge";
 import { sendToast } from "@singularityfm/design-system/toastEvent";
 import { whenIdle } from "../narration/prewarmPage";
+import { formatClock } from "../player/core/formatTime";
+import { getPreferences } from "../player/core/preferences";
 import { safeLocalStorage, setPlayed } from "../player/core/resume";
 import { heardOnDevice } from "../podcasts/after";
 import { getEpisode, setEpisodeFavorite } from "../podcasts/deviceStore";
 import { coverAt } from "../podcasts/episodeDigest";
+import { chapterRows, episodeBreaks, loadExtras } from "../podcasts/extras";
 import { loadPlayer, nowPlaying, onPlayerChange, pressPlay, queueEpisode } from "../podcasts/play";
 import { isShowEpisodeId, showIdOf, showUrl } from "../podcasts/rules";
 import { fetchShow } from "../podcasts/shows";
+import { breaksSummary } from "../podcasts/sponsors";
 import { dayLabel, noteParagraphs, timeFact } from "../podcasts/view";
 import type { EpisodeRow } from "../server/podcasts/shapes";
 
@@ -111,6 +116,56 @@ function install(): void {
     if (label) label.textContent = heard.played ? "Mark as unplayed" : "Mark as played";
   }
 
+  /** The sponsor switch says the setting it is (Settings, Show settings: Sponsor breaks). */
+  function paintSponsorSwitch(): void {
+    const toggle = part<HTMLInputElement>("sponsor-switch");
+    if (toggle) toggle.checked = getPreferences().get().sponsors === "skip";
+  }
+
+  /**
+   * Chapters and sponsor breaks, once the publisher's files are read through the extras route. An
+   * episode whose show publishes neither keeps neither section.
+   */
+  let extrasFor: string | null = null;
+  function paintExtras(): void {
+    if (!episode) return;
+    const current = episode;
+    const key = `${current.id}|${current.chapters ?? ""}|${current.transcript ?? ""}`;
+    if (extrasFor === key) return;
+    extrasFor = key;
+    void loadExtras(current.id, current).then((extras) => {
+      if (life.signal.aborted || episode?.id !== current.id) return;
+      const duration = current.duration_s ?? Number.POSITIVE_INFINITY;
+      const breaks = episodeBreaks(extras, duration);
+      const sponsors = part("sponsors");
+      if (sponsors) sponsors.hidden = breaks.length === 0;
+      const hint = part("sponsor-hint");
+      if (hint) hint.textContent = breaks.length > 0 ? breaksSummary(breaks) : "";
+      paintSponsorSwitch();
+      const rows = chapterRows(extras.chapters, breaks, duration);
+      const chapters = part("chapters");
+      const list = part("chapter-rows");
+      const template = root.querySelector<HTMLTemplateElement>(
+        "template[data-episode-chapter-row]",
+      );
+      if (!chapters || !list || !template) return;
+      chapters.hidden = rows.length === 0;
+      list.replaceChildren(
+        ...rows.map((row) => {
+          const node = template.content.firstElementChild?.cloneNode(true) as HTMLButtonElement;
+          node.dataset.chapterAt = String(row.start_s);
+          const time = node.querySelector("[data-time]");
+          const title = node.querySelector("[data-title]");
+          if (time) time.textContent = formatClock(row.start_s);
+          if (title) title.textContent = row.title;
+          node.setAttribute("aria-label", `${row.title}, from ${formatClock(row.start_s)}`);
+          if (!row.sponsor) node.querySelector(`.${badgeClass()}`)?.remove();
+          return node;
+        }),
+      );
+    });
+  }
+
   function paint(): void {
     if (!episode) return;
     show("ready");
@@ -161,6 +216,7 @@ function install(): void {
       );
     }
     paintHeard();
+    paintExtras();
   }
 
   /** The device's copy; true when it holds one. */
@@ -200,6 +256,12 @@ function install(): void {
       if (!episode) return;
       const current = episode;
       const target = event.target as Element;
+      const chapter = target.closest<HTMLElement>("[data-chapter-at]");
+      if (chapter) {
+        if (!pressPlay(current, Number(chapter.dataset.chapterAt)))
+          sendToast({ message: "This episode can't be played here", kind: "error" });
+        return;
+      }
       if (target.closest("[data-episode-play]")) {
         if (!pressPlay(current))
           sendToast({ message: "This episode can't be played here", kind: "error" });
@@ -254,6 +316,19 @@ function install(): void {
     },
     on,
   );
+
+  root.addEventListener(
+    "change",
+    (event) => {
+      if (event.target !== part("sponsor-switch")) return;
+      const checked = (event.target as HTMLInputElement).checked;
+      getPreferences().set({ sponsors: checked ? "skip" : "button" });
+    },
+    on,
+  );
+  // Another tab, or Settings, may change the choice while this page is open.
+  const offPreferences = getPreferences().subscribe(paintSponsorSwitch);
+  life.signal.addEventListener("abort", offPreferences, { once: true });
 
   window.addEventListener("singularity:resume", paintHeard, on);
   void onPlayerChange(paintHeard).then((off) => {

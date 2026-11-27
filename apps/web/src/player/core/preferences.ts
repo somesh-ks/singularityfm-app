@@ -24,6 +24,10 @@ export const DEFAULT_MOOD: MoodPreference = "default";
 export const HUE_STEP = 5;
 export const HUE_MAX = 355;
 
+/** What a public show's sponsor break does (Nov 12 plan): a Skip sponsor button, a skip by itself, nothing. */
+export const SPONSOR_CHOICES = ["button", "skip", "off"] as const;
+export type SponsorChoice = (typeof SPONSOR_CHOICES)[number];
+
 export interface Preferences {
   theme: ThemePreference;
   mood: MoodPreference;
@@ -41,6 +45,8 @@ export interface Preferences {
   autoplay: boolean;
   /** The avatar's shape the reader picked (an id from design-system/avatar.ts); "" takes the mood's own. */
   avatar: string;
+  /** Sponsor breaks in a public show's episode. A button by default. */
+  sponsors: SponsorChoice;
 }
 
 export const DEFAULT_VOLUME = 0.8;
@@ -55,6 +61,7 @@ export const DEFAULT_PREFERENCES: Preferences = {
   rate: 1,
   autoplay: true,
   avatar: "",
+  sponsors: "button",
 };
 
 function isTheme(value: unknown): value is ThemePreference {
@@ -97,6 +104,9 @@ export function parsePreferences(raw: string | null): Preferences {
     autoplay: typeof record.autoplay === "boolean" ? record.autoplay : DEFAULT_PREFERENCES.autoplay,
     avatar:
       typeof record.avatar === "string" && /^[a-z]{1,16}$/.test(record.avatar) ? record.avatar : "",
+    sponsors: (SPONSOR_CHOICES as readonly unknown[]).includes(record.sponsors)
+      ? (record.sponsors as SponsorChoice)
+      : DEFAULT_PREFERENCES.sponsors,
   };
 }
 

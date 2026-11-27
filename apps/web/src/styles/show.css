@@ -209,3 +209,17 @@
 .hero[data-saved] .episode-page-menu .fav-remove {
   display: block;
 }
+
+/* Sponsor breaks and chapters sit in the notes' column, as the canvas's Episode board draws them. */
+.episode-extras {
+  max-width: var(--layout-measure);
+  margin-inline: auto;
+}
+
+/* A chapter's start leads its row, quiet and in even figures, so the names line up under each other. */
+.episode-chapter-time {
+  flex: none;
+  min-inline-size: 5ch;
+  color: var(--color-on-surface-muted);
+  font-variant-numeric: tabular-nums;
+}

@@ -350,6 +350,10 @@ export async function resolveLink(
   const search = await searchShows(name.toLowerCase().slice(0, 100), deps, false);
   if (!("shows" in search.body)) return search as ApiResult<ErrorBody>;
   const matches = search.body.shows.filter((show) => show.id !== null);
-  if (matches.length === 0) return failure(404, "not_found", "No show goes by that page's name.");
+  if (matches.length === 0) {
+    return stalled
+      ? failure(502, "upstream", "The podcast index did not answer.")
+      : failure(404, "not_found", "No show goes by that page's name.");
+  }
   return several(matches, name);
 }

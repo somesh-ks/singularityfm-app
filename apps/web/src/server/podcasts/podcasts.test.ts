@@ -305,6 +305,21 @@ describe("a pasted link", () => {
       },
     );
     expect(unread.status).toBe(502);
+    // And when the feed lookup threw but the page's name, searched, matched nothing.
+    const halfway = await resolveLink(
+      new URLSearchParams({ link: "https://feeds.example.com/9.xml" }),
+      {
+        ...deps({
+          index: async (path: string) => {
+            if (path === "/podcasts/byfeedurl") throw new Error("down");
+            return { feeds: [] };
+          },
+        }),
+        resolve: PUBLIC,
+        fetch: async () => new Response("<title>Nobody Knows</title>", { status: 200 }),
+      },
+    );
+    expect(halfway.status).toBe(502);
   });
 
   // Prevents a site's feed link going unread (a ">" in its title, values without quotes), and a

@@ -1,5 +1,11 @@
 import posthog from "posthog-js";
-import { connectProductSink, improving, POSTHOG_PROXY, POSTHOG_TOKEN } from "../lib/analytics";
+import {
+  connectProductSink,
+  improving,
+  POSTHOG_PROXY,
+  POSTHOG_TOKEN,
+  withoutShowIds,
+} from "../lib/analytics";
 
 /**
  * PostHog (D400), loaded lazily at idle so the first load carries none of it. Everyone is counted
@@ -36,6 +42,15 @@ export function startProductAnalytics(): void {
     session_recording: { maskAllInputs: true, maskTextSelector: "input, textarea" },
     // Console output can carry addresses or typed text; the Privacy page promises neither.
     enable_recording_console_log: false,
+    // Which public show a person opens or hears is about the person: its id leaves every address.
+    before_send: (event) => {
+      if (event) {
+        withoutShowIds(event.properties);
+        withoutShowIds(event.$set);
+        withoutShowIds(event.$set_once);
+      }
+      return event;
+    },
     // The installed app is a reader who came back (docs/specs/analytics.md).
     loaded(instance) {
       instance.register({ installed: matchMedia("(display-mode: standalone)").matches });

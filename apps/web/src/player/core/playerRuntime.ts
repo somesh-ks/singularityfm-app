@@ -458,14 +458,15 @@ export function startPlayerRuntime(): () => void {
   // Seconds that sounded in this tab, not the saved position: an episode restored half way by a
   // reload has not been listened to again.
   const offListened = playerStore.onSecond(() => {
-    const { track, status } = playerStore.getState();
+    const { track, status, scrubbing } = playerStore.getState();
     const id = track?.digest.id ?? null;
     if (id !== heardShowEpisode) {
       heardShowEpisode = id;
       heardSeconds = 0;
     }
     const showId = id ? showIdOf(id) : null;
-    if (!id || showId === null || !isPlayingStatus(status)) return;
+    // A drag of the scrubber publishes seconds too, with the sound held: those were not heard.
+    if (!id || showId === null || !isPlayingStatus(status) || scrubbing) return;
     heardSeconds += 1;
     if (heardSeconds !== LISTENED_SECONDS) return;
     void import("../../podcasts/deviceStore").then((device) => device.noteListened(id, showId));

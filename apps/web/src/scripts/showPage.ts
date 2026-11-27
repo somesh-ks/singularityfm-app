@@ -324,6 +324,8 @@ function install(): void {
   /** What the device holds now, with `fallback` where it holds nothing (no database here). */
   async function read(fallback?: { show: ShowDetail; episodes: EpisodeRow[] }): Promise<boolean> {
     const stored = await storedShow(showId);
+    // The reader left while the device answered: the next page is not ours to draw on.
+    if (life.signal.aborted) return true;
     const source = stored ?? fallback;
     if (!source) return false;
     view = {
@@ -342,15 +344,22 @@ function install(): void {
     return true;
   }
 
-  let asking: Promise<void> | null = null;
-  /** Asks for the whole show once: a search, or oldest first, means all of it. */
-  function readWhole(): Promise<void> {
-    if (!view || view.whole) return Promise.resolve();
+  const toldInOrder = (): boolean => view?.show.order === "serial";
+  let asking: Promise<boolean> | null = null;
+  /**
+   * Asks for the whole show once: a search, oldest first, Mark all, or a show told in order (whose
+   * Play starts at its first episode, not at the oldest of the newest page) means all of it. False
+   * when the whole list could not be had.
+   */
+  function readWhole(): Promise<boolean> {
+    if (!view) return Promise.resolve(false);
+    if (view.whole) return Promise.resolve(true);
     asking ??= fetchShow(showId, true).then(async (answer) => {
       asking = null;
-      if (typeof answer === "string" || !view) return;
+      if (typeof answer === "string" || !view) return false;
       view.whole = true;
       await read(answer);
+      return true;
     });
     return asking;
   }
@@ -361,6 +370,7 @@ function install(): void {
     if (life.signal.aborted) return;
     if (typeof answer !== "string") await read(answer);
     else if (!held) show(answer === "not_found" ? "missing" : "failed");
+    if (toldInOrder()) void readWhole();
   })();
 
   /* ------------------------------------------------------------------ presses */
@@ -400,8 +410,11 @@ function install(): void {
 
   async function markAll(): Promise<void> {
     // The whole show, not only the newest page of it.
-    await readWhole();
-    if (!view) return;
+    if (!(await readWhole()) || !view) {
+      // Marking only the newest page would say "all" and leave the older ones unplayed.
+      sendToast({ message: "Couldn't load every episode. Try again.", kind: "error" });
+      return;
+    }
     const marked = view.episodes.filter((episode) => !heardOf(episode.id).played);
     if (marked.length === 0) {
       sendToast({ message: "Every episode is already played" });
@@ -524,7 +537,12 @@ function install(): void {
   sort?.addEventListener("change", filter, on);
 
   // A position kept, an episode finished or marked: its row and the header's Play say so.
-  window.addEventListener("singularity:resume", paintRows, on);
+  // With Unplayed chosen, one that has just become played leaves the list, and the count follows.
+  window.addEventListener(
+    "singularity:resume",
+    () => (unplayed?.checked ? drawList(view?.shown) : paintRows()),
+    on,
+  );
   void onPlayerChange(paintRows).then((off) => {
     if (life.signal.aborted) off();
     else life.signal.addEventListener("abort", off, { once: true });

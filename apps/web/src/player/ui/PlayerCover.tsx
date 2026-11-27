@@ -128,6 +128,7 @@ export default function PlayerCover({ cover, weekly, size }: PlayerCoverProps) {
           alt=""
           decoding="async"
           draggable={false}
+          onLoad={() => setState({ src: picture, drawn: "drawn" })}
           onError={() => setState({ src: picture, drawn: "failed" })}
         />
       )}

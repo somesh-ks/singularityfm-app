@@ -109,7 +109,7 @@ export type PlayPick<T> = { episode: T; reason: "resume" | "new" | "first" | "la
 /**
  * What a show's one Play starts: the episode left half heard (`lastId` when it is one, else the
  * newest of them); else the oldest new episode; else, in a show told in order, the first unplayed
- * one; else the newest. It never picks a trailer or a bonus, and never one already finished unless
+ * one; else the newest not yet finished. It never picks a trailer or a bonus, and never one already finished unless
  * nothing else is left.
  */
 export function pickPlay<T extends Pick<EpisodeRow, "id" | "kind" | "published_at">>(
@@ -132,7 +132,11 @@ export function pickPlay<T extends Pick<EpisodeRow, "id" | "kind" | "published_a
     const first = full.find((episode) => !heardOf(episode.id).played);
     if (first) return { episode: first, reason: "first" };
   }
-  const latest = full.at(-1) ?? oldestFirst(episodes).at(-1);
+  // The newest one not yet finished, before a finished one is played again.
+  const latest =
+    full.findLast((episode) => !heardOf(episode.id).played) ??
+    full.at(-1) ??
+    oldestFirst(episodes).at(-1);
   return latest ? { episode: latest, reason: "latest" } : null;
 }
 

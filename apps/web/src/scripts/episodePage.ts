@@ -166,6 +166,8 @@ function install(): void {
   /** The device's copy; true when it holds one. */
   async function read(): Promise<boolean> {
     const stored = await getEpisode(id);
+    // The reader left while the device answered: the next page's title is not ours to write.
+    if (life.signal.aborted) return true;
     if (!stored) return false;
     episode = stored;
     favorite = stored.favorite_at !== null;

@@ -122,6 +122,17 @@ describe("a show's Play", () => {
   });
 });
 
+describe("a show's Play, with the newest one heard", () => {
+  // Play started the newest episode again though an older one had never been heard.
+  it("plays the newest unplayed episode before a finished one, and a finished one when all are", () => {
+    const show = { order: "episodic" as const };
+    const newestHeard = heardOf({ [id(4)]: { seconds: 0, played: true } });
+    expect(pickPlay(show, feed, null, newestHeard)?.episode.id).toBe(id(2));
+    const all = heardOf(Object.fromEntries(feed.map((e) => [e.id, { seconds: 0, played: true }])));
+    expect(pickPlay(show, feed, null, all)?.episode.id).toBe(id(4));
+  });
+});
+
 describe("after an episode", () => {
   // The Catchup rule (the next older item) would start a three day old Daily after a show episode.
   it("goes to the same show's next newer unplayed full episode", () => {

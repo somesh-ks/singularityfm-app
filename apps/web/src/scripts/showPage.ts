@@ -333,9 +333,12 @@ function install(): void {
     if (life.signal.aborted) return true;
     const source = stored ?? fallback;
     if (!source) return false;
+    // A device that could not keep the long list (a full disk) still holds the short one: the
+    // longest list in hand is the show, on this read and on every later one.
+    const lists = [source.episodes, fallback?.episodes ?? [], view?.episodes ?? []];
     view = {
       show: source.show,
-      episodes: source.episodes,
+      episodes: lists.reduce((a, b) => (b.length > a.length ? b : a)),
       following: stored?.show.favorite_at
         ? { favorite_at: stored.show.favorite_at, newest_id: stored.show.newest_id }
         : null,
@@ -366,11 +369,6 @@ function install(): void {
         if (typeof answer === "string" || !view) return false;
         view.whole = true;
         await read(answer);
-        // A device that could not keep the long list (a full disk) still holds the short one.
-        if (!life.signal.aborted && view.episodes.length < answer.episodes.length) {
-          view.episodes = answer.episodes;
-          drawList(view.shown);
-        }
         return true;
       })
       .finally(() => {

@@ -17,7 +17,7 @@ import {
   readBackup,
 } from "./backup";
 import { allRecords, mergeRecords } from "./deviceRecords";
-import { favoriteShows, getShow, setShowFavorite } from "./deviceStore";
+import { getShow, setShowFavorite } from "./deviceStore";
 import { catchupHistory, mergeListens, saveCatchupHistory } from "./history";
 import { OPML_MAX_BYTES, type OpmlShow, parseOpml, writeOpml } from "./opml";
 import { parseShowLink } from "./showLink";
@@ -88,9 +88,10 @@ export async function exportBackup(now = new Date()): Promise<void> {
 
 /** Saves the favorite shows as OPML, for another podcast app. Returns how many. */
 export async function exportOpml(now = new Date()): Promise<number> {
-  const shows = await favoriteShows();
+  // A strict read: a store that fails says so, where favoriteShows() would hand back an empty list.
+  const { shows } = await allRecords();
   const list: OpmlShow[] = shows
-    .filter((show) => show.feed_url !== "")
+    .filter((show) => show.favorite_at !== null && show.feed_url !== "")
     .sort((a, b) => a.title.localeCompare(b.title))
     .map((show) => ({ title: show.title, feed_url: show.feed_url }));
   download(`singularity-shows-${day(now)}.opml`, "text/x-opml", writeOpml(list, now));
@@ -102,12 +103,16 @@ export function newestFull(episodes: readonly Pick<EpisodeRow, "id" | "kind">[])
   return episodes.find((episode) => episode.kind === "full")?.id ?? null;
 }
 
-/** Favorites a show the route found, unless it already is one. True when it was added. */
+/**
+ * Favorites a show the route found, unless it already is one. True when it was added; throws when
+ * the device did not keep it, since the store's writes fail quietly (deviceStore, changeShow).
+ */
 export async function follow(answer: ShowAnswer): Promise<boolean> {
   const id = answer.show.id;
   if (id === null) return false;
   if ((await getShow(id))?.favorite_at) return false;
   await setShowFavorite(id, true, newestFull(answer.episodes));
+  if (!(await getShow(id))?.favorite_at) throw new Error("The device did not keep the show.");
   return true;
 }
 
@@ -168,7 +173,9 @@ export async function followAll(
       else if (answer.show.id !== null && seen.has(answer.show.id)) result.already += 1;
       else {
         if (answer.show.id !== null) seen.add(answer.show.id);
-        if (await follow(answer)) result.added += 1;
+        const added = await follow(answer).catch(() => null);
+        if (added === null) result.failed.push(show);
+        else if (added) result.added += 1;
         else result.already += 1;
       }
       progress(++done, shows.length);
@@ -196,18 +203,17 @@ async function restore(text: string): Promise<ImportOutcome> {
       return true;
     }
   });
-  try {
-    for (const [id, position] of Object.entries(restored)) {
-      if (position.played) storage?.setItem(playedKey(id), "1");
-      else if (position.seconds) storage?.setItem(resumeKey(id), String(position.seconds));
-      if (position.recording) storage?.setItem(recordingKey(id), position.recording);
-    }
-  } catch {
-    // Best effort, as every position write is.
+  // A write that fails (storage full) throws to the import's error: the records already merged stay,
+  // and a second try merges again safely.
+  for (const [id, position] of Object.entries(restored)) {
+    if (position.played) storage?.setItem(playedKey(id), "1");
+    else if (position.seconds) storage?.setItem(resumeKey(id), String(position.seconds));
+    if (position.recording) storage?.setItem(recordingKey(id), position.recording);
   }
   const before = new Set(catchupHistory().map((listen) => `${listen.id} ${listen.at}`));
   const merged = mergeListens(catchupHistory(), backup.history);
   saveCatchupHistory(merged);
+  if (catchupHistory().length !== merged.length) throw new Error("History was not saved.");
   return {
     kind: "backup",
     changed,

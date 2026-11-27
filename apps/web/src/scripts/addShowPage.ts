@@ -11,6 +11,9 @@ import { drawRows, type PodcastRow, showRow } from "./podcastRows";
  * from. Search hands a pasted link here as ?link=, which looks at once but follows nothing until the
  * show is tapped. A file dropped anywhere on the page is imported, as the Choose file row does.
  */
+/** A lookup or save that threw: the network, the store or a page part that did not load. */
+const COULD_NOT_ADD = "Couldn't add the show. Try again.";
+
 export function installAddShowPage(): void {
   mountEachVisit("[data-add-show]", mountAddShow);
 }
@@ -54,6 +57,8 @@ function mountAddShow(root: HTMLElement, life: AbortSignal): void {
   };
 
   const settle = (result: AddShowResult): void => {
+    // Left by an in-app link while it looked: the answer must not pull the listener back.
+    if (life.aborted) return;
     if (result.kind === "error") {
       fail(result.message);
       return;
@@ -96,6 +101,9 @@ function mountAddShow(root: HTMLElement, life: AbortSignal): void {
       const result = await addShowFrom(input.value, confirm);
       status.textContent = "";
       settle(result);
+    } catch {
+      status.textContent = "";
+      settle({ kind: "error", message: COULD_NOT_ADD });
     } finally {
       busy(false);
     }
@@ -115,6 +123,8 @@ function mountAddShow(root: HTMLElement, life: AbortSignal): void {
     busy(true);
     try {
       settle(await addPicked(id));
+    } catch {
+      settle({ kind: "error", message: COULD_NOT_ADD });
     } finally {
       busy(false);
     }
@@ -136,9 +146,11 @@ function mountAddShow(root: HTMLElement, life: AbortSignal): void {
       if (!file) return;
       event.preventDefault();
       try {
-        reportImport(root, await (await transfer()).importFile(file));
+        const outcome = await (await transfer()).importFile(file);
+        if (!life.aborted) reportImport(root, outcome);
       } catch {
-        sendToast({ message: "Couldn't read that file. Try again.", kind: "error" });
+        if (!life.aborted)
+          sendToast({ message: "Couldn't read that file. Try again.", kind: "error" });
       }
     },
     on,

@@ -135,13 +135,26 @@ function tagText(xml: string, tag: string, max?: number): string | null {
   return decode(xml.slice(open + 1, close), max) || null;
 }
 
-/** Every <name ...> tag, by plain scans. */
+/** Where a tag that opens at `from` ends: its first ">" outside a quoted value, or -1. */
+function tagEnd(html: string, from: number): number {
+  let quote = "";
+  for (let i = from; i < html.length; i++) {
+    const char = html[i];
+    if (quote) {
+      if (char === quote) quote = "";
+    } else if (char === '"' || char === "'") quote = char;
+    else if (char === ">") return i;
+  }
+  return -1;
+}
+
+/** Every <name ...> tag, by plain scans; a ">" inside a quoted value does not end one. */
 function tagsNamed(html: string, name: string): string[] {
   const lower = html.toLowerCase();
   const tags: string[] = [];
   let at = lower.indexOf(`<${name}`);
   while (at !== -1 && tags.length < 400) {
-    const end = lower.indexOf(">", at);
+    const end = tagEnd(html, at);
     if (end === -1) break;
     tags.push(html.slice(at, end + 1));
     at = lower.indexOf(`<${name}`, end);
@@ -150,7 +163,7 @@ function tagsNamed(html: string, name: string): string[] {
 }
 
 const attr = (tag: string, name: string): string | null =>
-  new RegExp(`\\s${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)')`, "i")
+  new RegExp(`\\s${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s"'=<>\`]+))`, "i")
     .exec(tag)
     ?.slice(1)
     .find((value) => value !== undefined) ?? null;
@@ -291,17 +304,23 @@ export async function resolveLink(
     // so those are offered to pick from, never followed on a guess.
     const listed = readShowPage(text, page?.url ?? https);
     const shows = new Map<number, ShowRow>();
+    // A link the index did not answer for may be another show: then the one found is offered, not
+    // followed on its own.
+    let unknown = 0;
     for (const feed of listed.feeds) {
       const show = await quietly(() => byFeedUrl(feed, deps));
       if (show?.id) shows.set(show.id, show);
+      else unknown += 1;
     }
     for (const id of listed.apple) {
       const show = await quietly(async () =>
         feedOf(await deps.index("/podcasts/byitunesid", { id }), deps),
       );
       if (show?.id) shows.set(show.id, show);
+      else unknown += 1;
     }
-    if (shows.size === 1) return found([...shows.values()][0] as ShowRow);
+    if (shows.size === 1 && unknown === 0) return found([...shows.values()][0] as ShowRow);
+    if (shows.size === 1) return several([...shows.values()], listed.name);
     if (shows.size > 1) return several([...shows.values()], listed.name);
     name = listed.name;
   }

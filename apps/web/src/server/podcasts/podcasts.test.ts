@@ -278,6 +278,27 @@ describe("a pasted link", () => {
     expect(down.status).toBe(502);
   });
 
+  // Prevents a site's feed link going unread (a ">" in its title, values without quotes), and a
+  // lone find being followed while another link on the page went unanswered (Code review, 27 Nov).
+  it("reads any feed link, and offers a lone find when another link went unanswered", async () => {
+    const quoted = await ask(
+      "https://www.hardfork.show/",
+      '<link title="Subscribe >" rel="alternate" type="application/rss+xml" href="https://feeds.example.com/1.xml">',
+    );
+    expect(quoted.show?.id).toBe(1);
+    const bare = await ask(
+      "https://www.hardfork.show/",
+      "<link rel=alternate type=application/rss+xml href=https://feeds.example.com/1.xml>",
+    );
+    expect(bare.show?.id).toBe(1);
+    const partial = await ask(
+      "https://blog.example.com/two",
+      '<link rel="alternate" type="application/rss+xml" href="https://feeds.example.com/1.xml"><link rel="alternate" type="application/rss+xml" href="https://feeds.example.com/9.xml">',
+    );
+    expect(partial.show).toBeNull();
+    expect(partial.matches.map((show) => show.id)).toEqual([1]);
+  });
+
   // A feed address that redirects (a host move, a short link) is known to the index by where it
   // landed, not by the address pasted (CodeRabbit, 27 Nov).
   it("finds a redirected feed by the address it landed at", async () => {

@@ -93,14 +93,21 @@ function installShows(root: HTMLElement): void {
     // The follow code loads now (D361); offline it fails like the fetch.
     const shows = typeof answer === "string" ? null : await transfer().catch(() => null);
     if (!favorites.has(id)) return;
-    if (typeof answer === "string" || !shows) {
+    // Kept, or the store did not take it (follow throws): either way the ring says the truth.
+    const kept =
+      shows !== null &&
+      typeof answer !== "string" &&
+      (await shows.follow(answer).then(
+        () => true,
+        () => false,
+      ));
+    if (!kept) {
       favorites.delete(id);
       const box = boxOf(id);
       if (box) box.checked = false;
       sendToast({ message: `Couldn't add ${title}. Try again.`, kind: "error" });
       return;
     }
-    await shows.follow(answer);
     if (!favorites.has(id)) await setShowFavorite(id, false, null);
   };
 
@@ -127,7 +134,11 @@ function installShows(root: HTMLElement): void {
       const box = card.querySelector<HTMLInputElement>("[data-first-run-pick]") as HTMLInputElement;
       box.value = String(id);
       box.checked = favorites.has(id);
-      box.addEventListener("change", () => void toggle(id, show.title, box.checked));
+      box.addEventListener("change", () => {
+        const work = toggle(id, show.title, box.checked);
+        saving.add(work);
+        void work.finally(() => saving.delete(work));
+      });
       cards.push(card);
     }
     list.replaceChildren(...cards);
@@ -181,13 +192,18 @@ export function installFirstRun(): void {
   mountEachVisit("[data-first-run]", mountFirstRun);
 }
 
+/** Picks on step 2 still being saved, which Skip waits for. */
+const saving = new Set<Promise<void>>();
+
 function mountFirstRun(root: HTMLElement): void {
   const step = root.dataset.firstRun;
   if (step === "1") installTopics(root);
   if (step === "2") installShows(root);
   if (step === "3") installImport(root);
-  const finish = (): void => {
+  const finish = async (): Promise<void> => {
     markFirstRunDone();
+    // A show tapped a moment ago is still being saved; leaving the page now would drop it.
+    await Promise.allSettled(saving);
     location.assign("/");
   };
   root.querySelector("[data-first-run-skip]")?.addEventListener("click", finish);

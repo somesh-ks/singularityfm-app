@@ -10,6 +10,7 @@ import {
   drawRows,
   episodeRow,
   type PodcastRow,
+  rowOf,
   searchShows,
   showEpisodes,
   showRow,
@@ -132,13 +133,8 @@ function install(): void {
   results.addEventListener("click", (event) => {
     const link = (event.target as Element).closest<HTMLAnchorElement>("[data-podcast-list] a");
     if (!link) return;
-    const item = link.closest("li");
-    const row: PodcastRow = {
-      href: link.getAttribute("href") ?? "",
-      cover: item?.querySelector("img")?.getAttribute("src") ?? null,
-      title: item?.querySelector("[data-row-title]")?.textContent ?? "",
-      facts: item?.querySelector("[data-row-facts]")?.textContent ?? "",
-    };
+    const row = rowOf(link);
+    if (!row) return;
     writeRecent([row, ...readRecent().filter((kept) => kept.href !== row.href)]);
   });
 
@@ -147,6 +143,8 @@ function install(): void {
   let asked = "";
   let timer: ReturnType<typeof setTimeout> | undefined;
   let found = { shows: 0, episodes: 0 };
+  /** Whether the shows' search failed for the words asked; null until it answers. */
+  let failed: boolean | null = null;
 
   /** Which sections show: the ticked chip's, or every one with something in it. The count is said
    *  only once the shows have answered, so a keystroke never announces the last word's total. */
@@ -160,6 +158,13 @@ function install(): void {
     }
     const total = chosen ? (counts[chosen] ?? 0) : found.shows + found.episodes + catchups;
     if (status && announce) status.textContent = total === 0 ? "No results" : `${total} results`;
+    // Once the shows have answered, the note says why the page is empty: a failure, or no match.
+    if (note && failed !== null) {
+      note.hidden = !failed && total > 0;
+      note.textContent = failed
+        ? "Search did not answer. Try again in a minute."
+        : "Nothing matches these words. Try fewer, or other ones.";
+    }
   }
 
   async function ask(term: string): Promise<void> {
@@ -186,10 +191,7 @@ function install(): void {
         );
       found.episodes = ordered.length;
     } else episodesList?.replaceChildren();
-    if (note) {
-      note.hidden = shows !== null;
-      note.textContent = "Search did not answer. Try again in a minute.";
-    }
+    failed = shows === null;
     showSections();
   }
 
@@ -214,10 +216,18 @@ function install(): void {
     if (isShowLink(term)) {
       clearTimeout(timer);
       asked = "";
+      failed = null;
+      if (note) note.hidden = true;
       discover.hidden = false;
       results.hidden = true;
       if ((event as InputEvent | undefined)?.inputType === "insertFromPaste") addShow(term);
       return;
+    }
+    // New words disown the request in flight, so its late answer never lands under them.
+    if (term !== asked) {
+      asked = "";
+      failed = null;
+      if (note) note.hidden = true;
     }
     const typing = term.length >= MIN_LETTERS;
     discover.hidden = typing;
@@ -232,7 +242,7 @@ function install(): void {
     }
     // The Catchups answer at once, from the page; the shows after the pause.
     requestAnimationFrame(() => showSections(false));
-    if (term !== asked) timer = setTimeout(() => void ask(term), PAUSE_MS);
+    if (asked === "") timer = setTimeout(() => void ask(term), PAUSE_MS);
   }
 
   input.addEventListener("input", apply);

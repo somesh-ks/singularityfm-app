@@ -30,7 +30,10 @@ export default function SponsorSkip() {
       className="player-sponsor-skip"
       onClick={() => skipBreak(store, span, "user")}
     >
-      Skip sponsor · <span className="num">{formatClock(left)}</span>
+      {/* One child: the button spaces its children apart, which would open a gap after the dot. */}
+      <span>
+        Skip sponsor · <span className="num">{formatClock(left)}</span>
+      </span>
     </Button>
   );
 }

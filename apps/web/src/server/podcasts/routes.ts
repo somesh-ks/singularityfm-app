@@ -292,9 +292,14 @@ export async function showWithEpisodes(
     });
     // The newest page is what an episode's page reads, so its notes come whole; the long page is a list.
     const notesMax = max === String(SHOW_PAGE_SIZES[0]) ? NOTES_MAX : DESCRIPTION_MAX;
+    // The index's episode list leaves the show's name out (no feedTitle), and the player titles a
+    // show's episode by it: an empty name drew the episode's id in the bar.
+    const rows = episodesOf(episodes, deps.sign, notesMax).map((row) =>
+      row.show_title ? row : { ...row, show_title: show.title },
+    );
     return {
       status: 200,
-      body: { show, episodes: episodesOf(episodes, deps.sign, notesMax) },
+      body: { show, episodes: rows },
       // Tagged by show, so a later refresher can drop one show's copies at once.
       headers: { ...edgeHeaders(EDGE_SECONDS.show), "Vercel-Cache-Tag": `podcast-show-${show.id}` },
     };

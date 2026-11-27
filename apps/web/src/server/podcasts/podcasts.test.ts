@@ -6,6 +6,7 @@ import {
   canonicalSearch,
   type PodcastDeps,
   searchShows,
+  showWithEpisodes,
   trendingShows,
 } from "./routes";
 import { episodeFromIndex, plainText, type ShowRow, uniqueShows } from "./shapes";
@@ -71,6 +72,20 @@ describe("podcast routes", () => {
     expect(asked).toBe(BREAKER_FAILURES);
     expect(answer.status).toBe(200);
     expect(answer.body).toMatchObject({ source: "apple", shows: [{ title: "Latent Space" }] });
+  });
+
+  // The index's episode list carries no show name: the bar drew the episode's id as its title.
+  it("names each of a show's episodes by the show, though the index's episode list leaves it out", async () => {
+    const index = async (path: string) =>
+      path === "/podcasts/byfeedid"
+        ? { feed: { id: 7, title: "The Test Hour", url: "https://podcast.test/feed" } }
+        : {
+            items: [
+              { feedId: 7, guid: "g1", title: "First", enclosureUrl: "https://podcast.test/1.mp3" },
+            ],
+          };
+    const answer = await showWithEpisodes(new URLSearchParams({ id: "7" }), deps({ index }));
+    expect(answer.body).toMatchObject({ episodes: [{ show_title: "The Test Hour" }] });
   });
 
   it("never keeps a failed answer at the edge, so a stale good copy is served instead", async () => {

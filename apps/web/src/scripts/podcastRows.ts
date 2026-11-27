@@ -47,6 +47,15 @@ function inApp(href: string): string | null {
   }
 }
 
+/** The row each drawn item was made from, so a page reads its data back instead of its markup. */
+const drawn = new WeakMap<Element, PodcastRow>();
+
+/** The row an element inside a drawn item came from. */
+export function rowOf(element: Element): PodcastRow | undefined {
+  const item = element.closest("li");
+  return item ? drawn.get(item) : undefined;
+}
+
 /** Fills a list with rows cloned from the page's row template. */
 export function drawRows(list: HTMLElement, rows: readonly PodcastRow[]): void {
   const template = document.querySelector<HTMLTemplateElement>("template[data-podcast-row]");
@@ -64,6 +73,7 @@ export function drawRows(list: HTMLElement, rows: readonly PodcastRow[]): void {
       else image?.remove();
       if (title) title.textContent = row.title;
       if (facts) facts.textContent = row.facts;
+      drawn.set(item, row);
       return item;
     }),
   );

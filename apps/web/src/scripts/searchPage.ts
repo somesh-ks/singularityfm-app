@@ -10,6 +10,7 @@ import {
   drawRows,
   episodeRow,
   type PodcastRow,
+  rowOf,
   searchShows,
   showEpisodes,
   showRow,
@@ -132,13 +133,8 @@ function install(): void {
   results.addEventListener("click", (event) => {
     const link = (event.target as Element).closest<HTMLAnchorElement>("[data-podcast-list] a");
     if (!link) return;
-    const item = link.closest("li");
-    const row: PodcastRow = {
-      href: link.getAttribute("href") ?? "",
-      cover: item?.querySelector("img")?.getAttribute("src") ?? null,
-      title: item?.querySelector("[data-row-title]")?.textContent ?? "",
-      facts: item?.querySelector("[data-row-facts]")?.textContent ?? "",
-    };
+    const row = rowOf(link);
+    if (!row) return;
     writeRecent([row, ...readRecent().filter((kept) => kept.href !== row.href)]);
   });
 

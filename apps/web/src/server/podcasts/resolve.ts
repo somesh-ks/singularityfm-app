@@ -246,10 +246,14 @@ export function readShowPage(
 }
 
 /** An index call that answers null on any failure, so one bad step falls through to the next. */
-async function quietly<T>(work: () => Promise<T | null>): Promise<T | null> {
+async function quietly<T>(
+  work: () => Promise<T | null>,
+  failed: () => void = () => {},
+): Promise<T | null> {
   try {
     return await work();
   } catch {
+    failed();
     return null;
   }
 }
@@ -272,20 +276,27 @@ export async function resolveLink(
 ): Promise<ApiResult<ResolveBody | ErrorBody>> {
   const url = new URL(params.get("link") ?? "");
   const https = url.protocol === "http:" ? `https:${url.href.slice(5)}` : url.href;
+  // An index lookup that threw leaves the answer unfinished: then "nothing found" is "try again".
+  let stalled = false;
+  const ask = <T>(work: () => Promise<T | null>) =>
+    quietly(work, () => {
+      stalled = true;
+    });
   // 1. A feed the index knows, as given or over https.
   const asked = new Set([url.href, https]);
   for (const candidate of asked) {
-    const show = await quietly(() => byFeedUrl(candidate, deps));
+    const show = await ask(() => byFeedUrl(candidate, deps));
     if (show) return found(show);
   }
-  // 2. The page itself.
-  // Over https first; a host with no TLS is read as given.
-  const page =
-    (await readPage(https, deps)) ?? (https !== url.href ? await readPage(url.href, deps) : null);
+  // 2. The page itself, over https only: the fetch guard reads no plain http (sourcePreview.ts), so
+  // a feed served only over http is found by its address in step 1 or not at all.
+  // shortcut: http-only feeds the index knows by another address are missed; widen the guard to
+  // allow http for feed reads if listeners report one.
+  const page = await readPage(https, deps);
   const text = page?.text ?? null;
   // A feed that redirected may be known by where it landed (a host move, a short link).
   if (page && !asked.has(page.url)) {
-    const show = await quietly(() => byFeedUrl(page.url, deps));
+    const show = await ask(() => byFeedUrl(page.url, deps));
     if (show) return found(show);
   }
   let name: string | null = null;
@@ -293,14 +304,14 @@ export async function resolveLink(
     const feed = readFeed(text);
     const guid = feed.guid;
     if (guid) {
-      const show = await quietly(async () =>
+      const show = await ask(async () =>
         feedOf(await deps.index("/podcasts/byguid", { guid }), deps),
       );
       if (show) return found(show);
     }
     const moved = feed.moved;
     if (moved) {
-      const show = await quietly(() => byFeedUrl(moved, deps));
+      const show = await ask(() => byFeedUrl(moved, deps));
       if (show) return found(show);
     }
     name = feed.name;
@@ -313,12 +324,12 @@ export async function resolveLink(
     // followed on its own.
     let unknown = listed.dropped;
     for (const feed of listed.feeds) {
-      const show = await quietly(() => byFeedUrl(feed, deps));
+      const show = await ask(() => byFeedUrl(feed, deps));
       if (show?.id) shows.set(show.id, show);
       else unknown += 1;
     }
     for (const id of listed.apple) {
-      const show = await quietly(async () =>
+      const show = await ask(async () =>
         feedOf(await deps.index("/podcasts/byitunesid", { id }), deps),
       );
       if (show?.id) shows.set(show.id, show);
@@ -330,7 +341,11 @@ export async function resolveLink(
     name = listed.name;
   }
   // 3. The closest shows by the page's name. A failed search is the search's answer, never kept.
-  if (!name) return failure(404, "not_found", "Nothing on that page names a show.");
+  if (!name) {
+    return stalled
+      ? failure(502, "upstream", "The podcast index did not answer.")
+      : failure(404, "not_found", "Nothing on that page names a show.");
+  }
   // Index only: an Apple row has no index id to follow, and Apple's search cap is shared by everyone.
   const search = await searchShows(name.toLowerCase().slice(0, 100), deps, false);
   if (!("shows" in search.body)) return search as ApiResult<ErrorBody>;

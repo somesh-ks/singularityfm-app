@@ -29,7 +29,11 @@ function mountAddShow(root: HTMLElement, life: AbortSignal): void {
   if (!form || !input || !error || !go || !status || !matches || !list) return;
   const params = new URLSearchParams(location.search);
   const fromFirstRun = params.get("from") === "welcome";
-  installImportPicker(root);
+  // A file being imported holds the page: an add that opened a show's page now would cut it short.
+  let importing = false;
+  installImportPicker(root, (on) => {
+    importing = on;
+  });
 
   const clear = (): void => {
     error.hidden = true;
@@ -92,7 +96,7 @@ function mountAddShow(root: HTMLElement, life: AbortSignal): void {
   };
 
   const run = async (confirm = false): Promise<void> => {
-    if (working) return;
+    if (working || importing) return;
     clear();
     matches.hidden = true;
     busy(true);
@@ -119,7 +123,7 @@ function mountAddShow(root: HTMLElement, life: AbortSignal): void {
     const id = Number(new URL(link?.href ?? location.href).searchParams.get("id"));
     if (!link || !Number.isInteger(id) || id <= 0) return;
     event.preventDefault();
-    if (working) return;
+    if (working || importing) return;
     busy(true);
     try {
       settle(await addPicked(id));
@@ -145,12 +149,16 @@ function mountAddShow(root: HTMLElement, life: AbortSignal): void {
       const file = event.dataTransfer?.files[0];
       if (!file) return;
       event.preventDefault();
+      if (importing || working) return;
+      importing = true;
       try {
         const outcome = await (await transfer()).importFile(file);
         if (!life.aborted) reportImport(root, outcome);
       } catch {
         if (!life.aborted)
           sendToast({ message: "Couldn't read that file. Try again.", kind: "error" });
+      } finally {
+        importing = false;
       }
     },
     on,

@@ -291,6 +291,20 @@ describe("a pasted link", () => {
       },
     );
     expect(down.status).toBe(502);
+    // The same when the page cannot be read either: an OPML import retries it, not "missing".
+    const unread = await resolveLink(
+      new URLSearchParams({ link: "https://feeds.example.com/9.xml" }),
+      {
+        ...deps({
+          index: async () => {
+            throw new Error("down");
+          },
+        }),
+        resolve: PUBLIC,
+        fetch: async () => new Response("", { status: 503 }),
+      },
+    );
+    expect(unread.status).toBe(502);
   });
 
   // Prevents a site's feed link going unread (a ">" in its title, values without quotes), and a

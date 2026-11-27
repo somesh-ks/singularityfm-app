@@ -32,26 +32,23 @@ import { fetchShow, findShow, resolveLink, type ShowAnswer, type ShowFailure } f
 /** What the key store holds of every item: where it was left and whether it was heard. */
 export function positionsOnDevice(): Record<string, Position> {
   const found: Record<string, Position> = {};
-  try {
-    // The whole store, not the player's slice of it: the keys are listed, not looked up.
-    const storage = window.localStorage;
-    for (let i = 0; i < storage.length; i++) {
-      const key = storage.key(i) ?? "";
-      const at = (prefix: string): string | null =>
-        key.startsWith(prefix) ? key.slice(prefix.length) : null;
-      const resumed = at(RESUME_KEY_PREFIX);
-      const played = at(PLAYED_KEY_PREFIX);
-      const id = resumed ?? played;
-      if (!id) continue;
-      found[id] ??= {};
-      const position = found[id];
-      if (resumed) position.seconds = Number(storage.getItem(key)) || undefined;
-      if (played) position.played = true;
-      const recording = storage.getItem(RECORDING_KEY_PREFIX + id);
-      if (recording) position.recording = recording;
-    }
-  } catch {
-    // Best effort: a backup without positions still carries the shows.
+  // The whole store, not the player's slice of it: the keys are listed, not looked up. A read that
+  // fails throws, so a backup never leaves places out without a word.
+  const storage = window.localStorage;
+  for (let i = 0; i < storage.length; i++) {
+    const key = storage.key(i) ?? "";
+    const at = (prefix: string): string | null =>
+      key.startsWith(prefix) ? key.slice(prefix.length) : null;
+    const resumed = at(RESUME_KEY_PREFIX);
+    const played = at(PLAYED_KEY_PREFIX);
+    const id = resumed ?? played;
+    if (!id) continue;
+    found[id] ??= {};
+    const position = found[id];
+    if (resumed) position.seconds = Number(storage.getItem(key)) || undefined;
+    if (played) position.played = true;
+    const recording = storage.getItem(RECORDING_KEY_PREFIX + id);
+    if (recording) position.recording = recording;
   }
   return found;
 }
@@ -69,21 +66,24 @@ function download(name: string, type: string, text: string): void {
 
 const day = (now: Date): string => now.toISOString().slice(0, 10);
 
-/** Saves the backup file: shows, favorites, positions and History. */
-export async function exportBackup(now = new Date()): Promise<void> {
+/**
+ * Saves the backup file: shows, favorites, positions and History. Every read is strict, so a file
+ * that would leave something out is never saved; one too big for import to take back is not either.
+ */
+export async function exportBackup(now = new Date()): Promise<"saved" | "too_large"> {
   const { shows, episodes } = await allRecords();
+  const raw = window.localStorage.getItem(CATCHUP_HISTORY_KEY);
   const backup = buildBackup({
     shows,
     episodes,
     positions: positionsOnDevice(),
-    history: catchupHistory(),
+    history: catchupHistory({ getItem: () => raw }),
     now,
   });
-  download(
-    `singularity-backup-${day(now)}.json`,
-    "application/json",
-    `${JSON.stringify(backup, null, 1)}\n`,
-  );
+  const text = `${JSON.stringify(backup, null, 1)}\n`;
+  if (new Blob([text]).size > BACKUP_MAX_BYTES) return "too_large";
+  download(`singularity-backup-${day(now)}.json`, "application/json", text);
+  return "saved";
 }
 
 /** Saves the favorite shows as OPML, for another podcast app. Returns how many. */

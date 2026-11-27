@@ -97,8 +97,12 @@ function mountImportPage(root: HTMLElement): void {
             message: count === 0 ? "No favorite shows to export yet" : "Shows exported",
           });
         } else {
-          await (await transfer()).exportBackup();
-          sendToast({ message: "Backup saved" });
+          const saved = await (await transfer()).exportBackup();
+          sendToast(
+            saved === "saved"
+              ? { message: "Backup saved" }
+              : { message: "Too much for one backup. Export your shows instead.", kind: "error" },
+          );
         }
       } catch {
         sendToast({ message: "Couldn't save the file", kind: "error" });

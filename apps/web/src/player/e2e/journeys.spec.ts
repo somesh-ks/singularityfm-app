@@ -71,6 +71,11 @@ test("a listening journey across pages: A on Today, B from the Library, back to 
   await player.finger.press(player.cta);
   await expect(player.root).toHaveAttribute("data-player-state", "playing", { timeout: 10_000 });
   await player.shut();
+  // Back to the Library first: Today's Latest is no tab now (D402), so A is two steps back.
+  await page.goBack();
+  await expect(page).toHaveURL(/\/library$/);
+  // The address changes before the swap: the Library's page is in before the listener goes on.
+  await expect(page.locator("main.library")).toBeVisible();
   // Bug it prevents (owner, 2026-11-04): Play flashed at every tab switch. The page arrived with the
   // face it was built with and took its own a moment later, so it was drawn twice and eased between
   // them. What it shows the moment it is swapped in is what it keeps.
@@ -85,10 +90,8 @@ test("a listening journey across pages: A on Today, B from the Library, back to 
     );
   });
   // Back to A, on Today.
-  await player.finger.press(
-    page.getByRole("navigation", { name: "Primary" }).getByRole("link", { name: "Home" }),
-  );
-  await expect(page).toHaveURL(/\/$/);
+  await page.goBack();
+  await expect(page).toHaveURL(/\/latest$/);
   // A offers the time left from where it stopped, not a fresh start.
   await expect(player.cta).toHaveAccessibleName(/^Resume the podcast, \d+ min left$/);
   expect(await page.evaluate(() => window.__arrived)).toBe(

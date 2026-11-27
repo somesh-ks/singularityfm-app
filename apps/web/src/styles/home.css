@@ -16,12 +16,14 @@
   }
 }
 
-.home-filters {
+/* Scoped to Home: library.css loads after this file, and its row padding at the same weight took
+   the gap away, which left the chips' touch target under the app bar. */
+.home .home-filters {
   padding-block-start: var(--space-4);
 }
 
 @media (width >= 64rem) {
-  .home-search + .home-filters {
+  .home .home-search + .home-filters {
     padding-block-start: var(--space-6);
   }
 }

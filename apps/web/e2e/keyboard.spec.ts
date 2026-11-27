@@ -38,7 +38,7 @@ test.describe("keyboard", { tag: "@desktop" }, () => {
       // Create is first in the side column.
       "a: Catch up",
       "a: Home",
-      "a: Search",
+      // No Search in the side column: from 64rem it is the bar at the top of Home (12 Nov canvas).
       "a: Library",
       // The avatar is the last stop of the side column, before the page itself (D335).
       "a: Your profile",
@@ -54,6 +54,7 @@ test.describe("keyboard", { tag: "@desktop" }, () => {
       "summary: Springlet 2.0 retargets springs mid-flight, so interrupted drawers keep their velocity Springlet Blog",
       "button: 0:03, Play from here, 0:03: A dither shader that stays sharp at any pixel density",
       "summary: A dither shader that stays sharp at any pixel density Fathom Notes",
+      "button: 0:06, Play from here, 0:03: Four measures for agent interfaces: first useful signal, correction cost, interruptions, recovery",
     ]);
   });
 

@@ -135,7 +135,13 @@ export function findSponsorBreaks(lines: readonly TimedLine[]): SponsorBreak[] {
     const stop = opening ? /[.!?](?:\s|$)/.exec(first.text.slice(opening.index)) : null;
     const to = opening && stop ? opening.index + stop.index + 1 : first.text.length;
     const named = sponsorNames(first.text.slice(from, to));
-    const names = named.size > 0 || !runsOn ? named : sponsorNames(lines[index + 1]?.text ?? "");
+    // The next line's first sentence only: "Antithesis. GitHub has changed..." names Antithesis.
+    const following = lines[index + 1]?.text ?? "";
+    const nextStop = /[.!?](?:\s|$)/.exec(following);
+    const names =
+      named.size > 0 || !runsOn
+        ? named
+        : sponsorNames(nextStop ? following.slice(0, nextStop.index + 1) : following);
     const limit = first.start_s + MAX_BREAK_S;
     let last = -1;
     for (let at = index; at < lines.length && (lines[at]?.start_s ?? limit) < limit; at += 1) {

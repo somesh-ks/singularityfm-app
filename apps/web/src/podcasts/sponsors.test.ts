@@ -73,6 +73,13 @@ describe("sponsor breaks", () => {
         line(5, 30, "The workflow is documented at github.com."),
       ]),
     ).toEqual([]);
+    expect(
+      findSponsorBreaks([
+        line(0, 2, "And now, my sponsor,"),
+        line(2, 10, "Antithesis. GitHub has changed code review."),
+        line(10, 30, "The workflow is documented at github.com."),
+      ]),
+    ).toEqual([]);
     // A sponsor named on the line after the opener is still the sponsor.
     expect(
       findSponsorBreaks([

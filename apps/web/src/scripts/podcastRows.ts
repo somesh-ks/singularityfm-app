@@ -37,6 +37,16 @@ export function episodeRow(episode: EpisodeRow, showCover: string | null = null)
   };
 }
 
+/** A row only ever leads to a page of this app: anything else (a stored or odd address) leads nowhere. */
+function inApp(href: string): string | null {
+  try {
+    const url = new URL(href, location.origin);
+    return url.origin === location.origin ? url.pathname + url.search : null;
+  } catch {
+    return null;
+  }
+}
+
 /** Fills a list with rows cloned from the page's row template. */
 export function drawRows(list: HTMLElement, rows: readonly PodcastRow[]): void {
   const template = document.querySelector<HTMLTemplateElement>("template[data-podcast-row]");
@@ -48,7 +58,8 @@ export function drawRows(list: HTMLElement, rows: readonly PodcastRow[]): void {
       const image = item.querySelector<HTMLImageElement>("img");
       const title = item.querySelector<HTMLElement>("[data-row-title]");
       const facts = item.querySelector<HTMLElement>("[data-row-facts]");
-      if (link) link.href = row.href;
+      const target = inApp(row.href);
+      if (link && target) link.href = target;
       if (image && row.cover) image.src = row.cover;
       else image?.remove();
       if (title) title.textContent = row.title;

@@ -4,6 +4,7 @@ One note per session, newest first. Read a note only to learn why something was 
 
 | Date | Note | Summary |
 | :--- | :--- | :--- |
+| 2026-11-27 | [First run and import](2026-11-27-first-run-and-import.md) | First run steps, one forgiving Add a show field with a server resolver, OPML and backup, History |
 | 2026-11-27 | [Show pages and the headline list](2026-11-27-show-pages-and-headline-list.md) | Slice 3: show and episode pages, the device store and player rules for any show; a podcast page is headlines with times, no tabs, a name strip (D403) |
 | 2026-11-26 | [PostHog with opt-in replay](2026-11-26-posthog-opt-in.md) | PostHog EU counts everyone cookieless through `/api/ph`; a Privacy switch opts in to a stored id and replay (D400) |
 | 2026-11-23 | [Podcast routes](2026-11-23-podcast-routes.md) | Slice 1 of public podcasts: six read-only routes on Podcast Index with Apple as fallback, kept at the edge, signed file addresses, audio from any secure host, a cookie switch (D396) |

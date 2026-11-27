@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { coverFile, extrasFile, parseChapters, parseCues, parseJsonTranscript } from "./files";
 import { BREAKER_FAILURES, createIndexClient, newBreaker } from "./podcastIndex";
+import { type ResolveBody, resolveLink } from "./resolve";
 import {
   canonicalNew,
   canonicalSearch,
@@ -183,5 +184,56 @@ describe("podcast routes", () => {
     expect(
       uniqueShows([row("https://Feeds.example/a/"), row("http://feeds.example/a")]),
     ).toHaveLength(1);
+  });
+});
+
+describe("a pasted link", () => {
+  const feed = (id: number, title: string) => ({
+    id,
+    title,
+    url: `https://feeds.example.com/${id}.xml`,
+  });
+  // A fake index that knows two feeds, by address and by guid, and answers a search by title.
+  const index = async (path: string, params: Record<string, string>) => {
+    if (path === "/podcasts/byfeedurl" && params.url === "https://feeds.example.com/1.xml")
+      return { feed: feed(1, "Hard Fork") };
+    if (path === "/podcasts/byguid" && params.guid === "guid-2") return { feed: feed(2, "Syntax") };
+    if (path === "/search/byterm")
+      return { feeds: [feed(1, "Hard Fork"), feed(3, "Hard Fork Live")] };
+    return { feed: [] };
+  };
+  const page = (body: string) => ({
+    ...deps({ index }),
+    resolve: PUBLIC,
+    fetch: async () => new Response(body, { status: 200 }),
+  });
+  const ask = (link: string, body: string) =>
+    resolveLink(new URLSearchParams({ link }), page(body)).then(
+      (answer) => answer.body as ResolveBody,
+    );
+
+  // Prevents the one field giving up on a show the index knows by another road: a site that links
+  // its feed, a feed the index files under its guid, and Spotify, whose feed is private but whose
+  // page names the show.
+  it("finds the show by the page's feed, the feed's guid, or the page's name", async () => {
+    const site = await ask(
+      "https://www.hardfork.show/",
+      '<link rel="alternate" type="application/rss+xml" href="https://feeds.example.com/1.xml">',
+    );
+    expect(site.show?.id).toBe(1);
+
+    const moved = await ask(
+      "https://unknown.example.com/rss",
+      "<rss><channel><title>Syntax</title><podcast:guid>guid-2</podcast:guid><item></item></channel></rss>",
+    );
+    expect(moved.show?.id).toBe(2);
+
+    const spotify = await ask(
+      "https://open.spotify.com/show/x",
+      '<meta property="og:title" content="Hard Fork | Podcast on Spotify">',
+    );
+    expect(spotify.show).toBeNull();
+    expect(spotify.name).toBe("Hard Fork");
+    expect(spotify.matches.map((show) => show.id)).toEqual([1, 3]);
   });
 });

@@ -1,13 +1,11 @@
 /**
- * What a pasted link names (the Add a show screen, first run step 3): a feed address, or an Apple
- * Podcasts id, which Overcast's links carry too. Spotify and YouTube keep their feeds to
- * themselves, so those get a plain reason and a way to search instead. Pure.
+ * What a pasted link names (Add a show's one field): an Apple Podcasts id, which Overcast's links
+ * carry too, or any other web address, which the server reads for its show (resolve.ts). Pure.
  */
 
 export type ShowLink =
-  | { kind: "feed"; url: string }
+  | { kind: "link"; url: string }
   | { kind: "apple"; id: number }
-  | { kind: "closed"; app: "Spotify" | "YouTube" }
   | { kind: "invalid" };
 
 export function parseShowLink(text: string): ShowLink {
@@ -34,10 +32,15 @@ export function parseShowLink(text: string): ShowLink {
     const id = /^\/itunes(\d{1,12})(?:$|\/)/.exec(url.pathname)?.[1];
     return id ? { kind: "apple", id: Number(id) } : { kind: "invalid" };
   }
-  if (host.endsWith("spotify.com") || host === "spoti.fi")
-    return { kind: "closed", app: "Spotify" };
-  if (host.endsWith("youtube.com") || host === "youtu.be")
-    return { kind: "closed", app: "YouTube" };
   url.hash = "";
-  return { kind: "feed", url: url.toString() };
+  return { kind: "link", url: url.toString() };
+}
+
+/** The pasted words that are links, each once; a name has none. */
+export function linksIn(text: string): string[] {
+  const words = text.split(/[\s,]+/).filter(Boolean);
+  const links = words.filter(
+    (word) => parseShowLink(word).kind !== "invalid" && /[./:]/.test(word),
+  );
+  return links.length === words.length ? [...new Set(links)] : [];
 }

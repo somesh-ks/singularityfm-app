@@ -1,4 +1,4 @@
-import type { EpisodeRow, ShowDetail } from "../server/podcasts/shapes";
+import type { EpisodeRow, ShowDetail, ShowRow } from "../server/podcasts/shapes";
 import {
   episodesOfShow,
   getShow,
@@ -38,6 +38,34 @@ export function findShow(
     "url" in by ? { url: by.url } : { apple: String(by.apple) },
   ).toString();
   return askShow(query);
+}
+
+/** What /api/podcasts/resolve says a pasted link names (server/podcasts/resolve.ts). */
+export interface LinkAnswer {
+  show: ShowRow | null;
+  matches: ShowRow[];
+  name: string | null;
+}
+
+/**
+ * Asks the server what show a pasted link names: any page or feed address, read there, since a
+ * browser may not read another site. "not_found" when the page names no show at all.
+ */
+export async function resolveLink(link: string): Promise<LinkAnswer | ShowFailure> {
+  try {
+    const query = new URLSearchParams({ link }).toString();
+    const response = await fetch(`/api/podcasts/resolve?${query}`, { credentials: "same-origin" });
+    if (response.status === 404 || response.status === 400) return "not_found";
+    if (!response.ok) return "failed";
+    const body = (await response.json()) as Partial<LinkAnswer>;
+    return {
+      show: body.show ?? null,
+      matches: Array.isArray(body.matches) ? body.matches : [],
+      name: body.name ?? null,
+    };
+  } catch {
+    return "failed";
+  }
 }
 
 async function askShow(query: string): Promise<ShowAnswer | ShowFailure> {

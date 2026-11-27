@@ -19,7 +19,7 @@ import {
 import { allRecords, favoriteShows, getShow, mergeRecords, setShowFavorite } from "./deviceStore";
 import { catchupHistory, mergeListens, saveCatchupHistory } from "./history";
 import { OPML_MAX_BYTES, type OpmlShow, parseOpml, writeOpml } from "./opml";
-import { findShow, type ShowAnswer } from "./shows";
+import { fetchShow, findShow, resolveLink, type ShowAnswer, type ShowFailure } from "./shows";
 
 /**
  * The browser side of import and export (Settings > Import and export, first run step 3): reads
@@ -118,6 +118,19 @@ export interface FollowResult {
   failed: OpmlShow[];
 }
 
+/**
+ * A show by its feed address: the index's own lookup first; a feed it does not know by that address
+ * is read by the server, which finds it by its guid or the address it moved to (resolve.ts). Only a
+ * certain answer counts: a list of matches by name is not this show.
+ */
+export async function findOrResolve(url: string): Promise<ShowAnswer | ShowFailure> {
+  const answer = await findShow({ url });
+  if (answer !== "not_found") return answer;
+  const resolved = await resolveLink(url);
+  if (typeof resolved === "string") return resolved;
+  return resolved.show?.id ? fetchShow(resolved.show.id) : "not_found";
+}
+
 /** At most this many show lookups at once: kind to the route and to a phone's connection. */
 const AT_ONCE = 4;
 
@@ -132,7 +145,7 @@ export async function followAll(
   const worker = async (): Promise<void> => {
     while (next < shows.length) {
       const show = shows[next++] as OpmlShow;
-      const answer = await findShow({ url: show.feed_url });
+      const answer = await findOrResolve(show.feed_url);
       if (answer === "not_found") result.missing.push(show);
       else if (answer === "failed") result.failed.push(show);
       else if (await follow(answer)) result.added += 1;

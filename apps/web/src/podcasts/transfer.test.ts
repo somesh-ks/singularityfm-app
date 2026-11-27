@@ -3,7 +3,7 @@ import { buildBackup, positionsToRestore, readBackup } from "./backup";
 import type { StoredEpisode, StoredShow } from "./deviceStore";
 import { mergeListens } from "./history";
 import { parseOpml, writeOpml } from "./opml";
-import { parseShowLink } from "./showLink";
+import { linksIn, parseShowLink } from "./showLink";
 
 const show: StoredShow = {
   id: 920666,
@@ -137,7 +137,9 @@ describe("import and export", () => {
   });
 
   // An Apple Podcasts link sent to the feed lookup answers "no such show" for a show the index has.
-  it("finds a show by its Apple or Overcast link and says why Spotify can't", () => {
+  // Prevents a pasted name being read as a link (or a list of links as a name): the one field sends
+  // each down a different road, and the wrong one finds nothing.
+  it("tells an Apple or Overcast id, any other link and a name apart", () => {
     expect(
       parseShowLink("https://podcasts.apple.com/us/podcast/hard-fork/id1528594034?i=1"),
     ).toEqual({ kind: "apple", id: 1528594034 });
@@ -146,17 +148,23 @@ describe("import and export", () => {
       id: 1528594034,
     });
     expect(parseShowLink("feeds.simplecast.com/l2i9YnTd")).toEqual({
-      kind: "feed",
+      kind: "link",
       url: "https://feeds.simplecast.com/l2i9YnTd",
     });
     expect(parseShowLink("feed://feeds.simplecast.com/l2i9YnTd")).toEqual({
-      kind: "feed",
+      kind: "link",
       url: "https://feeds.simplecast.com/l2i9YnTd",
     });
     expect(parseShowLink("https://open.spotify.com/show/2MAi0BvDc6GTFvKFPXnkCL")).toEqual({
-      kind: "closed",
-      app: "Spotify",
+      kind: "link",
+      url: "https://open.spotify.com/show/2MAi0BvDc6GTFvKFPXnkCL",
     });
     expect(parseShowLink("hard fork")).toEqual({ kind: "invalid" });
+    expect(linksIn("hard fork")).toEqual([]);
+    expect(linksIn("syntax.fm")).toEqual(["syntax.fm"]);
+    expect(linksIn("a.com/feed\nhttps://b.com/rss, a.com/feed")).toEqual([
+      "a.com/feed",
+      "https://b.com/rss",
+    ]);
   });
 });

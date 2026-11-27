@@ -225,10 +225,13 @@ describe("restoring a backup", () => {
       ),
     ]);
   /** This browser's storage, failing on the keys named. */
-  const storage = (failing: (key: string) => boolean) => {
+  const storage = (failing: (key: string) => boolean, unreadable = (_key: string) => false) => {
     const kept = new Map<string, string>();
     const store = {
-      getItem: (key: string) => kept.get(key) ?? null,
+      getItem: (key: string) => {
+        if (unreadable(key)) throw new DOMException("denied", "SecurityError");
+        return kept.get(key) ?? null;
+      },
       setItem: (key: string, value: string) => {
         if (failing(key)) throw new DOMException("full", "QuotaExceededError");
         kept.set(key, value);
@@ -248,8 +251,25 @@ describe("restoring a backup", () => {
     await expect(importFile(file())).rejects.toThrow();
     storage((key) => key === "singularity:history");
     await expect(importFile(file())).rejects.toThrow();
-    const kept = storage((key) => key === recordingKey("2026-11-25"));
+    let full = true;
+    const kept = storage((key) => full && key === recordingKey("2026-11-25"));
     await expect(importFile(file("rec1"))).rejects.toThrow();
     expect(kept.has(resumeKey("2026-11-25"))).toBe(false);
+    // The second try, with room again, restores the place and its recording.
+    full = false;
+    await importFile(file("rec1"));
+    expect(kept.get(recordingKey("2026-11-25"))).toBe("rec1");
+    expect(kept.has(resumeKey("2026-11-25"))).toBe(true);
+    // A History or place it cannot read must not be overwritten as if empty.
+    storage(
+      () => false,
+      (key) => key === "singularity:history",
+    );
+    await expect(importFile(file())).rejects.toThrow();
+    storage(
+      () => false,
+      (key) => key === resumeKey("2026-11-25"),
+    );
+    await expect(importFile(file())).rejects.toThrow();
   });
 });

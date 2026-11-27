@@ -217,6 +217,9 @@ async function restore(text: string): Promise<ImportOutcome> {
     if (position.played) storage?.setItem(playedKey(id), "1");
     else if (position.seconds) storage?.setItem(resumeKey(id), String(position.seconds));
   }
+  // catchupHistory reads a History it cannot read as empty: read here first, so that throws instead
+  // of the backup's list replacing the listener's own.
+  storage?.getItem(CATCHUP_HISTORY_KEY);
   const before = new Set(catchupHistory().map((listen) => `${listen.id} ${listen.at}`));
   const merged = mergeListens(catchupHistory(), backup.history);
   // Written here, not by saveCatchupHistory, which keeps quiet when storage is full.

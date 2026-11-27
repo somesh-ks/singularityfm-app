@@ -270,7 +270,16 @@ function install(): void {
         if (title) title.textContent = episode.title;
         const facts = item.querySelector(RESUME.show);
         if (facts) facts.textContent = episode.show_title;
-        item.querySelector(RESUME.hit)?.setAttribute("aria-label", `Resume ${episode.title}`);
+        const hit = item.querySelector(RESUME.hit);
+        hit?.setAttribute("aria-label", `Resume ${episode.title}`);
+        // A clone carries the template's description id: each card names its own, or a screen reader
+        // reads every card's button with the first card's title and time left.
+        const said = hit?.getAttribute("aria-describedby");
+        const description = said ? item.querySelector(`[id="${CSS.escape(said)}"]`) : null;
+        if (hit && description) {
+          description.id = `home-resume-${++serial}`;
+          hit.setAttribute("aria-describedby", description.id);
+        }
         const img = item.querySelector("img");
         const cover = episode.cover ?? show?.cover ?? null;
         if (img && cover) img.src = cover;

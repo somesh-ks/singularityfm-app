@@ -19,8 +19,8 @@ import { searchShows, trending } from "./podcastRows";
  * Skip at any step keeps what was done and ends first run; Done on the last does the same.
  */
 
-/** The most shows step 2 offers before a search: two rows of the phone's grid, three of desktop's. */
-const SUGGESTED = 12;
+/** The most shows step 2 offers before a search, as the canvas draws: Continue stays near. */
+const SUGGESTED = 6;
 /** How many of the picked topics' charts step 2 reads: enough to mix them, few enough to be quick. */
 const CHARTS = 3;
 
@@ -71,7 +71,7 @@ function installShows(root: HTMLElement): void {
   const status = root.querySelector<HTMLElement>("[data-first-run-status]");
   if (!list || !template || !form || !query || !none || !status) return;
   const favorites = new Set<number>();
-  let suggested: ShowRow[] = [];
+  let suggested: ShowRow[] | null = [];
   let asked = 0;
 
   const toggle = async (id: number, title: string, box: HTMLInputElement): Promise<void> => {
@@ -83,16 +83,27 @@ function installShows(root: HTMLElement): void {
     }
     favorites.add(id);
     const answer = await fetchShow(id);
+    // Unticked while the show loaded: the last tap wins.
+    if (!box.checked) return;
     if (typeof answer === "string") {
       favorites.delete(id);
       box.checked = false;
-      status.textContent = `Couldn't add ${title}. Try again.`;
+      sendToast({ message: `Couldn't add ${title}. Try again.`, kind: "error" });
       return;
     }
     await follow(answer);
+    if (!box.checked) await setShowFavorite(id, false, null);
   };
 
-  const draw = (rows: readonly ShowRow[]): void => {
+  const resting = none.textContent ?? "";
+  const draw = (rows: readonly ShowRow[] | null): void => {
+    // A list that did not load says so, where an empty one says nothing matched.
+    none.textContent = rows === null ? "Couldn't load shows. Check your connection." : resting;
+    if (rows === null) {
+      list.replaceChildren();
+      none.hidden = false;
+      return;
+    }
     const cards: HTMLElement[] = [];
     for (const show of rows) {
       const id = show.id;
@@ -121,7 +132,7 @@ function installShows(root: HTMLElement): void {
     if (term.length < 2) return draw(suggested);
     timer = window.setTimeout(async () => {
       const mine = ++asked;
-      const found = (await searchShows(term)) ?? [];
+      const found = await searchShows(term);
       if (mine === asked) draw(found);
     }, 300);
   });
@@ -129,6 +140,7 @@ function installShows(root: HTMLElement): void {
   void (async () => {
     for (const show of await favoriteShows()) favorites.add(show.id);
     suggested = await suggestions();
+    if (suggested.length === 0) suggested = null;
     if (query.value.trim().length < 2) draw(suggested);
   })();
 }

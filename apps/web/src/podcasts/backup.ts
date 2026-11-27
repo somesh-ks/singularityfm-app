@@ -121,6 +121,39 @@ function validPositions(raw: unknown): Record<string, Position> {
   return kept;
 }
 
+/** A time as the store writes it (toISOString), so merges that compare times as text compare right. */
+const iso = (value: unknown): string | null =>
+  isTime(value) ? new Date(value).toISOString() : null;
+const stringOrNull = (value: unknown): string | null => (typeof value === "string" ? value : null);
+const numberOrNull = (value: unknown): number | null =>
+  typeof value === "number" && Number.isFinite(value) ? value : null;
+
+/** A show as the store keeps it: its times in one form, each field it reads of the right type. */
+function storedShow(raw: StoredShow): StoredShow {
+  const speed = numberOrNull(raw.speed);
+  return {
+    ...raw,
+    favorite_at: iso(raw.favorite_at),
+    newest_id: stringOrNull(raw.newest_id),
+    speed: speed !== null && speed >= 0.5 && speed <= 3 ? speed : null,
+    last_episode_id: stringOrNull(raw.last_episode_id),
+    fetched_at: iso(raw.fetched_at) ?? new Date(0).toISOString(),
+    changed_at: iso(raw.changed_at) as string,
+  };
+}
+
+function storedEpisode(raw: StoredEpisode): StoredEpisode {
+  const duration = numberOrNull(raw.duration_s);
+  return {
+    ...raw,
+    duration_s: duration !== null && duration >= 0 ? duration : null,
+    favorite_at: iso(raw.favorite_at),
+    dismissed: raw.dismissed === true,
+    listened_at: iso(raw.listened_at),
+    changed_at: iso(raw.changed_at) as string,
+  };
+}
+
 export type BackupProblem = "not_json" | "not_backup" | "newer_version";
 
 /**
@@ -137,17 +170,24 @@ export function readBackup(text: string): Backup | BackupProblem {
   if (!isObject(raw) || raw.format !== BACKUP_FORMAT) return "not_backup";
   if (typeof raw.version !== "number" || raw.version > BACKUP_VERSION) return "newer_version";
   const history = Array.isArray(raw.history)
-    ? raw.history.filter(
-        (row): row is CatchupListen =>
-          isObject(row) && typeof row.id === "string" && POSITION_ID.test(row.id) && isTime(row.at),
-      )
+    ? raw.history
+        .filter(
+          (row): row is CatchupListen =>
+            isObject(row) &&
+            typeof row.id === "string" &&
+            POSITION_ID.test(row.id) &&
+            isTime(row.at),
+        )
+        .map((row) => ({ id: row.id, at: iso(row.at) as string }))
     : [];
   return {
     format: BACKUP_FORMAT,
     version: BACKUP_VERSION,
     exported_at: isTime(raw.exported_at) ? raw.exported_at : new Date(0).toISOString(),
-    shows: Array.isArray(raw.shows) ? raw.shows.filter(validShow) : [],
-    episodes: Array.isArray(raw.episodes) ? raw.episodes.filter(validEpisode) : [],
+    shows: Array.isArray(raw.shows) ? raw.shows.filter(validShow).map(storedShow) : [],
+    episodes: Array.isArray(raw.episodes)
+      ? raw.episodes.filter(validEpisode).map(storedEpisode)
+      : [],
     positions: validPositions(raw.positions),
     history: mergeListens(history),
   };

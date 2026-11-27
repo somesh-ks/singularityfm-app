@@ -198,6 +198,7 @@ describe("a pasted link", () => {
     if (path === "/podcasts/byfeedurl" && params.url === "https://feeds.example.com/1.xml")
       return { feed: feed(1, "Hard Fork") };
     if (path === "/podcasts/byguid" && params.guid === "guid-2") return { feed: feed(2, "Syntax") };
+    if (path === "/podcasts/byitunesid") return { feed: feed(Number(params.id), "Listed") };
     if (path === "/search/byterm")
       return { feeds: [feed(1, "Hard Fork"), feed(3, "Hard Fork Live")] };
     return { feed: [] };
@@ -235,5 +236,13 @@ describe("a pasted link", () => {
     expect(spotify.show).toBeNull();
     expect(spotify.name).toBe("Hard Fork");
     expect(spotify.matches.map((show) => show.id)).toEqual([1, 3]);
+
+    // An article that links several shows names none of them: they are offered, none followed.
+    const article = await ask(
+      "https://blog.example.com/best-podcasts",
+      '<a href="https://podcasts.apple.com/us/podcast/a/id11">A</a><a href="https://podcasts.apple.com/us/podcast/b/id22">B</a>',
+    );
+    expect(article.show).toBeNull();
+    expect(article.matches.map((show) => show.id)).toEqual([11, 22]);
   });
 });

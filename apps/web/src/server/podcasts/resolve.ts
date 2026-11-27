@@ -11,7 +11,7 @@ import {
   type PodcastDeps,
   searchShows,
 } from "./routes";
-import { type ShowRow, showFromIndex, stripTags } from "./shapes";
+import { plainText, type ShowRow, showFromIndex } from "./shapes";
 
 /**
  * GET /api/podcasts/resolve?link=: whatever a person pasted into Add a show, turned into a show the
@@ -34,6 +34,8 @@ export const PAGE_TIMEOUT_MS = 5000;
 /** Alternate feeds a page lists that are tried, at most. */
 const ALTERNATES_MAX = 3;
 export const MATCHES_MAX = 6;
+/** Resolves per client a minute, inside the podcast routes' shared cap. */
+export const RESOLVE_PER_MINUTE = 30;
 
 export interface ResolveDeps extends PodcastDeps {
   fetch: FetchImpl;
@@ -99,13 +101,45 @@ async function readPage(url: string, deps: ResolveDeps): Promise<string | null> 
   }
 }
 
-const decode = (text: string): string =>
-  stripTags(text.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")).trim();
+/** Only the start of a page is read for its tags: what names a show sits in its head or channel. */
+export const PARSE_MAX_CHARS = 64 * 1024;
 
-const tagText = (xml: string, tag: string): string | null => {
-  const found = new RegExp(`<${tag}(?:\\s[^>]*)?>([\\s\\S]*?)</${tag}>`, "i").exec(xml)?.[1];
-  return found ? decode(found) || null : null;
-};
+const decode = (text: string): string =>
+  plainText(text.split("<![CDATA[").join("").split("]]>").join(""), 300);
+
+/**
+ * The text of the first <tag>...</tag>, found by plain scans, never a backtracking pattern: a
+ * hostile page must not cost the function seconds (Fable review, 27 Nov).
+ */
+function tagText(xml: string, tag: string): string | null {
+  const lower = xml.toLowerCase();
+  let at = 0;
+  for (;;) {
+    at = lower.indexOf(`<${tag}`, at);
+    if (at === -1) return null;
+    const next = lower[at + tag.length + 1] ?? "";
+    if (next === ">" || /\s/.test(next)) break;
+    at += tag.length + 1;
+  }
+  const open = lower.indexOf(">", at);
+  const close = lower.indexOf(`</${tag}>`, open);
+  if (open === -1 || close === -1) return null;
+  return decode(xml.slice(open + 1, close)) || null;
+}
+
+/** Every <name ...> tag, by plain scans. */
+function tagsNamed(html: string, name: string): string[] {
+  const lower = html.toLowerCase();
+  const tags: string[] = [];
+  let at = lower.indexOf(`<${name}`);
+  while (at !== -1 && tags.length < 400) {
+    const end = lower.indexOf(">", at);
+    if (end === -1) break;
+    tags.push(html.slice(at, end + 1));
+    at = lower.indexOf(`<${name}`, end);
+  }
+  return tags;
+}
 
 const attr = (tag: string, name: string): string | null =>
   new RegExp(`\\s${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)')`, "i")
@@ -119,10 +153,18 @@ export function readFeed(xml: string): {
   moved: string | null;
   name: string | null;
 } {
-  const channel = /<channel[\s>]([\s\S]*?)(?:<item[\s>]|<\/channel>)/i.exec(xml)?.[1] ?? xml;
+  const text = xml.slice(0, PARSE_MAX_CHARS);
+  const lower = text.toLowerCase();
+  const start = Math.max(0, lower.indexOf("<channel"));
+  const ends = [lower.indexOf("<item", start), lower.indexOf("</channel>", start)].filter(
+    (at) => at !== -1,
+  );
+  const channel = text.slice(start, ends.length > 0 ? Math.min(...ends) : undefined);
+  const guid = tagText(channel, "podcast:guid");
+  const moved = tagText(channel, "itunes:new-feed-url");
   return {
-    guid: tagText(channel, "podcast:guid"),
-    moved: tagText(channel, "itunes:new-feed-url"),
+    guid: guid && /^[\w.:-]{1,200}$/.test(guid) ? guid : null,
+    moved: moved && moved.length <= 2048 && /^https?:\/\//i.test(moved) ? moved : null,
     name: tagText(channel, "title"),
   };
 }
@@ -131,27 +173,33 @@ export function readFeed(xml: string): {
 const TITLE_TAILS =
   /\s*[|\-\u2013·:]\s*(?:podcast on spotify|spotify|youtube|apple podcasts|pocket casts|castro|overcast|podcast addict|player\.fm|listen notes|podchaser|amazon music|audible|iheart(?:radio)?|podcast)\s*$/i;
 
-/** What a web page says about a show: the feeds it lists, an Apple id it links to, its name. */
+/** What a web page says about a show: the feeds it lists, the Apple ids it links to, its name. */
 export function readShowPage(
   html: string,
   base: string,
-): { feeds: string[]; apple: string | null; name: string | null } {
-  const head = html.slice(0, 200_000);
+): { feeds: string[]; apple: string[]; name: string | null } {
+  const head = html.slice(0, PARSE_MAX_CHARS);
   const feeds: string[] = [];
-  for (const [tag] of head.matchAll(/<link\b[^>]*>/gi)) {
+  for (const tag of tagsNamed(head, "link")) {
     const type = attr(tag, "type") ?? "";
     const rel = attr(tag, "rel") ?? "";
     const href = attr(tag, "href");
-    if (!href || !/alternate/i.test(rel) || !/(rss|atom)\+xml/i.test(type)) continue;
+    if (!href || href.length > 2048 || !/alternate/i.test(rel) || !/(rss|atom)\+xml/i.test(type)) {
+      continue;
+    }
     try {
       feeds.push(new URL(decode(href), base).toString());
     } catch {
       // A broken href is skipped.
     }
   }
-  const apple = /podcasts\.apple\.com\/[^"'\s<>]*?\/id(\d{1,12})/i.exec(head)?.[1] ?? null;
+  const apple = [
+    ...head.matchAll(
+      /podcasts\.apple\.com\/[\w-]{0,8}\/?podcast\/[^"'\s<>/]{0,200}\/id(\d{1,12})/gi,
+    ),
+  ].map((match) => match[1] as string);
   let name: string | null = null;
-  for (const [tag] of head.matchAll(/<meta\b[^>]*>/gi)) {
+  for (const tag of tagsNamed(head, "meta")) {
     if (/(?:property|name)\s*=\s*["'](?:og:title|twitter:title)["']/i.test(tag)) {
       name = decode(attr(tag, "content") ?? "") || null;
       if (name) break;
@@ -159,7 +207,20 @@ export function readShowPage(
   }
   name ??= tagText(head, "title");
   for (let i = 0; name && i < 3; i++) name = name.replace(TITLE_TAILS, "").trim();
-  return { feeds: [...new Set(feeds)].slice(0, ALTERNATES_MAX), apple, name: name || null };
+  return {
+    feeds: [...new Set(feeds)].slice(0, ALTERNATES_MAX),
+    apple: [...new Set(apple)].slice(0, ALTERNATES_MAX),
+    name: name ? name.slice(0, 200) : null,
+  };
+}
+
+/** An index call that answers null on any failure, so one bad step falls through to the next. */
+async function quietly<T>(work: () => Promise<T | null>): Promise<T | null> {
+  try {
+    return await work();
+  } catch {
+    return null;
+  }
 }
 
 const found = (show: ShowRow): ApiResult<ResolveBody> => ({
@@ -168,55 +229,65 @@ const found = (show: ShowRow): ApiResult<ResolveBody> => ({
   headers: edgeHeaders(EDGE_SECONDS.search),
 });
 
+const several = (shows: ShowRow[], name: string | null): ApiResult<ResolveBody> => ({
+  status: 200,
+  body: { show: null, matches: shows.slice(0, MATCHES_MAX), name },
+  headers: edgeHeaders(EDGE_SECONDS.search),
+});
+
 export async function resolveLink(
   params: URLSearchParams,
   deps: ResolveDeps,
 ): Promise<ApiResult<ResolveBody | ErrorBody>> {
-  const link = params.get("link") ?? "";
-  try {
-    const url = new URL(link);
-    const https = url.protocol === "http:" ? `https:${url.href.slice(5)}` : url.href;
-    // 1. A feed the index knows, as given or over https.
-    for (const candidate of new Set([url.href, https])) {
-      const show = await byFeedUrl(candidate, deps);
+  const url = new URL(params.get("link") ?? "");
+  const https = url.protocol === "http:" ? `https:${url.href.slice(5)}` : url.href;
+  // 1. A feed the index knows, as given or over https.
+  for (const candidate of new Set([url.href, https])) {
+    const show = await quietly(() => byFeedUrl(candidate, deps));
+    if (show) return found(show);
+  }
+  // 2. The page itself.
+  const text = await readPage(https, deps);
+  let name: string | null = null;
+  if (text && /<(?:rss|feed)[\s>]/i.test(text.slice(0, 4000))) {
+    const feed = readFeed(text);
+    const guid = feed.guid;
+    if (guid) {
+      const show = await quietly(async () =>
+        feedOf(await deps.index("/podcasts/byguid", { guid }), deps),
+      );
       if (show) return found(show);
     }
-    // 2. The page itself.
-    const text = await readPage(https, deps);
-    let name: string | null = null;
-    if (text && /<(?:rss|feed)[\s>]/i.test(text.slice(0, 4000))) {
-      const feed = readFeed(text);
-      if (feed.guid) {
-        const show = feedOf(await deps.index("/podcasts/byguid", { guid: feed.guid }), deps);
-        if (show) return found(show);
-      }
-      if (feed.moved && /^https?:\/\//i.test(feed.moved)) {
-        const show = await byFeedUrl(feed.moved, deps);
-        if (show) return found(show);
-      }
-      name = feed.name;
-    } else if (text) {
-      const page = readShowPage(text, https);
-      for (const feed of page.feeds) {
-        const show = await byFeedUrl(feed, deps);
-        if (show) return found(show);
-      }
-      if (page.apple) {
-        const show = feedOf(await deps.index("/podcasts/byitunesid", { id: page.apple }), deps);
-        if (show) return found(show);
-      }
-      name = page.name;
+    const moved = feed.moved;
+    if (moved) {
+      const show = await quietly(() => byFeedUrl(moved, deps));
+      if (show) return found(show);
     }
-    // 3. The closest shows by the page's name.
-    if (!name) return failure(404, "not_found", "Nothing on that page names a show.");
-    const search = await searchShows(name.toLowerCase().slice(0, 100), deps);
-    const matches = "shows" in search.body ? search.body.shows.slice(0, MATCHES_MAX) : [];
-    return {
-      status: 200,
-      body: { show: null, matches, name },
-      headers: edgeHeaders(EDGE_SECONDS.search),
-    };
-  } catch {
-    return failure(502, "upstream", "The podcast index did not answer.");
+    name = feed.name;
+  } else if (text) {
+    // A page that links one show names it; one that links several (an article, a list) does not,
+    // so those are offered to pick from, never followed on a guess.
+    const page = readShowPage(text, https);
+    const shows = new Map<number, ShowRow>();
+    for (const feed of page.feeds) {
+      const show = await quietly(() => byFeedUrl(feed, deps));
+      if (show?.id) shows.set(show.id, show);
+    }
+    for (const id of page.apple) {
+      const show = await quietly(async () =>
+        feedOf(await deps.index("/podcasts/byitunesid", { id }), deps),
+      );
+      if (show?.id) shows.set(show.id, show);
+    }
+    if (shows.size === 1) return found([...shows.values()][0] as ShowRow);
+    if (shows.size > 1) return several([...shows.values()], page.name);
+    name = page.name;
   }
+  // 3. The closest shows by the page's name. A failed search is the search's answer, never kept.
+  if (!name) return failure(404, "not_found", "Nothing on that page names a show.");
+  const search = await searchShows(name.toLowerCase().slice(0, 100), deps);
+  if (!("shows" in search.body)) return search as ApiResult<ErrorBody>;
+  const matches = search.body.shows.filter((show) => show.id !== null);
+  if (matches.length === 0) return failure(404, "not_found", "No show goes by that page's name.");
+  return several(matches, name);
 }

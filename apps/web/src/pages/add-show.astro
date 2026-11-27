@@ -42,7 +42,10 @@ const title = "Add a show";
           data-add-show-input
         />
         <p class="create-error" role="alert" data-add-show-error hidden></p>
-        <Button variant="filled" type="submit" data-add-show-go>Find show</Button>
+        <Button variant="filled" type="submit" data-add-show-go>
+          <span class="spinner" aria-hidden="true"></span>
+          <span data-add-show-go-text>Find show</span>
+        </Button>
       </form>
       <p class="sr-only" role="status" data-add-show-status></p>
       <section aria-labelledby="add-show-matches-head" data-add-show-matches hidden>

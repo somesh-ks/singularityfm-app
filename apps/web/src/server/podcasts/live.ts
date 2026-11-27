@@ -39,6 +39,8 @@ export interface PodcastRouteOptions {
   /** How long the edge keeps the 308 to the canonical address. */
   redirectSeconds?: number;
   handle: (params: URLSearchParams, deps: PodcastDeps) => Promise<Response>;
+  /** A route that costs several upstream calls a request keeps its own, smaller cap as well. */
+  perMinute?: number;
 }
 
 /**
@@ -68,7 +70,12 @@ export function podcastRoute(name: string, options: PodcastRouteOptions): APIRou
     }
     const deps = liveDeps();
     if (!deps) return notConfigured();
-    if (!(await deps.limit(`podcasts:${clientOf(request)}`, PER_CLIENT_PER_MINUTE))) {
+    const client = clientOf(request);
+    const within =
+      (await deps.limit(`podcasts:${client}`, PER_CLIENT_PER_MINUTE)) &&
+      (options.perMinute === undefined ||
+        (await deps.limit(`podcasts:${name}:${client}`, options.perMinute)));
+    if (!within) {
       return toResponse({
         ...failure(429, "rate_limited", "Too many requests. Try again in a minute."),
       });

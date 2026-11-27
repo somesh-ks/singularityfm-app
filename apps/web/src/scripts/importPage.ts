@@ -38,18 +38,7 @@ export function installImportPicker(
     try {
       const outcome = await importFile(file, (count, total) => say(importProgress(count, total)));
       say("");
-      sendToast({
-        message: importSummary(outcome),
-        kind: outcome.kind === "problem" ? "error" : undefined,
-      });
-      if (outcome.kind === "opml" && outcome.missing.length > 0) {
-        for (const show of outcome.missing) {
-          const item = document.createElement("li");
-          item.textContent = show.title || show.feed_url;
-          missingList.append(item);
-        }
-        missing.hidden = false;
-      }
+      reportImport(root, outcome);
       done(outcome);
     } catch {
       say("");
@@ -58,6 +47,30 @@ export function installImportPicker(
       pick.disabled = false;
     }
   });
+}
+
+/**
+ * Says what an import did: a toast, and the shows the index did not know listed by name under the
+ * picker ([data-import-missing]), so they can be searched for. Shared by a chosen, dropped or
+ * pasted import.
+ */
+export function reportImport(root: HTMLElement, outcome: ImportOutcome): void {
+  sendToast({
+    message: importSummary(outcome),
+    kind: outcome.kind === "problem" ? "error" : undefined,
+  });
+  const missing = root.querySelector<HTMLElement>("[data-import-missing]");
+  const list = root.querySelector<HTMLUListElement>("[data-import-missing-list]");
+  if (!missing || !list) return;
+  list.replaceChildren();
+  missing.hidden = true;
+  if (outcome.kind !== "opml" || outcome.missing.length === 0) return;
+  for (const show of outcome.missing) {
+    const item = document.createElement("li");
+    item.textContent = show.title || show.feed_url;
+    list.append(item);
+  }
+  missing.hidden = false;
 }
 
 export function installImportPage(): void {

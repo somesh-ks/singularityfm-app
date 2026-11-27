@@ -1,16 +1,15 @@
 import { sendToast } from "@singularityfm/design-system/toastEvent";
-import { addShowFrom } from "../podcasts/addShow";
+import { type AddShowResult, addPicked, addShowFrom } from "../podcasts/addShow";
 import { FIRST_RUN_ADDED_KEY } from "../podcasts/firstRun";
-import { importSummary } from "../podcasts/importCopy";
 import { importFile } from "../podcasts/transfer";
-import { installImportPicker } from "./importPage";
+import { installImportPicker, reportImport } from "./importPage";
 import { drawRows, type PodcastRow, showRow } from "./podcastRows";
 
 /**
  * The Add a show page: one field for a name, a link or a pasted list (podcasts/addShow.ts). A show
  * found for certain is a favorite at once and its page opens; else the closest are listed to pick
- * from. Search hands a pasted link here as ?link=, which runs at once. A file dropped anywhere on the
- * page is imported, as the Choose file row does.
+ * from. Search hands a pasted link here as ?link=, which looks at once but follows nothing until the
+ * show is tapped. A file dropped anywhere on the page is imported, as the Choose file row does.
  */
 export function installAddShowPage(): void {
   const root = document.querySelector<HTMLElement>("[data-add-show]");
@@ -38,50 +37,78 @@ export function installAddShowPage(): void {
   };
   input.addEventListener("input", clear);
 
-  const run = async (): Promise<void> => {
+  const words = go.querySelector<HTMLElement>("[data-add-show-go-text]");
+  const rest = words?.textContent ?? "";
+  // Working: the button keeps its fill and focus, says so and spins (CreateForm's busy button).
+  let working = false;
+  const busy = (on: boolean): void => {
+    working = on;
+    for (const name of ["aria-disabled", "aria-busy", "data-busy"]) {
+      if (on) go.setAttribute(name, "true");
+      else go.removeAttribute(name);
+    }
+    if (words) words.textContent = on ? "Looking" : rest;
+  };
+
+  const settle = (result: AddShowResult): void => {
+    if (result.kind === "error") return fail(result.message);
+    if (result.kind === "imported") return reportImport(root, result.outcome);
+    if (result.kind === "matches") {
+      drawRows(
+        list,
+        result.shows.map(showRow).filter((row): row is PodcastRow => row !== null),
+      );
+      matches.hidden = false;
+      status.textContent =
+        result.shows.length === 1 ? "Found one show" : `${result.shows.length} possible shows`;
+      return;
+    }
+    // From first run, back to its last step, which says so; else the show's page, whose heart
+    // shows it is a favorite now.
+    if (fromFirstRun) {
+      try {
+        sessionStorage.setItem(FIRST_RUN_ADDED_KEY, result.title);
+      } catch {
+        // Best effort: the step still lists the show on Home.
+      }
+      location.assign("/welcome/import");
+      return;
+    }
+    location.assign(result.url);
+  };
+
+  const run = async (confirm = false): Promise<void> => {
+    if (working) return;
     clear();
     matches.hidden = true;
-    go.disabled = true;
+    busy(true);
     status.textContent = "Looking for the show";
     try {
-      const result = await addShowFrom(input.value);
+      const result = await addShowFrom(input.value, confirm);
       status.textContent = "";
-      if (result.kind === "error") return fail(result.message);
-      if (result.kind === "imported") {
-        sendToast({
-          message: importSummary(result.outcome),
-          kind: result.outcome.kind === "problem" ? "error" : undefined,
-        });
-        return;
-      }
-      if (result.kind === "matches") {
-        drawRows(
-          list,
-          result.shows.map(showRow).filter((row): row is PodcastRow => row !== null),
-        );
-        matches.hidden = false;
-        status.textContent = `${result.shows.length} possible shows`;
-        return;
-      }
-      // From first run, back to its last step, which says so; else the show's page, whose heart
-      // shows it is a favorite now.
-      if (fromFirstRun) {
-        try {
-          sessionStorage.setItem(FIRST_RUN_ADDED_KEY, result.title);
-        } catch {
-          // Best effort: the step still lists the show on Home.
-        }
-        location.assign("/welcome/import");
-        return;
-      }
-      location.assign(result.url);
+      settle(result);
     } finally {
-      go.disabled = false;
+      busy(false);
     }
   };
   form.addEventListener("submit", (event) => {
     event.preventDefault();
     void run();
+  });
+
+  // A match tapped is added as a certain find is: favorited, then its page (or first run's step).
+  list.addEventListener("click", async (event) => {
+    const link = (event.target as Element).closest<HTMLAnchorElement>("a[href]");
+    const id = Number(new URL(link?.href ?? location.href).searchParams.get("id"));
+    if (!link || !Number.isInteger(id) || id <= 0) return;
+    event.preventDefault();
+    if (working) return;
+    busy(true);
+    try {
+      settle(await addPicked(id));
+    } finally {
+      busy(false);
+    }
   });
 
   // A file dropped anywhere on the page is imported; the page itself never opens it.
@@ -93,11 +120,7 @@ export function installAddShowPage(): void {
     if (!file) return;
     event.preventDefault();
     try {
-      const outcome = await importFile(file);
-      sendToast({
-        message: importSummary(outcome),
-        kind: outcome.kind === "problem" ? "error" : undefined,
-      });
+      reportImport(root, await importFile(file));
     } catch {
       sendToast({ message: "Couldn't read that file. Try again.", kind: "error" });
     }
@@ -106,6 +129,6 @@ export function installAddShowPage(): void {
   const link = params.get("link");
   if (link) {
     input.value = link;
-    void run();
+    void run(true);
   }
 }

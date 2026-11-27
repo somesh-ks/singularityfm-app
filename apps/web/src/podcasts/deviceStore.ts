@@ -36,6 +36,13 @@ export interface StoredShow extends ShowDetail {
   speed: number | null;
   /** The episode of this show played last, so its Play resumes that one. */
   last_episode_id: string | null;
+  /** ISO time the listener pinned the show to the front of Home's speed dial; null when not pinned. */
+  pinned_at: string | null;
+  /**
+   * ISO time the listener said Not interested, or took the show off the speed dial: Home's shelves
+   * and the dial leave it out. Null while it is welcome. A favorite again clears it.
+   */
+  hidden_at: string | null;
   /** ISO time the route's answer was stored. */
   fetched_at: string;
   changed_at: string;
@@ -194,6 +201,8 @@ export function saveShow(show: ShowDetail, episodes: readonly EpisodeRow[]): Pro
         newest_id: null,
         speed: null,
         last_episode_id: null,
+        pinned_at: null,
+        hidden_at: null,
         changed_at: stamp,
         ...before,
         ...show,
@@ -271,8 +280,8 @@ export async function setShowFavorite(
     favorite
       ? show.favorite_at
         ? {}
-        : { favorite_at: now(), newest_id: newestId }
-      : { favorite_at: null, newest_id: null },
+        : { favorite_at: now(), newest_id: newestId, hidden_at: null }
+      : { favorite_at: null, newest_id: null, pinned_at: null },
   );
   if (favorite) {
     try {
@@ -281,6 +290,71 @@ export async function setShowFavorite(
       // Best effort: the export file is the backup.
     }
   }
+}
+
+/** Pins the show to the front of the speed dial, or unpins it (Home's long press menus). */
+export function setShowPinned(id: number, pinned: boolean): Promise<void> {
+  return changeShow(id, () => ({ pinned_at: pinned ? now() : null }));
+}
+
+/**
+ * Not interested, or Remove from speed dial: Home leaves the show out from now on. The favorite
+ * and every episode's record stay, so the Library still finds them.
+ */
+export function setShowHidden(id: number, hidden: boolean): Promise<void> {
+  // The pin stays: Undo brings a pinned show back to its place.
+  return changeShow(id, () => ({ hidden_at: hidden ? now() : null }));
+}
+
+/**
+ * Stores episodes that came without their show's page (the new episodes of every favorite, in one
+ * route call), keeping what the listener did with each. A show not on the device is skipped: an
+ * episode is drawn with its show's name and cover, which only the show's record holds.
+ */
+export function saveEpisodes(episodes: readonly EpisodeRow[]): Promise<void> {
+  if (episodes.length === 0) return Promise.resolve();
+  return run(
+    [SHOWS, EPISODES],
+    "readwrite",
+    async (tx) => {
+      const stamp = now();
+      const shows = tx.objectStore(SHOWS);
+      const store = tx.objectStore(EPISODES);
+      for (const episode of episodes) {
+        if (!(await request(shows.get(episode.show_id)))) continue;
+        const kept: StoredEpisode | undefined = await request(store.get(episode.id));
+        store.put({
+          pinned: false,
+          favorite_at: null,
+          dismissed: false,
+          listened_at: null,
+          changed_at: stamp,
+          ...kept,
+          ...episode,
+          description:
+            kept && kept.description.length > episode.description.length
+              ? kept.description
+              : episode.description,
+        } satisfies StoredEpisode);
+      }
+    },
+    undefined,
+  ).then(announce);
+}
+
+/** Every episode the listener hearted, newest heart first: the Library's Favorites chip. */
+export function favoriteEpisodes(): Promise<StoredEpisode[]> {
+  return run(
+    [EPISODES],
+    "readonly",
+    async (tx) => {
+      const rows: StoredEpisode[] = await request(tx.objectStore(EPISODES).getAll());
+      return rows
+        .filter((episode) => episode.favorite_at !== null)
+        .sort((a, b) => (b.favorite_at ?? "").localeCompare(a.favorite_at ?? ""));
+    },
+    [],
+  );
 }
 
 export function setShowSpeed(id: number, speed: number | null): Promise<void> {

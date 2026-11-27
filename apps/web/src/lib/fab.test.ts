@@ -2,12 +2,13 @@ import { describe, expect, it } from "vitest";
 import { fabFor } from "./fab";
 
 describe("which floating button a page shows", () => {
-  it("keeps Create on the Library alone", () => {
+  it("keeps Create on the Library and Home", () => {
     expect(fabFor({ path: "/library", playable: false })).toBe("create");
+    expect(fabFor({ path: "/", playable: false })).toBe("create");
   });
 
   it("offers Play on Today, the latest briefing at its address, an older briefing and an episode", () => {
-    for (const path of ["/", "/d/2026-10-07", "/d/2026-10-05", "/e/ep-20261007-1930"]) {
+    for (const path of ["/latest", "/d/2026-10-07", "/d/2026-10-05", "/e/ep-20261007-1930"]) {
       expect(fabFor({ path, playable: true }), path).toBe("play");
     }
   });
@@ -26,7 +27,7 @@ describe("which floating button a page shows", () => {
 
   it("shows none on a page with nothing to play and nothing to make", () => {
     // Today before the first briefing has nothing to play, and Create lives in the Library.
-    for (const path of ["/", "/settings", "/settings/daily", "/create", "/offline", "/404"]) {
+    for (const path of ["/latest", "/settings", "/settings/daily", "/create", "/offline", "/404"]) {
       expect(fabFor({ path, playable: false }), path).toBeNull();
     }
   });

@@ -163,6 +163,8 @@ function storedShow(raw: StoredShow): StoredShow {
     explicit: raw.explicit === true,
     order: raw.order === "serial" ? "serial" : "episodic",
     favorite_at: iso(raw.favorite_at),
+    pinned_at: iso(raw.pinned_at),
+    hidden_at: iso(raw.hidden_at),
     newest_id: stringOrNull(raw.newest_id),
     speed: speed !== null && speed >= 0.5 && speed <= 3 ? speed : null,
     last_episode_id: stringOrNull(raw.last_episode_id),

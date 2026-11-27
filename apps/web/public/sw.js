@@ -53,7 +53,7 @@ const MAX_KEPT_ASSETS = 400;
 
 const OFFLINE_URL = "/offline";
 // Saved is here too: it must open offline from the first install, before KEEP_READY has run (D330).
-const SHELL_PAGES = ["/", "/library", "/settings/saved", OFFLINE_URL];
+const SHELL_PAGES = ["/", "/latest", "/library", "/settings/saved", OFFLINE_URL];
 const SHELL_FILES = ["/manifest.webmanifest", "/favicon.svg", "/icon-192.png"];
 const NETWORK_WAIT_MS = 3000;
 /** A saved page younger than this answers a move inside the app without waiting for the network. */

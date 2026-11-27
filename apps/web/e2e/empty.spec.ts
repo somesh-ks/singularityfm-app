@@ -57,7 +57,7 @@ test.describe("empty states", () => {
       page,
       context,
     }) => {
-      await page.goto("/");
+      await page.goto("/latest");
       await page.evaluate(() => navigator.serviceWorker.ready);
       await page.reload();
       await page.waitForLoadState("networkidle");

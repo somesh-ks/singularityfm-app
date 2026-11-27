@@ -410,7 +410,7 @@ test.describe("regenerate and delete an episode", () => {
     }) => {
       // The fixture site's newest item is a briefing, so Latest is served as the episode page, the
       // way the server renders it when an episode is newest: with the next items' addresses beside it.
-      await page.route(/\/$/, async (route) => {
+      await page.route(/\/latest$/, async (route) => {
         const response = await route.fetch({
           url: new URL(`/e/${ID}`, route.request().url()).href,
         });
@@ -425,7 +425,7 @@ test.describe("regenerate and delete an episode", () => {
       await choose(page, "Delete");
       await confirm(page).getByRole("button", { name: "Delete", exact: true }).click();
       await expect(page).toHaveURL(/\/library$/, { timeout: 5_000 });
-      await page.goto("/");
+      await page.goto("/latest");
       await expect(page).toHaveURL(/\/e\/ep-20261006-0900$/);
     });
   });

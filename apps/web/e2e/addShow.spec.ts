@@ -82,3 +82,19 @@ test("a pasted link offers its show, follows it only when tapped, and the favori
   await page.reload();
   await expect(page.locator("[data-show-favorite]")).toHaveAttribute("aria-pressed", "true");
 });
+
+// A new device must meet first run once, and only once: Skip ends it, and Home stays Home after
+// (Nov 12 plan, slice 6). The fixtures mark every other test's device as past first run.
+test("a new device opens first run once, and Skip ends it", async ({ browser, baseURL }) => {
+  const context = await browser.newContext({ baseURL });
+  const page = await context.newPage();
+  await page.route("**/api/podcasts/**", (route) => route.fulfill({ json: { shows: [] } }));
+  await page.goto("/");
+  await page.waitForURL(/\/welcome$/);
+  await page.locator("button[data-first-run-skip]").click();
+  await page.waitForURL((url) => url.pathname === "/");
+  await page.reload();
+  await expect(page.locator("[data-home]")).toBeVisible();
+  expect(new URL(page.url()).pathname).toBe("/");
+  await context.close();
+});

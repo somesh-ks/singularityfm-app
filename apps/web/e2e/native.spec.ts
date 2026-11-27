@@ -75,7 +75,7 @@ test.describe("the floating button", () => {
     // Today and the latest briefing at its dated address, which the navigation marks as Today, play
     // like any other briefing.
     for (const [path, noun] of [
-      ["/", "podcast"],
+      ["/latest", "podcast"],
       ["/d/2026-10-07", "podcast"],
       ["/d/2026-10-05", "podcast"],
       ["/d/2026-10-04-weekly", "podcast"],
@@ -108,7 +108,7 @@ test.describe("the floating button", () => {
     page,
   }) => {
     await page.setViewportSize({ width: 390, height: 560 });
-    for (const path of ["/", "/e/ep-20261007-1930"]) {
+    for (const path of ["/latest", "/e/ep-20261007-1930"]) {
       await page.goto(path);
       const root = page.locator("html");
       await expect(playFab(page), path).toBeHidden();
@@ -128,7 +128,7 @@ test.describe("the floating button", () => {
   test("at the end of a podcast the last line stays clear of Play", async ({ page }) => {
     for (const width of [360, 390]) {
       await page.setViewportSize({ width, height: 800 });
-      for (const path of ["/", "/d/2026-10-07"]) {
+      for (const path of ["/latest", "/d/2026-10-07"]) {
         await page.goto(path);
         await page.evaluate(() =>
           window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "instant" }),
@@ -244,7 +244,7 @@ test.describe("the tab bar", () => {
   test("pressing the destination you are on takes you to its top, without loading it again", async ({
     page,
   }) => {
-    await page.goto("/");
+    await page.goto("/latest");
     await page.evaluate(() => window.scrollTo(0, 1200));
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(600);
     // A mark on the window: a new page load would drop it.
@@ -257,20 +257,5 @@ test.describe("the tab bar", () => {
       .click();
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
     expect(await page.evaluate(() => (window as unknown as { kept?: boolean }).kept)).toBe(true);
-  });
-
-  test("on the latest podcast's dated page, Today goes to its top, as on Today itself", async ({
-    page,
-  }) => {
-    await page.goto("/d/2026-10-07");
-    const today = page
-      .getByRole("navigation", { name: "Primary" })
-      .getByRole("link", { name: "Home", exact: true });
-    await expect(today).toHaveAttribute("aria-current", "page");
-    await page.evaluate(() => window.scrollTo(0, 1200));
-    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(600);
-    await today.click();
-    await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
-    await expect(page).toHaveURL(/\/d\/2026-10-07$/);
   });
 });

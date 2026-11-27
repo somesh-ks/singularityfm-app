@@ -30,6 +30,8 @@ import {
   storyHeadline,
   textHasWords,
 } from "../lib/library";
+import { savedAt } from "../player/core/saved";
+import { PODCASTS_CHANGED_EVENT } from "../podcasts/deviceStore";
 import { installMonthBands } from "./libraryMonths";
 import { applyView, libraryRoot, storedView, VIEW_KEY } from "./libraryView";
 
@@ -98,7 +100,19 @@ function install(): void {
   const sortField = select?.closest<HTMLElement>("[data-select]") ?? null;
   const sortShown = (): boolean =>
     sortField !== null && getComputedStyle(sortField).display !== "none";
-  const cards = [...grid.querySelectorAll<HTMLElement>("[data-card]")].map(readCard);
+  let cards = [...grid.querySelectorAll<HTMLElement>("[data-card]")].map(readCard);
+  /**
+   * Whether the Favorites chip keeps a card: a Catchup the device saved (player/core/saved.ts), or a
+   * show's row, which is only in the page because it is a favorite.
+   */
+  const favorite = (card: Card): boolean => {
+    if (card.element.dataset.favorite !== undefined) return true;
+    try {
+      return savedAt(window.localStorage, card.id) !== null;
+    } catch {
+      return false;
+    }
+  };
   /** The month headings the page was built with, by month: the list shows them (library.css), the gallery does not. */
   const heads = new Map(
     [...grid.querySelectorAll<HTMLElement>("[data-month-head]")].map((head) => [
@@ -211,7 +225,9 @@ function install(): void {
     const live = cards.filter((card) => card.element.isConnected);
     let shown = 0;
     for (const card of live) {
-      const passes = matchesFilter(card.data, filter) && (searching || !searchOnly);
+      const passes =
+        matchesFilter(card.data, filter, filter === "favorites" && favorite(card)) &&
+        (searching || !searchOnly);
       const detail = passes ? matchDetail(card.data, query) : { meta: 0, stories: 0 };
       let matches = detail.meta + detail.stories;
       // A word that only the script or a story's text holds: the card is there, for another reason.
@@ -365,6 +381,42 @@ function install(): void {
   );
   apply();
   installMonthBands(root, grid);
+
+  // The favorite shows and the hearted show episodes are the device's own: drawn once it answers,
+  // and again whenever it changes (a heart on a show's page, another tab).
+  const template = document.querySelector<HTMLTemplateElement>("template[data-podcast-row]");
+  const life = new AbortController();
+  // At the start of a move, not its swap: Back changes the address and then fetches the page, and a
+  // store answer in between would write this page's filter into the address being left for.
+  document.addEventListener("astro:before-preparation", () => life.abort(), { once: true });
+  // Only the latest draw lands: an older one still reading the store could put back a show since removed.
+  let deviceDraw = 0;
+  const drawDevice = (): void => {
+    if (!template || searchOnly) return;
+    const draw = ++deviceDraw;
+    void import("./libraryPodcasts").then(async ({ deviceRows }) => {
+      const rows = await deviceRows(template);
+      if (draw !== deviceDraw) return;
+      // A move away before the store answered: apply() would write this page's filter into the next
+      // page's address, and a delete from there would lose the Library it came from.
+      if (life.signal.aborted) return;
+      for (const card of cards)
+        if (card.element.dataset.favorite !== undefined) card.element.remove();
+      cards = cards.filter((card) => card.element.dataset.favorite === undefined);
+      const base = cards.length;
+      grid.append(...rows);
+      cards.push(...rows.map((element, at) => readCard(element, base + at)));
+      apply();
+    });
+  };
+  drawDevice();
+  document.addEventListener(PODCASTS_CHANGED_EVENT, drawDevice, { signal: life.signal });
+  // A heart changes what the Favorites chip shows, and nothing else: apply() puts every card back
+  // in order, which closes a row's open menu, so the other chips keep the page as it is.
+  const onSaved = (): void => {
+    if (chips.some((chip) => chip.checked && chip.value === "favorites")) apply();
+  };
+  window.addEventListener("singularity:saved", onSaved, { signal: life.signal });
 }
 
 document.addEventListener("astro:page-load", install);

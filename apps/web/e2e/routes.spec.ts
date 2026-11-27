@@ -52,10 +52,13 @@ test.describe("routes and headers", () => {
     // Opened cold, it falls back to the Library.
     await page.goto("/d/2026-10-05");
     await expect(page.getByRole("link", { name: "Back" })).toHaveAttribute("href", "/library");
-    // Today has none.
-    await page.goto("/");
+    // Today's Latest sits under Home: its Back goes there.
+    await page.goto("/latest");
     // Exact: a headline is a link too, and one may hold the word.
-    await expect(page.getByRole("link", { name: "Back", exact: true })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: "Back", exact: true })).toHaveAttribute(
+      "href",
+      "/",
+    );
   });
 
   // Bug (owner, 2026-11-01): the offline notice sat in the page, so opening a podcast from the Library
@@ -65,7 +68,7 @@ test.describe("routes and headers", () => {
   test("the offline strip squeezes the page once, says when the connection is back, then lifts", {
     tag: "@both",
   }, async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/latest");
     // The browser's own signal, set by hand: no request fails, so nothing else is blamed.
     const setOnline = (online: boolean) =>
       page.evaluate((value) => {
@@ -237,7 +240,7 @@ test.describe("routes and headers", () => {
     page,
     request,
   }) => {
-    await page.goto("/");
+    await page.goto("/latest");
     const asset = await page.locator('link[rel="stylesheet"]').first().getAttribute("href");
     expect((await request.get(asset ?? "")).headers()["cache-control"]).toBe(
       "public, max-age=31536000, immutable",
@@ -275,7 +278,7 @@ test.describe("routes and headers", () => {
 
   test("a javascript: link in a digest cannot run", async ({ page }) => {
     // The data layer renders only http and https links; here the policy is the second line of defense.
-    await page.goto("/");
+    await page.goto("/latest");
     const unsafe = await page.locator('a[href^="javascript:"]').count();
     expect(unsafe).toBe(0);
   });

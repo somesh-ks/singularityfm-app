@@ -40,7 +40,7 @@ export function buildManifest(): WebManifest {
     orientation: "any",
     // Long-press on the Android icon. The 192px icon is reused: a shortcut gets no icon of its own.
     shortcuts: [
-      { name: "Latest podcast", short_name: "Latest", url: "/" },
+      { name: "Latest podcast", short_name: "Latest", url: "/latest" },
       { name: "Library", short_name: "Library", url: "/library" },
       { name: "Catch up", short_name: "Catch up", url: "/create" },
     ].map((shortcut) => ({

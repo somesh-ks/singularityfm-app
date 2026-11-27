@@ -75,6 +75,13 @@ export const test = base.extend<Options & { problems: Problems }>({
       });
       page.on("pageerror", (error) => problems.messages.push(`pageerror: ${error.message}`));
       await page.addInitScript(() => {
+        // A device past first run: Home would send a new one to /welcome (scripts/homePage.ts).
+        try {
+          if (localStorage.getItem("singularity:first-run") === null)
+            localStorage.setItem("singularity:first-run", "2026-11-01T00:00:00.000Z");
+        } catch {
+          // An opaque page (about:blank) has no storage.
+        }
         document.addEventListener("securitypolicyviolation", (event) => {
           const holder = window as unknown as { __csp?: string[] };
           holder.__csp = holder.__csp ?? [];

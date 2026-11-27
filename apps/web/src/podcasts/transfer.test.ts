@@ -22,6 +22,8 @@ const show: StoredShow = {
   explicit: false,
   order: "episodic",
   favorite_at: "2026-11-20T09:00:00.000Z",
+  pinned_at: "2026-11-22T09:00:00.000Z",
+  hidden_at: null,
   newest_id: "pe:920666:0123456789abcdef",
   speed: 1.2,
   last_episode_id: null,

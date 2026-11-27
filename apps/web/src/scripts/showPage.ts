@@ -366,6 +366,11 @@ function install(): void {
         if (typeof answer === "string" || !view) return false;
         view.whole = true;
         await read(answer);
+        // A device that could not keep the long list (a full disk) still holds the short one.
+        if (!life.signal.aborted && view.episodes.length < answer.episodes.length) {
+          view.episodes = answer.episodes;
+          drawList(view.shown);
+        }
         return true;
       })
       .finally(() => {
@@ -399,6 +404,8 @@ function install(): void {
         sendToast({ message: "Couldn't load every episode. Try again.", kind: "error" });
       return;
     }
+    // The reader left while the list was read: the next page's player is not ours to start.
+    if (life.signal.aborted) return;
     const pick = playTarget();
     if (pick && !pressPlay(pick.episode)) refuse();
   }

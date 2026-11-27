@@ -4,6 +4,7 @@ import {
   improving,
   POSTHOG_PROXY,
   POSTHOG_TOKEN,
+  withoutShowId,
   withoutShowIds,
 } from "../lib/analytics";
 
@@ -39,7 +40,13 @@ export function startProductAnalytics(): void {
     disable_web_experiments: true,
     // Heatmaps and replay need the stored id, so only an opted-in reader sends them.
     enable_heatmaps: optedIn,
-    session_recording: { maskAllInputs: true, maskTextSelector: "input, textarea" },
+    session_recording: {
+      maskAllInputs: true,
+      maskTextSelector: "input, textarea",
+      // The recorder passes every address it keeps (the page's own, a request's) through here.
+      maskCapturedNetworkRequestFn: (request) =>
+        request.name ? { ...request, name: withoutShowId(request.name) } : request,
+    },
     // Console output can carry addresses or typed text; the Privacy page promises neither.
     enable_recording_console_log: false,
     // Which public show a person opens or hears is about the person: its id leaves every address.

@@ -172,6 +172,8 @@ const SHOW_ADDRESS = /(\/(?:show|episode))\?[^#\s]*/g;
 export function withoutShowIds(properties: Record<string, unknown> | undefined): void {
   if (!properties) return;
   for (const [key, value] of Object.entries(properties))
-    if (typeof value === "string" && value.includes("?"))
-      properties[key] = value.replace(SHOW_ADDRESS, "$1");
+    if (typeof value === "string" && value.includes("?")) properties[key] = withoutShowId(value);
 }
+
+/** One address without its show or episode id: a recording names its page by address too. */
+export const withoutShowId = (address: string): string => address.replace(SHOW_ADDRESS, "$1");

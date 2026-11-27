@@ -51,8 +51,14 @@ export function installAddShowPage(): void {
   };
 
   const settle = (result: AddShowResult): void => {
-    if (result.kind === "error") return fail(result.message);
-    if (result.kind === "imported") return reportImport(root, result.outcome);
+    if (result.kind === "error") {
+      fail(result.message);
+      return;
+    }
+    if (result.kind === "imported") {
+      reportImport(root, result.outcome);
+      return;
+    }
     if (result.kind === "matches") {
       drawRows(
         list,

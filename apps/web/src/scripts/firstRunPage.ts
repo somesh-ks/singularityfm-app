@@ -98,7 +98,8 @@ function installShows(root: HTMLElement): void {
   const resting = none.textContent ?? "";
   const draw = (rows: readonly ShowRow[] | null): void => {
     // A list that did not load says so, where an empty one says nothing matched.
-    none.textContent = rows === null ? "Couldn't load shows. Check your connection." : resting;
+    none.textContent =
+      rows === null ? "Couldn't load shows. Try again when you're back online." : resting;
     if (rows === null) {
       list.replaceChildren();
       none.hidden = false;

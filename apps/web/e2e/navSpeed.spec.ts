@@ -43,7 +43,7 @@ async function openWarm(page: Page): Promise<void> {
   await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
   await expect
     .poll(() => savedPages(page))
-    .toEqual(expect.arrayContaining(["/library", "/settings"]));
+    .toEqual(expect.arrayContaining(["/library", "/search"]));
   await page.evaluate(() => {
     const moves: Move[] = [];
     (window as unknown as { __moves: Move[] }).__moves = moves;
@@ -122,8 +122,8 @@ test.describe("moving between destinations", () => {
     page,
   }) => {
     await openWarm(page);
-    await item(page, "/settings").click();
-    await expect(heading(page)).toHaveText("Settings");
+    await item(page, "/search").click();
+    await expect(heading(page)).toHaveText("Search");
     const move = await lastMove(page);
     expect(move?.atSwap?.browserTransition).toBe(false);
     expect(move?.atSwap?.longest).toBeLessThanOrEqual(250);
@@ -279,8 +279,8 @@ test.describe("the whole bottom bar is the tab", () => {
     await page.goto("/latest");
     await page.evaluate(() => document.documentElement.style.setProperty("--safe-bottom", "34px"));
     const spots = [
-      { href: "/library", at: [0.5, 0.97], heading: "Library" },
-      { href: "/settings", at: [0.97, 0.03], heading: "Settings" },
+      { href: "/search", at: [0.5, 0.97], heading: "Search" },
+      { href: "/library", at: [0.97, 0.03], heading: "Library" },
     ] as const;
     for (const spot of spots) {
       const cell = await page.locator(`.app-nav-item[href="${spot.href}"]`).boundingBox();
@@ -306,13 +306,13 @@ test.describe("the whole bottom bar is the tab", () => {
     const bar = await page.locator(".app-nav").boundingBox();
     if (!bar) throw new Error("the bar is not on screen");
     // The edge reach is the outer two tabs' alone: the middle one still takes its own cell.
-    const middle = await page.locator('.app-nav-item[href="/library"]').boundingBox();
-    if (!middle) throw new Error("the Library tab is not on screen");
+    const middle = await page.locator('.app-nav-item[href="/search"]').boundingBox();
+    if (!middle) throw new Error("the Search tab is not on screen");
     await page.touchscreen.tap(middle.x + middle.width / 2, bar.y + bar.height / 2);
-    await expect(heading(page)).toHaveText("Library");
+    await expect(heading(page)).toHaveText("Search");
     await page.goto("/latest");
     await page.touchscreen.tap(bar.x + bar.width - 3, bar.y + bar.height / 2);
-    await expect(heading(page)).toHaveText("Settings");
+    await expect(heading(page)).toHaveText("Library");
   });
 });
 

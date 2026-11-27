@@ -17,6 +17,9 @@ const SETTINGS_SUBPAGES = [
   "/settings/haptics",
 ];
 
+// About, Privacy and Change log sit in Profile and go back to it (D401).
+const UP_TO_PROFILE = new Set(["/settings/about", "/settings/changelog", "/settings/privacy"]);
+
 test("every settings subpage shows the Settings crumb and the same gap from its title to its first block @both", async ({
   page,
 }) => {
@@ -24,7 +27,9 @@ test("every settings subpage shows the Settings crumb and the same gap from its 
   for (const path of SETTINGS_SUBPAGES) {
     await page.goto(path);
     await expect(
-      page.locator(".settings-head .settings-crumb a[href='/settings']"),
+      page.locator(
+        `.settings-head .settings-crumb a[href='${UP_TO_PROFILE.has(path) ? "/profile" : "/settings"}']`,
+      ),
       path,
     ).toBeVisible();
     gaps[path] = await page.evaluate(() => {

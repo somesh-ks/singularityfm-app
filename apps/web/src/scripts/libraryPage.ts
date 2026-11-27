@@ -81,6 +81,7 @@ function install(): void {
   // Search's Catchups: the same cards, driven by the page's own field (pages/search.astro), nothing on
   // show until it holds words, always the list view.
   const searchOnly = root.hasAttribute("data-search-only");
+  const host: HTMLElement = root;
   const grid = root.querySelector<HTMLElement>("[data-library-grid]");
   const input = (searchOnly ? document : root).querySelector<HTMLInputElement>(
     "[data-library-search]",
@@ -131,7 +132,8 @@ function install(): void {
       .then((response) => (response.ok ? response.json() : Promise.reject(new Error("no index"))))
       .then((entries: SearchIndexEntry[]) => {
         fullText = new Map(entries.map((entry) => [entry.id, entry.text]));
-        apply();
+        // The page may have been left meanwhile: a detached root must not write its words to the next one's address.
+        if (host.isConnected) apply();
       })
       .catch(() => {
         // Offline or missing: the search goes on with what the page holds, and does not ask again.
@@ -282,6 +284,8 @@ function install(): void {
     }
     writeUrl(query, filter, sort);
     requestAnimationFrame(markTruncated);
+    // Search counts the Catchups shown; the full-text index can land after its own answer.
+    if (searchOnly) host.dispatchEvent(new CustomEvent("library:applied", { bubbles: true }));
   }
 
   /** What the address asked for when the page opened: Back from a result, or a shared link. */

@@ -55,7 +55,8 @@ function restoreOffset(root: HTMLElement): void {
 export function installLibraryViewSwap(): void {
   document.addEventListener("astro:after-swap", () => {
     const root = libraryRoot();
-    if (!root) return;
+    // Search's Catchups are always the list: the gallery never applies to them.
+    if (!root || root.hasAttribute("data-search-only")) return;
     const view = storedView();
     applyView(root, view);
     if (view === "gallery") restoreOffset(root);

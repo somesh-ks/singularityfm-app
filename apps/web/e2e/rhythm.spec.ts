@@ -10,8 +10,10 @@ const SIZES = [
   { width: 390, height: 844, tag: [] },
 ];
 
-const DESTINATIONS = ["/", "/library", "/create", "/settings"];
+// Settings opens from Profile and carries its way back, so it is a sub-page (D401).
+const DESTINATIONS = ["/", "/library", "/create"];
 const SUBPAGES = [
+  "/settings",
   "/settings/daily",
   "/settings/weekly",
   "/settings/categories",
@@ -35,7 +37,7 @@ for (const size of SIZES) {
   test.describe(`${size.width}x${size.height}`, { tag: size.tag }, () => {
     test.use({ viewport: { width: size.width, height: size.height } });
 
-    test("the four destinations start their first block at one height", async ({ page }) => {
+    test("the destinations start their first block at one height", async ({ page }) => {
       const tops: Record<string, number> = {};
       for (const path of DESTINATIONS) {
         await page.goto(path);

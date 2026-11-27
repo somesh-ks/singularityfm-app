@@ -33,7 +33,7 @@ Unit (CI): 368 files, 5,579 tests, 2 min. Site e2e: 468, 14 min. Player: 81, 7 m
 - First-tap sound. closed when: a cold start's first tap on his Android makes only its own sound.
 - Parallel CI (D393). closed when: a site PR's CI is under 10 minutes.
 - Deploy batching (D375). closed when: a merge day builds at most 8 times; `[deploy]` ships in minutes.
-- Bottom bar ripple (D286, D347) and tab state. closed when: on his Android Chrome Settings pages rise, tabs slide at 250 ms, and the latest podcast keeps its tab lit.
+- Bar ripple (D286, D347), tabs (D401). closed when: on his Android Chrome tabs slide at 250 ms, the latest podcast keeps its tab lit, topic tiles show live covers.
 - Run state in Postgres (D381): `state/` is out of git; the site reads the store (runbook 14.1). closed when: a daily, a failed run, a podcast and a config save push nothing.
 - New topics get no source suggestions (`config.yml` ran them, not with the store on). closed when: a new topic shows suggested sources, or he drops them.
 - Git commit removal done. closed when: the next scheduled run's commit step ends green with `saved`, and a Settings edit saves.

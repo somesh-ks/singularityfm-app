@@ -253,7 +253,7 @@ test.describe("the tab bar", () => {
     });
     await page
       .getByRole("navigation", { name: "Primary" })
-      .getByRole("link", { name: "Latest", exact: true })
+      .getByRole("link", { name: "Home", exact: true })
       .click();
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
     expect(await page.evaluate(() => (window as unknown as { kept?: boolean }).kept)).toBe(true);

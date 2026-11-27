@@ -108,7 +108,7 @@ test.describe("theme", () => {
     // And it is still there on the page after that.
     await page
       .getByRole("navigation", { name: "Primary" })
-      .getByRole("link", { name: "Latest", exact: true })
+      .getByRole("link", { name: "Home", exact: true })
       .click();
     await expect(page).toHaveURL(/\/$/);
     await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");

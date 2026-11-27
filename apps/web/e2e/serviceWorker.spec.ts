@@ -354,8 +354,8 @@ test.describe("service worker", () => {
     await page.evaluate(() => {
       (window as unknown as { kept: boolean }).kept = true;
     });
-    await page.locator('.app-nav a[href="/settings"]').click();
-    await expect(page).toHaveURL(/\/settings/);
+    await page.locator('.app-nav a[href="/search"]').click();
+    await expect(page).toHaveURL(/\/search/);
     expect(await page.evaluate(() => (window as unknown as { kept?: boolean }).kept)).toBe(true);
     // A full load would stop the narration: while it plays, the move swaps in and the update waits.
     await page.evaluate(async () => {

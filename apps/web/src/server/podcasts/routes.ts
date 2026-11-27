@@ -1,5 +1,5 @@
 import type { ApiResult } from "../http";
-import { APPLE_PER_MINUTE, type AppleSearch } from "./apple";
+import { APPLE_GENRES, APPLE_PER_MINUTE, type AppleChart, type AppleSearch } from "./apple";
 import { IndexError, type IndexGet } from "./podcastIndex";
 import {
   DESCRIPTION_MAX,
@@ -29,6 +29,8 @@ import type { Signer } from "./signing";
 export const EDGE_SECONDS = {
   search: 3600,
   search_apple: 86_400,
+  /** Apple was busy or down, so the list is the index's order alone: kept briefly. */
+  search_degraded: 300,
   trending: 6 * 3600,
   show: 900,
   new: 900,
@@ -74,6 +76,8 @@ function indexFailure(error: unknown): ApiResult<ErrorBody> {
 export interface PodcastDeps {
   index: IndexGet;
   apple: AppleSearch;
+  /** Apple's top charts; a shelf falls back to the index's trending list without it. */
+  chart?: AppleChart;
   sign: Signer;
   /** One slot of a shared per-minute cap; false when it is full. */
   limit: (bucket: string, perMinute: number) => Promise<boolean>;
@@ -185,61 +189,136 @@ export interface SearchBody {
   source: "index" | "apple" | "none";
 }
 
-/** Podcast Index first; Apple when the index fails or finds nothing, within Apple's shared cap. */
+const APPLE_LOOKUPS = 8;
+
+/** A show of the index by its Apple id, or null when the index does not have it. */
+async function indexShowByApple(appleId: number, deps: PodcastDeps): Promise<ShowRow | null> {
+  try {
+    const feed = ((await deps.index("/podcasts/byitunesid", { id: String(appleId) })) as Raw | null)
+      ?.feed;
+    return feed && typeof feed === "object" && !Array.isArray(feed)
+      ? showFromIndex(feed as Raw, deps.sign)
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Apple's order first, the index's pages second. Apple ranks by what people play, so a famous show
+ * leads (measured 27 Nov: The Daily was 7th and Serial 12th by the index alone). A show Apple lists
+ * stands as the index's own row, so it opens a page; an Apple-only show stays as Apple's.
+ */
+async function blend(
+  indexRows: ShowRow[],
+  appleResults: Raw[],
+  deps: PodcastDeps,
+): Promise<ShowRow[]> {
+  const byApple = new Map(indexRows.flatMap((row) => (row.apple_id ? [[row.apple_id, row]] : [])));
+  const apple = appleResults
+    .map((result) => showFromApple(result, deps.sign))
+    .filter((row): row is ShowRow => row !== null);
+  const missing = apple.filter((row) => row.apple_id && !byApple.has(row.apple_id));
+  const found = await Promise.all(
+    missing.slice(0, APPLE_LOOKUPS).map((row) => indexShowByApple(row.apple_id as number, deps)),
+  );
+  missing.slice(0, APPLE_LOOKUPS).forEach((row, i) => {
+    const hit = found[i];
+    if (hit) byApple.set(row.apple_id as number, hit);
+  });
+  const led = apple.map((row) => (row.apple_id ? (byApple.get(row.apple_id) ?? row) : row));
+  return uniqueShows([...led, ...indexRows]).slice(0, SEARCH_MAX);
+}
+
+/**
+ * Podcast Index and Apple together, within Apple's shared cap. Apple busy or down while the index
+ * answered gives the index's list for a short time; both empty is an unfinished search, never a
+ * kept "no results".
+ */
 export async function searchShows(
   term: string,
   deps: PodcastDeps,
 ): Promise<ApiResult<SearchBody | ErrorBody>> {
-  try {
-    const body = await deps.index("/search/byterm", { q: term, max: String(SEARCH_MAX) });
-    const shows = uniqueShows(
-      listOf(body, "feeds")
-        .filter((feed) => feed.dead !== 1 && feed.dead !== true)
-        .map((feed) => showFromIndex(feed, deps.sign))
-        .filter((row): row is ShowRow => row !== null),
-    );
-    if (shows.length > 0) {
+  const fromIndex = async (): Promise<ShowRow[]> => {
+    try {
+      const body = await deps.index("/search/byterm", { q: term, max: String(SEARCH_MAX) });
+      return uniqueShows(
+        listOf(body, "feeds")
+          .filter((feed) => feed.dead !== 1 && feed.dead !== true)
+          .map((feed) => showFromIndex(feed, deps.sign))
+          .filter((row): row is ShowRow => row !== null),
+      );
+    } catch {
+      // A failing index is an empty one: Apple answers alone.
+      return [];
+    }
+  };
+  const fromApple = async (): Promise<Raw[] | "busy" | "down"> => {
+    if (!(await deps.limit("podcasts:apple", APPLE_PER_MINUTE))) return "busy";
+    try {
+      return await deps.apple(term, SEARCH_MAX);
+    } catch {
+      return "down";
+    }
+  };
+  const [indexRows, apple] = await Promise.all([fromIndex(), fromApple()]);
+  if (apple === "busy" || apple === "down") {
+    if (indexRows.length > 0) {
       return {
         status: 200,
-        body: { shows, source: "index" },
-        headers: edgeHeaders(EDGE_SECONDS.search),
+        body: { shows: indexRows, source: "index" },
+        headers: edgeHeaders(EDGE_SECONDS.search_degraded),
       };
     }
-  } catch {
-    // A failing index falls through to Apple, as an empty one does.
+    return apple === "busy"
+      ? failure(503, "rate_limited", "Search is busy. Try again in a minute.")
+      : failure(502, "upstream", "Search did not answer.");
   }
-  // Apple not asked or not answering is an unfinished search, never a kept "no results".
-  if (!(await deps.limit("podcasts:apple", APPLE_PER_MINUTE))) {
-    return failure(503, "rate_limited", "Search is busy. Try again in a minute.");
-  }
-  try {
-    const results = await deps.apple(term, SEARCH_MAX);
-    const shows = uniqueShows(
-      results
-        .map((result) => showFromApple(result, deps.sign))
-        .filter((row): row is ShowRow => row !== null),
-    );
-    return {
-      status: 200,
-      body: { shows, source: shows.length > 0 ? "apple" : "none" },
-      headers: edgeHeaders(EDGE_SECONDS.search_apple),
-    };
-  } catch {
-    return failure(502, "upstream", "Search did not answer.");
-  }
+  const shows = await blend(indexRows, apple, deps);
+  return {
+    status: 200,
+    body: { shows, source: indexRows.length > 0 ? "index" : shows.length > 0 ? "apple" : "none" },
+    headers: edgeHeaders(indexRows.length > 0 ? EDGE_SECONDS.search : EDGE_SECONDS.search_apple),
+  };
 }
 
 export const TRENDING_MAX = 30;
 
+/** Apple's chart for a topic, each show opened as the index's own row; null when the chart is short or fails. */
+async function chartShows(topic: string | null, deps: PodcastDeps): Promise<ShowRow[] | null> {
+  if (!deps.chart) return null;
+  const genre = topic ? (APPLE_GENRES[topic.toLowerCase()] ?? undefined) : null;
+  if (genre === undefined) return null;
+  try {
+    const ids = await deps.chart(genre, TRENDING_MAX);
+    const rows = await Promise.all(ids.map((id) => indexShowByApple(id, deps)));
+    const shows = uniqueShows(rows.filter((row): row is ShowRow => row !== null));
+    return shows.length >= CHART_MIN ? shows : null;
+  } catch {
+    return null;
+  }
+}
+
+/** A chart with fewer shows than this is a broken one: the index's trending list answers instead. */
+const CHART_MIN = 5;
+
+/**
+ * A topic's shelf: Apple's chart for it (what people listen to), else the index's trending list
+ * when Apple fails or the topic has no genre.
+ */
 export async function trendingShows(
   params: URLSearchParams,
   deps: PodcastDeps,
 ): Promise<ApiResult<{ shows: ShowRow[] } | ErrorBody>> {
+  const topic = params.get("topic");
+  const charted = await chartShows(topic, deps);
+  if (charted) {
+    return { status: 200, body: { shows: charted }, headers: edgeHeaders(EDGE_SECONDS.trending) };
+  }
   const query: Record<string, string> = {
     max: String(TRENDING_MAX),
     lang: params.get("lang") ?? "en",
   };
-  const topic = params.get("topic");
   if (topic) query.cat = topic;
   try {
     const body = await deps.index("/podcasts/trending", query);

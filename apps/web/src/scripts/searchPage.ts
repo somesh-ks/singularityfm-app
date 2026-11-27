@@ -21,7 +21,7 @@ import {
 const MIN_LETTERS = 2;
 const PAUSE_MS = 300;
 const TOP_SHOWS = 5;
-const SHOW_RESULTS = 5;
+const SHOW_RESULTS = 20;
 const EPISODE_RESULTS = 5;
 const RECENT_KEY = "singularity:search-recent";
 const RECENT_MAX = 6;
@@ -174,6 +174,9 @@ function install(): void {
     const showRows = (shows ?? []).flatMap((show: ShowRow) => showRow(show) ?? []);
     if (showsList) drawRows(showsList, showRows.slice(0, SHOW_RESULTS));
     found = { shows: Math.min(showRows.length, SHOW_RESULTS), episodes: 0 };
+    // The shows show now; the best match's episodes join them when they arrive.
+    failed = shows === null;
+    showSections(false);
     // The index cannot search every episode of every show: the best match's newest, those that
     // hold the words first (flow spec, Episodes chip).
     const best = shows?.find((show) => show.id !== null);

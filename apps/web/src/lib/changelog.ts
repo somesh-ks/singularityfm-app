@@ -21,7 +21,7 @@ export const CHANGELOG: readonly Release[] = [
     version: "0.28.0",
     date: "2026-11-27",
     description:
-      "Home opens the app: your speed dial of shows with filters, Continue listening, your catchups and shelves to explore. Today's briefing moves to its own page. Library gains Favorites and Shows filters, and a long press on a show offers Pin and Not interested.",
+      "Home opens the app: your speed dial of shows with filters, Continue listening, your catchups and shelves to explore. Today's briefing moves to its own page. Library gains Favorites and Shows filters, and a long press on a show offers Pin and Not interested. Topics now list the shows people actually listen to as whole shows, Search puts well-known shows first and lists up to 20, and lists load faster.",
   },
   {
     version: "0.27.0",

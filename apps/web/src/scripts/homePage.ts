@@ -49,7 +49,7 @@ import { fetchShow } from "../podcasts/shows";
 import { dayLabel, lengthLabel, timeFact } from "../podcasts/view";
 import type { EpisodeRow, ShowRow } from "../server/podcasts/shapes";
 import { holdOpens, installCardHold } from "./cardHold";
-import { newSince, trending } from "./podcastRows";
+import { listCover, newSince, trending } from "./podcastRows";
 
 /** From here the dial is one row of six that scrolls sideways (the side column's width). */
 const WIDE = "(width >= 64rem)";
@@ -151,7 +151,7 @@ function install(): void {
       const name = tile.querySelector(DIAL.name);
       if (name) name.textContent = show.title;
       const img = tile.querySelector("img");
-      if (img && show.cover) img.src = show.cover;
+      if (img && show.cover) img.src = listCover(show.cover);
       if (!show.pinned_at) tile.querySelector(DIAL.pin)?.remove();
       const badge = tile.querySelector<HTMLElement>(DIAL.count);
       if (badge) {
@@ -499,7 +499,7 @@ function install(): void {
       const facts = card.querySelector("[data-home-facts]");
       if (facts) facts.textContent = show.author;
       const img = card.querySelector("img");
-      if (img && show.cover) img.src = show.cover;
+      if (img && show.cover) img.src = listCover(show.cover);
       ownMenu(card, show.title);
       paintFavorite(card, Boolean(stored?.favorite_at));
       paintPin(card, Boolean(stored?.pinned_at));

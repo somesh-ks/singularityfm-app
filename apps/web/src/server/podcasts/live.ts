@@ -1,7 +1,7 @@
 import type { APIRoute } from "astro";
 import { recordingFaults, toResponse } from "../http";
 import { sharedLimit } from "../rateLimit";
-import { createAppleSearch } from "./apple";
+import { createAppleChart, createAppleSearch } from "./apple";
 import { createIndexClient, indexKeys, newBreaker } from "./podcastIndex";
 import { type Canonical, failure, type PodcastDeps } from "./routes";
 import { createSigner } from "./signing";
@@ -17,12 +17,33 @@ export const PER_CLIENT_PER_MINUTE = 120;
 
 const breaker = newBreaker();
 
-export function liveDeps(): PodcastDeps | null {
+/** Time spent waiting on each upstream in one request, for the Server-Timing header. */
+export type Spent = Record<"index" | "apple", number>;
+
+/** `fn` timed into `spent[name]`; parallel calls add up, so the figure is work, not wall time. */
+function timed<A extends unknown[], R>(
+  spent: Spent | undefined,
+  name: keyof Spent,
+  fn: (...args: A) => Promise<R>,
+): (...args: A) => Promise<R> {
+  if (!spent) return fn;
+  return async (...args) => {
+    const start = performance.now();
+    try {
+      return await fn(...args);
+    } finally {
+      spent[name] += performance.now() - start;
+    }
+  };
+}
+
+export function liveDeps(spent?: Spent): PodcastDeps | null {
   const keys = indexKeys(process.env);
   if (!keys) return null;
   return {
-    index: createIndexClient({ keys, fetch, breaker }),
-    apple: createAppleSearch(fetch),
+    index: timed(spent, "index", createIndexClient({ keys, fetch, breaker })),
+    apple: timed(spent, "apple", createAppleSearch(fetch)),
+    chart: timed(spent, "apple", createAppleChart(fetch)),
     sign: createSigner(keys.secret),
     limit: sharedLimit,
   };
@@ -38,6 +59,8 @@ export interface PodcastRouteOptions {
   canonical?: (params: URLSearchParams, now: number) => Canonical;
   /** How long the edge keeps the 308 to the canonical address. */
   redirectSeconds?: number;
+  /** False for a route that costs the site nothing worth capping (a signed cover or extras file). */
+  limited?: boolean;
   handle: (params: URLSearchParams, deps: PodcastDeps) => Promise<Response>;
 }
 
@@ -66,14 +89,31 @@ export function podcastRoute(name: string, options: PodcastRouteOptions): APIRou
       }
       params = new URLSearchParams(canonical.query);
     }
-    const deps = liveDeps();
+    const started = performance.now();
+    const spent: Spent = { index: 0, apple: 0 };
+    const deps = liveDeps(spent);
     if (!deps) return notConfigured();
-    if (!(await deps.limit(`podcasts:${clientOf(request)}`, PER_CLIENT_PER_MINUTE))) {
+    // A cover or extras file is signed by us and kept for good: it needs no database check per hit.
+    if (
+      options.limited !== false &&
+      !(await deps.limit(`podcasts:${clientOf(request)}`, PER_CLIENT_PER_MINUTE))
+    ) {
       return toResponse({
         ...failure(429, "rate_limited", "Too many requests. Try again in a minute."),
       });
     }
-    return options.handle(params, deps);
+    const response = await options.handle(params, deps);
+    // Where a slow answer went (index and Apple calls add up when made in parallel). Names only.
+    const total = performance.now() - started;
+    try {
+      response.headers.set(
+        "Server-Timing",
+        `index;dur=${spent.index.toFixed(0)}, apple;dur=${spent.apple.toFixed(0)}, total;dur=${total.toFixed(0)}`,
+      );
+    } catch {
+      // An immutable response goes without the header.
+    }
+    return response;
   };
   return recordingFaults(`api/podcasts/${name}`, get, { ours: (status) => status === 500 });
 }

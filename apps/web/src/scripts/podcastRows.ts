@@ -3,6 +3,7 @@
  * in the page (PodcastRowTemplate.astro), filled here, so the markup has one home. Also the three
  * route reads those pages make; each answers null when the route fails, so a page draws what it has.
  */
+import { coverAt } from "../podcasts/episodeDigest";
 import type { EpisodeRow, ShowRow } from "../server/podcasts/shapes";
 
 /** A row to draw: where it leads, its art, its title and one quiet line of facts. */
@@ -37,6 +38,13 @@ export function episodeRow(episode: EpisodeRow, showCover: string | null = null)
   };
 }
 
+/** A list's cover is drawn small: the cover route's 256 width, not its 512 default. */
+export function listCover(cover: string): string {
+  return cover.includes("/api/podcasts/cover") && !cover.includes("&w=")
+    ? coverAt(cover, 256)
+    : cover;
+}
+
 /** A row only ever leads to a page of this app: anything else (a stored or odd address) leads nowhere. */
 function inApp(href: string): string | null {
   try {
@@ -69,7 +77,7 @@ export function drawRows(list: HTMLElement, rows: readonly PodcastRow[]): void {
       const facts = item.querySelector<HTMLElement>("[data-row-facts]");
       const target = inApp(row.href);
       if (link && target) link.href = target;
-      if (image && row.cover) image.src = row.cover;
+      if (image && row.cover) image.src = listCover(row.cover);
       else image?.remove();
       if (title) title.textContent = row.title;
       if (facts) facts.textContent = row.facts;
@@ -90,16 +98,24 @@ async function read<T>(address: string): Promise<T | null> {
 
 /** The index's trending shows, for one category or all of them. */
 export async function trending(category?: string): Promise<ShowRow[] | null> {
+  // Asked in the route's canonical form (lower case, params sorted), so the edge answers at once.
   const query = new URLSearchParams({ lang: "en" });
-  if (category) query.set("topic", category);
+  if (category) query.set("topic", normalTerm(category));
   const body = await read<{ shows?: ShowRow[] }>(`/api/podcasts/trending?${query}`);
   return body?.shows ?? null;
 }
 
+/** Words as the routes key them (server/podcasts/routes.ts, normalizeTerm): one form, no redirect. */
+const normalTerm = (text: string): string =>
+  text.normalize("NFKC").toLowerCase().replace(/\s+/g, " ").trim();
+
+/** The time the new-episodes route rounds to (NEW_SINCE_STEP_S). */
+const SINCE_STEP_S = 900;
+
 /** Shows matching the words. */
 export async function searchShows(term: string): Promise<ShowRow[] | null> {
   const body = await read<{ shows?: ShowRow[] }>(
-    `/api/podcasts/search?${new URLSearchParams({ q: term })}`,
+    `/api/podcasts/search?${new URLSearchParams({ q: normalTerm(term) })}`,
   );
   return body?.shows ?? null;
 }
@@ -116,7 +132,9 @@ export async function newSince(
   since: number,
 ): Promise<EpisodeRow[] | null> {
   if (ids.length === 0) return [];
-  const query = new URLSearchParams({ ids: ids.join(","), since: String(since) });
+  const sorted = [...new Set(ids)].sort((a, b) => a - b);
+  const rounded = Math.floor(since / SINCE_STEP_S) * SINCE_STEP_S;
+  const query = new URLSearchParams({ ids: sorted.join(","), since: String(rounded) });
   const body = await read<{ episodes?: EpisodeRow[] }>(`/api/podcasts/new?${query}`);
   return body?.episodes ?? null;
 }

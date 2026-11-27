@@ -199,4 +199,57 @@ describe("podcast routes", () => {
       uniqueShows([row("https://Feeds.example/a/"), row("http://feeds.example/a")]),
     ).toHaveLength(1);
   });
+  // Measured 27 Nov: the index's trending list shared 0 or 1 of Apple's top 25 in every topic.
+  it("draws a topic's shelf from Apple's chart, as the index's own shows, so famous shows lead and open a page", async () => {
+    const feeds: Record<string, unknown> = {
+      "11": { id: 101, itunesId: 11, title: "Famous", url: "https://a.example/f.xml" },
+      "12": { id: 102, itunesId: 12, title: "Also known", url: "https://a.example/g.xml" },
+      "13": { id: 103, itunesId: 13, title: "Third", url: "https://a.example/h.xml" },
+      "14": { id: 104, itunesId: 14, title: "Fourth", url: "https://a.example/i.xml" },
+      "15": { id: 105, itunesId: 15, title: "Fifth", url: "https://a.example/j.xml" },
+    };
+    const asked: string[] = [];
+    const answer = await trendingShows(
+      new URLSearchParams({ lang: "en", topic: "technology" }),
+      deps({
+        chart: async (genre) => {
+          asked.push(String(genre));
+          return [11, 12, 13, 14, 15];
+        },
+        index: async (path, params) => {
+          if (path === "/podcasts/byitunesid") return { feed: feeds[params.id ?? ""] };
+          throw new Error("trending is not asked when the chart answers");
+        },
+      }),
+    );
+    expect(asked).toEqual(["1318"]);
+    expect(answer.body).toMatchObject({
+      shows: [{ id: 101, title: "Famous" }, { id: 102 }, {}, {}, {}],
+    });
+  });
+
+  it("leads a search with Apple's order and gives its shows the index's page ids", async () => {
+    const indexFeed = (id: number, title: string, itunesId: number | null) => ({
+      id,
+      itunesId,
+      title,
+      url: `https://a.example/${id}.xml`,
+    });
+    const answer = await searchShows(
+      "the daily",
+      deps({
+        apple: async () => [
+          { collectionId: 77, collectionName: "The Daily", feedUrl: "https://a.example/daily.xml" },
+        ],
+        index: async (path) =>
+          path === "/podcasts/byitunesid"
+            ? { feed: indexFeed(900, "The Daily", 77) }
+            : { feeds: [indexFeed(1, "Daily Lunch", null), indexFeed(2, "Daily Walk", null)] },
+      }),
+    );
+    expect(answer.body).toMatchObject({
+      source: "index",
+      shows: [{ id: 900, title: "The Daily" }, { id: 1 }, { id: 2 }],
+    });
+  });
 });

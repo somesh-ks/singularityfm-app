@@ -4,8 +4,8 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import "../styles/search.css";
 ---
 
-{/* A topic's page (12 Nov canvas, "Topic page"), opened from a tile on Search: its top shows, then what
-     they published this week. One static shell for every topic: the name is in the query, and
+{/* A topic's page (12 Nov canvas, "Topic page"), opened from a tile on Search: its top shows as whole
+     shows, never single episodes. One static shell for every topic: the name is in the query, and
      scripts/topicPage.ts draws the lists from our podcast routes. Without a name it is the top shows
      of every topic (Search's See all). */}
 <BaseLayout title="Topic" view="library" nav="search" skipLabel="Skip to the topic">
@@ -16,17 +16,8 @@ import "../styles/search.css";
       <div class="shelf-head">
         <h2 id="topic-shows-title">Top shows</h2>
       </div>
-      <div data-library data-view="list" data-podcast-list>
+      <div data-library data-view="grid" data-podcast-list>
         <ul class="library-grid" role="list" data-topic-shows-list></ul>
-      </div>
-    </section>
-
-    <section aria-labelledby="topic-new-title" data-topic-new hidden>
-      <div class="shelf-head">
-        <h2 id="topic-new-title">New this week</h2>
-      </div>
-      <div data-library data-view="list" data-podcast-list>
-        <ul class="library-grid" role="list" data-topic-new-list></ul>
       </div>
     </section>
 

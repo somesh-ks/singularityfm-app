@@ -5,6 +5,7 @@ export const prerender = false;
 
 /** GET /api/podcasts/cover?u=&s=&w=: a publisher's cover we listed, resized to WebP, kept for good. */
 export const GET = podcastRoute("cover", {
+  limited: false,
   handle: (params, deps) => coverFile(params, { fetch, sign: deps.sign }),
 });
 

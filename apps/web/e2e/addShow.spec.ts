@@ -102,3 +102,38 @@ test("a new device opens first run once, and Skip ends it", async ({ browser, ba
   expect(new URL(page.url()).pathname).toBe("/");
   await context.close();
 });
+
+// Skip right after a tap must not drop the show: its save is still on the network, and leaving the
+// page then would lose it with no word (CodeRabbit, 27 Nov).
+test("a show picked in first run is kept when Skip comes before its save", async ({ page }) => {
+  let answer: () => void = () => {};
+  const answered = new Promise<void>((done) => {
+    answer = done;
+  });
+  await page.route("**/api/podcasts/trending**", (route) =>
+    route.fulfill({ json: { shows: [SHOW] } }),
+  );
+  await page.route("**/api/podcasts/show**", async (route) => {
+    await answered;
+    await route.fulfill({
+      json: {
+        show: {
+          ...SHOW,
+          description: "",
+          link: null,
+          language: "en",
+          explicit: false,
+          order: "episodic",
+        },
+        episodes: [EPISODE],
+      },
+    });
+  });
+  await page.goto("/welcome/shows");
+  await page.getByRole("checkbox", { name: /The Test Hour/ }).check();
+  await page.locator("button[data-first-run-skip]").click();
+  answer();
+  await page.waitForURL((url) => url.pathname === "/");
+  await page.goto("/show?id=7");
+  await expect(page.locator("[data-show-favorite]")).toHaveAttribute("aria-pressed", "true");
+});

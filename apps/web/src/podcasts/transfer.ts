@@ -18,7 +18,7 @@ import {
 } from "./backup";
 import { allRecords, mergeRecords } from "./deviceRecords";
 import { getShow, setShowFavorite } from "./deviceStore";
-import { catchupHistory, mergeListens, saveCatchupHistory } from "./history";
+import { CATCHUP_HISTORY_KEY, catchupHistory, mergeListens } from "./history";
 import { OPML_MAX_BYTES, type OpmlShow, parseOpml, writeOpml } from "./opml";
 import { parseShowLink } from "./showLink";
 import { fetchShow, findShow, resolveLink, type ShowAnswer, type ShowFailure } from "./shows";
@@ -155,8 +155,9 @@ export async function followAll(
   progress: (done: number, total: number) => void = () => {},
 ): Promise<FollowResult> {
   const result: FollowResult = { added: 0, already: 0, missing: [], failed: [] };
-  // Two entries for one show (its http and https address, an old and a new feed) count it once.
-  const seen = new Set<number>();
+  // Two entries for one show (its http and https address, an old and a new feed) count it once, by
+  // the first one's save: a save that failed fails its twin too, even while it is still on its way.
+  const saves = new Map<number, Promise<boolean | null>>();
   let next = 0;
   let done = 0;
   const worker = async (): Promise<void> => {
@@ -170,12 +171,14 @@ export async function followAll(
       }
       if (answer === "not_found") result.missing.push(show);
       else if (answer === "failed") result.failed.push(show);
-      else if (answer.show.id !== null && seen.has(answer.show.id)) result.already += 1;
       else {
-        if (answer.show.id !== null) seen.add(answer.show.id);
-        const added = await follow(answer).catch(() => null);
+        const id = answer.show.id;
+        const first = id === null ? undefined : saves.get(id);
+        const save = first ?? follow(answer).catch(() => null);
+        if (id !== null && !first) saves.set(id, save);
+        const added = await save;
         if (added === null) result.failed.push(show);
-        else if (added) result.added += 1;
+        else if (added && !first) result.added += 1;
         else result.already += 1;
       }
       progress(++done, shows.length);
@@ -204,16 +207,17 @@ async function restore(text: string): Promise<ImportOutcome> {
     }
   });
   // A write that fails (storage full) throws to the import's error: the records already merged stay,
-  // and a second try merges again safely.
+  // and a second try merges again safely. The recording goes first, since a position already there
+  // is what a second try skips.
   for (const [id, position] of Object.entries(restored)) {
+    if (position.recording) storage?.setItem(recordingKey(id), position.recording);
     if (position.played) storage?.setItem(playedKey(id), "1");
     else if (position.seconds) storage?.setItem(resumeKey(id), String(position.seconds));
-    if (position.recording) storage?.setItem(recordingKey(id), position.recording);
   }
   const before = new Set(catchupHistory().map((listen) => `${listen.id} ${listen.at}`));
   const merged = mergeListens(catchupHistory(), backup.history);
-  saveCatchupHistory(merged);
-  if (catchupHistory().length !== merged.length) throw new Error("History was not saved.");
+  // Written here, not by saveCatchupHistory, which keeps quiet when storage is full.
+  storage?.setItem(CATCHUP_HISTORY_KEY, JSON.stringify(merged));
   return {
     kind: "backup",
     changed,

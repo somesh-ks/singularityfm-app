@@ -24,7 +24,7 @@ What it does now. Reasons: D32, D50, D54, D59, D85, D86, D90, D92, D97 to D99, D
 - The desktop bar's line has a notch at the playhead. Timeline markers are one small dot per story.
 - Under the scrubber: time played left, the length right, never a minus (D350). On Listen now: the expected length, and a seek past what is made waits (D366). The bubble and the bar's times hold still over a hidden copy of their widest time.
 - Space plays and pauses on briefing and episode pages once the bar is there, unless focus is in a field, menu, dialog or slider (`playerKeys.ts`, D126); the hero's three-dots menu does not take focus when it closes from a tap elsewhere (`heroMenu.ts`). The first Play on a page with no audio starts by itself.
-- The player's two views (below) are a tablist. The podcast page's section tabs at every width (D343), sticking under the status bar below 64rem. Switching keeps the scroll position.
+- The player's two views (below) are a tablist. A podcast page has no tabs (D403): [podcasts](podcasts.md). Switching keeps the scroll position.
 
 ### Stories and transcript
 - The Stories view merges the chapters and the transcript. The story being read is open: its transcript shows with an episode's follow and word light. Every other story is a chapter row that starts it when tapped. Unlaid-out narration shows its script whole (`StoryList`, `core/storyTranscript.ts`).

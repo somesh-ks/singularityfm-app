@@ -2,7 +2,7 @@ import { FAB_SELECTOR } from "@singularityfm/design-system/fab";
 import { setOnlineProbe } from "@singularityfm/design-system/idle";
 import { installRipple } from "@singularityfm/design-system/ripple";
 import { installSelectSheet } from "@singularityfm/design-system/selectSheet";
-import { counted, installAnalytics } from "../lib/analytics";
+import { counted, installAnalytics, POSTHOG_TOKEN } from "../lib/analytics";
 import { connectivity, isOnline } from "../lib/connectivity";
 import { watchPlatformFaults } from "../lib/platformFaults";
 import { hasOutbox } from "../lib/savedKey";
@@ -229,6 +229,9 @@ if (counted()) {
   const vitals = (): void => void import("./vitals").then((each) => each.startVitals());
   idle(vitals);
   document.addEventListener("visibilitychange", vitals, { once: true });
+  // PostHog (D400), with the same opt-outs, at idle: cookieless for everyone, more only on opt-in.
+  if (POSTHOG_TOKEN)
+    idle(() => void import("./productAnalytics").then((each) => each.startProductAnalytics()));
 }
 try {
   if (localStorage.getItem("singularity:deleted-episodes")) void import("./deletedEpisodes");

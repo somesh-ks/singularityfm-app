@@ -18,6 +18,18 @@ export interface Release {
 
 export const CHANGELOG: readonly Release[] = [
   {
+    version: "0.26.0",
+    date: "2026-11-27",
+    description:
+      "A podcast's page is now a list of headlines, each with the time it starts: press the time to play from there, press the headline to open its summary, the link to the source and the votes. The tabs are gone; the podcast's name stays at the top as you scroll, and a press on it goes back up. Any public show now has a page with its episodes, and each episode a page with its notes. A show's episodes play in the same player, with skips of 15 seconds back and 30 on, a speed remembered per show, and Up next suggesting more from the show, your other favorites and the newest Catchups.",
+  },
+  {
+    version: "0.25.0",
+    date: "2026-11-26",
+    description:
+      "Settings, Privacy has a new switch, Help improve Singularity: off unless you turn it on, it lets the app tell your visits apart and record how you use it, with what you type into a field hidden.",
+  },
+  {
     version: "0.24.3",
     date: "2026-11-26",
     description:

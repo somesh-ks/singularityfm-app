@@ -58,10 +58,11 @@ test.describe("what the player writes on a real page", () => {
     const stories = page.locator(".story");
     const third = stories.nth(2);
     const chip = third.locator("[data-play-item]");
-    const headline = (await third.locator("h3 span[id]").textContent()) ?? "";
+    const headline = (await third.locator("h3").textContent()) ?? "";
+    const at = (await chip.textContent()) ?? "";
 
     await chip.click();
-    await expect(chip).toHaveAccessibleName(`Pause, playing: ${headline}`);
+    await expect(chip).toHaveAccessibleName(`${at}, Pause, playing: ${headline}`);
     await expect(chip).toHaveAttribute("data-playing", "true");
 
     // A fixture story lasts three seconds, so the rest is checked with the playhead held still.
@@ -70,7 +71,7 @@ test.describe("what the player writes on a real page", () => {
     await expect(third).toHaveAttribute("data-state", "current");
     await expect(chip).toHaveAttribute("data-state", "current");
     await expect(chip).toHaveAttribute("data-playing", "false");
-    await expect(chip).toHaveAccessibleName(`Resume, paused: ${headline}`);
+    await expect(chip).toHaveAccessibleName(`${at}, Resume, paused: ${headline}`);
     // Only one story is the one being read.
     await expect(page.locator('.story[data-state="current"]')).toHaveCount(1);
 
@@ -80,7 +81,7 @@ test.describe("what the player writes on a real page", () => {
       await expect(earlier).not.toHaveAttribute("data-state", /.*/);
       await expect(earlier.locator("[data-play-item]")).toHaveAttribute("data-state", "idle");
       await expect(earlier.locator("[data-play-item]")).toHaveAccessibleName(
-        /^Play from here, \d+:\d\d: /,
+        /^\d+:\d\d, Play from here, \d+:\d\d: /,
       );
     }
     // Playing on out of the third into the fourth is hearing it: the third is played, the first two are not.
@@ -89,7 +90,7 @@ test.describe("what the player writes on a real page", () => {
     await expect(third).toHaveAttribute("data-state", "played", { timeout: 15_000 });
     // The story is played (its data-state), its button stays a Play button with the length.
     await expect(chip).toHaveAttribute("data-state", "idle");
-    await expect(chip).toHaveAccessibleName(/^Play from here, \d+:\d\d: /);
+    await expect(chip).toHaveAccessibleName(/^\d+:\d\d, Play from here, \d+:\d\d: /);
     await expect(chip).not.toHaveAccessibleName(/played/i);
     await expect(stories.nth(0)).not.toHaveAttribute("data-state", /.*/);
     await expect(stories.nth(3)).toHaveAttribute("data-state", "current");
@@ -97,7 +98,7 @@ test.describe("what the player writes on a real page", () => {
     await expect(page.locator("html")).toHaveAttribute("data-player-state", "paused");
     const later = stories.nth(5).locator("[data-play-item]");
     await expect(later).toHaveAttribute("data-state", "idle");
-    await expect(later).toHaveAccessibleName(/^Play from here, 0:03: /);
+    await expect(later).toHaveAccessibleName(/^0:15, Play from here, 0:03: /);
     await expect(stories.nth(5)).not.toHaveAttribute("data-state", /.*/);
     // The briefing's own chip tells the same story: paused, with the time that is left.
     const podcast = page.locator(".hero [data-play-digest]");
@@ -160,7 +161,7 @@ test.describe("how the page reacts to those attributes", () => {
   });
 
   test("an idle chip shows the play glyph in a ring", async ({ page }) => {
-    const chip = page.locator("[data-play-item]").nth(1);
+    const chip = page.locator(".hero [data-play-digest]");
     expect(await display(chip.locator(".chip-bars"))).toBe("none");
     expect(await display(chip.locator(".chip-check"))).toBe("none");
     expect(await display(chip.locator(".spinner"))).toBe("none");
@@ -172,23 +173,18 @@ test.describe("how the page reacts to those attributes", () => {
     ).toBe("0");
   });
 
-  test("a current chip is filled, and shows bars while it plays", async ({ page }) => {
-    const chip = page.locator("[data-play-item]").nth(1);
-    const idle = await computedColor(chip, "backgroundColor");
-    await chip.evaluate((node) => node.setAttribute("data-state", "current"));
+  test("the story being read is marked on its time", async ({ page }) => {
+    const time = page.locator("[data-play-item]").nth(1);
+    const idle = await computedColor(time, "color");
+    await time.evaluate((node) => node.setAttribute("data-state", "current"));
     await page.waitForTimeout(250);
-    expect(await computedColor(chip, "backgroundColor")).not.toBe(idle);
-    // Paused on this story: still the play glyph.
-    expect(await display(chip.locator(".chip-bars"))).toBe("none");
-    await chip.evaluate((node) => node.setAttribute("data-playing", "true"));
-    expect(await display(chip.locator(".chip-bars"))).toBe("flex");
-    expect(await display(chip.locator(".swap"))).toBe("none");
+    expect(await computedColor(time, "color")).not.toBe(idle);
   });
 
   test("a played chip shows a check, a preparing one no spinner until it plays", async ({
     page,
   }) => {
-    const chip = page.locator("[data-play-item]").nth(1);
+    const chip = page.locator(".hero [data-play-digest]");
     await chip.evaluate((node) => node.setAttribute("data-state", "played"));
     expect(await display(chip.locator(".chip-check"))).toBe("block");
     expect(await display(chip.locator(".swap"))).toBe("none");
@@ -214,14 +210,14 @@ test.describe("how the page reacts to those attributes", () => {
     expect(Number.parseFloat(after) - Number.parseFloat(before)).toBeGreaterThanOrEqual(48);
   });
 
-  test("while offline the story chips step out of the way and the podcast chip stays", async ({
+  test("while offline the story times step out of the way and the podcast chip stays", async ({
     page,
   }) => {
     await page.evaluate(() => {
       document.documentElement.dataset.offline = "";
     });
     await expect(page.locator("[data-play-item]").first()).toBeHidden();
-    await expect(page.locator(".story .source-link").first()).toBeVisible();
+    await expect(page.locator(".story h3").first()).toBeVisible();
     await expect(page.locator(".hero [data-play-digest]")).toBeVisible();
   });
 

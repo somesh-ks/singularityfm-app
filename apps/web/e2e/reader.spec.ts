@@ -256,11 +256,13 @@ test.describe("sections and stories", () => {
     await expect(page.locator(".story[data-state]")).toHaveCount(0);
   });
 
-  test("labels each story chip with its length and names its action", async ({ page }) => {
+  test("a story's time shows where it starts and names its action", async ({ page }) => {
     await page.goto("/");
-    const chip = page.locator(".story").first().locator("[data-play-item]");
+    const chip = page.locator(".story").nth(1).locator("[data-play-item]");
     await expect(chip).toBeVisible();
-    await expect(chip).toHaveAccessibleName(`Play from here, 0:03: ${FIRST_HEADLINE}`);
+    // The name starts with the figures it shows (WCAG 2.5.3), then says what a press does.
+    await expect(chip).toHaveText("0:03");
+    await expect(chip).toHaveAccessibleName(/^0:03, Play from here, 0:03: /);
     await expect(chip).toHaveAttribute("data-state", "idle");
     expect(await chip.evaluate((node) => node.tagName)).toBe("BUTTON");
   });
@@ -271,9 +273,9 @@ test.describe("sections and stories", () => {
     baseURL,
   }) => {
     const read = (target: typeof page) =>
-      target.locator(".chip").evaluateAll((nodes) =>
+      target.locator(".chip, [data-play-item]").evaluateAll((nodes) =>
         nodes.map((node) => ({
-          label: node.querySelector("[data-chip-label]")?.textContent,
+          label: node.querySelector("[data-chip-label]")?.textContent ?? node.textContent,
           name: node.getAttribute("aria-label"),
           state: node.getAttribute("data-state"),
           playing: node.getAttribute("data-playing"),
@@ -285,7 +287,7 @@ test.describe("sections and stories", () => {
     await plain.goto("/");
     const rendered = await read(plain);
     await context.close();
-    // The briefing's chip and one per story.
+    // The briefing's chip and one time per story.
     expect(rendered).toHaveLength(13);
 
     await page.goto("/");
@@ -295,30 +297,26 @@ test.describe("sections and stories", () => {
     expect(await read(page)).toEqual(rendered);
   });
 
-  test("the headline is the story's link, in a new tab, and the publisher its attribution", async ({
+  test("the headline opens the summary, and the story's one link leads to its source in a new tab", async ({
     page,
   }) => {
     await page.goto("/");
     const first = page.locator(".story").first();
-    // One link a keyboard or a screen reader meets: the headline. Its name starts with what it
-    // shows (WCAG 2.5.3); the new tab is said, not shown.
-    const link = first.getByRole("link");
-    await expect(link).toHaveCount(1);
-    await expect(link).toHaveAccessibleName(`${FIRST_HEADLINE} (opens in a new tab)`);
-    await expect(first.locator("h3 a")).toHaveAttribute("href", /^https:\/\/example\.com\//);
-    await expect(first.locator("h3 a")).toHaveAttribute("target", "_blank");
-    await expect(first.locator("h3 a")).toHaveAttribute("rel", "noopener noreferrer");
     // The story is named by the headline's words alone.
     await expect(first).toHaveAccessibleName(FIRST_HEADLINE);
-    // The publisher goes to the same page: a pointer target, out of the tab order and the tree.
-    const source = first.locator(".source-link");
-    await expect(source.locator(":scope > span").first()).toHaveText("Springlet Blog");
-    await expect(source).toHaveAttribute(
-      "href",
-      (await first.locator("h3 a").getAttribute("href")) ?? "",
-    );
-    await expect(source).toHaveAttribute("tabindex", "-1");
-    await expect(source).toHaveAttribute("aria-hidden", "true");
+    // Closed, a story is a line to scan: no summary, and no link to tab through.
+    await expect(first.locator(".story-summary")).toBeHidden();
+    await expect(first.getByRole("link")).toHaveCount(0);
+    await first.locator("summary").click();
+    await expect(first.locator(".story-summary")).toBeVisible();
+    // One link a keyboard or a screen reader meets: the way to the source. Its name starts with
+    // what it shows (WCAG 2.5.3); the new tab is said, not shown.
+    const link = first.getByRole("link");
+    await expect(link).toHaveCount(1);
+    await expect(link).toHaveAccessibleName("Read at Springlet Blog (opens in a new tab)");
+    await expect(link).toHaveAttribute("href", /^https:\/\/example\.com\//);
+    await expect(link).toHaveAttribute("target", "_blank");
+    await expect(link).toHaveAttribute("rel", "noopener noreferrer");
   });
 
   test("a podcast narrated on Play has its Play unavailable offline, and back when online", async ({
@@ -393,8 +391,6 @@ test.describe("sections and stories", () => {
       await expect(chip).toHaveAttribute("hidden", "");
       await expect(chip).toBeHidden();
     }
-    // The source link stands alone at the start of the row.
-    await expect(page.locator(".story .source-link").first()).toBeVisible();
     // Sections show no listening length, and the text is complete without audio.
     await expect(page.locator(".head-fact")).toHaveCount(0);
     await hydrated(page);
@@ -444,69 +440,21 @@ test.describe("sections and stories", () => {
     await page.goto("/");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Wednesday 7 October");
     await expect(page.locator(".story")).toHaveCount(12);
-    await expect(page.locator(".story .source-link").first()).toBeVisible();
-    // The tabs are plain links to the sections, so they work without script.
-    await expect(page.locator("[data-section-tabs] .tab").nth(3)).toHaveAttribute(
-      "href",
-      "#c-research",
-    );
+    // A story opens without script: its summary and the way to its source.
+    const first = page.locator(".story").first();
+    await first.locator("summary").click();
+    await expect(first.locator(".story-summary")).toBeVisible();
+    await expect(first.locator(".source-link")).toBeVisible();
     await expect(page.locator("#c-research")).toHaveText("Research");
     await context.close();
   });
 });
 
-test.describe("section tabs", () => {
+test.describe("the name strip over the stories", () => {
   // The app bar slides away on a scroll down unless motion is reduced, which moves the strip up with
   // it. These tests measure the strip against a bar that stays put.
   test.beforeEach(async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
-  });
-
-  test("link to each section and start on the first", async ({ page }) => {
-    await page.goto("/");
-    const tabs = page.locator('nav[aria-label="Sections"] .tab');
-    await expect(tabs).toHaveText([
-      "Top picks",
-      "Design engineering",
-      "AI products",
-      "Research",
-      "Launches",
-      "Watch and listen",
-    ]);
-    await expect(tabs.first()).toHaveAttribute("href", "#c-top");
-    await expect(tabs.first()).toHaveAttribute("aria-current", "true");
-    await expect(page.locator('.tab[aria-current="true"]')).toHaveCount(1);
-  });
-
-  test("pressing tabs adds no history entries, so Back leaves the page", async ({ page }) => {
-    await page.goto("/library");
-    await page.goto("/");
-    const before = await page.evaluate(() => history.length);
-    await page.locator(".tab", { hasText: "Research" }).click();
-    await expect(page).toHaveURL(/#c-research$/);
-    await page.locator(".tab").first().click();
-    expect(await page.evaluate(() => history.length)).toBe(before);
-    await page.goBack();
-    await expect(page).toHaveURL(/\/library/);
-  });
-
-  test("a tab reached with the keyboard is brought fully into the strip", async ({ page }) => {
-    await page.goto("/");
-    await hydrated(page);
-    const last = page.locator(".tab").last();
-    await last.focus();
-    await expect
-      .poll(async () => {
-        const strip = await page.locator("[data-section-tabs]").boundingBox();
-        const tab = await last.boundingBox();
-        return (
-          !!strip &&
-          !!tab &&
-          tab.x >= strip.x - 0.5 &&
-          tab.x + tab.width <= strip.x + strip.width + 0.5
-        );
-      })
-      .toBe(true);
   });
 
   test("an episode page says episode, not podcast, to assistive tech", async ({ page }) => {
@@ -515,66 +463,6 @@ test.describe("section tabs", () => {
     await expect(page.locator(".hero [data-play-digest]")).toHaveAccessibleName(
       /^Play the episode, /,
     );
-  });
-
-  test("mark the section in view and bring its tab into the strip", async ({ page }) => {
-    await page.goto("/");
-    const current = page.locator('.tab[aria-current="true"]');
-    await page.evaluate(() => {
-      document.querySelector("#c-launches")?.scrollIntoView({ block: "start" });
-    });
-    await expect(current).toHaveText("Launches");
-    await expect(current).toHaveCount(1);
-    await expect(current).toBeInViewport({ ratio: 1 });
-    expect(
-      await page.locator("[data-section-tabs]").evaluate((node) => node.scrollLeft),
-    ).toBeGreaterThan(0);
-    // Scrolling the strip did not move the page sideways.
-    expect(await page.evaluate(() => window.scrollX)).toBe(0);
-    await page.evaluate(() => window.scrollTo(0, 0));
-    await expect(current).toHaveText("Top picks");
-  });
-
-  test("an instant jump to the top marks the first tab, though its section starts below mid-screen", async ({
-    page,
-  }) => {
-    // On a short phone the first section starts under the middle of the screen, so at the top no
-    // section crosses the reading band.
-    await page.setViewportSize({ width: 390, height: 600 });
-    await page.goto("/");
-    const current = page.locator('.tab[aria-current="true"]');
-    await page.evaluate(() => {
-      document.querySelector("#c-research")?.scrollIntoView({ block: "start" });
-    });
-    await expect(current).toHaveText("Research");
-    await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
-    await expect(current).toHaveText("Top picks");
-  });
-
-  test("a tapped tab jumps to its section, clear of the strip, and takes the mark", async ({
-    page,
-  }) => {
-    await page.goto("/");
-    const tab = page.locator(".tab", { hasText: "Research" });
-    await tab.click();
-    await expect(page).toHaveURL(/#c-research$/);
-    await expect(tab).toHaveAttribute("aria-current", "true");
-    await expect(page.locator('.tab[aria-current="true"]')).toHaveCount(1);
-    // The heading's words land clear of the strip, and the section's rule above them tucks under
-    // it, so the strip's own line is the only one.
-    const landing = await page.locator("#c-research").evaluate((heading) => {
-      const words = document.createRange();
-      words.selectNodeContents(heading);
-      return {
-        words: words.getBoundingClientRect().top,
-        rule: heading.closest(".chapter")?.getBoundingClientRect().top ?? 0,
-      };
-    });
-    const strip = await page.locator("[data-section-tabs]").boundingBox();
-    const stripEnd = (strip?.y ?? 0) + (strip?.height ?? 0);
-    expect(landing.words).toBeGreaterThanOrEqual(stripEnd);
-    expect(landing.words).toBeLessThan(260);
-    expect(landing.rule).toBeLessThan(stripEnd);
   });
 
   test("a control reached by Shift+Tab is never left under the strip (WCAG 2.4.11)", async ({
@@ -588,7 +476,7 @@ test.describe("section tabs", () => {
       await page.keyboard.press("Shift+Tab");
       const covered = await page.evaluate(() => {
         const control = document.activeElement?.getBoundingClientRect();
-        const strip = document.querySelector<HTMLElement>("[data-section-tabs]");
+        const strip = document.querySelector<HTMLElement>("[data-page-strip]");
         if (!control || !strip) return 0;
         const box = strip.getBoundingClientRect();
         const stuck = box.top <= Number.parseFloat(getComputedStyle(strip).top) + 0.5;
@@ -598,115 +486,29 @@ test.describe("section tabs", () => {
     }
   });
 
-  test("the last tab keeps the mark even where its section cannot reach the top", async ({
+  test("shows the podcast's name once the stories reach the top, and a press goes back to the top", async ({
     page,
   }) => {
-    await page.setViewportSize({ width: 390, height: 1400 });
     await page.goto("/");
-    const tab = page.locator(".tab", { hasText: "Watch and listen" });
-    await tab.click();
-    await expect(tab).toHaveAttribute("aria-current", "true");
-    // Still held a moment later, after the observer has had its say.
-    await page.waitForTimeout(300);
-    await expect(tab).toHaveAttribute("aria-current", "true");
-  });
-
-  test("at the end of the page the last tab takes the mark, though its section cannot reach the top", async ({
-    page,
-  }) => {
-    // The weekly is the oldest briefing: nothing follows its last section, so the page ends while
-    // that section is still well below the strip.
-    await page.goto("/d/2026-10-04-weekly");
-    const current = page.locator('.tab[aria-current="true"]');
-    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
-    await expect(current).toHaveText("Watch and listen");
+    await hydrated(page);
+    const strip = page.locator("[data-page-top]");
+    // At the top the header names the podcast: the strip is not there to see or to tab to.
+    await expect(strip).toBeHidden();
     await page.evaluate(() => {
       document.querySelector("#c-research")?.scrollIntoView({ block: "start" });
     });
-    await expect(current).toHaveText("Research");
-  });
-
-  test("follow the page again after a client-side navigation", async ({ page }) => {
-    await page.goto("/library");
-    await page.getByRole("link", { name: /Wednesday 7 October/ }).click();
-    await expect(page).toHaveURL(/\/d\/2026-10-07$/);
-    // The tabs set themselves up again after the swap: scroll only once they mark the first.
-    await hydrated(page);
-    await expect(page.locator('.tab[aria-current="true"]')).toHaveText("Top picks");
-    await page.evaluate(() => {
-      document.querySelector("#c-research")?.scrollIntoView({ block: "start" });
-    });
-    await expect(page.locator('.tab[aria-current="true"]')).toHaveText("Research");
-  });
-});
-
-test.describe("the section tabs with the app bar hidden", () => {
-  test("the mark follows the line under the strip, wherever the bar is", async ({ page }) => {
-    await page.setViewportSize({ width: 390, height: 844 });
-    await page.emulateMedia({ reducedMotion: "no-preference" });
-    await page.goto("/");
-    await hydrated(page);
-    const root = page.locator("html");
-    const current = page.locator('.tab[aria-current="true"]');
-    // Well above Research, then down towards it: a scroll down sends the bar away.
-    await page.evaluate(() => {
-      const top = document.querySelector("#c-research")?.getBoundingClientRect().top ?? 0;
-      window.scrollTo({ top: scrollY + top - 700, behavior: "instant" });
-    });
-    await page.mouse.wheel(0, 200);
-    await expect(root).toHaveAttribute("data-bar-hidden", "");
-    await expect
-      .poll(async () => (await page.locator("[data-section-tabs]").boundingBox())?.y ?? 99)
-      .toBeLessThan(2);
-    // Research's heading well below the reading line (a third down the space under the strip): the section above holds the mark.
-    const placeUnderStrip = (gap: number) =>
-      page.evaluate((room) => {
-        const strip =
-          document.querySelector("[data-section-tabs]")?.getBoundingClientRect().bottom ?? 0;
-        const top = document.querySelector("#c-research")?.getBoundingClientRect().top ?? 0;
-        window.scrollBy({ top: top - strip - room, behavior: "instant" });
-      }, gap);
-    await placeUnderStrip(400);
-    await expect(root).toHaveAttribute("data-bar-hidden", "");
-    await expect(current).toHaveText("AI products");
-    // Past the line, Research takes the mark: the line is measured from where the strip is now.
-    await placeUnderStrip(4);
-    await expect(current).toHaveText("Research");
-  });
-});
-
-test.describe("a tapped tab's mark", () => {
-  test("goes back to following the page when anything but a wheel scrolls it", async ({ page }) => {
-    await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto("/");
-    await hydrated(page);
-    const current = page.locator('.tab[aria-current="true"]');
-    await page.locator(".tab", { hasText: "Research" }).click();
-    await expect(current).toHaveText("Research");
-    await page.waitForTimeout(300);
-    // A scrollbar drag, a find, the player following its story: a scroll with no wheel or key.
-    await page.evaluate(() => {
-      document
-        .querySelector("#c-launches")
-        ?.scrollIntoView({ block: "start", behavior: "instant" });
-    });
-    await expect(current).toHaveText("Launches");
-  });
-
-  test("stays on the tapped tab while the page only settles", async ({ page }) => {
-    await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto("/");
-    await hydrated(page);
-    const tab = page.locator(".tab", { hasText: "Watch and listen" });
-    await tab.click();
-    await page.waitForTimeout(600);
-    await expect(tab).toHaveAttribute("aria-current", "true");
+    await expect(strip).toBeVisible();
+    await expect(strip).toContainText("Wednesday 7 October");
+    await strip.click();
+    await expect.poll(() => page.evaluate(() => scrollY)).toBe(0);
+    await expect(strip).toBeHidden();
   });
 });
 
 test.describe("a headline under the pointer", () => {
   test("is underlined whole, a hyphenated word included", { tag: "@desktop" }, async ({ page }) => {
-    await page.goto("/");
+    // A Catchup's headline is still the link to its source; a podcast's story opens its summary.
+    await page.goto("/e/ep-20261007-1930");
     await hydrated(page);
     const link = page.locator(".story-link", { has: page.locator(".no-break") }).first();
     await link.hover();
@@ -718,83 +520,6 @@ test.describe("a headline under the pointer", () => {
     );
     expect(lines.length).toBeGreaterThan(0);
     for (const line of lines) expect(line).toBe("underline");
-  });
-});
-
-test.describe("a tab's jump with the app bar", () => {
-  /** Where the heading's words stand under the strip's bottom edge, in pixels. */
-  const wordsUnderStrip = (page: Page, id: string) =>
-    page.locator(id).evaluate((heading) => {
-      const words = document.createRange();
-      words.selectNodeContents(heading);
-      const strip =
-        document.querySelector("[data-section-tabs]")?.getBoundingClientRect().bottom ?? 0;
-      return words.getBoundingClientRect().top - strip;
-    });
-  const stripRests = (page: Page) =>
-    expect
-      .poll(async () => (await page.locator("[data-section-tabs]").boundingBox())?.y ?? 99)
-      .toBeLessThan(2);
-
-  test("down: the bar goes first, so the heading lands by the strip where it ends", async ({
-    page,
-  }) => {
-    await page.emulateMedia({ reducedMotion: "no-preference" });
-    for (const width of [390, 360]) {
-      await page.setViewportSize({ width, height: 844 });
-      await page.goto("/");
-      await hydrated(page);
-      const root = page.locator("html");
-      await expect(root).not.toHaveAttribute("data-bar-hidden", "");
-      await page.locator(".tab", { hasText: "Research" }).click();
-      await expect(root).toHaveAttribute("data-bar-hidden", "");
-      await stripRests(page);
-      // The heading lands by the strip, clear of it.
-      await expect.poll(() => wordsUnderStrip(page, "#c-research")).toBeGreaterThanOrEqual(0);
-      expect(await wordsUnderStrip(page, "#c-research")).toBeLessThan(80);
-    }
-  });
-
-  test("up: the bar stays away, and the heading stays clear of the strip", async ({ page }) => {
-    await page.emulateMedia({ reducedMotion: "no-preference" });
-    await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto("/");
-    await hydrated(page);
-    const root = page.locator("html");
-    await page.evaluate(() => {
-      const top = document.querySelector("#c-launches")?.getBoundingClientRect().top ?? 0;
-      window.scrollTo({ top: scrollY + top - 700, behavior: "instant" });
-    });
-    await page.mouse.wheel(0, 200);
-    await expect(root).toHaveAttribute("data-bar-hidden", "");
-    await stripRests(page);
-    // The wheel's scroll is animated: on a slow runner it was still running when the tab's jump
-    // landed and carried the page back past it (the heading ended 135px under the strip, CI only).
-    // Click once the page has stood still for a few frames.
-    await page.evaluate(
-      () =>
-        new Promise<void>((resolve) => {
-          let last = -1;
-          let still = 0;
-          const frame = () => {
-            still = scrollY === last ? still + 1 : 0;
-            last = scrollY;
-            if (still >= 5) resolve();
-            else requestAnimationFrame(frame);
-          };
-          requestAnimationFrame(frame);
-        }),
-    );
-    // A click from the page itself: Playwright's own would first scroll the stuck strip to where it
-    // sits in the flow, moving the page it is about to measure.
-    await page
-      .locator(".tab", { hasText: "Research" })
-      .evaluate((tab) => (tab as HTMLElement).click());
-    await expect(page.locator('.tab[aria-current="true"]')).toHaveText("Research");
-    await expect(root).toHaveAttribute("data-bar-hidden", "");
-    await stripRests(page);
-    await expect.poll(() => wordsUnderStrip(page, "#c-research")).toBeGreaterThanOrEqual(0);
-    expect(await wordsUnderStrip(page, "#c-research")).toBeLessThan(80);
   });
 });
 

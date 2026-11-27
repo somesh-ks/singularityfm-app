@@ -68,7 +68,12 @@
 
 /* A hairline parts the rows, so a long list reads as rows and not as one block of words (owner,
    2026-11-26: "quite crowded"). */
-.show-episode + .show-episode {
+.show-episode + .show-episode::before {
+  content: "";
+  position: absolute;
+  inset-block-start: 0;
+  /* Edge to edge, past the gutters, as the row's hover fill goes (owner, 2026-11-26). */
+  inset-inline: calc(var(--page-gutter-start) * -1) calc(var(--page-gutter-end) * -1);
   border-block-start: var(--stroke-hairline) solid var(--color-border-hairline);
 }
 
@@ -129,7 +134,7 @@
   color: var(--color-on-surface-muted);
 }
 
-/* New, before the day: the accent's own word, no pill, so a list of them stays quiet. */
+/* New, after the day and the time: the accent's own word, no pill, so a list of them stays quiet. */
 .show-episode-new {
   color: var(--color-accent);
 }

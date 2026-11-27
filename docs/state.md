@@ -1,6 +1,6 @@
 # State
 
-Updated 2026-11-23. Rewrite, never append.
+Updated 2026-11-27. Rewrite, never append.
 
 ## Working
 
@@ -22,7 +22,8 @@ Unit (CI): 368 files, 5,579 tests, 2 min. Site e2e: 468, 14 min. Player: 81, 7 m
 
 ## Not working or unverified
 
-- D396 routes on fixtures. closed when: 200s with his keys.
+- PostHog (D400). closed when: events arrive via `/api/ph`; an opt-in replays.
+- Shows, headline list (D403): fixtures. closed when: on his phone a show plays, resumes, marks played.
 - D391: Play is the glyph alone. closed when: on his Android, Play keeps one size as it loads and plays.
 - D318 edge cache. closed when: a week of his loads is mostly HIT or STALE.
 - Guardrails (D360): #673 merged; `secrets:push` waits. closed when: Health's Budgets are fresh.
@@ -44,7 +45,7 @@ Unit (CI): 368 files, 5,579 tests, 2 min. Site e2e: 468, 14 min. Player: 81, 7 m
 - More menu (D214); Catch up album, Share circle, cards (D219); long press, haptics (D264, D273); push ping (D284). closed when: signed off.
 - Two Catch ups in 24 h (D213). closed when: a third is refused; a regenerate or delete uses none.
 - Three regenerations per podcast, counted in its own file (D212). closed when: the page shows "2 of 3 regenerations left".
-- Short podcasts (D204, D216 to D225). 11-05: dailies 1.04 and 1.02, metrics 7 of 10 runs at 1.02. closed when: two dailies in a row air within 10% of length, and `singularity metrics` shows ten runs at `length_share` 0.9+, `failure_rate` 0.1 or less.
+- Short podcasts (D204, D216 to D225). closed when: two dailies in a row air within 10% of length, and `singularity metrics` shows ten runs at `length_share` 0.9+, `failure_rate` 0.1 or less.
 - Claude steps: Haiku, Haiku high, Hydrogen, Sonnet (D334, D399); cap 500k. closed when: two scheduled runs lose no more voice or grounding (`lost_reasons`) than Sonnet-only ones, a script holds `length_share` 0.9+, and Hydrogen serves a call with no 400 or 404.
 - Ingest in shadow (D233, D251). 11-05: held 50%, read 93%, not met. closed when: 7 days at 90% held and 90% read (`ingest --coverage`).
 - Weekly switch (D386). closed when: a switched-off Weekly faults on the Saturday health run and its Settings row reads Off.

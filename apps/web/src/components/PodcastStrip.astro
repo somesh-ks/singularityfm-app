@@ -1,0 +1,29 @@
+---
+import type { CoverSource } from "../lib/covers";
+import Cover from "./Cover.astro";
+
+interface Props {
+  /** The podcast's id, title and cover: what the strip names. */
+  id: string;
+  title: string;
+  cover: CoverSource;
+  weekly?: boolean;
+}
+
+const { id, title, cover, weekly = false } = Astro.props;
+---
+
+{/* The strip over a podcast's stories, the first child of .briefing so it stays stuck for the
+     sections and lets go after the last one, as the section tabs did. It took their place (owner,
+     2026-11-26: "the scrollable tabs are a bit annoying ... not very easy to go to the top ... the
+     name of the podcast is visible, or it morphs into some small strip on top"): the podcast's cover
+     and name, shown once the stories reach the top chrome (briefingPage.ts marks it stuck), and a
+     press takes the reader to the top. Play stays the floating button (owner, same day). */}
+<div class="tabs-bar briefing-strip-bar" data-tabs-bar data-page-strip>
+  <a class="briefing-strip" href="#main" data-page-top aria-label={`${title}: back to the top`}>
+    <span class="briefing-strip-cover">
+      <Cover digestId={id} size="thumb" source={cover} weekly={weekly} />
+    </span>
+    <span class="briefing-strip-title">{title}</span>
+  </a>
+</div>

@@ -1,4 +1,4 @@
-import type { Locator } from "@playwright/test";
+import type { Locator, Page } from "@playwright/test";
 import { routeConfigServer } from "./configServer";
 import { expect, test } from "./fixtures";
 
@@ -8,6 +8,13 @@ import { expect, test } from "./fixtures";
  * Undo inside the wait sends nothing. The clock is held, so the ten-minute send never fires on its own.
  * /api/config is the site's own handler (configServer.ts), so its ten seconds between edits hold.
  */
+
+/** A story's votes and menu are under its headline: every story is opened, as a reader would one. */
+async function openStories(page: Page): Promise<void> {
+  await page.locator("details.story-details").evaluateAll((all) => {
+    for (const each of all) (each as HTMLDetailsElement).open = true;
+  });
+}
 
 /** Opens a story's More menu and stops hearing from its outlet. */
 async function stop(story: Locator): Promise<void> {
@@ -22,9 +29,10 @@ test.describe("story controls", () => {
     await page.clock.install();
     const server = await routeConfigServer(page);
     await page.goto("/");
+    await openStories(page);
     // An open alone never makes a request (every save is a commit); it waits for the like.
     const popup = page.waitForEvent("popup");
-    await page.locator("article.story").nth(1).locator("a.story-link").click();
+    await page.locator("article.story").nth(1).locator("a.story-source").click();
     await (await popup).close();
     const like = page.locator("[data-story-controls] [data-vote=up]").first();
     const dislike = page.locator("[data-story-controls] [data-vote=down]").first();
@@ -51,6 +59,7 @@ test.describe("story controls", () => {
 
     // After a reload the story is still pressed, and having been sent it is not sent again.
     await page.goto("/");
+    await openStories(page);
     await expect(page.locator("[data-story-controls] [data-vote=up]").first()).toHaveAttribute(
       "aria-pressed",
       "true",
@@ -65,6 +74,7 @@ test.describe("story controls", () => {
     await page.clock.install();
     const server = await routeConfigServer(page);
     await page.goto("/");
+    await openStories(page);
     await stop(page.locator("[data-story-controls]").first());
     const toast = page.locator(".toast");
     await expect(toast).toBeVisible();
@@ -99,6 +109,7 @@ test.describe("story controls", () => {
     await page.clock.install();
     const server = await routeConfigServer(page);
     await page.goto("/");
+    await openStories(page);
     const story = page.locator("[data-story-controls]").first();
 
     await stop(story);
@@ -128,6 +139,7 @@ test.describe("story controls", () => {
     await page.clock.install();
     const server = await routeConfigServer(page);
     await page.goto("/");
+    await openStories(page);
     // Every fixture story is on example.com: the second is moved to an outlet of its own.
     const stories = page.locator("[data-story-controls][data-outlet]");
     await stories.nth(1).evaluate((el) => {
@@ -166,6 +178,7 @@ test.describe("story controls", () => {
     await page.clock.install();
     const server = await routeConfigServer(page);
     await page.goto("/");
+    await openStories(page);
     await page.locator("[data-story-controls] [data-vote=up]").first().click();
     await stop(page.locator("[data-story-controls][data-outlet]").first());
     // Leaving inside the Undo wait sends the stop at once, with the vote.

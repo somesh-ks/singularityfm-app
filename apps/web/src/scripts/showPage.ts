@@ -358,14 +358,19 @@ function install(): void {
    */
   function readWhole(): Promise<boolean> {
     if (!view) return Promise.resolve(false);
+    // An ask still being read in comes first: the list is whole only once it is drawn from.
+    if (asking) return asking;
     if (view.whole) return Promise.resolve(true);
-    asking ??= fetchShow(showId, true).then(async (answer) => {
-      asking = null;
-      if (typeof answer === "string" || !view) return false;
-      view.whole = true;
-      await read(answer);
-      return true;
-    });
+    asking = fetchShow(showId, true)
+      .then(async (answer) => {
+        if (typeof answer === "string" || !view) return false;
+        view.whole = true;
+        await read(answer);
+        return true;
+      })
+      .finally(() => {
+        asking = null;
+      });
     return asking;
   }
 

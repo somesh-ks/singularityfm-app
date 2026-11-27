@@ -287,7 +287,7 @@ describe("a pasted link", () => {
         ...deps({ index }),
         resolve: PUBLIC,
         fetch: async (input) =>
-          String(input).startsWith("https://short.example.com")
+          new URL(String(input)).hostname === "short.example.com"
             ? new Response(null, {
                 status: 301,
                 headers: { location: "https://feeds.example.com/1.xml" },

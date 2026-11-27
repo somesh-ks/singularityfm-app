@@ -24,6 +24,7 @@ import {
 } from "./pageContentLoader";
 import SourceLink from "./SourceLink";
 import SpeedOffer from "./SpeedOffer";
+import SponsorSkip from "./SponsorSkip";
 import Icon from "./ui/Icon";
 import PlayerCover, { PlayerCoverGlow } from "./ui/PlayerCover";
 
@@ -246,6 +247,7 @@ export default function PlayerSurface() {
                         {item?.headline ?? recordingCaption(digest, state.duration)}
                       </p>
                       <SourceLink />
+                      <SponsorSkip />
                     </div>
                   </div>
                 </>

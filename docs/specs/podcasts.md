@@ -1,6 +1,6 @@
 # Podcast pages, shows and episodes
 
-What it does now. Reasons: D396, D403; the flow spec of 2026-11-23; history: [2026-11-27](../history/2026-11-27-show-pages-and-headline-list.md).
+What it does now. Reasons: D396, D403, D404; the flow spec of 2026-11-23; history: [2026-11-27](../history/2026-11-27-show-pages-and-headline-list.md), [sponsor skip](../history/2026-11-27-sponsor-skip.md).
 
 ## A Singularity podcast page (`/`, `/d/`, `/e/`)
 
@@ -28,4 +28,14 @@ What it does now. Reasons: D396, D403; the flow spec of 2026-11-23; history: [20
 
 ## Not built
 
-A transcript tab, chapters and Download for a show's episodes; accounts and sync (phase 3).
+## Chapters, transcript and sponsor breaks (D404)
+
+- The publisher's chapters and timed transcript come through `/api/podcasts/extras` and are read once per tab (`podcasts/extras.ts`). In the player the chapters are the timeline's items, so the scrubber marks, previous and next ("Previous chapter") and the list work as for a Catchup's stories; tabs are Chapters, Transcript, Up next, each only where it has something.
+- A sponsor break is a publisher's chapter titled "Sponsor: ..." or "Ad break", or an ad read found in the transcript (`podcasts/sponsors.ts`): from a line that opens an ad ("brought to you by", "my sponsor") to the first address that names the sponsor ("workos.com"), within 150 s, at least 10 s long. No such address, no break: missing one is fine, cutting the show is not.
+- Breaks are trusted only when the file is the transcript's file: measured length within 5 s of the feed's, and the transcript ending inside the file with at most 30 s after it (15 s when the feed gives no length). A host that inserts ads per listener fails this, and no skip shows.
+- Settings, Show settings, Sponsor breaks: Skip button (default), Skip where found, Off. The episode page's switch is the same setting. With Skip where found a break the playhead plays into is skipped with a toast; one sought into plays.
+- The episode page lists the chapters with the breaks in place; a row plays from its start.
+
+## Not yet
+
+Download for a show's episodes; accounts and sync (phase 3).

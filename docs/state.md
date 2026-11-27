@@ -18,13 +18,13 @@ Updated 2026-11-27. Rewrite, never append.
 
 ## Tests
 
-Unit (CI): 368 files, 5,579 tests, 2 min. Site e2e: 468, 14 min. Player: 81, 7 min.
+Unit (CI): 368 files, 5,579 tests, 2 min. Site e2e: 468, 14 min. Player: 82, 7 min.
 
 ## Not working or unverified
 
 - Home (D402) on fixtures. closed when: his phone shows covers.
 - PostHog (D400), events live. closed when: an opt-in replays.
-- D396 routes, D403 shows on fixtures. closed when: 200s with his keys; his phone resumes one.
+- D396 routes, D403 shows, D404 skip: fixtures. closed when: 200s with his keys; his phone resumes one, skips onto talk.
 - D391: Play is the glyph alone. closed when: on his Android, Play keeps one size as it loads and plays.
 - D318 edge cache. closed when: a week of his loads is mostly HIT or STALE.
 - Guardrails (D360): #673 merged; `secrets:push` waits. closed when: Health's Budgets are fresh.
@@ -78,7 +78,7 @@ Unit (CI): 368 files, 5,579 tests, 2 min. Site e2e: 468, 14 min. Player: 81, 7 m
 
 ## Known risks
 
-- Storage measured 2026-11-01: Blob 133 MB (about 5.6 MB a day), Neon 11 MB. The "near 10 GB" Vercel figure is neither. closed when: the Usage tab names it.
+- Storage, 2026-11-01: Blob 133 MB (5.6 MB a day), Neon 11 MB; Vercel's "near 10 GB" is neither. closed when: the Usage tab names it.
 - No passphrase (D160): anyone with the URL can run, narrate, delete and edit config, within the caps.
 - Budget counters can read below real spend: workflow and site count apart against one Speechify allowance.
 - A Catch up that fails after its episode is committed (the audio job, or a late Cancel) frees its slot in the two-a-day cap (D213); the 12-a-day policy still bounds it.

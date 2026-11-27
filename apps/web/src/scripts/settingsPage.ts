@@ -18,6 +18,7 @@ import {
   getPreferences,
   HUE_MAX,
   type Preferences,
+  SPONSOR_CHOICES,
   THEME_PREFERENCES,
   type ThemePreference,
   toHue,
@@ -115,6 +116,7 @@ function mountSettings(root: HTMLElement): () => void {
   const preferences = getPreferences();
   const theme = root.querySelector<HTMLSelectElement>('select[name="theme"]');
   const mood = root.querySelector<HTMLSelectElement>('select[name="mood"]');
+  const sponsors = root.querySelector<HTMLSelectElement>('select[name="sponsors"]');
   const hue = root.querySelector<HTMLInputElement>('input[name="hue"]');
   const sounds = root.querySelector<HTMLInputElement>('input[name="sounds"]');
   const haptics = root.querySelector<HTMLInputElement>('input[name="haptics"]');
@@ -157,6 +159,7 @@ function mountSettings(root: HTMLElement): () => void {
     if (haptics) haptics.checked = preferences.get().haptics;
     if (hapticsHint) hapticsHint.textContent = preferences.get().haptics ? "On" : "Off";
     if (autoplay) autoplay.checked = preferences.get().autoplay;
+    if (sponsors) sponsors.value = preferences.get().sponsors;
     if (volume) {
       volume.value = state.volume;
       volume.disabled = state.volumeDisabled;
@@ -177,6 +180,11 @@ function mountSettings(root: HTMLElement): () => void {
     if (input === mood && mood) {
       // The same crossfade as a theme change; no sound.
       preferences.set({ mood: mood.value });
+      return;
+    }
+    if (input === sponsors && sponsors) {
+      const chosen = SPONSOR_CHOICES.find((choice) => choice === sponsors.value);
+      if (chosen) preferences.set({ sponsors: chosen });
       return;
     }
     if (input === haptics && haptics) {
@@ -248,6 +256,7 @@ function mountSettings(root: HTMLElement): () => void {
   // The Theme select has waited inert for the listener above (settings.astro).
   if (theme) theme.inert = false;
   if (mood) mood.inert = false;
+  if (sponsors) sponsors.inert = false;
   // Only a device that can answer is offered the choice (D273).
   if (hapticsSection) hapticsSection.hidden = getHaptics().support === "none";
   const hapticsNone = root.querySelector<HTMLElement>("[data-haptics-none]");

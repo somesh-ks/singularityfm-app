@@ -38,6 +38,7 @@ describe("parsePreferences", () => {
         rate: 1.5,
         autoplay: false,
         avatar: "pebble",
+        sponsors: "skip",
       }),
     );
     expect(parsed).toEqual({
@@ -51,6 +52,7 @@ describe("parsePreferences", () => {
       rate: 1.5,
       autoplay: false,
       avatar: "pebble",
+      sponsors: "skip",
     });
     const partial = parsePreferences(
       JSON.stringify({
@@ -59,6 +61,7 @@ describe("parsePreferences", () => {
         rate: 3,
         volume: "loud",
         avatar: "<b>",
+        sponsors: "always",
       }),
     );
     expect(partial).toEqual(DEFAULT_PREFERENCES);

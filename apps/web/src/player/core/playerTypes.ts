@@ -162,11 +162,17 @@ export interface PlayerStore {
   subscribe(listener: StateListener): () => void;
   /** The playhead, every animation frame while playing. Write to leaf elements only. */
   onFrame(listener: FrameListener): () => void;
-  /** Whole-second ticks and every seek, for labels and ARIA values that update once a second. */
-  onSecond(listener: () => void): () => void;
+  /**
+   * Whole-second ticks and every seek, for labels and ARIA values that update once a second. The
+   * cause is "auto" when the episode played there and the move's cause (a seek, a skip) when the
+   * listener moved it: the sponsor skip acts only on the first (showExtras.ts).
+   */
+  onSecond(listener: (cause?: ItemChangeCause) => void): () => void;
   /** Semantic events for sounds and announcements. */
   onEvent(listener: EventListener): () => void;
   getTime(): number;
+  /** The file's length once the audio element has read it; 0 before (or for the unlock primer). */
+  measuredDuration(): number;
   isNarrating(): boolean;
   getPageDigest(): PlayerDigestData | null;
   /** Reads the page's digest. Attaches its audio when nothing has started yet. */

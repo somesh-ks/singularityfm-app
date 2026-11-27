@@ -49,7 +49,10 @@ export function startShowExtras(store: PlayerStore, preferences: PreferencesStor
     const before = last;
     last = now;
     const placedBefore = placed;
-    placed = cause !== undefined && cause !== "auto" && cause !== "load";
+    // A tick that moves nothing (a pause) keeps the choice; playing on, or a load, ends it.
+    if (cause === "load") placed = false;
+    else if (cause !== undefined && cause !== "auto") placed = true;
+    else if (now !== before) placed = false;
     const state = store.getState();
     if (preferences.get().sponsors !== "skip" || state.status !== "playing" || state.scrubbing)
       return;

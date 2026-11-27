@@ -14,7 +14,7 @@ afterEach(() => {
 });
 
 /** A show episode whose extras are in, with a break from 0:50 to 1:20 on a file that fits them. */
-function playingShow() {
+function playingShow(span = { start_s: 50, end_s: 80 }) {
   const harness = createHarness();
   const preferences = createPreferencesStore({
     storage: new MemoryStorage(),
@@ -28,7 +28,7 @@ function playingShow() {
         id: 1,
         title: "A show",
         episode_title: "An episode",
-        breaks: [{ start_s: 50, end_s: 80 }],
+        breaks: [span],
         transcript_end_s: 118,
       },
     }),
@@ -63,5 +63,21 @@ describe("skipping sponsor breaks by themselves", () => {
     started.audio.currentTime = 51;
     started.flushFrames();
     expect(started.store.getTime()).toBe(51);
+
+    // The same, with a pause between the seek and the playing.
+    const paused = playingShow();
+    paused.store.seekTo(50_000);
+    paused.store.pause();
+    paused.store.play();
+    paused.audio.startPlaying();
+    paused.audio.currentTime = 51;
+    paused.flushFrames();
+    expect(paused.store.getTime()).toBe(51);
+
+    // A break at 0:00 is reached by pressing Play on the episode.
+    const opening = playingShow({ start_s: 0, end_s: 30 });
+    opening.audio.currentTime = 1;
+    opening.flushFrames();
+    expect(opening.store.getTime()).toBe(30);
   });
 });

@@ -75,7 +75,8 @@ export function sponsorNames(text: string): Set<string> {
  * someone else, so the ad cannot be stretched over the talk to reach it.
  */
 export function sponsorAddressEnd(text: string, names: ReadonlySet<string>): number | null {
-  let end: number | null = null;
+  // The first that names the sponsor: "Visit acme.com. Back to our guest: why leave acme.com?"
+  // ends at the first, so the question stays out of the break.
   for (const match of text.matchAll(ADDRESS)) {
     const domain = (match[1] ?? "").toLowerCase().replace(/-/g, "");
     const named = [...names].some(
@@ -85,9 +86,9 @@ export function sponsorAddressEnd(text: string, names: ReadonlySet<string>): num
     if (!named) continue;
     const after = match.index + match[0].length;
     const tail = ADDRESS_TAIL.exec(text.slice(after));
-    end = (after + (tail ? tail[0].length : 0)) / Math.max(1, text.length);
+    return (after + (tail ? tail[0].length : 0)) / Math.max(1, text.length);
   }
-  return end;
+  return null;
 }
 
 /** A line that ends with its address: the next line starts where the ad ends. */
@@ -107,11 +108,10 @@ export function findSponsorBreaks(lines: readonly TimedLine[]): SponsorBreak[] {
       index += 1;
       continue;
     }
-    // "My sponsor," and "Antithesis," can be two lines.
-    const names = new Set([
-      ...sponsorNames(first.text),
-      ...sponsorNames(lines[index + 1]?.text ?? ""),
-    ]);
+    // "My sponsor," and "Antithesis," can be two lines; the next line is read only then, so a
+    // company the talk names after the opener ("GitHub has changed...") is not taken as the sponsor.
+    const named = sponsorNames(first.text);
+    const names = named.size > 0 ? named : sponsorNames(lines[index + 1]?.text ?? "");
     const limit = first.start_s + MAX_BREAK_S;
     let last = -1;
     for (let at = index; at < lines.length && (lines[at]?.start_s ?? limit) < limit; at += 1) {

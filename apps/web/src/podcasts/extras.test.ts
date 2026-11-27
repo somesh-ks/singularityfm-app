@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { chapterRows, episodeBreaks, transcriptTurns } from "./extras";
+import { chapterRows, episodeBreaks, SPONSOR_ROW, transcriptTurns } from "./extras";
 
 describe("chapters with sponsor breaks", () => {
   // A break inside a chapter that never named the chapter again left the list's "now" on the break
@@ -14,9 +14,26 @@ describe("chapters with sponsor breaks", () => {
     expect(rows.map((row) => [row.start_s, row.title, row.sponsor])).toEqual([
       [0, "Opening", false],
       [100, "The main story", false],
-      [400, "Sponsor break", true],
+      [400, SPONSOR_ROW, true],
       [460, "The main story", false],
       [900, "Credits", false],
+    ]);
+  });
+
+  // A break that ran past a chapter's start left the next chapter starting inside the ad: the list
+  // marked talk during the break, and Next landed in the ad.
+  it("starts the next chapter where a break that crosses into it ends", () => {
+    const chapters = [
+      { start_s: 0, title: "Opening", url: null },
+      { start_s: 100, title: "The main story", url: null },
+      { start_s: 200, title: "Credits", url: null },
+    ];
+    const rows = chapterRows(chapters, [{ start_s: 80, end_s: 120 }], 300);
+    expect(rows.map((row) => [row.start_s, row.sponsor])).toEqual([
+      [0, false],
+      [80, true],
+      [120, false],
+      [200, false],
     ]);
   });
 

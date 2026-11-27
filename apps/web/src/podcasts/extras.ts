@@ -114,7 +114,9 @@ export function chapterRows(
       url: chapter.url,
       sponsor: false,
     });
-    const inside = breaks.filter((span) => span.start_s >= chapter.start_s && span.start_s < end);
+    // Every break that overlaps the chapter, one that began in the chapter before included: the
+    // chapter's talk starts where that break ends.
+    const inside = breaks.filter((span) => span.end_s > chapter.start_s && span.start_s < end);
     if (inside.length === 0) {
       rows.push(part(chapter.start_s));
       return;
@@ -122,7 +124,8 @@ export function chapterRows(
     let from = chapter.start_s;
     for (const span of inside) {
       if (span.start_s - from >= 1) rows.push(part(from));
-      rows.push({ start_s: span.start_s, title: SPONSOR_ROW, url: null, sponsor: true });
+      if (span.start_s >= chapter.start_s)
+        rows.push({ start_s: span.start_s, title: SPONSOR_ROW, url: null, sponsor: true });
       from = Math.max(from, span.end_s);
     }
     if (end - from >= MIN_REST_S) rows.push(part(from));

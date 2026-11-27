@@ -27,8 +27,10 @@ function install(): void {
   root.dataset.ready = "";
   const params = new URLSearchParams(location.search);
   const id = params.get("id") ?? "";
-  const linkedAt = Number(params.get("t"));
-  let startAt: number | undefined = linkedAt > 0 ? linkedAt : undefined;
+  // A first chapter's link says t=0: still a position, not the resume point.
+  const linkedAt = params.has("t") ? Number(params.get("t")) : Number.NaN;
+  let startAt: number | undefined =
+    Number.isFinite(linkedAt) && linkedAt >= 0 ? linkedAt : undefined;
   const showId = isShowEpisodeId(id) ? showIdOf(id) : null;
   const part = <T extends HTMLElement>(name: string): T | null =>
     root.querySelector<T>(`[data-episode-${name}]`);
@@ -133,12 +135,13 @@ function install(): void {
   function paintExtras(): void {
     if (!episode) return;
     const current = episode;
-    const key = `${current.id}|${current.chapters ?? ""}|${current.transcript ?? ""}`;
+    // The length too: a refreshed feed that adds one closes a last sponsor chapter's break.
+    const key = `${current.id}|${current.chapters ?? ""}|${current.transcript ?? ""}|${current.duration_s ?? ""}`;
     if (extrasFor === key) return;
     extrasFor = key;
     void loadExtras(current.id, current).then((extras) => {
       if (life.signal.aborted || episode?.id !== current.id) return;
-      // Offline: the next paint (the player moving, a favorite) asks again.
+      // Offline: the device coming back online asks again (the listener below).
       if (extras.partial) extrasFor = null;
       // The same length the player measures breaks against (extras.ts, withExtras).
       const duration = current.duration_s || Number.POSITIVE_INFINITY;
@@ -274,6 +277,8 @@ function install(): void {
         event instanceof MouseEvent && (event.metaKey || event.ctrlKey || event.shiftKey);
       if (chapter && !modified) {
         event.preventDefault();
+        // A chosen chapter replaces the link's position: Play is Play after it.
+        startAt = undefined;
         if (!pressPlay(current, Number(chapter.dataset.chapterAt)))
           sendToast({ message: "This episode can't be played here", kind: "error" });
         return;
@@ -354,6 +359,7 @@ function install(): void {
   life.signal.addEventListener("abort", offPreferences, { once: true });
 
   window.addEventListener("singularity:resume", paintHeard, on);
+  window.addEventListener("online", paintExtras, on);
   void onPlayerChange(paintHeard).then((off) => {
     if (life.signal.aborted) off();
     else life.signal.addEventListener("abort", off, { once: true });

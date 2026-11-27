@@ -51,7 +51,10 @@ export function startShowExtras(store: PlayerStore, preferences: PreferencesStor
     const span = currentBreak(store);
     if (!span) return;
     // From before its start, or from its very start: a break at 0:00 is reached by pressing Play.
-    const playedInto = before <= span.start_s && now - before <= 3 * Math.max(1, state.rate);
+    // A tick is a second of the episode at any speed, and every seek ticks too: only a step of one
+    // whole second is playing, so a seek from 1:39 to 1:41 stays where the listener put it.
+    const step = Math.floor(now) - Math.floor(before);
+    const playedInto = before <= span.start_s && step === 1 && now - before < 1.5;
     if (playedInto) skipBreak(store, span, "auto");
   });
   return () => {

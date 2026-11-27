@@ -50,6 +50,25 @@ describe("sponsor breaks", () => {
     expect(findSponsorBreaks(lines)).toEqual([]);
   });
 
+  // A company the talk names after the opener closed a break over the talk at its address, and a
+  // second mention of the sponsor's address in the guest's question ran the break over the question.
+  it("keeps talk that names a company or the sponsor again out of the break", () => {
+    expect(
+      findSponsorBreaks([
+        line(0, 4, "This episode is brought to you by Acme."),
+        line(4, 30, "GitHub has changed how maintainers review code."),
+        line(30, 40, "The new workflow is documented at github.com."),
+      ]),
+    ).toEqual([]);
+    const [found] = findSponsorBreaks([
+      line(0, 4, "This episode is brought to you by Acme, the build tool."),
+      line(4, 20, "Acme runs every build on fast machines for your whole team."),
+      line(20, 30, "Visit acme.com. Back to our guest: why did you leave acme.com?"),
+      line(30, 40, "Well, it was time."),
+    ]);
+    expect(found?.end_s).toBeLessThan(26);
+  });
+
   // A line that closes the talk and opens the ad started the break at the line's start, so Skip
   // sponsor jumped over the host's last sentence.
   it("starts a break at the sentence that opens it, not at its line", () => {

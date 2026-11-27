@@ -79,6 +79,7 @@ function install(): void {
   // Search's Catchups: the same cards, driven by the page's own field (pages/search.astro), nothing on
   // show until it holds words, always the list view.
   const searchOnly = root.hasAttribute("data-search-only");
+  const host: HTMLElement = root;
   const grid = root.querySelector<HTMLElement>("[data-library-grid]");
   const input = (searchOnly ? document : root).querySelector<HTMLInputElement>(
     "[data-library-search]",
@@ -266,6 +267,8 @@ function install(): void {
     }
     writeUrl(query, filter, sort);
     requestAnimationFrame(markTruncated);
+    // Search counts the Catchups shown; the full-text index can land after its own answer.
+    if (searchOnly) host.dispatchEvent(new CustomEvent("library:applied", { bubbles: true }));
   }
 
   /** What the address asked for when the page opened: Back from a result, or a shared link. */

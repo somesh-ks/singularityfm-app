@@ -33,7 +33,6 @@ const dateOf = (item: LibraryItem): string =>
   search ? (
     items.length > 0 && (
       <div data-library data-view="list" data-search-only>
-        <p class="sr-only" role="status" data-library-status></p>
         <ul class="library-grid" role="list" data-library-grid>
           {items.map((item) =>
             item.kind === "episode" ? <EpisodeCard entry={item.entry} /> : <BriefingCard entry={item.entry} menu />,

@@ -162,3 +162,18 @@ export function installAnalytics(): void {
   if (shared) script.setAttribute("data-path-overwriter", PATH_OVERWRITER);
   document.head.append(script);
 }
+
+const SHOW_ADDRESS = /(\/(?:show|episode))\?[^#\s]*/g;
+
+/**
+ * Takes the query off every /show and /episode address an event carries (the page, the referrer,
+ * the session's first page): the id in it names a publisher's show or episode.
+ */
+export function withoutShowIds(properties: Record<string, unknown> | undefined): void {
+  if (!properties) return;
+  for (const [key, value] of Object.entries(properties))
+    if (typeof value === "string" && value.includes("?")) properties[key] = withoutShowId(value);
+}
+
+/** One address without its show or episode id: a recording names its page by address too. */
+export const withoutShowId = (address: string): string => address.replace(SHOW_ADDRESS, "$1");

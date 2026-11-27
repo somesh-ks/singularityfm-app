@@ -118,8 +118,12 @@ export default function PlayerSurface() {
   const title = digest ? digest.title || longDateFromDigestId(digest.id) : "";
   // Nothing to read and nothing queued: the page is the cover and its controls, in one centred
   // column (player.css, [data-lean]). A transcript or a queue brings the list and the second column.
+  // A show's episode has no stories and always has Up next: its queue and the episodes that follow.
   const lean =
-    !(digest?.turns?.length || digest?.items.length) && queued.length === 0 && !state.upNextId;
+    !digest?.show &&
+    !(digest?.turns?.length || digest?.items.length) &&
+    queued.length === 0 &&
+    !state.upNextId;
   const visible = state.hasStarted && Boolean(digest?.audio);
   // A recording with no audio to play shows the empty screen in place of controls that cannot work.
   const unplayable = isUnplayable(state.error);

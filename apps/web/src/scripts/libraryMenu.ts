@@ -22,8 +22,8 @@ import { shareItem } from "./shareLink";
 const ROOT = "[data-library-menu]";
 /** A Library row's menu, or the More menu of a page: the roots Download and Add to queue act from. */
 const ITEM_ROOT = `${ROOT}, [data-page-menu]`;
-/** A sheet's items, and the page header's Download button (PlayCta.astro), which acts as its item. */
-const ITEM = "[data-menu], [data-page-download]";
+/** A sheet's items. */
+const ITEM = "[data-menu]";
 
 /** Where the downloaded state is kept: the row's card, or the menu itself on a page. */
 const holderOf = (root: HTMLElement): HTMLElement =>
@@ -48,14 +48,10 @@ function setDownloaded(root: HTMLElement, on: boolean): void {
   // The card's own mark follows this attribute (library.css, CardMarks.astro); a page header's is put in.
   holderOf(root).toggleAttribute("data-downloaded", on);
   if (holderOf(root) === root) markHero(on);
-  // A page has two: the header row's button, named by aria-label, and the sheet's item, by its words.
   const name = on ? "Remove download" : "Download";
-  for (const item of root.querySelectorAll<HTMLElement>(
-    '[data-menu="download"], [data-page-download]',
-  )) {
+  for (const item of root.querySelectorAll<HTMLElement>('[data-menu="download"]')) {
     const label = item.querySelector("[data-menu-label]");
     if (label) label.textContent = name;
-    else item.setAttribute("aria-label", name);
   }
   // The item's icon follows the card's data-downloaded (library.css, .dl-remove).
 }

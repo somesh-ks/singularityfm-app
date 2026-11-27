@@ -12,6 +12,8 @@ export interface ItemView {
   index: number;
   /** The story's share of the recording as "m:ss", or "" while there is no audio to play. */
   length: string;
+  /** Where the story starts in the recording as "m:ss", or "" while there is no audio to play. */
+  at: string;
 }
 
 export interface SectionView {
@@ -35,7 +37,8 @@ export function buildSections(entry: DigestEntry): SectionView[] {
         const marks = hasAudio ? timed.get(item.id) : undefined;
         // The same function the player labels a chip with, so the two never disagree.
         const length = storyLengthLabel(marks?.start_ms ?? null, marks?.end_ms ?? null);
-        return { item, index, length };
+        const at = typeof marks?.start_ms === "number" ? formatClock(marks.start_ms) : "";
+        return { item, index, length, at };
       })
       .filter(({ item }) => item.section === slug);
     const first = items[0];

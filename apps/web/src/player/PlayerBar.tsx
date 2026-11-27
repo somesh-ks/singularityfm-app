@@ -446,7 +446,8 @@ export default function PlayerBar() {
 
   // Under the title: the clock, then the story's chapter, or what the recording is before story 1
   // and in an episode's rundown. A failure or an interruption takes the line.
-  const where = story || (digest ? recordingKind(digest) : "");
+  // A show episode has no stories and is no Daily: after the clock comes its own title.
+  const where = story || (digest ? (digest.show?.episode_title ?? recordingKind(digest)) : "");
   const notice = state.error
     ? errorSummary(state.error)
     : state.interrupted
@@ -496,7 +497,7 @@ export default function PlayerBar() {
         // The surface controller keeps this in step with the page; false is the collapsed truth.
         aria-expanded="false"
         aria-controls={PLAYER_PAGE_ID}
-        aria-label={`Player: ${[...new Set([title, story, headline].filter(Boolean))].join(", ")}`}
+        aria-label={`Player: ${[...new Set([title, story || (digest?.show?.episode_title ?? ""), headline].filter(Boolean))].join(", ")}`}
         onClick={(event) => {
           // The click some browsers still send after a swipe's lift is not a press.
           if (swipe.swiped()) return;

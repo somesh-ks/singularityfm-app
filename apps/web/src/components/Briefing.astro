@@ -1,26 +1,27 @@
 ---
-import SectionTabs from "@singularityfm/design-system/SectionTabs";
+import type { CoverSource } from "../lib/covers";
 import type { SectionView } from "../lib/digestView";
 import Chapter from "./Chapter.astro";
 import Item from "./Item.astro";
+import PodcastStrip from "./PodcastStrip.astro";
 
 interface Props {
   sections: SectionView[];
   hasAudio: boolean;
+  /** What the strip over the stories names: the podcast's id, title and cover. */
+  podcast: { id: string; title: string; cover: CoverSource; weekly: boolean };
 }
 
-const { sections, hasAudio } = Astro.props;
+const { sections, hasAudio, podcast } = Astro.props;
 ---
 
-{/* The tabs live inside this wrapper so they stay stuck for the sections and let go after the last
-     one (SectionTabs.astro). */}
 <div class="briefing" id="briefing">
-  <SectionTabs sections={sections} />
+  <PodcastStrip {...podcast} />
   {
     sections.map((section) => (
       <Chapter section={section}>
-        {section.items.map(({ item, index: itemIndex, length }) => (
-          <Item item={item} index={itemIndex} length={length} hasAudio={hasAudio} />
+        {section.items.map(({ item, index: itemIndex, length, at }) => (
+          <Item item={item} index={itemIndex} length={length} at={at} hasAudio={hasAudio} />
         ))}
       </Chapter>
     ))

@@ -80,7 +80,7 @@ The oldest rows of the decisions Index (D1 to D150), moved here so the live Inde
 | D74 | A discussion's hosts are named for their voices; the transcript names a speaker only on a change of speaker | active |
 | D75 | Suggested sources are chosen from the source catalogue when the page is built, with no live lookup and no scores | active |
 | D76 | Create is the New episode form: three questions first, the defaults under More options | active |
-| D77 | A reading page: the headline is the link, Play is the one filled action, one hero for any title | active |
+| D77 | A reading page: the headline is the link, Play is the one filled action, one hero for any title | active; amended by D403 |
 | D78 | The Library has one facts line per card, finds dates, keeps its search in the address and remembers what was played | amended by D348 |
 | D79 | A saved setting shows before the build, and a new topic stays on its list with its suggestions at once | active |
 | D80 | An episode is written to 95% of what its stories can carry, and a script a little under the floor is kept | active |

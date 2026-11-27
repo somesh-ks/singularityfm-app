@@ -23,12 +23,12 @@ test.describe("keyboard", { tag: "@desktop" }, () => {
     await expect(page.locator("main")).toBeFocused();
   });
 
-  test("tab order follows the page: navigation, header, then each story's chip and source", async ({
+  test("tab order follows the page: navigation, header, then each story's time and headline", async ({
     page,
   }) => {
     await page.goto("/");
     const seen: string[] = [];
-    for (let step = 0; step < 18; step += 1) {
+    for (let step = 0; step < 15; step += 1) {
       await page.keyboard.press("Tab");
       seen.push(await focused(page));
     }
@@ -44,20 +44,16 @@ test.describe("keyboard", { tag: "@desktop" }, () => {
       "a: Your profile",
       // The queue's row ends the side column only while something is being made.
       // The header's row of buttons, in the order it is drawn (owner, 2026-11-15).
-      "button: Download",
       "button: Favorite",
       "button: Play the podcast, 1 min",
       "button: Share",
       "button: More actions",
-      // A story is its headline link, then its play chip, then its like, dislike and options; the
-      // publisher beside the chip is only attribution, out of the tab order and hidden from screen
-      // readers.
-      "a: Springlet 2.0 retargets springs mid-flight, so interrupted drawers keep their velocity (opens in a new tab)",
-      "button: Play from here, 0:03: Springlet 2.0 retargets springs mid-flight, so interrupted drawers keep their velocity",
-      "button: Like: Springlet 2.0 retargets springs mid-flight, so interrupted drawers keep their velocity",
-      "button: Dislike: Springlet 2.0 retargets springs mid-flight, so interrupted drawers keep their velocity",
-      "button: Story options: Springlet 2.0 retargets springs mid-flight, so interrupted drawers keep their velocity",
-      "a: A dither shader that stays sharp at any pixel density (opens in a new tab)",
+      // A closed story is two stops: its time, which plays from there, and its headline, which
+      // opens it. Its link, like, dislike and options are reached only once it is open.
+      "button: 0:00, Play from here, 0:03: Springlet 2.0 retargets springs mid-flight, so interrupted drawers keep their velocity",
+      "summary: Springlet 2.0 retargets springs mid-flight, so interrupted drawers keep their velocity Springlet Blog",
+      "button: 0:03, Play from here, 0:03: A dither shader that stays sharp at any pixel density",
+      "summary: A dither shader that stays sharp at any pixel density Fathom Notes",
     ]);
   });
 

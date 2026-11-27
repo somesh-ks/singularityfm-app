@@ -8,6 +8,7 @@ import {
   sharedItem,
   sharedUrl,
   track,
+  withoutShowIds,
 } from "./analytics";
 
 interface Fake {
@@ -96,6 +97,27 @@ describe("analytics", () => {
     expect(sharedItem(sharedUrl("/d/2026-10-24", base))).toEqual({
       kind: "briefing",
       item: "2026-10-24",
+    });
+  });
+});
+
+describe("withoutShowIds", () => {
+  // A page view of /episode?id= sent the publisher's episode id with it: what a person listens to.
+  it("takes the id off a show's or an episode's address and leaves every other address whole", () => {
+    const properties: Record<string, unknown> = {
+      $current_url: "https://play.example/episode?id=pe%3A7%3A0123456789abcdef",
+      $referrer: "https://play.example/show?id=7#top",
+      $pathname: "/episode",
+      other: "https://play.example/d/2026-11-23?from=share",
+      count: 3,
+    };
+    withoutShowIds(properties);
+    expect(properties).toEqual({
+      $current_url: "https://play.example/episode",
+      $referrer: "https://play.example/show#top",
+      $pathname: "/episode",
+      other: "https://play.example/d/2026-11-23?from=share",
+      count: 3,
     });
   });
 });

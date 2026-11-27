@@ -24,8 +24,9 @@ import {
 } from "react";
 import { downloadFailure } from "../lib/downloadCopy";
 import { inPodcastOrder, type PodcastAction } from "../lib/podcastActions";
+import { isShowEpisodeId } from "../podcasts/rules";
 import { getPlayQueue } from "./core/playerRuntime";
-import { queueItemUrl } from "./core/playQueue";
+import { queueAnchorName, queueItemUrl } from "./core/playQueue";
 import { loadQueueDigest } from "./core/queueMeta";
 import { deviceStorage, isSaved, setSaved } from "./core/saved";
 import type { IconName } from "./ui/iconPathsLazy";
@@ -55,8 +56,11 @@ export default function QueueRowMenu({
   const [downloaded, setDownloaded] = useState(false);
   const [favorite, setFavorite] = useState(false);
   const kind = id.startsWith("ep-") ? "episode" : "briefing";
+  // A public show's episode: its favorite lives in the device's show store, its link is its own
+  // page, and a publisher's file is not ours to save (as PlayerMenu.tsx).
+  const show = isShowEpisodeId(id);
   // Each row names its own dots, so its menu hangs under them and not under the last row's.
-  const anchor = `--queue-more-${id}`;
+  const anchor = queueAnchorName(id);
   const hide = (): void => document.getElementById(menuId)?.hidePopover();
 
   const onToggle = (event: ToggleEvent<HTMLDivElement>): void => {
@@ -71,11 +75,17 @@ export default function QueueRowMenu({
         dots?.focus({ preventScroll: true });
       return;
     }
-    setFavorite(isSaved(deviceStorage(), id));
-    void import("../scripts/libraryDownloads").then(async (library) => {
-      const ids = (await library.readDownloads()).map((entry) => entry.id);
-      setDownloaded(ids.includes(id));
-    });
+    if (show)
+      void import("../podcasts/deviceStore").then(async (store) =>
+        setFavorite(Boolean((await store.getEpisode(id))?.favorite_at)),
+      );
+    else {
+      setFavorite(isSaved(deviceStorage(), id));
+      void import("../scripts/libraryDownloads").then(async (library) => {
+        const ids = (await library.readDownloads()).map((entry) => entry.id);
+        setDownloaded(ids.includes(id));
+      });
+    }
     menu.querySelector<HTMLElement>(ITEM)?.focus({ preventScroll: true });
     if (CSS.supports("top", "anchor(bottom)")) return;
     // A finger has no dots (player.css): a hold's menu hangs under the handle instead.
@@ -114,6 +124,19 @@ export default function QueueRowMenu({
 
   const share = async (): Promise<void> => {
     hide();
+    if (show) {
+      const url = new URL(queueItemUrl(id), location.origin).href;
+      try {
+        if (navigator.share) await navigator.share({ title, url });
+        else {
+          await navigator.clipboard.writeText(url);
+          sendToast({ message: "Link copied" });
+        }
+      } catch {
+        // Closed without sharing: nothing to say.
+      }
+      return;
+    }
     const { shareItem } = await import("../scripts/shareLink");
     const outcome = await shareItem({ id, title, path: queueItemUrl(id), kind });
     if (typeof outcome === "object") sendToast({ message: outcome.refused });
@@ -125,6 +148,21 @@ export default function QueueRowMenu({
     // glows in place, as the player's does, so it needs no toast.
     const stays = matchMedia("(width < 40rem)").matches;
     if (!stays) hide();
+    if (show) {
+      void import("../podcasts/deviceStore").then(async (store) => {
+        const next = !(await store.getEpisode(id))?.favorite_at;
+        await store.setEpisodeFavorite(id, next);
+        // The device's own answer: a private window keeps nothing.
+        const kept = Boolean((await store.getEpisode(id))?.favorite_at);
+        setFavorite(kept);
+        if (kept !== next)
+          sendToast({ message: "Couldn't change favorites on this device", kind: "error" });
+        else if (!stays)
+          sendToast({ message: next ? "Added to favorites" : "Removed from favorites" });
+        if (kept && next) glowFavorite(row);
+      });
+      return;
+    }
     // Read now, not when the menu opened: another tab may have changed it since.
     const storage = deviceStorage();
     const on = !isSaved(storage, id);
@@ -191,12 +229,20 @@ export default function QueueRowMenu({
       },
     },
     share: { icon: "shareFat", label: "Share", act: () => void share() },
-    download: {
-      icon: downloaded ? "trash" : "download",
-      label: downloaded ? "Remove download" : "Download",
-      act: () => void download(),
+    ...(show
+      ? {}
+      : {
+          download: {
+            icon: downloaded ? "trash" : "download",
+            label: downloaded ? "Remove download" : "Download",
+            act: () => void download(),
+          },
+        }),
+    podcast: {
+      icon: show ? "info" : "library",
+      label: show ? "Go to episode" : "Go to podcast",
+      act: () => void goToPodcast(),
     },
-    podcast: { icon: "library", label: "Go to podcast", act: () => void goToPodcast() },
   };
   const actions = inPodcastOrder(Object.keys(ACTIONS) as PodcastAction[]);
   const tiles = menuHasTiles(actions.length) ? actions.slice(0, MENU_TILES_MAX) : [];

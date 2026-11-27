@@ -1,3 +1,4 @@
+import { finishedTailSeconds, isShowEpisodeId } from "../../podcasts/rules";
 import type { PlayerDigestData } from "../../types/contracts";
 import { isFiniteNumber } from "./mathUtils";
 
@@ -9,7 +10,10 @@ export interface StorageLike {
 }
 
 export const RESUME_KEY_PREFIX = "singularity:resume:";
-/** Seconds from the end inside which a saved position counts as "finished". */
+/**
+ * Seconds from the end inside which a saved position counts as "finished": three for a Catchup,
+ * the credits of a show episode (podcasts/rules.ts).
+ */
 const FINISHED_TAIL_SECONDS = 3;
 /** Positions under this are not worth restoring: the listener barely started. */
 const MIN_RESTORE_SECONDS = 2;
@@ -115,8 +119,17 @@ export function readResumePosition(
   if (raw === null) return 0;
   const seconds = Number(raw);
   if (!isFiniteNumber(seconds) || seconds < MIN_RESTORE_SECONDS) return 0;
+  // A show episode's position passed the end test against the real file when it was saved. The
+  // length its feed declares is often shorter than the file (inserted ads), so testing again here
+  // would start a half heard episode over while its row still says Resume.
+  if (isShowEpisodeId(digestId)) return seconds;
   // A saved position at the very end would resume into silence. Start over instead.
-  if (durationSeconds > 0 && seconds >= durationSeconds - FINISHED_TAIL_SECONDS) return 0;
+  if (
+    durationSeconds > 0 &&
+    seconds >= durationSeconds - finishedTailSeconds(digestId, durationSeconds)
+  ) {
+    return 0;
+  }
   return durationSeconds > 0 ? Math.min(seconds, durationSeconds) : seconds;
 }
 
@@ -132,7 +145,8 @@ export function saveResumePosition(
     // A duration inside the tail is no recording's: it is the unlock primer's silence (0.05 s), whose
     // position 0 would otherwise read as the end.
     const finished =
-      durationSeconds > FINISHED_TAIL_SECONDS && seconds >= durationSeconds - FINISHED_TAIL_SECONDS;
+      durationSeconds > FINISHED_TAIL_SECONDS &&
+      seconds >= durationSeconds - finishedTailSeconds(digestId, durationSeconds);
     if (finished) markPlayed(storage, digestId, recording);
     else if (seconds < MIN_RESTORE_SECONDS) storage.removeItem(resumeKey(digestId));
     else {
@@ -201,6 +215,44 @@ export function clearResumePosition(
   } catch {
     // Best effort.
   }
+}
+
+/**
+ * "Mark as played" and its undo, from a show's page: the same two keys the player writes, so every
+ * card, chip and count agrees. Unplayed forgets the position too: the episode starts over.
+ */
+export function setPlayed(storage: StorageLike | null, digestId: string, played: boolean): void {
+  if (!storage) return;
+  try {
+    if (played) markPlayed(storage, digestId);
+    else {
+      storage.removeItem(resumeKey(digestId));
+      storage.removeItem(playedKey(digestId));
+      announce(digestId);
+    }
+  } catch {
+    // Best effort.
+  }
+}
+
+/** Many at once (a show's Mark all as played): one announcement, so every listener paints once. */
+export function setPlayedAll(
+  storage: StorageLike | null,
+  digestIds: readonly string[],
+  played: boolean,
+): void {
+  const first = digestIds[0];
+  if (!storage || first === undefined) return;
+  try {
+    for (const id of digestIds) {
+      storage.removeItem(resumeKey(id));
+      if (played) storage.setItem(playedKey(id), "1");
+      else storage.removeItem(playedKey(id));
+    }
+  } catch {
+    // Best effort.
+  }
+  announce(first);
 }
 
 /** localStorage, or null when the browser refuses access (Safari private mode, blocked site data). */

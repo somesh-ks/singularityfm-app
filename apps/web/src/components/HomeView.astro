@@ -277,5 +277,7 @@ const kindWord = (entry: DigestEntry): string =>
 </main>
 {band.length > 0 && <EpisodeActions id="home" />}
 <script>
-  import "../scripts/homePage";
+  // Lazily, as DigestView does: the page is whole as served, and the script only adds to it, so it
+  // stays out of the first load's JavaScript (D361).
+  void import("../scripts/homePage");
 </script>

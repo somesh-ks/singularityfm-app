@@ -82,6 +82,8 @@ function install(): void {
     if (!menu || !more) return;
     menu.id = `home-menu-${++serial}`;
     more.setAttribute("popovertarget", menu.id);
+    // Hung under its own dots on desktop (library.css), as showPage.ts does for a show's rows.
+    row.querySelector<HTMLElement>("[data-row-menu]")?.style.setProperty("--card-anchor", `--${menu.id}`);
     const heading = menu.querySelector("h2");
     if (heading) heading.textContent = title;
     more.setAttribute("aria-label", `More actions for ${title}`);

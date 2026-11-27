@@ -1,15 +1,17 @@
 import { sendToast } from "@singularityfm/design-system/toastEvent";
 import { importProgress, importSummary } from "../podcasts/importCopy";
 import { exportBackup, exportOpml, type ImportOutcome, importFile } from "../podcasts/transfer";
+import { mountEachVisit } from "./pageMount";
 
 /**
  * Wires a file picker row to the import (Settings > Import and export, first run step 3): the row
  * opens the picker, the file goes in, the row's line says how far it is and a toast what it did,
- * with the shows the index did not know listed by name. One import at a time.
+ * with the shows the index did not know listed by name. One import at a time; `busy` hears when one
+ * starts and ends, so a page can hold what would leave it mid-import.
  */
 export function installImportPicker(
   root: HTMLElement,
-  done: (outcome: ImportOutcome) => void = () => {},
+  busy: (importing: boolean) => void = () => {},
 ): void {
   const pick = root.querySelector<HTMLButtonElement>("[data-import-pick]");
   const input = root.querySelector<HTMLInputElement>("[data-import-file]");
@@ -32,6 +34,7 @@ export function installImportPicker(
     const file = input.files?.[0];
     if (!file) return;
     pick.disabled = true;
+    busy(true);
     missing.hidden = true;
     missingList.replaceChildren();
     say("Reading the file");
@@ -39,12 +42,12 @@ export function installImportPicker(
       const outcome = await importFile(file, (count, total) => say(importProgress(count, total)));
       say("");
       reportImport(root, outcome);
-      done(outcome);
     } catch {
       say("");
       sendToast({ message: "Couldn't read that file. Try again.", kind: "error" });
     } finally {
       pick.disabled = false;
+      busy(false);
     }
   });
 }
@@ -74,8 +77,10 @@ export function reportImport(root: HTMLElement, outcome: ImportOutcome): void {
 }
 
 export function installImportPage(): void {
-  const root = document.querySelector<HTMLElement>("[data-import-page]");
-  if (!root) return;
+  mountEachVisit("[data-import-settings]", mountImportPage);
+}
+
+function mountImportPage(root: HTMLElement): void {
   installImportPicker(root);
   for (const button of root.querySelectorAll<HTMLButtonElement>("[data-export]")) {
     button.addEventListener("click", async () => {

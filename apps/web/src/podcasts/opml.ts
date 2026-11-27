@@ -65,7 +65,7 @@ export function parseOpml(text: string): OpmlShow[] | null {
   if (!/<opml[\s>]/i.test(text)) return null;
   const shows: OpmlShow[] = [];
   const seen = new Set<string>();
-  for (const match of text.matchAll(/<outline\b[^>]*>/gi)) {
+  for (const match of text.matchAll(/<outline\b(?:[^>"']|"[^"]*"|'[^']*')*>/gi)) {
     const attrs = attributes(match[0]);
     const feed = feedAddress(attrs.get("xmlurl") ?? "");
     if (!feed || seen.has(feed)) continue;

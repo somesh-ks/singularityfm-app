@@ -5,6 +5,7 @@ import { coverAt } from "../podcasts/episodeDigest";
 import { catchupHistory, historyDay } from "../podcasts/history";
 import { showEpisodeUrl } from "../podcasts/rules";
 import { timeFact } from "../podcasts/view";
+import { mountEachVisit } from "./pageMount";
 
 /**
  * History: the Catchups this device heard (their rows are on the page, as the Library draws them)
@@ -12,13 +13,16 @@ import { timeFact } from "../podcasts/view";
  * per day. Redrawn when the device store or a position changes.
  */
 export function installHistoryPage(): void {
-  const root = document.querySelector<HTMLElement>("[data-history]");
-  const list = root?.querySelector<HTMLElement>("[data-history-list]");
+  mountEachVisit("[data-history]", mountHistory);
+}
+
+function mountHistory(root: HTMLElement, life: AbortSignal): void {
+  const list = root.querySelector<HTMLElement>("[data-history-list]");
   const grid = list?.querySelector<HTMLElement>("[data-library-grid]");
-  const empty = root?.querySelector<HTMLElement>("[data-history-empty]");
-  const dayTemplate = root?.querySelector<HTMLTemplateElement>("template[data-history-day]");
-  const rowTemplate = root?.querySelector<HTMLTemplateElement>("template[data-podcast-row]");
-  if (!root || !list || !grid || !empty || !dayTemplate || !rowTemplate) return;
+  const empty = root.querySelector<HTMLElement>("[data-history-empty]");
+  const dayTemplate = root.querySelector<HTMLTemplateElement>("template[data-history-day]");
+  const rowTemplate = root.querySelector<HTMLTemplateElement>("template[data-podcast-row]");
+  if (!list || !grid || !empty || !dayTemplate || !rowTemplate) return;
   const catchups = new Map(
     [...grid.querySelectorAll<HTMLElement>("[data-card][data-id]")].map((card) => [
       card.dataset.id ?? "",
@@ -72,6 +76,6 @@ export function installHistoryPage(): void {
   };
 
   void draw();
-  document.addEventListener(PODCASTS_CHANGED_EVENT, () => void draw());
-  window.addEventListener("singularity:resume", () => void draw());
+  document.addEventListener(PODCASTS_CHANGED_EVENT, () => void draw(), { signal: life });
+  window.addEventListener("singularity:resume", () => void draw(), { signal: life });
 }

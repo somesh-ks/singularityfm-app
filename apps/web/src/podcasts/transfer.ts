@@ -204,14 +204,15 @@ async function restore(text: string): Promise<ImportOutcome> {
   } catch {
     // Best effort, as every position write is.
   }
-  const before = catchupHistory();
-  const merged = mergeListens(before, backup.history);
+  const before = new Set(catchupHistory().map((listen) => `${listen.id} ${listen.at}`));
+  const merged = mergeListens(catchupHistory(), backup.history);
   saveCatchupHistory(merged);
   return {
     kind: "backup",
     changed,
     positions: Object.keys(restored).length,
-    history: merged.length - before.length,
+    // Counted by what is new or newer, not by length: a full History keeps its length.
+    history: merged.filter((listen) => !before.has(`${listen.id} ${listen.at}`)).length,
   };
 }
 

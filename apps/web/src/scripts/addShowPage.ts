@@ -3,6 +3,7 @@ import { type AddShowResult, addPicked, addShowFrom } from "../podcasts/addShow"
 import { FIRST_RUN_ADDED_KEY } from "../podcasts/firstRun";
 import { importFile } from "../podcasts/transfer";
 import { installImportPicker, reportImport } from "./importPage";
+import { mountEachVisit } from "./pageMount";
 import { drawRows, type PodcastRow, showRow } from "./podcastRows";
 
 /**
@@ -12,15 +13,18 @@ import { drawRows, type PodcastRow, showRow } from "./podcastRows";
  * show is tapped. A file dropped anywhere on the page is imported, as the Choose file row does.
  */
 export function installAddShowPage(): void {
-  const root = document.querySelector<HTMLElement>("[data-add-show]");
-  const form = root?.querySelector<HTMLFormElement>("[data-add-show-form]");
+  mountEachVisit("[data-add-show]", mountAddShow);
+}
+
+function mountAddShow(root: HTMLElement, life: AbortSignal): void {
+  const form = root.querySelector<HTMLFormElement>("[data-add-show-form]");
   const input = form?.querySelector<HTMLInputElement>("[data-add-show-input]");
   const error = form?.querySelector<HTMLElement>("[data-add-show-error]");
   const go = form?.querySelector<HTMLButtonElement>("[data-add-show-go]");
-  const status = root?.querySelector<HTMLElement>("[data-add-show-status]");
-  const matches = root?.querySelector<HTMLElement>("[data-add-show-matches]");
-  const list = root?.querySelector<HTMLUListElement>("[data-add-show-list]");
-  if (!root || !form || !input || !error || !go || !status || !matches || !list) return;
+  const status = root.querySelector<HTMLElement>("[data-add-show-status]");
+  const matches = root.querySelector<HTMLElement>("[data-add-show-matches]");
+  const list = root.querySelector<HTMLUListElement>("[data-add-show-list]");
+  if (!form || !input || !error || !go || !status || !matches || !list) return;
   const params = new URLSearchParams(location.search);
   const fromFirstRun = params.get("from") === "welcome";
   installImportPicker(root);
@@ -118,19 +122,28 @@ export function installAddShowPage(): void {
   });
 
   // A file dropped anywhere on the page is imported; the page itself never opens it.
-  document.addEventListener("dragover", (event) => {
-    if (event.dataTransfer?.types.includes("Files")) event.preventDefault();
-  });
-  document.addEventListener("drop", async (event) => {
-    const file = event.dataTransfer?.files[0];
-    if (!file) return;
-    event.preventDefault();
-    try {
-      reportImport(root, await importFile(file));
-    } catch {
-      sendToast({ message: "Couldn't read that file. Try again.", kind: "error" });
-    }
-  });
+  const on = { signal: life };
+  document.addEventListener(
+    "dragover",
+    (event) => {
+      if (event.dataTransfer?.types.includes("Files")) event.preventDefault();
+    },
+    on,
+  );
+  document.addEventListener(
+    "drop",
+    async (event) => {
+      const file = event.dataTransfer?.files[0];
+      if (!file) return;
+      event.preventDefault();
+      try {
+        reportImport(root, await importFile(file));
+      } catch {
+        sendToast({ message: "Couldn't read that file. Try again.", kind: "error" });
+      }
+    },
+    on,
+  );
 
   const link = params.get("link");
   if (link) {

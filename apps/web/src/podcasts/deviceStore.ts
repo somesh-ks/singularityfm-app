@@ -88,6 +88,26 @@ function open(): Promise<IDBDatabase | null> {
   return opened;
 }
 
+/** The work in one transaction; throws when there is no database or the transaction fails. */
+async function transact<T>(
+  stores: string[],
+  mode: Mode,
+  work: (tx: IDBTransaction) => Promise<T>,
+): Promise<T> {
+  const db = await open();
+  if (!db) throw new Error("No device store");
+  const tx = db.transaction(stores, mode);
+  const done = new Promise<void>((resolve, reject) => {
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+    tx.onabort = () => reject(tx.error);
+  });
+  // Both at once: a failed request rejects the work and the transaction, and each is observed.
+  const [result] = await Promise.all([work(tx), done]);
+  return result;
+}
+
+/** As `transact`, with `fallback` for any failure: what a view draws from. */
 async function run<T>(
   stores: string[],
   mode: Mode,
@@ -95,17 +115,7 @@ async function run<T>(
   fallback: T,
 ): Promise<T> {
   try {
-    const db = await open();
-    if (!db) return fallback;
-    const tx = db.transaction(stores, mode);
-    const done = new Promise<void>((resolve, reject) => {
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error);
-      tx.onabort = () => reject(tx.error);
-    });
-    // Both at once: a failed request rejects the work and the transaction, and each is observed.
-    const [result] = await Promise.all([work(tx), done]);
-    return result;
+    return await transact(stores, mode, work);
   } catch {
     return fallback;
   }
@@ -301,17 +311,15 @@ export function followingOf(show: StoredShow | null): Following | null {
   return show?.favorite_at ? { favorite_at: show.favorite_at, newest_id: show.newest_id } : null;
 }
 
-/** Every show and episode the device holds, for the backup file (podcasts/backup.ts). */
+/**
+ * Every show and episode the device holds, for the backup file (podcasts/backup.ts). Throws when
+ * they cannot be read: a backup must never be saved empty by mistake.
+ */
 export function allRecords(): Promise<{ shows: StoredShow[]; episodes: StoredEpisode[] }> {
-  return run(
-    [SHOWS, EPISODES],
-    "readonly",
-    async (tx) => ({
-      shows: await request<StoredShow[]>(tx.objectStore(SHOWS).getAll()),
-      episodes: await request<StoredEpisode[]>(tx.objectStore(EPISODES).getAll()),
-    }),
-    { shows: [], episodes: [] },
-  );
+  return transact([SHOWS, EPISODES], "readonly", async (tx) => ({
+    shows: await request<StoredShow[]>(tx.objectStore(SHOWS).getAll()),
+    episodes: await request<StoredEpisode[]>(tx.objectStore(EPISODES).getAll()),
+  }));
 }
 
 /** Episodes played for a minute or more, last heard first: History's show episodes. */
@@ -337,37 +345,33 @@ function newer<T extends { changed_at: string }>(mine: T | undefined, theirs: T)
 
 /**
  * Merges records from a backup file into the device, record by record, the newest change winning
- * (Nov 12 plan, "Import and export"). Returns how many records changed.
+ * (Nov 12 plan, "Import and export"). Returns how many records changed; throws when the write
+ * fails, so an import never reports what it did not keep.
  */
 export async function mergeRecords(
   shows: readonly StoredShow[],
   episodes: readonly StoredEpisode[],
 ): Promise<number> {
-  const changed = await run(
-    [SHOWS, EPISODES],
-    "readwrite",
-    async (tx) => {
-      let count = 0;
-      const showStore = tx.objectStore(SHOWS);
-      for (const show of shows) {
-        const take = newer<StoredShow>(await request(showStore.get(show.id)), show);
-        if (take) {
-          showStore.put(take);
-          count += 1;
-        }
+  const changed = await transact([SHOWS, EPISODES], "readwrite", async (tx) => {
+    let count = 0;
+    const showStore = tx.objectStore(SHOWS);
+    for (const show of shows) {
+      const take = newer<StoredShow>(await request(showStore.get(show.id)), show);
+      if (take) {
+        showStore.put(take);
+        count += 1;
       }
-      const episodeStore = tx.objectStore(EPISODES);
-      for (const episode of episodes) {
-        const take = newer<StoredEpisode>(await request(episodeStore.get(episode.id)), episode);
-        if (take) {
-          episodeStore.put(take);
-          count += 1;
-        }
+    }
+    const episodeStore = tx.objectStore(EPISODES);
+    for (const episode of episodes) {
+      const take = newer<StoredEpisode>(await request(episodeStore.get(episode.id)), episode);
+      if (take) {
+        episodeStore.put(take);
+        count += 1;
       }
-      return count;
-    },
-    0,
-  );
+    }
+    return count;
+  });
   if (changed > 0) announce();
   return changed;
 }

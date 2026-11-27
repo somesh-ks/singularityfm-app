@@ -262,5 +262,41 @@ describe("a pasted link", () => {
     );
     expect(unknown.status).toBe(404);
     expect(appleCalls).toBe(0);
+    // A failing index is "try again", never "no such show" (CodeRabbit, 27 Nov).
+    const down = await resolveLink(
+      new URLSearchParams({ link: "https://open.spotify.com/show/y" }),
+      {
+        ...deps({
+          index: async () => {
+            throw new Error("down");
+          },
+        }),
+        resolve: PUBLIC,
+        fetch: async () => new Response("<title>Nobody Knows</title>", { status: 200 }),
+      },
+    );
+    expect(down.status).toBe(502);
+  });
+
+  // A feed address that redirects (a host move, a short link) is known to the index by where it
+  // landed, not by the address pasted (CodeRabbit, 27 Nov).
+  it("finds a redirected feed by the address it landed at", async () => {
+    const redirected = await resolveLink(
+      new URLSearchParams({ link: "https://short.example.com/hf" }),
+      {
+        ...deps({ index }),
+        resolve: PUBLIC,
+        fetch: async (input) =>
+          String(input).startsWith("https://short.example.com")
+            ? new Response(null, {
+                status: 301,
+                headers: { location: "https://feeds.example.com/1.xml" },
+              })
+            : new Response("<rss><channel><title>Other name</title></channel></rss>", {
+                status: 200,
+              }),
+      },
+    );
+    expect((redirected.body as ResolveBody).show?.id).toBe(1);
   });
 });

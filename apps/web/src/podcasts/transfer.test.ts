@@ -65,11 +65,14 @@ describe("import and export", () => {
       <outline type="rss" title="Syntax &amp; more" XMLURL='https://feed.syntax.fm/rss'/>
       <outline type="rss" text="Again" xmlUrl="https://feed.syntax.fm/rss"/>
       <outline type="rss" text="No feed" xmlUrl="javascript:alert(1)"/>
+      <outline type="rss" text="1 > 0" xmlUrl="https://example.com/gt.xml"/>
     </outline></body></opml>`;
     const shows = parseOpml(file);
     expect(shows).toEqual([
       { title: "Lenny's Podcast", feed_url: "https://api.substack.com/feed/podcast/10845.rss" },
       { title: "Syntax & more", feed_url: "https://feed.syntax.fm/rss" },
+      // A ">" inside a quoted title once ended the tag there and dropped the show.
+      { title: "1 > 0", feed_url: "https://example.com/gt.xml" },
     ]);
     expect(parseOpml(writeOpml(shows ?? [], new Date(0)))).toEqual(shows);
     expect(parseOpml('{"format":"singularity-backup"}')).toBeNull();
@@ -186,5 +189,8 @@ describe("import and export", () => {
       "a.com/feed",
       "https://b.com/rss",
     ]);
+    // A comma inside one feed's address once split it into a link and a "name".
+    expect(linksIn("https://a.com/feed?tags=1,2")).toEqual(["https://a.com/feed?tags=1,2"]);
+    expect(linksIn("a.com/feed,b.com/rss")).toEqual(["a.com/feed", "b.com/rss"]);
   });
 });

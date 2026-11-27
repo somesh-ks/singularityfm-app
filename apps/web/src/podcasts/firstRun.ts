@@ -78,6 +78,15 @@ export function pickedTopics(): FirstRunTopic[] {
   }
 }
 
+/** Whether step 1 was answered, so a saved empty pick is told from none yet. */
+export function topicsSaved(): boolean {
+  try {
+    return storage()?.getItem(TOPICS_KEY) != null;
+  } catch {
+    return false;
+  }
+}
+
 export function setPickedTopics(labels: readonly string[]): void {
   const known = FIRST_RUN_TOPICS.map((topic) => topic.label).filter((label) =>
     labels.includes(label),

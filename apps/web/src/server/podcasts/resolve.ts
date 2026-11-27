@@ -80,8 +80,14 @@ function feedOf(body: unknown, deps: ResolveDeps): ShowRow | null {
   return show && show.id !== null ? show : null;
 }
 
-/** The page's text, or null when it could not be read within the caps. */
-async function readPage(url: string, deps: ResolveDeps): Promise<string | null> {
+/**
+ * The page's text and the address it was read at after any redirect, or null when it could not be
+ * read within the caps.
+ */
+async function readPage(
+  url: string,
+  deps: ResolveDeps,
+): Promise<{ text: string; url: string } | null> {
   try {
     const response = await guardedFetch(deps.fetch, deps.resolve ?? resolveAll)(url, {
       headers: {
@@ -95,7 +101,7 @@ async function readPage(url: string, deps: ResolveDeps): Promise<string | null> 
       return null;
     }
     const bytes = await readCapped(response, PAGE_MAX_BYTES);
-    return bytes ? new TextDecoder().decode(bytes) : null;
+    return bytes ? { text: new TextDecoder().decode(bytes), url: response.url || url } : null;
   } catch {
     return null;
   }
@@ -104,14 +110,16 @@ async function readPage(url: string, deps: ResolveDeps): Promise<string | null> 
 /** Only the start of a page is read for its tags: what names a show sits in its head or channel. */
 export const PARSE_MAX_CHARS = 64 * 1024;
 
-const decode = (text: string): string =>
-  plainText(text.split("<![CDATA[").join("").split("]]>").join(""), 300);
+/** Entities and CDATA taken off; display text is cut at 300, an address (`ADDRESS_MAX`) is not. */
+const decode = (text: string, max = 300): string =>
+  plainText(text.split("<![CDATA[").join("").split("]]>").join(""), max);
+const ADDRESS_MAX = 2048;
 
 /**
  * The text of the first <tag>...</tag>, found by plain scans, never a backtracking pattern: a
  * hostile page must not cost the function seconds (Fable review, 27 Nov).
  */
-function tagText(xml: string, tag: string): string | null {
+function tagText(xml: string, tag: string, max?: number): string | null {
   const lower = xml.toLowerCase();
   let at = 0;
   for (;;) {
@@ -124,7 +132,7 @@ function tagText(xml: string, tag: string): string | null {
   const open = lower.indexOf(">", at);
   const close = lower.indexOf(`</${tag}>`, open);
   if (open === -1 || close === -1) return null;
-  return decode(xml.slice(open + 1, close)) || null;
+  return decode(xml.slice(open + 1, close), max) || null;
 }
 
 /** Every <name ...> tag, by plain scans. */
@@ -161,10 +169,10 @@ export function readFeed(xml: string): {
   );
   const channel = text.slice(start, ends.length > 0 ? Math.min(...ends) : undefined);
   const guid = tagText(channel, "podcast:guid");
-  const moved = tagText(channel, "itunes:new-feed-url");
+  const moved = tagText(channel, "itunes:new-feed-url", ADDRESS_MAX + 1);
   return {
     guid: guid && /^[\w.:-]{1,200}$/.test(guid) ? guid : null,
-    moved: moved && moved.length <= 2048 && /^https?:\/\//i.test(moved) ? moved : null,
+    moved: moved && moved.length <= ADDRESS_MAX && /^https?:\/\//i.test(moved) ? moved : null,
     name: tagText(channel, "title"),
   };
 }
@@ -184,11 +192,16 @@ export function readShowPage(
     const type = attr(tag, "type") ?? "";
     const rel = attr(tag, "rel") ?? "";
     const href = attr(tag, "href");
-    if (!href || href.length > 2048 || !/alternate/i.test(rel) || !/(rss|atom)\+xml/i.test(type)) {
+    if (
+      !href ||
+      href.length > ADDRESS_MAX ||
+      !/alternate/i.test(rel) ||
+      !/(rss|atom)\+xml/i.test(type)
+    ) {
       continue;
     }
     try {
-      feeds.push(new URL(decode(href), base).toString());
+      feeds.push(new URL(decode(href, ADDRESS_MAX), base).toString());
     } catch {
       // A broken href is skipped.
     }
@@ -242,14 +255,21 @@ export async function resolveLink(
   const url = new URL(params.get("link") ?? "");
   const https = url.protocol === "http:" ? `https:${url.href.slice(5)}` : url.href;
   // 1. A feed the index knows, as given or over https.
-  for (const candidate of new Set([url.href, https])) {
+  const asked = new Set([url.href, https]);
+  for (const candidate of asked) {
     const show = await quietly(() => byFeedUrl(candidate, deps));
     if (show) return found(show);
   }
   // 2. The page itself.
   // Over https first; a host with no TLS is read as given.
-  const text =
+  const page =
     (await readPage(https, deps)) ?? (https !== url.href ? await readPage(url.href, deps) : null);
+  const text = page?.text ?? null;
+  // A feed that redirected may be known by where it landed (a host move, a short link).
+  if (page && !asked.has(page.url)) {
+    const show = await quietly(() => byFeedUrl(page.url, deps));
+    if (show) return found(show);
+  }
   let name: string | null = null;
   if (text && /<(?:rss|feed)[\s>]/i.test(text.slice(0, 4000))) {
     const feed = readFeed(text);
@@ -269,21 +289,21 @@ export async function resolveLink(
   } else if (text) {
     // A page that links one show names it; one that links several (an article, a list) does not,
     // so those are offered to pick from, never followed on a guess.
-    const page = readShowPage(text, https);
+    const listed = readShowPage(text, page?.url ?? https);
     const shows = new Map<number, ShowRow>();
-    for (const feed of page.feeds) {
+    for (const feed of listed.feeds) {
       const show = await quietly(() => byFeedUrl(feed, deps));
       if (show?.id) shows.set(show.id, show);
     }
-    for (const id of page.apple) {
+    for (const id of listed.apple) {
       const show = await quietly(async () =>
         feedOf(await deps.index("/podcasts/byitunesid", { id }), deps),
       );
       if (show?.id) shows.set(show.id, show);
     }
     if (shows.size === 1) return found([...shows.values()][0] as ShowRow);
-    if (shows.size > 1) return several([...shows.values()], page.name);
-    name = page.name;
+    if (shows.size > 1) return several([...shows.values()], listed.name);
+    name = listed.name;
   }
   // 3. The closest shows by the page's name. A failed search is the search's answer, never kept.
   if (!name) return failure(404, "not_found", "Nothing on that page names a show.");

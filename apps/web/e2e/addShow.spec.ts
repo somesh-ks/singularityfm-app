@@ -58,7 +58,18 @@ test("a pasted link offers its show, follows it only when tapped, and the favori
     }),
   );
   const link = "https://open.spotify.com/show/2MAi0BvDc6GTFvKFPXnkCL";
+  const visit = (href: string) =>
+    page.evaluate((to) => {
+      const anchor = Object.assign(document.createElement("a"), { href: to });
+      document.body.append(anchor);
+      anchor.click();
+    }, href);
+  // A second in-app visit, as Search hands a link over: the page's script runs once a session, and
+  // once wired only the first visit (CodeRabbit, 27 Nov).
   await page.goto(`/add-show?link=${encodeURIComponent(link)}`);
+  await visit("/search");
+  await page.waitForURL(/\/search/);
+  await visit(`/add-show?link=${encodeURIComponent(link)}`);
   const match = page.locator("[data-add-show-list] a", { hasText: "The Test Hour" });
   await expect(match).toBeVisible();
   // Nothing followed yet: the show's own page says it is not a favorite.

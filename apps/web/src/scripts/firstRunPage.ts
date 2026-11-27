@@ -7,11 +7,13 @@ import {
   pickedCategories,
   pickedTopics,
   setPickedTopics,
+  topicsSaved,
 } from "../podcasts/firstRun";
 import { fetchShow } from "../podcasts/shows";
 import { follow } from "../podcasts/transfer";
 import type { ShowRow } from "../server/podcasts/shapes";
 import { installImportPicker } from "./importPage";
+import { mountEachVisit } from "./pageMount";
 import { searchShows, trending } from "./podcastRows";
 
 /**
@@ -51,10 +53,11 @@ function installTopics(root: HTMLElement): void {
   const group = root.querySelector<HTMLElement>("[data-first-run-topics]");
   if (!group) return;
   const boxes = [...group.querySelectorAll<HTMLInputElement>("input[type=checkbox]")];
-  // Back from step 2: the picks made, not the defaults.
-  const picked = pickedTopics();
-  if (picked.length > 0)
-    for (const box of boxes) box.checked = (picked as string[]).includes(box.value);
+  // Back from step 2: the picks made, none included, not the defaults.
+  if (topicsSaved()) {
+    const picked: string[] = pickedTopics();
+    for (const box of boxes) box.checked = picked.includes(box.value);
+  }
   const save = (): void =>
     setPickedTopics(boxes.filter((box) => box.checked).map((box) => box.value));
   group.addEventListener("change", save);
@@ -74,25 +77,29 @@ function installShows(root: HTMLElement): void {
   let suggested: ShowRow[] | null = [];
   let asked = 0;
 
-  const toggle = async (id: number, title: string, box: HTMLInputElement): Promise<void> => {
-    // The ring shows at once; a show that cannot be read takes it back.
-    if (!box.checked) {
+  // The show's box now: a search redraws the list, so the box first tapped may be gone.
+  const boxOf = (id: number): HTMLInputElement | null =>
+    list.querySelector<HTMLInputElement>(`[data-first-run-pick][value="${id}"]`);
+  const toggle = async (id: number, title: string, picked: boolean): Promise<void> => {
+    // The ring shows at once; a show that cannot be read takes it back. The last tap wins, by
+    // `favorites`, which every tap writes at once.
+    if (!picked) {
       favorites.delete(id);
       await setShowFavorite(id, false, null);
       return;
     }
     favorites.add(id);
     const answer = await fetchShow(id);
-    // Unticked while the show loaded: the last tap wins.
-    if (!box.checked) return;
+    if (!favorites.has(id)) return;
     if (typeof answer === "string") {
       favorites.delete(id);
-      box.checked = false;
+      const box = boxOf(id);
+      if (box) box.checked = false;
       sendToast({ message: `Couldn't add ${title}. Try again.`, kind: "error" });
       return;
     }
     await follow(answer);
-    if (!box.checked) await setShowFavorite(id, false, null);
+    if (!favorites.has(id)) await setShowFavorite(id, false, null);
   };
 
   const resting = none.textContent ?? "";
@@ -118,7 +125,7 @@ function installShows(root: HTMLElement): void {
       const box = card.querySelector<HTMLInputElement>("[data-first-run-pick]") as HTMLInputElement;
       box.value = String(id);
       box.checked = favorites.has(id);
-      box.addEventListener("change", () => void toggle(id, show.title, box));
+      box.addEventListener("change", () => void toggle(id, show.title, box.checked));
       cards.push(card);
     }
     list.replaceChildren(...cards);
@@ -129,10 +136,11 @@ function installShows(root: HTMLElement): void {
   let timer = 0;
   query.addEventListener("input", () => {
     clearTimeout(timer);
+    // Every keystroke makes any answer still on its way stale, a short one included.
+    const mine = ++asked;
     const term = query.value.trim();
     if (term.length < 2) return draw(suggested);
     timer = window.setTimeout(async () => {
-      const mine = ++asked;
       const found = await searchShows(term);
       if (mine === asked) draw(found);
     }, 300);
@@ -148,7 +156,15 @@ function installShows(root: HTMLElement): void {
 
 function installImport(root: HTMLElement): void {
   const section = root.querySelector<HTMLElement>("[data-import-page]");
-  if (section) installImportPicker(section);
+  // Done or Skip mid-import would leave the page with the file half read: both wait for it.
+  const leave = root.querySelectorAll<HTMLButtonElement>(
+    "button[data-first-run-next], button[data-first-run-skip]",
+  );
+  if (section) {
+    installImportPicker(section, (importing) => {
+      for (const button of leave) button.disabled = importing;
+    });
+  }
   // Back from the Add a show page with the show it added.
   try {
     const added = sessionStorage.getItem(FIRST_RUN_ADDED_KEY);
@@ -160,8 +176,10 @@ function installImport(root: HTMLElement): void {
 }
 
 export function installFirstRun(): void {
-  const root = document.querySelector<HTMLElement>("[data-first-run]");
-  if (!root) return;
+  mountEachVisit("[data-first-run]", mountFirstRun);
+}
+
+function mountFirstRun(root: HTMLElement): void {
   const step = root.dataset.firstRun;
   if (step === "1") installTopics(root);
   if (step === "2") installShows(root);

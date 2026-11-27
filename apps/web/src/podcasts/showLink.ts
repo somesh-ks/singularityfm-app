@@ -36,11 +36,22 @@ export function parseShowLink(text: string): ShowLink {
   return { kind: "link", url: url.toString() };
 }
 
-/** The pasted words that are links, each once; a name has none. */
+const isLink = (word: string): boolean =>
+  parseShowLink(word).kind !== "invalid" && /[./:]/.test(word);
+
+/**
+ * The pasted words that are links, each once; a name has none. A comma parts links only where
+ * every piece is one, so a feed address with a comma in its query stays whole.
+ */
 export function linksIn(text: string): string[] {
-  const words = text.split(/[\s,]+/).filter(Boolean);
-  const links = words.filter(
-    (word) => parseShowLink(word).kind !== "invalid" && /[./:]/.test(word),
-  );
+  const words = text
+    .split(/\s+/)
+    .filter(Boolean)
+    .flatMap((word) => {
+      const pieces = word.split(",").filter(Boolean);
+      return pieces.length > 1 && pieces.every(isLink) ? pieces : [word.replace(/^,+|,+$/g, "")];
+    })
+    .filter(Boolean);
+  const links = words.filter(isLink);
   return links.length === words.length ? [...new Set(links)] : [];
 }

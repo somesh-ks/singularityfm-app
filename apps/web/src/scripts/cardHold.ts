@@ -205,7 +205,7 @@ export function installCardHold(): void {
     if (!matchMedia(TOUCH).matches) return;
     const target = event.target as Element;
     if (
-      target.closest?.("[data-card] .card-link, .player-queue-row") ||
+      target.closest?.(`[data-card] :is(.card-link, .show-episode-link), .player-queue-row`) ||
       others.some((entry) => target.closest?.(entry.held))
     )
       event.preventDefault();

@@ -1,5 +1,5 @@
 import { noteContinue } from "../../podcasts/continueListening";
-import { finishedTailSeconds } from "../../podcasts/rules";
+import { finishedTailSeconds, isShowEpisodeId } from "../../podcasts/rules";
 import type { PlayerDigestData } from "../../types/contracts";
 import { isFiniteNumber } from "./mathUtils";
 
@@ -120,6 +120,10 @@ export function readResumePosition(
   if (raw === null) return 0;
   const seconds = Number(raw);
   if (!isFiniteNumber(seconds) || seconds < MIN_RESTORE_SECONDS) return 0;
+  // A show episode's position passed the end test against the real file when it was saved. The
+  // length its feed declares is often shorter than the file (inserted ads), so testing again here
+  // would start a half heard episode over while its row still says Resume.
+  if (isShowEpisodeId(digestId)) return seconds;
   // A saved position at the very end would resume into silence. Start over instead.
   if (
     durationSeconds > 0 &&
@@ -232,6 +236,26 @@ export function setPlayed(storage: StorageLike | null, digestId: string, played:
   } catch {
     // Best effort.
   }
+}
+
+/** Many at once (a show's Mark all as played): one announcement, so every listener paints once. */
+export function setPlayedAll(
+  storage: StorageLike | null,
+  digestIds: readonly string[],
+  played: boolean,
+): void {
+  const first = digestIds[0];
+  if (!storage || first === undefined) return;
+  try {
+    for (const id of digestIds) {
+      storage.removeItem(resumeKey(id));
+      if (played) storage.setItem(playedKey(id), "1");
+      else storage.removeItem(playedKey(id));
+    }
+  } catch {
+    // Best effort.
+  }
+  announce(first);
 }
 
 /** localStorage, or null when the browser refuses access (Safari private mode, blocked site data). */

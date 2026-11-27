@@ -51,33 +51,33 @@ test.describe("playback on a podcast", () => {
     await expect(page.locator("html")).toHaveAttribute("data-player-state", "paused");
   });
 
-  test("a story chip keeps one width through idle, playing, paused and played, so the controls beside it never move", async ({
+  test("a story's time keeps one width through idle, playing, paused and played, so the headline beside it never moves", async ({
     player,
     page,
   }) => {
     await player.open();
     const story = page.locator(".story").first();
     const chip = story.locator("[data-play-item]");
-    const controls = story.locator(".story-controls");
+    const controls = story.locator("h3");
     const measure = async () => ({
       chip: (await chip.boundingBox())?.width,
       controls: (await controls.boundingBox())?.x,
     });
-    // One width in every state (D106), so the story controls on the line hold their place.
+    // One width in every state (D106), so the headline on the line holds its place.
     const seen: Record<string, { chip?: number; controls?: number }> = {};
     await expect(chip).toBeVisible();
     seen.idle = await measure();
     await player.play();
-    await expect(chip).toHaveAccessibleName(/^Pause, playing: /);
+    await expect(chip).toHaveAccessibleName(/^\d+:\d\d, Pause, playing: /);
     seen.playing = await measure();
     await player.dock.getByRole("button", { name: "Pause", exact: true }).click();
-    await expect(chip).toHaveAccessibleName(/^Resume, paused: /);
+    await expect(chip).toHaveAccessibleName(/^\d+:\d\d, Resume, paused: /);
     seen.paused = await measure();
     // Heard out (from just before its end, play on into the next), the button is a Play button again
     // with its length, never Played (D351).
     await playOnOutOf(player, 0);
     await player.dock.getByRole("button", { name: "Play", exact: true }).click();
-    await expect(chip).toHaveAccessibleName(/^Play from here, \d+:\d\d: /);
+    await expect(chip).toHaveAccessibleName(/^\d+:\d\d, Play from here, \d+:\d\d: /);
     seen.played = await measure();
     const places = new Set(Object.values(seen).map((s) => s.controls));
     const widths = new Set(Object.values(seen).map((s) => s.chip));

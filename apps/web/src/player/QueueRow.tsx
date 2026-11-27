@@ -2,6 +2,7 @@ import IconButton from "@singularityfm/design-system/IconButton";
 import type { CSSProperties, KeyboardEvent, PointerEvent } from "react";
 import { longDateFromDigestId } from "./core/formatTime";
 import { playQueueItem } from "./core/playerRuntime";
+import { queueAnchorName } from "./core/playQueue";
 import { useQueueMeta } from "./hooks/useQueue";
 import QueueRowMenu from "./QueueRowMenu";
 import Icon from "./ui/LazyIcon";
@@ -90,7 +91,7 @@ export default function QueueRow({ id, index, count, state, gestures }: QueueRow
         <IconButton
           className="player-queue-grip"
           // The anchor a hold's menu hangs from on a touch screen, where the dots are hidden (player.css).
-          style={{ "--queue-anchor": `--queue-more-${id}` } as CSSProperties}
+          style={{ "--queue-anchor": queueAnchorName(id) } as CSSProperties}
           label={name}
           onPointerDown={(event) => gestures.onGripDown(event, index)}
           onPointerMove={gestures.onGripMove}

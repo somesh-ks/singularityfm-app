@@ -167,7 +167,7 @@ test.describe("layout", () => {
     expect(summary.characters).toBeLessThanOrEqual(69);
   });
 
-  test("the contents list replaces the section tabs from 80rem", { tag: "@desktop" }, async ({
+  test("the contents list stands beside the column from 80rem", { tag: "@desktop" }, async ({
     page,
   }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
@@ -179,7 +179,6 @@ test.describe("layout", () => {
     // The contents list names the sections and says nothing of time.
     await expect(aside.locator(".aside-link").first()).toHaveText("Top picks");
     await expect(aside.locator(".aside-length")).toHaveCount(0);
-    await expect(page.locator("[data-section-tabs]")).toBeHidden();
     // It sits past the reading column and after it in the document.
     const main = await page.locator("main").boundingBox();
     const box = await aside.boundingBox();
@@ -195,7 +194,6 @@ test.describe("layout", () => {
     ).toBe(true);
     await page.setViewportSize({ width: 1100, height: 900 });
     await expect(aside).toBeHidden();
-    await expect(page.locator("[data-section-tabs]")).toBeVisible();
   });
 
   test("the contents list marks the section in view and stays put while the page scrolls", {
@@ -255,7 +253,7 @@ test.describe("layout", () => {
     }
   });
 
-  test("every story chip keeps its whole 44px target, clear of the why line and the publisher", async ({
+  test("every story's time keeps its whole 44px target, clear of the headline beside it", async ({
     page,
   }) => {
     for (const width of [360, 390, 768, 1024]) {
@@ -266,7 +264,8 @@ test.describe("layout", () => {
         for (const chip of document.querySelectorAll<HTMLElement>(".story [data-play-item]")) {
           chip.scrollIntoView({ block: "center" });
           const box = chip.getBoundingClientRect();
-          for (const y of [box.top - 3, box.bottom + 3]) {
+          if (box.height < 44) out.push(`${chip.dataset.playItem} is ${box.height} tall`);
+          for (const y of [box.top + 3, box.bottom - 3]) {
             const hit = document.elementFromPoint(box.left + box.width / 2, y);
             if (!hit || !chip.contains(hit)) out.push(`${chip.dataset.playItem} ${hit?.className}`);
           }
@@ -284,13 +283,15 @@ test.describe("layout", () => {
     // it once showed about six letters (owner, 2026-10-23).
     await page.setViewportSize({ width: 360, height: 700 });
     await page.goto("/latest");
-    const name = page.locator(".story").first().locator(".source-link > span").first();
+    const name = page.locator(".story").first().locator(".story-publisher");
     await expect(name).toHaveText("Springlet Blog");
     expect(await name.evaluate((node) => node.scrollWidth <= node.clientWidth)).toBe(true);
 
     await page.setViewportSize({ width: 320, height: 700 });
     await page.goto("/latest");
     const story = page.locator(".story").nth(1);
+    // The summary, the way to the source and the controls are under the headline: open it.
+    await story.locator("summary").click();
     // Where the story's controls sit in their row, and how tall the row is: a long publisher must
     // change neither (it once pushed them to an orphan second line; owner, 2026-10-22).
     const controlsPlace = async () => {
@@ -331,9 +332,9 @@ test.describe("layout", () => {
     });
     expect(lines).toBeGreaterThanOrEqual(3);
 
-    // The chip keeps its size; the host gives way with an ellipsis and its glyph stays in view.
-    const chip = await story.locator(".chip").boundingBox();
-    const idleChip = await page.locator(".story").nth(2).locator(".chip").boundingBox();
+    // The time keeps its size; the host gives way with an ellipsis and stays in view.
+    const chip = await story.locator("[data-play-item]").boundingBox();
+    const idleChip = await page.locator(".story").nth(2).locator("[data-play-item]").boundingBox();
     expect(chip?.width).toBeCloseTo(idleChip?.width ?? 0, 0);
     const link = await story.locator(".source-link").boundingBox();
     expect((link?.x ?? 0) + (link?.width ?? 0)).toBeLessThanOrEqual(320 - 16 + 0.5);
@@ -386,9 +387,9 @@ test.describe("layout", () => {
     // The player clears story states as it hydrates; write ours after it has.
     await hydrated(page);
     await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => resolve(null))));
-    // The current story is marked by its chip (the headline keeps its ink in every mode).
+    // The current story is marked on its time (the headline keeps its ink in every mode).
     const chip = page.locator(".story").nth(1).locator("[data-play-item]");
-    const edge = () => chip.evaluate((node) => getComputedStyle(node).borderTopColor);
+    const edge = () => chip.evaluate((node) => getComputedStyle(node).outlineStyle);
     const before = await edge();
     await chip.evaluate((node) => node.setAttribute("data-state", "current"));
     await page.waitForTimeout(250);

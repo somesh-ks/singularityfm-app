@@ -189,6 +189,8 @@ test("a shared link opens the app's page in a fresh browser, plays its stored au
 
   await closePlayer(listener);
   // The stranger's like shows on the control but never tunes the owner's feed, even on leaving.
+  // A story's votes are under its headline.
+  await listener.locator(".story summary").first().click();
   const like = listener.getByRole("button", { name: /^Like: / }).first();
   await like.click();
   await expect(like).toHaveAttribute("aria-pressed", "true");

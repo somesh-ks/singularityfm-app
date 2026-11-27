@@ -23,10 +23,10 @@ function fakeStore() {
       eventListeners.add(l);
       return () => eventListeners.delete(l);
     },
-    set(id: string, status: PlayerState["status"], at = time): void {
+    set(id: string, status: PlayerState["status"], at = time, show?: object): void {
       const previous = state;
       time = at;
-      state = { ...state, status, track: { digest: { id, kind: "regular" } } } as PlayerState;
+      state = { ...state, status, track: { digest: { id, kind: "regular", show } } } as PlayerState;
       for (const l of stateListeners) l(state, previous);
       for (const l of secondListeners) l();
     },
@@ -37,6 +37,16 @@ function fakeStore() {
 }
 
 describe("countListening", () => {
+  // A public show's episode was counted as a Daily listen, with its feed's id sent along: the
+  // Daily's numbers grew with someone else's show, and the id said what a person listens to.
+  it("counts a show's episode apart from the Daily, without its id", () => {
+    const store = fakeStore();
+    const counted: unknown[] = [];
+    countListening(store, (_name, metadata) => counted.push(metadata));
+    store.set("pe:7:0123456789abcdef", "playing", 0, { id: 7 });
+    expect(counted).toEqual([{ kind: "show" }]);
+  });
+
   // Pause and resume, a seek back past the middle and a replay each counted the same listen again,
   // so starts and completions overstated how much was heard.
   it("counts each milestone once per item, however often it plays", () => {

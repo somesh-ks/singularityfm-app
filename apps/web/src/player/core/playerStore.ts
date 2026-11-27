@@ -10,6 +10,8 @@
  * Semantic moments (willPlay, didPause, itemChanged, ...) go through onEvent so the sound and
  * announcement layers never have to infer intent from state diffs.
  */
+
+import { isShowEpisodeId } from "../../podcasts/rules";
 import type { PlayerDigestData } from "../../types/contracts";
 import { type AudioNoun, describeMediaError, describePlayRejection } from "./audioErrors";
 import {
@@ -158,6 +160,8 @@ export function createPlayerStore(options: PlayerStoreOptions): PlayerStore {
   let wasPlayingBeforeScrub = false;
   let expectedPauseUntil = 0;
   let pendingStart: number | null = null;
+  /** Whether the track's length came from its audio (loadedmetadata), not from its page or feed. */
+  let measured = false;
   let attachedUrl: string | null = null;
   /** Files of this track that errored or stalled, so the next source is tried (audioSource.ts). */
   const skippedUrls = new Set<string>();
@@ -275,7 +279,10 @@ export function createPlayerStore(options: PlayerStoreOptions): PlayerStore {
   function saveResume(): void {
     if (!track) return;
     readAudioTime();
-    saveResumePosition(storage, track.digest.id, time, durationNow(), recordingOf(track.digest));
+    // Until the file itself has said its length, a show episode's is only its feed's word, often
+    // short of the file: no end is decided on it, the position is kept as it is.
+    const duration = isShowEpisodeId(track.digest.id) && !measured ? 0 : durationNow();
+    saveResumePosition(storage, track.digest.id, time, duration, recordingOf(track.digest));
   }
 
   function startSaveTimer(): void {
@@ -420,6 +427,7 @@ export function createPlayerStore(options: PlayerStoreOptions): PlayerStore {
           // Some engines throw before the first frame is ready. The time stays in the store.
         }
       }
+      measured = true;
       commit({ duration });
     }
   }
@@ -688,6 +696,8 @@ export function createPlayerStore(options: PlayerStoreOptions): PlayerStore {
 
     const timeline = buildTimeline(digest);
     const duration = timeline?.durationSec ?? 0;
+    // New audio, for the same item too: its length is not known until this file says it.
+    measured = false;
     const restored = readResumePosition(storage, digest.id, duration, recordingOf(digest));
     time = restored;
     pendingStart = restored > 0 ? restored : null;

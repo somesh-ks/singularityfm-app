@@ -112,11 +112,28 @@ export function canonicalTrending(params: URLSearchParams): Canonical {
   const lang = normalizeTerm(params.get("lang") ?? "en");
   if (topic.length > 40 || !/^[\p{L}\p{N} &-]*$/u.test(topic)) return invalid("Unknown topic.");
   if (!/^[a-z]{2}(?:-[a-z]{2})?$/.test(lang)) return invalid("Unknown language.");
-  const query = new URLSearchParams({ lang });
+  // A shelf Apple's chart answers (every general topic) ignores the language, so it keeps one edge copy.
+  const charted = topic === "" || Object.hasOwn(APPLE_GENRES, topic);
+  const query = new URLSearchParams({ lang: charted ? "en" : lang });
   if (topic) query.set("topic", topic);
   query.sort();
   return { query: query.toString() };
 }
+
+/**
+ * A signed file's address with only the parameters its route reads, in one order. An extra one (a
+ * cache-buster) is answered a 308 to the plain address, so it never makes a second fetch and resize.
+ */
+export const canonicalFile =
+  (names: readonly string[]) =>
+  (params: URLSearchParams): Canonical => {
+    const query = new URLSearchParams();
+    for (const name of names) {
+      const value = params.get(name);
+      if (value !== null) query.set(name, value);
+    }
+    return { query: query.toString() };
+  };
 
 export const SHOW_PAGE_SIZES = [50, 1000] as const;
 
@@ -191,14 +208,28 @@ export interface SearchBody {
 
 const APPLE_LOOKUPS = 8;
 
-/** A show of the index by its Apple id, or null when the index does not have it. */
+/** Shows the index gave for an Apple id, kept in this instance for an hour: a chart's 30 lookups repeat across topics and searches. */
+const LOOKUP_KEPT_MS = 3_600_000;
+const LOOKUP_MAX = 2000;
+const lookups = new Map<number, { row: ShowRow; at: number }>();
+
+/** A show of the index by its Apple id, or null when the index does not have it (or did not answer). */
 async function indexShowByApple(appleId: number, deps: PodcastDeps): Promise<ShowRow | null> {
+  const now = (deps.now ?? Date.now)();
+  const kept = lookups.get(appleId);
+  if (kept && now - kept.at < LOOKUP_KEPT_MS) return kept.row;
   try {
     const feed = ((await deps.index("/podcasts/byitunesid", { id: String(appleId) })) as Raw | null)
       ?.feed;
-    return feed && typeof feed === "object" && !Array.isArray(feed)
-      ? showFromIndex(feed as Raw, deps.sign)
-      : null;
+    const row =
+      feed && typeof feed === "object" && !Array.isArray(feed)
+        ? showFromIndex(feed as Raw, deps.sign)
+        : null;
+    if (row) {
+      if (lookups.size >= LOOKUP_MAX) lookups.clear();
+      lookups.set(appleId, { row, at: now });
+    }
+    return row;
   } catch {
     return null;
   }
@@ -239,6 +270,7 @@ export async function searchShows(
   term: string,
   deps: PodcastDeps,
 ): Promise<ApiResult<SearchBody | ErrorBody>> {
+  let indexFailed = false;
   const fromIndex = async (): Promise<ShowRow[]> => {
     try {
       const body = await deps.index("/search/byterm", { q: term, max: String(SEARCH_MAX) });
@@ -249,7 +281,8 @@ export async function searchShows(
           .filter((row): row is ShowRow => row !== null),
       );
     } catch {
-      // A failing index is an empty one: Apple answers alone.
+      // A failing index is an empty one: Apple answers alone, and an empty Apple answer is not kept.
+      indexFailed = true;
       return [];
     }
   };
@@ -274,6 +307,7 @@ export async function searchShows(
       ? failure(503, "rate_limited", "Search is busy. Try again in a minute.")
       : failure(502, "upstream", "Search did not answer.");
   }
+  if (indexFailed && apple.length === 0) return failure(502, "upstream", "Search did not answer.");
   const shows = await blend(indexRows, apple, deps);
   return {
     status: 200,
@@ -285,19 +319,27 @@ export async function searchShows(
 export const TRENDING_MAX = 30;
 
 /** Apple's chart for a topic, each show opened as the index's own row; null when the chart is short or fails. */
-async function chartShows(topic: string | null, deps: PodcastDeps): Promise<ShowRow[] | null> {
+async function chartShows(
+  topic: string | null,
+  deps: PodcastDeps,
+): Promise<{ shows: ShowRow[]; complete: boolean } | null> {
   if (!deps.chart) return null;
-  const genre = topic ? (APPLE_GENRES[topic.toLowerCase()] ?? undefined) : null;
-  if (genre === undefined) return null;
+  const key = topic?.toLowerCase() ?? "";
+  if (key !== "" && !Object.hasOwn(APPLE_GENRES, key)) return null;
   try {
-    const ids = await deps.chart(genre, TRENDING_MAX);
+    const ids = await deps.chart(key === "" ? null : (APPLE_GENRES[key] ?? null), TRENDING_MAX);
     const rows = await Promise.all(ids.map((id) => indexShowByApple(id, deps)));
     const shows = uniqueShows(rows.filter((row): row is ShowRow => row !== null));
-    return shows.length >= CHART_MIN ? shows : null;
+    if (shows.length < CHART_MIN) return null;
+    // A chart the index answered for most of its shows is kept for hours; a thin one only briefly.
+    return { shows, complete: shows.length >= ids.length * CHART_COMPLETE };
   } catch {
     return null;
   }
 }
+
+/** The share of a chart the index must answer for before the shelf is kept for the full window. */
+const CHART_COMPLETE = 0.8;
 
 /** A chart with fewer shows than this is a broken one: the index's trending list answers instead. */
 const CHART_MIN = 5;
@@ -313,7 +355,11 @@ export async function trendingShows(
   const topic = params.get("topic");
   const charted = await chartShows(topic, deps);
   if (charted) {
-    return { status: 200, body: { shows: charted }, headers: edgeHeaders(EDGE_SECONDS.trending) };
+    return {
+      status: 200,
+      body: { shows: charted.shows },
+      headers: edgeHeaders(charted.complete ? EDGE_SECONDS.trending : EDGE_SECONDS.search_degraded),
+    };
   }
   const query: Record<string, string> = {
     max: String(TRENDING_MAX),

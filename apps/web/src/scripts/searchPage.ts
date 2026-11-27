@@ -9,6 +9,7 @@ import type { ShowRow } from "../server/podcasts/shapes";
 import {
   drawRows,
   episodeRow,
+  listCover,
   type PodcastRow,
   rowOf,
   searchShows,
@@ -116,7 +117,7 @@ function install(): void {
         const image = document.createElement("img");
         image.alt = "";
         image.loading = "lazy";
-        image.src = src;
+        image.src = listCover(src);
         tile.append(image);
       }
     });

@@ -43,6 +43,11 @@ function writeRecent(rows: PodcastRow[]): void {
   }
 }
 
+/** A show's link or feed (first run thread's contract): Add a show resolves it, not search. */
+function isShowLink(text: string): boolean {
+  return /^(https?|feed|pcast|podcast):/i.test(text) || /^[\w-]+(\.[\w-]+)+\/\S*$/.test(text);
+}
+
 /** Words the episode's title holds all of, as the Library matches. */
 function hasWords(text: string, query: string): boolean {
   const words = query.toLowerCase().split(/\s+/).filter(Boolean);
@@ -174,8 +179,19 @@ function install(): void {
     showSections();
   }
 
-  function apply(): void {
+  /** Hands a link to Add a show, which reads ?link= and resolves it at once. */
+  function addShow(link: string): void {
+    location.assign(`/add-show?${new URLSearchParams({ link })}`);
+  }
+
+  function apply(event?: Event): void {
     const term = input.value.trim();
+    // A pasted link goes straight on; one typed waits for the Search key, so "http" mid-word never jumps.
+    if (isShowLink(term)) {
+      if ((event as InputEvent | undefined)?.inputType === "insertFromPaste") addShow(term);
+      clearTimeout(timer);
+      return;
+    }
     const typing = term.length >= MIN_LETTERS;
     discover.hidden = typing;
     results.hidden = !typing;
@@ -193,10 +209,13 @@ function install(): void {
   }
 
   input.addEventListener("input", apply);
-  // Enter would reload the page; the keyboard's Search key puts the keyboard away over the results.
+  // Enter would reload the page; the keyboard's Search key puts the keyboard away over the results,
+  // or hands a link to Add a show.
   one("[data-search-form]")?.addEventListener("submit", (event) => {
     event.preventDefault();
-    input.blur();
+    const term = input.value.trim();
+    if (isShowLink(term)) addShow(term);
+    else input.blur();
   });
   for (const chip of chips) {
     chip.addEventListener("change", () => {

@@ -26,6 +26,15 @@ function memory(): StorageLike & { map: Map<string, string> } {
 }
 
 describe("played", () => {
+  // A feed said an hour, the file ran three minutes longer: a pause near the end was kept, then the
+  // reload tested it against the feed's hour and started the episode over while its row said Resume.
+  it("gives a show episode's kept position back whatever length its feed declares", () => {
+    const storage = memory();
+    const id = "pe:7:0123456789abcdef";
+    saveResumePosition(storage, id, 3450, 3780);
+    expect(readResumePosition(storage, id, 3600)).toBe(3450);
+  });
+
   it("uses the key the Library reads", () => {
     expect(PLAYED_KEY_PREFIX).toBe("singularity:played:");
     expect(playedKey("2026-10-07")).toBe("singularity:played:2026-10-07");

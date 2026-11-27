@@ -1,6 +1,6 @@
 ---
 import type { DigestItem } from "@singularityfm/core";
-import { buttonClass } from "@singularityfm/design-system/button";
+import Button from "@singularityfm/design-system/Button";
 import Icon from "@singularityfm/design-system/Icon";
 import Link from "@singularityfm/design-system/Link";
 import { publisherOf } from "../lib/episodeHighlights";
@@ -40,15 +40,15 @@ const publisher = publisherOf(item.source, host);
        data-play-item and writes its state and name (readerSync.ts), as it did the play mark's.
        Always in the page, hidden while the briefing has no audio timeline, so audio that arrives
        later only has to reveal it and write its time. */}
-  <button
-    class:list={[buttonClass("text"), "story-time"]}
-    type="button"
+  <Button
+    variant="text"
+    className="story-time"
     aria-label={at ? `${at}, ${idle.name}` : idle.name}
     data-play-item={index}
     data-state="idle"
     data-playing="false"
     hidden={!hasAudio}
-  >{at}</button>
+  >{at}</Button>
   <details class="story-details">
     <summary class="story-head">
       <h3 class="story-title text-title" id={titleId}>

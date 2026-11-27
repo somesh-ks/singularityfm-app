@@ -7,7 +7,7 @@
 import { installSearchClear, syncSearchClear } from "@singularityfm/design-system/searchField";
 import { sendToast } from "@singularityfm/design-system/toastEvent";
 import { whenIdle } from "../narration/prewarmPage";
-import { safeLocalStorage, setPlayed } from "../player/core/resume";
+import { safeLocalStorage, setPlayed, setPlayedAll } from "../player/core/resume";
 import { heardOnDevice } from "../podcasts/after";
 import { getEpisode, setEpisodeFavorite, setShowFavorite } from "../podcasts/deviceStore";
 import { coverAt } from "../podcasts/episodeDigest";
@@ -276,15 +276,23 @@ function install(): void {
     if (!view) return;
     const found = matching();
     view.shown = Math.min(Math.max(keep, PAGE), found.length);
-    rows.clear();
-    const drawn: HTMLElement[] = [];
-    for (const episode of found.slice(0, view.shown)) {
-      const row = buildRow(episode);
-      if (!row) continue;
-      rows.set(episode.id, row);
-      drawn.push(row);
+    const page = found.slice(0, view.shown);
+    // The same episodes in the same order (the route answering what the device already held): the
+    // rows stay, so an open row menu, the focus and a finger's hold are not torn away.
+    const same =
+      page.length === rows.size && [...rows.keys()].every((id, at) => page[at]?.id === id);
+    if (same) paintRows();
+    else {
+      rows.clear();
+      const drawn: HTMLElement[] = [];
+      for (const episode of page) {
+        const row = buildRow(episode);
+        if (!row) continue;
+        rows.set(episode.id, row);
+        drawn.push(row);
+      }
+      list?.replaceChildren(...drawn);
     }
-    list?.replaceChildren(...drawn);
     const filtered = Boolean(search?.value.trim()) || Boolean(unplayed?.checked);
     const none = part("none");
     if (none) {
@@ -368,7 +376,11 @@ function install(): void {
     if (action === "favorite") {
       const next = !(await getEpisode(episode.id))?.favorite_at;
       await setEpisodeFavorite(episode.id, next);
-      sendToast({ message: next ? "Added to favorites" : "Removed from favorites" });
+      // The device's own answer: a private window keeps nothing.
+      const kept = Boolean((await getEpisode(episode.id))?.favorite_at);
+      if (kept === next)
+        sendToast({ message: next ? "Added to favorites" : "Removed from favorites" });
+      else sendToast({ message: "Couldn't change favorites on this device", kind: "error" });
       return;
     }
     if (action === "share") {
@@ -395,14 +407,14 @@ function install(): void {
       sendToast({ message: "Every episode is already played" });
       return;
     }
-    const before = marked.map((episode) => ({ id: episode.id, heard: heardOf(episode.id) }));
-    for (const episode of marked) setPlayed(storage, episode.id, true);
+    const ids = marked.map((episode) => episode.id);
+    setPlayedAll(storage, ids, true);
     sendToast({
       message: `${pluralEpisodes(marked.length)} marked as played`,
       actionLabel: "Undo",
       // Undo gives back "unplayed"; a position inside an episode is not kept.
       onAction: () => {
-        for (const entry of before) setPlayed(storage, entry.id, false);
+        setPlayedAll(storage, ids, false);
       },
     });
   }

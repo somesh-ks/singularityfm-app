@@ -21,7 +21,7 @@ Cookieless counts of visits and a few named events on play.singularityfm.app, th
 | Event | When | Metadata |
 | :--- | :--- | :--- |
 | `share` | the share sheet completed, or the link was copied | `kind` briefing or episode, `item` its id, `outcome` shared or copied |
-| `listen_start`, `listen_half`, `listen_complete` | an item starts, passes half its length while playing, ends; each once per item per session (`apps/web/src/player/core/listenEvents.ts`) | `kind` regular, weekly or on-demand, `item` its id |
+| `listen_start`, `listen_half`, `listen_complete` | an item starts, passes half its length while playing, ends; each once per item per session (`apps/web/src/player/core/listenEvents.ts`) | `kind` regular, weekly or on-demand, `item` its id; a public show's episode is `kind` show, no id |
 | `story_open` | a story's source link is followed | `topic` |
 | `vote` | a story is voted up or down (a press that clears a vote is not counted) | `value`, `topic` |
 | `download` | a Library item is saved for offline listening | `kind` |

@@ -99,6 +99,11 @@ export function queueItemUrl(id: string): string {
   return id.startsWith("ep-") ? `/e/${id}` : `/d/${id}`;
 }
 
+/** A queue row's CSS anchor name. A show episode's id has colons, which no CSS name may hold. */
+export function queueAnchorName(id: string): string {
+  return `--queue-more-${id.replace(/[^\w-]/g, "-")}`;
+}
+
 export interface PlayQueue {
   /** What is still to come, in order. */
   getIds(): readonly string[];

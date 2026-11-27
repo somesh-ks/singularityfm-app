@@ -40,17 +40,21 @@ describe("played", () => {
   // The 3 second tail left every finished show episode half heard: credits and ads end them.
   it("a show episode left in its credits is played, a Catchup only at its end", () => {
     const hour = 3600;
-    expect(finishedTailSeconds(id(1), hour)).toBe(180);
-    expect(finishedTailSeconds(id(1), 20 * 60)).toBe(60);
-    expect(finishedTailSeconds("2026-11-23", 20 * 60)).toBe(3);
+    const catchup = finishedTailSeconds("2026-11-23", 20 * 60);
+    // Wider than a Catchup's, growing with the episode, and never past its cap.
+    expect(finishedTailSeconds(id(1), 20 * 60)).toBeGreaterThan(catchup);
+    expect(finishedTailSeconds(id(1), hour)).toBeGreaterThan(finishedTailSeconds(id(1), 20 * 60));
+    expect(finishedTailSeconds(id(1), 10 * hour)).toBe(finishedTailSeconds(id(1), 5 * hour));
     // A length that is not known yet never widens the tail.
-    expect(finishedTailSeconds(id(1), 0)).toBe(3);
+    expect(finishedTailSeconds(id(1), 0)).toBe(catchup);
   });
 
-  it("skips by the kind of item", () => {
-    expect(skipSeconds(id(1))).toEqual({ back: 15, forward: 30 });
-    expect(skipSeconds("2026-11-23")).toEqual({ back: 10, forward: 10 });
-    expect(skipSeconds(null)).toEqual({ back: 10, forward: 10 });
+  // A show's episode took a Catchup's short skips: an ad break needs more than one story's step.
+  it("a show's episode skips further on than a Catchup, and nothing playing skips as a Catchup", () => {
+    const catchup = skipSeconds("2026-11-23");
+    expect(skipSeconds(id(1)).forward).toBeGreaterThan(catchup.forward);
+    expect(skipSeconds(id(1)).back).toBeGreaterThan(catchup.back);
+    expect(skipSeconds(null)).toEqual(catchup);
   });
 });
 

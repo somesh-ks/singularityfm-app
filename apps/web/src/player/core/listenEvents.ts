@@ -7,7 +7,8 @@ type Track = (name: AnalyticsEvent, metadata?: AnalyticsMetadata) => void;
  * Counts listening for analytics (D154): an item's start, its halfway point while it plays, and
  * its end, each once per item per session, so a pause and resume, a replay or a seek back does not
  * count the same listen twice. The kind (regular, weekly, on-demand) and the item's id go with it,
- * never anything about the listener.
+ * never anything about the listener. A public show's episode is kind "show" with no id: counted as
+ * a Daily it would inflate the Daily's numbers, and which show a person hears is about the person.
  */
 export function countListening(
   store: Pick<PlayerStore, "getState" | "subscribe" | "onSecond" | "onEvent" | "getTime">,
@@ -18,7 +19,7 @@ export function countListening(
     const digest = store.getState().track?.digest;
     if (!digest || counted.has(`${name}:${digest.id}`)) return;
     counted.add(`${name}:${digest.id}`);
-    track(name, { kind: digest.kind, item: digest.id });
+    track(name, digest.show ? { kind: "show" } : { kind: digest.kind, item: digest.id });
   };
   const offState = store.subscribe(({ status }) => {
     if (status === "playing") once("listen_start");

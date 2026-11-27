@@ -20,6 +20,7 @@ describe("an episode's facts", () => {
     expect(dayLabel("not a date", now)).toBe("");
   });
 
+  // A search for two words found nothing unless they stood together, in that order and case.
   it("finds an episode by words in its title or notes, in any order", () => {
     const episode = { title: "The chip war", description: "With a guest from Taiwan." };
     expect(matchesSearch(episode, "taiwan CHIP")).toBe(true);

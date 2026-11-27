@@ -74,7 +74,7 @@ export function pressPlay(episode: EpisodeRow): boolean {
 
 /**
  * Play next, or Add to queue: the episode goes first, or last, in what is to come. False when it
- * was there already, or is the one playing.
+ * was there already, or is the one playing; Play next still moves one that waits further down.
  */
 export async function queueEpisode(episode: EpisodeRow, where: "next" | "last"): Promise<boolean> {
   const digest = episodeDigest(episode);
@@ -82,8 +82,9 @@ export async function queueEpisode(episode: EpisodeRow, where: "next" | "last"):
   const { runtime, queueMeta } = await loadPlayer();
   queueMeta.rememberQueueDigest(digest);
   const queue = runtime.getPlayQueue();
-  if (!queue.add(episode.id)) return false;
-  void pinEpisode(episode.id);
+  const added = queue.add(episode.id);
+  if (!added && !(where === "next" && queue.getView().upcoming.includes(episode.id))) return false;
+  if (added) void pinEpisode(episode.id);
   if (where === "next") {
     const view = queue.getView();
     // Every listed row in order (playQueue.ts, listedIds), spelled here so a page does not load the

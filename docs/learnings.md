@@ -32,6 +32,7 @@ One line each: symptom, cause, fix. Search before debugging; older gotchas are i
 
 ## Engine and workflows
 
+- 2026-11-27: GitHub ran `deploy-due`'s hourly cron 4 to 10 h apart; `workflow_dispatch` a due merge.
 - 2026-11-10: `shell: bash` steps run with `-e`; keep an exit code by `x || code=$?`.
 - 2026-11-08: GitHub refuses `GITHUB_*` secret names (422).
 - 2026-11-04: the CLI calls `process.exit` once a command returns, so a write nobody awaited is lost (a Catch up's last stream part). Await every write (D366).
@@ -105,7 +106,7 @@ One line each: symptom, cause, fix. Search before debugging; older gotchas are i
 - 2026-10-09: a move took 400 ms though the page was ready after 70: Astro 7 keeps only its own root attributes, so the mark that picks the animation (`data-astro-nav`) was lost. Carry it onto `event.newDocument` in `astro:before-swap`.
 - 2026-11-03: tinted fills eased from the wrong hue on a tab tap: the swap wiped the root `style` (`--hue-shift`); it is in `CARRIED_ATTRIBUTES`.
 - 2026-10-09: The first press after opening blocks about 200 ms with the audio device idle, 75 ms warm: `new AudioContext()` inside the press. `latencyHint` and `sampleRate` do not help (the first context created pays); reverse the order as the control.
-- 2026-11-10: the first tap sounded wrong: the phone's audio wakes slowly on the first press and the engine kept only the latest cue meanwhile, called it unheard, and judged narration late. Hold all, settle the level when asked (`engine.ts`); test a slow `resume()`, not a primed context.
+- 2026-11-10: the first tap sounded wrong: phone audio wakes slowly and the engine kept only the latest cue and judged narration late. Hold all, settle the level when asked (`engine.ts`); test a slow `resume()`.
 - 2026-10-31: a Play control marked `aria-disabled` never reacted (`disabledGuard.ts` swallows clicks): use `data-silent`.
 - 2026-11-01: Downloads showed as a gallery after a Library visit: `libraryPage.ts` kept its `astro:page-load` listener and matched Downloads' `[data-library]`. Name the page (`#main.library`); a test must reach it by click, not `goto`.
 - 2026-11-01: a `.manage` rule for the voice page also reached Preferences: a row declares its `--row-reach`.

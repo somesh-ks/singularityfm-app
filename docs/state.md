@@ -4,7 +4,7 @@ Updated 2026-11-27. Rewrite, never append.
 
 ## Working
 
-- Engine live: [engine](specs/engine.md). A run that loses stories or races a push degrades, not fails, and records health (D204): [resilience](engineering/generation-resilience.md), [metrics](engineering/metrics.md).
+- Engine live: [engine](specs/engine.md). A run that loses stories or races a push degrades and records health (D204): [resilience](engineering/generation-resilience.md), [metrics](engineering/metrics.md).
 - Reader: [library](specs/library.md), [settings](specs/settings.md), [health](specs/health.md), [look](specs/look-and-sound.md).
 - Desktop layout: the column, with any contents list, centres in the pane at the Library's width (D287).
 - Player as one surface: transcript, chapters, a queue keeping played items (D277): [player](specs/player.md).
@@ -24,6 +24,7 @@ Unit (CI): 368 files, 5,579 tests, 2 min. Site e2e: 468, 14 min. Player: 81, 7 m
 
 - PostHog (D400). closed when: events arrive via `/api/ph`; an opt-in replays.
 - Shows, headline list (D403): fixtures. closed when: on his phone a show plays, resumes, marks played.
+- First run, OPML, Add a show by name or link (slice 6): fixtures. closed when: on his phone a pasted Spotify link adds its show and an OPML imports.
 - D391: Play is the glyph alone. closed when: on his Android, Play keeps one size as it loads and plays.
 - D318 edge cache. closed when: a week of his loads is mostly HIT or STALE.
 - Guardrails (D360): #673 merged; `secrets:push` waits. closed when: Health's Budgets are fresh.
@@ -40,34 +41,34 @@ Unit (CI): 368 files, 5,579 tests, 2 min. Site e2e: 468, 14 min. Player: 81, 7 m
 - Edge purge waits from the run's last save (#590, D318). closed when: a Catch up's `content` log says `waiting N s` under 30 and its Library entry opens on the new page
 - Queue (D346, D357), dock swipes (D359). The red strip's fix (#659) assumes Chrome's 8 px slop. closed when: on his Android a swipe shows a red strip, the player's swipes are silent, and the bar's pull fades to its target, line at bottom, no ring after a tap.
 - Player ⋮ menu and Saved (D309, #580): checked in Chromium only. closed when: held press, the speed screen and Settings > Saved work on his Android Chrome.
-- Voice list (D276). closed when: a voice is heard from its list on his iPhone.
-- Copy says podcast, not briefing (D211). closed when: the next daily says "podcast".
+- Voice list (D276). closed when: his iPhone plays a voice from its list.
+- Copy says podcast (D211). closed when: the next daily says "podcast".
 - More menu (D214); Catch up album, Share circle, cards (D219); long press, haptics (D264, D273); push ping (D284). closed when: signed off.
-- Two Catch ups in 24 h (D213). closed when: a third is refused; a regenerate or delete uses none.
+- Two Catch ups a day (D213). closed when: a third is refused; regenerate and delete use none.
 - Three regenerations per podcast, counted in its own file (D212). closed when: the page shows "2 of 3 regenerations left".
-- Short podcasts (D204, D216 to D225). closed when: two dailies in a row air within 10% of length, and `singularity metrics` shows ten runs at `length_share` 0.9+, `failure_rate` 0.1 or less.
+- Short podcasts (D204, D216 to D225). closed when: two dailies in a row air within 10% of length; `singularity metrics` shows ten runs at `length_share` 0.9+, `failure_rate` 0.1 or less.
 - Claude steps: Haiku, Haiku high, Hydrogen, Sonnet (D334, D399); cap 500k. closed when: two scheduled runs lose no more voice or grounding (`lost_reasons`) than Sonnet-only ones, a script holds `length_share` 0.9+, and Hydrogen serves a call with no 400 or 404.
-- Ingest in shadow (D233, D251). 11-05: held 50%, read 93%, not met. closed when: 7 days at 90% held and 90% read (`ingest --coverage`).
-- Weekly switch (D386). closed when: a switched-off Weekly faults on the Saturday health run and its Settings row reads Off.
+- Ingest in shadow (D233, D251). 11-05: held 50%, read 93%, closed when: 7 days at 90% held and 90% read (`ingest --coverage`).
+- Weekly switch (D386). closed when: a switched-off Weekly faults on Saturday's health run; its Settings row reads Off.
 - One Speechify count in Blob, a weekly Exa stop (D339). closed when: health shows the shared count after a narration and 450 Exa requests in a week warn.
 - Trusted publishers (D234) and community lift (D240), shipped off. closed when: both on and a daily airs a lab story and a community-voted one, no source over 30%.
-- Run names (D217), Neon run log (D221). closed when: a scheduled daily is named `daily <date>`, is off the queue, and has its row.
+- Run names (D217), Neon run log (D221). closed when: a scheduled daily is named `daily <date>`, is off the queue, has its row.
 - Regenerate (D207, D323, D337, D340): a 10-minute one airs within 10%; the comment is required; Length and Categories show as words reach for them; full sheet (#589). closed when: signed off on his phone.
 - Catch up script at medium effort (D324). closed when: two Catch ups air within 10% of length, faster; else high again.
 - Podcast queue (D231, D242, #704): fakes only. closed when: a Catch up is cancelled, a failed run's Details read, and on his Android a head drag leaves the page still, the shimmer never restarts and a played-out run's ring completes.
-- Owner's eye: bar centring (over 1px), centred column and label gap (D229), Catch up (#385), card corners (#386), Costs tiles (#387). closed when: signed off.
-- Live content (plan 20): an open page elsewhere does not refresh in 60 s; `smokeLive.mjs --apply` never ran on production. closed when: checked.
+- Owner's eye: bar centring, centred column and label gap (D229), Catch up (#385), card corners (#386), Costs tiles (#387). closed when: signed off.
+- Live content (plan 20): an open page elsewhere does not refresh in 60 s; `smokeLive.mjs --apply` never ran live. closed when: checked.
 - Reload mid-write (D259). closed when: a phone flip, then reload, holds.
 - D394 empty screens. closed when: on his phone.
 - Offline (D299, D330, D331): fakes only. closed when: in airplane mode on his phone Saved and Settings open, a change syncs once online, nothing reloads.
-- Settings paint the stored copy at once (D205); another device's edit waits for a reload toast. closed when: the owner signs off on a phone.
+- Settings paint the stored copy at once (D205); another device's edit waits for a reload toast. closed when: signed off on a phone.
 - Sources design (D124): production asks Jev for a source's format only after `secrets:push`; no run used a mix or cap. closed when: a production format comes from Jev and a digest follows a mix change.
 - YouTube text: Firecrawl and Gemini transcripts answered live; no full run used either. closed when: a digest has a YouTube finalist with `extract_method` captions or transcription.
 - D145, D202 ([hardening](engineering/hardening.md)): health runs daily and `health-warnings` opened on 10-26; only the phone is unseen. closed when: a phone app loads a deploy itself.
-- Downloads (D127, D281) on a phone: Blob CORS. closed when: Play works in airplane mode.
-- Library list month label (D288) sticks and follows the app bar on a real phone. closed when: the owner scrolls the list on his phone and sees no gap or jump under the bar.
-- Safari and WebKit: the iPhone `@smoke` set (`PLAYER_WEBKIT=1`) has not run. closed when: an iPhone passes it.
-- Time zone (D100, D239) only faked; `sinceLabel`, `pendingAudio` and `podcast/select` still use Stockholm's today. closed when: a run across the 10-25 clock change publishes on the right day.
+- Phone downloads (D127, D281): Blob CORS. closed when: Play works in airplane mode.
+- Library month label (D288) sticks under the app bar. closed when: his phone scrolls the list with no gap or jump under the bar.
+- WebKit: the iPhone `@smoke` set (`PLAYER_WEBKIT=1`) never ran. closed when: an iPhone passes it.
+- Time zone (D100, D239) only faked; `sinceLabel`, `pendingAudio` and `podcast/select` still use Stockholm's today. closed when: a run across a clock change publishes on the right day.
 - Config saves go through the config store (D149, D296); with the store off, `/api/config` answers 503. Never seen live: `topic.scope`, rename or move, a batch adding a topic with sources, a blocked domain, votes, Regenerate with topics, episode delete or regenerate. closed when: each shows in the store row and on a second device.
 - Admin in its own repo (D392). Stage times (D260) need `DATABASE_URL` and postgres there. closed when: runs show.
 - Owner config out of git (D296, merged). The 11-02 dry run's gate log said `config store:` and it published. closed when: the Vercel build log says `store on; from the store:`, audio publishing keeps the owner's voice, and the cron answers 200.
@@ -77,7 +78,7 @@ Unit (CI): 368 files, 5,579 tests, 2 min. Site e2e: 468, 14 min. Player: 81, 7 m
 
 ## Known risks
 
-- Storage measured 2026-11-01: Blob 133 MB (about 5.6 MB a day), Neon 11 MB. The "near 10 GB" Vercel figure is neither. closed when: the Usage tab names it.
+- Storage 11-01: Blob 133 MB (5.6 MB a day), Neon 11 MB; the "near 10 GB" Vercel figure is neither. closed when: the Usage tab names it.
 - No passphrase (D160): anyone with the URL can run, narrate, delete and edit config, within the caps.
 - Budget counters can read below real spend: workflow and site count apart against one Speechify allowance.
 - A Catch up that fails after its episode is committed (the audio job, or a late Cancel) frees its slot in the two-a-day cap (D213); the 12-a-day policy still bounds it.

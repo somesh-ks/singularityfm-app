@@ -105,12 +105,12 @@ One line each: symptom, cause, fix. Search before debugging; older gotchas are i
 - 2026-10-09: a move took 400 ms though the page was ready after 70: Astro 7 keeps only its own root attributes, so the mark that picks the animation (`data-astro-nav`) was lost. Carry it onto `event.newDocument` in `astro:before-swap`.
 - 2026-11-03: tinted fills eased from the wrong hue on a tab tap: the swap wiped the root `style` (`--hue-shift`); it is in `CARRIED_ATTRIBUTES`.
 - 2026-10-09: The first press after opening blocks about 200 ms with the audio device idle, 75 ms warm: `new AudioContext()` inside the press. `latencyHint` and `sampleRate` do not help (the first context created pays); reverse the order as the control.
-- 2026-11-10: the first tap sounded wrong: the phone's audio wakes slowly on the first press and the engine kept only the latest cue meanwhile, called it unheard, and judged narration late. Hold all, settle the level when asked (`engine.ts`); test a slow `resume()`, not a primed context.
+- 2026-11-10: the first tap sounded wrong: the phone's audio wakes slowly and the engine kept only the latest cue, called it unheard, thought narration late. Hold all, settle the level when asked (`engine.ts`); test a slow `resume()`, not a primed context.
 - 2026-10-31: a Play control marked `aria-disabled` never reacted (`disabledGuard.ts` swallows clicks): use `data-silent`.
 - 2026-11-01: Downloads showed as a gallery after a Library visit: `libraryPage.ts` kept its `astro:page-load` listener and matched Downloads' `[data-library]`. Name the page (`#main.library`); a test must reach it by click, not `goto`.
 - 2026-11-01: a `.manage` rule for the voice page also reached Preferences: a row declares its `--row-reach`.
 - 2026-11-09: a new Vercel env var needs a build; the batch rule (D375) cancels Redeploy of other commits. Ship a `[deploy]` PR.
-- 2026-11-03: servers off Vercel with the real `DATABASE_URL` stored their own 5xx as production faults (~180 a day); telemetry takes `deploymentDatabaseUrl`. Astro's SSR header replaces vercel.json's CSP: `frame-ancestors` goes in `withFrameAncestors` (meta ignores it).
+- 2026-11-03: servers off Vercel with the real `DATABASE_URL` stored their 5xx as live faults (~180 a day); telemetry takes `deploymentDatabaseUrl`. Astro's SSR header replaces vercel.json's CSP: `frame-ancestors` goes in `withFrameAncestors` (meta ignores it).
 - 2026-11-05: a white strip showed while Android's keyboard slid up on the Regenerate and Catch up panels: Chrome resizes the page at once and the window behind stays white. A native panel with a text field needs `fitAboveKeyboard`; only Topics and Block sources had it.
 - 2026-11-05: a CSS animation restarts when its node is re-inserted: repainting rows each poll restarts every shimmer. Engine timings (podcast-timings.json) cover engine work, not workflow steps.
 - 2026-11-06: a rewrite played from 4 minutes: the place was keyed by the digest id, which a rewrite keeps; it is saved with the recording's file address (`resume-of`). "More stories" aired 12 again: the count is the Length; `wordLength` moves the control at once.
@@ -129,6 +129,7 @@ One line each: symptom, cause, fix. Search before debugging; older gotchas are i
 - 2026-10-30: every `main` deploy failed on Vercel, none locally: skew protection stamps `?dpl=<id>` on asset URLs and `bundleBudget.ts` looked files up with it. Strip `?query` before a path lookup.
 - 2026-10-31: a switch read back stale: the reader's worker answered `/admin` GETs from a copy up to 10 min old (#494). A write's answer does not prove the next read is fresh; settle only on a read.
 - 2026-11-08: a deleted package folder still read by path (cover palettes) passed unit tests and the static build; only the browser suites' build failed. Resolve package files with createRequire, never a repo path.
+- Merging a sibling's lock dropped posthog-js; diff `package.json` with main.
 
 ## Windows and shells
 

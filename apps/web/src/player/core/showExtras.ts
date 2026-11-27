@@ -18,6 +18,8 @@ export function startShowExtras(store: PlayerStore, preferences: PreferencesStor
   const enrich = (): void => {
     const digest = store.getState().track?.digest;
     const show = digest?.show;
+    // Another item took the player: the next time this one comes back bare, it is asked for again.
+    if (digest?.id !== asked) asked = null;
     if (!digest || !show || enriched(digest) || asked === digest.id) return;
     if (!show.chapters && !show.transcript) return;
     asked = digest.id;
@@ -25,8 +27,8 @@ export function startShowExtras(store: PlayerStore, preferences: PreferencesStor
       const now = store.getState().track?.digest;
       // Another item took the player while the files were read, or this one already has them.
       if (!now || now.id !== digest.id || enriched(now)) return;
-      if (extras.chapters.length === 0 && extras.segments.length === 0) {
-        // Nothing came back (offline): a later load of this item asks again.
+      if (extras.partial) {
+        // A file could not be reached (offline): a later change of the player asks again.
         asked = null;
         return;
       }
@@ -48,7 +50,8 @@ export function startShowExtras(store: PlayerStore, preferences: PreferencesStor
       return;
     const span = currentBreak(store);
     if (!span) return;
-    const playedInto = before < span.start_s && now - before <= 3 * Math.max(1, state.rate);
+    // From before its start, or from its very start: a break at 0:00 is reached by pressing Play.
+    const playedInto = before <= span.start_s && now - before <= 3 * Math.max(1, state.rate);
     if (playedInto) skipBreak(store, span, "auto");
   });
   return () => {

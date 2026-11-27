@@ -12,6 +12,8 @@ import { findSponsorBreaks, type SponsorBreak } from "./sponsors";
 export interface EpisodeExtras {
   chapters: Chapter[];
   segments: TranscriptSegment[];
+  /** A file could not be reached (offline): what came back is incomplete, so ask again later. */
+  partial?: true;
 }
 
 export interface ChapterRow {
@@ -72,7 +74,10 @@ export function episodeBreaks(extras: EpisodeExtras, durationS: number): Sponsor
     const end = extras.chapters[index + 1]?.start_s ?? durationS;
     return end > chapter.start_s ? [{ start_s: chapter.start_s, end_s: end }] : [];
   });
-  return joined([...fromChapters, ...findSponsorBreaks(extras.segments)]);
+  // A last chapter with no known end (no length in the feed) is no break: a skip needs a place to land.
+  return joined([...fromChapters, ...findSponsorBreaks(extras.segments)]).filter((span) =>
+    Number.isFinite(span.end_s),
+  );
 }
 
 /**
@@ -172,7 +177,8 @@ export function withExtras(digest: PlayerDigestData, extras: EpisodeExtras): Pla
   const durationS = (digest.audio?.duration_ms ?? 0) / 1000;
   const lastLine = extras.segments[extras.segments.length - 1];
   const breaks = episodeBreaks(extras, durationS || Number.POSITIVE_INFINITY);
-  const rows = chapterRows(extras.chapters, breaks, durationS || Number.POSITIVE_INFINITY);
+  // The timeline places items within the feed's length; with none every chapter would sit at 0:00.
+  const rows = durationS > 0 ? chapterRows(extras.chapters, breaks, durationS) : [];
   const items: PlayerItem[] = rows.map((row, index) => ({
     id: `c${index}`,
     headline: row.title,
@@ -196,11 +202,13 @@ export function withExtras(digest: PlayerDigestData, extras: EpisodeExtras): Pla
 const NONE: EpisodeExtras = { chapters: [], segments: [] };
 const read = new Map<string, Promise<EpisodeExtras>>();
 
+/** The list a file holds; [] when the route answered without one, null when it could not be reached. */
 async function readList<T>(address: string | null | undefined, key: string): Promise<T[] | null> {
   if (!address) return [];
   try {
     const response = await fetch(address, { headers: { Accept: "application/json" } });
-    if (!response.ok) return null;
+    // The route answered: a publisher's broken file stays broken, and the other file still counts.
+    if (!response.ok) return [];
     const body = (await response.json()) as Record<string, unknown>;
     return Array.isArray(body[key]) ? (body[key] as T[]) : [];
   } catch {
@@ -209,8 +217,8 @@ async function readList<T>(address: string | null | undefined, key: string): Pro
 }
 
 /**
- * An episode's extras, read once per tab. An address that could not be read (offline, the route
- * down) is not remembered, so the next ask tries again; one that answered is kept.
+ * An episode's extras, read once per tab. A read that could not reach the route (offline) is not
+ * remembered and comes back marked partial, so the next ask tries again; one that answered is kept.
  */
 export function loadExtras(
   id: string,
@@ -223,8 +231,9 @@ export function loadExtras(
     readList<Chapter>(addresses.chapters, "chapters"),
     readList<TranscriptSegment>(addresses.transcript, "segments"),
   ]).then(([chapters, segments]) => {
-    if (chapters === null || segments === null) read.delete(id);
-    return { chapters: chapters ?? [], segments: segments ?? [] };
+    if (chapters !== null && segments !== null) return { chapters, segments };
+    read.delete(id);
+    return { chapters: chapters ?? [], segments: segments ?? [], partial: true as const };
   });
   read.set(id, pending);
   return pending;

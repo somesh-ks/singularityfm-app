@@ -7,7 +7,7 @@ import { badgeClass } from "@singularityfm/design-system/badge";
 import { sendToast } from "@singularityfm/design-system/toastEvent";
 import { whenIdle } from "../narration/prewarmPage";
 import { formatClock } from "../player/core/formatTime";
-import { getPreferences } from "../player/core/preferences";
+import { getPreferences, type SponsorChoice } from "../player/core/preferences";
 import { safeLocalStorage, setPlayed } from "../player/core/resume";
 import { heardOnDevice } from "../podcasts/after";
 import { getEpisode, setEpisodeFavorite } from "../podcasts/deviceStore";
@@ -25,7 +25,10 @@ function install(): void {
   if (!page || page.dataset.ready !== undefined) return;
   const root = page;
   root.dataset.ready = "";
-  const id = new URLSearchParams(location.search).get("id") ?? "";
+  const params = new URLSearchParams(location.search);
+  const id = params.get("id") ?? "";
+  const linkedAt = Number(params.get("t"));
+  let startAt: number | undefined = linkedAt > 0 ? linkedAt : undefined;
   const showId = isShowEpisodeId(id) ? showIdOf(id) : null;
   const part = <T extends HTMLElement>(name: string): T | null =>
     root.querySelector<T>(`[data-episode-${name}]`);
@@ -135,7 +138,10 @@ function install(): void {
     extrasFor = key;
     void loadExtras(current.id, current).then((extras) => {
       if (life.signal.aborted || episode?.id !== current.id) return;
-      const duration = current.duration_s ?? Number.POSITIVE_INFINITY;
+      // Offline: the next paint (the player moving, a favorite) asks again.
+      if (extras.partial) extrasFor = null;
+      // The same length the player measures breaks against (extras.ts, withExtras).
+      const duration = current.duration_s || Number.POSITIVE_INFINITY;
       const breaks = episodeBreaks(extras, duration);
       const sponsors = part("sponsors");
       if (sponsors) sponsors.hidden = breaks.length === 0;
@@ -273,7 +279,10 @@ function install(): void {
         return;
       }
       if (target.closest("[data-episode-play]")) {
-        if (!pressPlay(current))
+        // A chapter's link (?t=) plays from its chapter the first time; Play is Play after that.
+        const at = startAt;
+        startAt = undefined;
+        if (!pressPlay(current, at))
           sendToast({ message: "This episode can't be played here", kind: "error" });
         return;
       }
@@ -332,10 +341,14 @@ function install(): void {
     (event) => {
       if (event.target !== part("sponsor-switch")) return;
       const checked = (event.target as HTMLInputElement).checked;
-      getPreferences().set({ sponsors: checked ? "skip" : "button" });
+      // Off again returns to the choice it replaced, so an Off made in Settings stays Off.
+      const choice = getPreferences().get().sponsors;
+      if (checked && choice !== "skip") before = choice;
+      getPreferences().set({ sponsors: checked ? "skip" : before });
     },
     on,
   );
+  let before: SponsorChoice = "button";
   // Another tab, or Settings, may change the choice while this page is open.
   const offPreferences = getPreferences().subscribe(paintSponsorSwitch);
   life.signal.addEventListener("abort", offPreferences, { once: true });

@@ -29,6 +29,16 @@ describe("chapters with sponsor breaks", () => {
     ];
     expect(episodeBreaks({ chapters, segments: [] }, 6000)).toEqual([{ start_s: 65, end_s: 283 }]);
   });
+
+  // With no length in the feed a closing "Ad break" ran to Infinity: Skip sponsor read "Infinity"
+  // and its press could not seek.
+  it("takes no break from a last sponsor chapter whose end is unknown", () => {
+    const chapters = [
+      { start_s: 0, title: "Welcome", url: null },
+      { start_s: 900, title: "Ad break", url: null },
+    ];
+    expect(episodeBreaks({ chapters, segments: [] }, Number.POSITIVE_INFINITY)).toEqual([]);
+  });
 });
 
 describe("a publisher's transcript as turns", () => {

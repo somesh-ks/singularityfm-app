@@ -33,9 +33,10 @@ export const FIRST_LOAD_BUDGET_BYTES = 130 * 1024;
  * 2026-11-03 every page went from 35 to 75 KB (the select's sheet with every glyph; the
  * avatar's show). A change that adds more than a step loads it lazily, or raises the record here
  * and says why in its pull request. Recorded 2026-11-04, once the select's sheet loaded at idle:
- * /settings/downloads, 59.0 KB (it was 79.9 KB before).
+ * /settings/downloads, 59.0 KB (it was 79.9 KB before). Raised 2026-11-27 (D401): /search, 64.2 KB, runs
+ * the Library's search for Catchups beside its own for shows; /settings/downloads had reached 63.2 KB.
  */
-export const FIRST_LOAD_RECORD_BYTES = 59 * 1024;
+export const FIRST_LOAD_RECORD_BYTES = Math.round(64.2 * 1024);
 export const FIRST_LOAD_STEP_BYTES = 5 * 1024;
 /** Self-hosted fonts, build plan 8.8: subset, one preloaded, 80 KB or less in total. */
 export const FONT_BUDGET_BYTES = 80 * 1024;

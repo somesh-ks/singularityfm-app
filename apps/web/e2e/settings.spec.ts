@@ -27,7 +27,10 @@ const volume = (page: Page) => page.getByRole("slider", { name: "Volume" });
 /** Settings opens from Profile, under the app bar's avatar (D401). */
 async function toSettings(page: Page): Promise<void> {
   await page.getByRole("link", { name: "Your profile", exact: true }).click();
-  await page.getByRole("main").getByRole("link", { name: /^Settings/ }).click();
+  await page
+    .getByRole("main")
+    .getByRole("link", { name: /^Settings/ })
+    .click();
 }
 /** On Settings no tab is lit: it is not a destination of the bar (D401). */
 const litTabs = (page: Page) =>

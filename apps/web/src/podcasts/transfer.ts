@@ -197,15 +197,18 @@ export type ImportOutcome =
 async function restore(text: string): Promise<ImportOutcome> {
   const backup = readBackup(text);
   if (typeof backup === "string") return { kind: "problem", problem: backup };
-  const changed = await mergeRecords(backup.shows, backup.episodes);
   const storage = safeLocalStorage();
-  const restored = positionsToRestore(backup.positions, (id) => {
-    try {
-      return storage?.getItem(resumeKey(id)) !== null || storage?.getItem(playedKey(id)) !== null;
-    } catch {
-      return true;
-    }
-  });
+  // Places and History live in this browser's storage: with none (blocked, or a private window that
+  // refuses it), the restore says so before it starts, not "restored" with them lost.
+  if (!storage && (Object.keys(backup.positions).length > 0 || backup.history.length > 0)) {
+    throw new Error("This browser keeps no storage.");
+  }
+  const changed = await mergeRecords(backup.shows, backup.episodes);
+  // A read that throws throws to the import's error too, rather than passing for a place kept.
+  const restored = positionsToRestore(
+    backup.positions,
+    (id) => storage?.getItem(resumeKey(id)) !== null || storage?.getItem(playedKey(id)) !== null,
+  );
   // A write that fails (storage full) throws to the import's error: the records already merged stay,
   // and a second try merges again safely. The recording goes first, since a position already there
   // is what a second try skips.

@@ -1,9 +1,14 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { recordingKey, resumeKey } from "../player/core/resume";
 import { buildBackup, positionsToRestore, readBackup } from "./backup";
 import type { StoredEpisode, StoredShow } from "./deviceStore";
 import { mergeListens } from "./history";
 import { parseOpml, writeOpml } from "./opml";
 import { linksIn, parseShowLink } from "./showLink";
+import { importFile } from "./transfer";
+
+// The records' own merge is IndexedDB's; what a restore owes the listener here is its storage writes.
+vi.mock("./deviceRecords", () => ({ mergeRecords: async () => 0, allRecords: async () => [] }));
 
 const show: StoredShow = {
   id: 920666,
@@ -202,5 +207,49 @@ describe("import and export", () => {
       "https://a.com/f?v=1",
       "https://b.com/rss",
     ]);
+  });
+});
+
+describe("restoring a backup", () => {
+  afterEach(() => vi.unstubAllGlobals());
+  const file = (recording?: string) =>
+    new Blob([
+      JSON.stringify(
+        buildBackup({
+          shows: [],
+          episodes: [],
+          positions: { "2026-11-25": { seconds: 300, ...(recording ? { recording } : {}) } },
+          history: [{ id: "2026-11-25", at: "2026-11-25T07:00:00.000Z" }],
+          now: new Date("2026-11-26T09:00:00.000Z"),
+        }),
+      ),
+    ]);
+  /** This browser's storage, failing on the keys named. */
+  const storage = (failing: (key: string) => boolean) => {
+    const kept = new Map<string, string>();
+    const store = {
+      getItem: (key: string) => kept.get(key) ?? null,
+      setItem: (key: string, value: string) => {
+        if (failing(key)) throw new DOMException("full", "QuotaExceededError");
+        kept.set(key, value);
+      },
+      removeItem: (key: string) => kept.delete(key),
+    };
+    vi.stubGlobal("localStorage", store);
+    vi.stubGlobal("window", { localStorage: store });
+    return kept;
+  };
+
+  // Storage full or blocked once read as "Backup restored" with the places and History lost
+  // (CodeRabbit, 27 Nov); a second try must then restore what the first could not.
+  it("says a restore failed when storage did not keep its places or History", async () => {
+    await expect(importFile(file())).rejects.toThrow();
+    storage(() => true);
+    await expect(importFile(file())).rejects.toThrow();
+    storage((key) => key === "singularity:history");
+    await expect(importFile(file())).rejects.toThrow();
+    const kept = storage((key) => key === recordingKey("2026-11-25"));
+    await expect(importFile(file("rec1"))).rejects.toThrow();
+    expect(kept.has(resumeKey("2026-11-25"))).toBe(false);
   });
 });

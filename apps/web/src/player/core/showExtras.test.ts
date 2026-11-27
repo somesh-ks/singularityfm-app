@@ -40,8 +40,9 @@ function playingShow() {
 }
 
 describe("skipping sponsor breaks by themselves", () => {
-  // A seek of a fraction of a second across a break's start (1:49.8 to 1:50.2 on the scrubber) was
-  // taken for playing into it, and the player jumped away from where the listener put it.
+  // A seek of a fraction of a second across a break's start (0:49.8 to 0:50.2 on the scrubber), or to
+  // its very start, was taken for playing into it, and the player jumped away from where the
+  // listener put it.
   it("skips a break the episode plays into, and never one a seek lands in", () => {
     const played = playingShow();
     played.audio.currentTime = 49.4;
@@ -55,5 +56,12 @@ describe("skipping sponsor breaks by themselves", () => {
     sought.flushFrames();
     sought.store.seekTo(50_200);
     expect(sought.store.getTime()).toBeCloseTo(50.2);
+
+    // A seek to the break's very start (its row in the chapter list), then a second of it playing.
+    const started = playingShow();
+    started.store.seekTo(50_000);
+    started.audio.currentTime = 51;
+    started.flushFrames();
+    expect(started.store.getTime()).toBe(51);
   });
 });

@@ -37,8 +37,10 @@ export const FIRST_LOAD_BUDGET_BYTES = 130 * 1024;
  * show's page: /show, 66.1 KB. It is one static shell that draws the show in the browser, from the
  * device and then the route, so its renderer is first-load by nature (the heaviest page before it,
  * a category's settings, stood at 63.8 KB); its menus' keys and the row hold load at idle.
+ * Recorded again 2026-11-27: /search, 71.3 KB. Home's search and shelves (#841) brought it to
+ * 71.0 KB on main, and the player's sponsor skip adds 0.3 KB to every page.
  */
-export const FIRST_LOAD_RECORD_BYTES = 66 * 1024;
+export const FIRST_LOAD_RECORD_BYTES = 71.5 * 1024;
 export const FIRST_LOAD_STEP_BYTES = 5 * 1024;
 /** Self-hosted fonts, build plan 8.8: subset, one preloaded, 80 KB or less in total. */
 export const FONT_BUDGET_BYTES = 80 * 1024;

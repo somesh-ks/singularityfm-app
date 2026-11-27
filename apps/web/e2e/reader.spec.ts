@@ -313,7 +313,7 @@ test.describe("sections and stories", () => {
     // what it shows (WCAG 2.5.3); the new tab is said, not shown.
     const link = first.getByRole("link");
     await expect(link).toHaveCount(1);
-    await expect(link).toHaveAccessibleName("Read at Springlet Blog (opens in a new tab)");
+    await expect(link).toHaveAccessibleName("Read the source at Springlet Blog (opens in a new tab)");
     await expect(link).toHaveAttribute("href", /^https:\/\/example\.com\//);
     await expect(link).toHaveAttribute("target", "_blank");
     await expect(link).toHaveAttribute("rel", "noopener noreferrer");

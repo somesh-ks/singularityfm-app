@@ -5,7 +5,7 @@ What it does now. Reasons: D396, D403; the flow spec of 2026-11-23; history: [20
 ## A Singularity podcast page (`/`, `/d/`, `/e/`)
 
 - A story is one row: its start time, its headline, its publisher. The time is a text button that plays from that story (`data-play-item`, written by `readerSync.ts`); its name starts with the time it shows. It is hidden with no audio and while offline.
-- The headline is the summary of a `<details>`: a press opens the story's summary, "Read at <publisher>" (a new tab) and the votes. It opens with JavaScript off.
+- The headline is the summary of a `<details>`: a press opens the story's summary, "Read the source" (a new tab; the publisher is in its name) and the votes. It opens with JavaScript off.
 - The story being read has its time in the accent colour, and an outline in forced colours; nothing changes weight, so the headline holds still.
 - No section tabs. Sections are headings. A strip with the cover and the podcast's name sticks where the tabs did, shows only once stuck, and a press on it scrolls to the top and focuses the title. The contents list beside the column stays on a wide screen.
 - Play is the hero's button, and the floating one once the hero has scrolled away (D60).

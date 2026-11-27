@@ -59,8 +59,10 @@ const publisher = publisherOf(item.source, host);
     </summary>
     <p class="story-summary">{item.summary}</p>
     <div class="story-actions">
-      {/* The way to the story itself, in a new tab: the publisher's name, underlined. The new tab
-           is said, not shown. A story whose address must not become a link gets none. */}
+      {/* The way to the story itself, in a new tab. The words are short and the same for every
+           story: beside three 44px controls a long publisher's name was cut to "Read at Interface …"
+           on a phone, and the name already stands under the headline. The name and the new tab are
+           said, not shown. A story whose address must not become a link gets none. */}
       {
         host && (
           <Link
@@ -71,8 +73,8 @@ const publisher = publisherOf(item.source, host);
             rel="noopener noreferrer"
             title={publisher ?? undefined}
           >
-            Read at {publisher}
-            <span class="sr-only">(opens in a new tab)</span>
+            Read the source
+            <span class="sr-only">at {publisher} (opens in a new tab)</span>
           </Link>
         )
       }
